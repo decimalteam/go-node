@@ -15,6 +15,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	app "bitbucket.org/decimalteam/go-node/app"
+	"bitbucket.org/decimalteam/go-node/cmd/decd/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -32,9 +33,9 @@ func main() {
 	cdc := app.MakeCodec()
 
 	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(sdk.Bech32PrefixAccAddr, sdk.Bech32PrefixAccPub)
-	config.SetBech32PrefixForValidator(sdk.Bech32PrefixValAddr, sdk.Bech32PrefixValPub)
-	config.SetBech32PrefixForConsensusNode(sdk.Bech32PrefixConsAddr, sdk.Bech32PrefixConsPub)
+	config.SetBech32PrefixForAccount(types.Bech32PrefixAccAddr, types.Bech32PrefixAccPub)
+	config.SetBech32PrefixForValidator(types.Bech32PrefixValAddr, types.Bech32PrefixValPub)
+	config.SetBech32PrefixForConsensusNode(types.Bech32PrefixConsAddr, types.Bech32PrefixConsPub)
 	config.Seal()
 
 	ctx := server.NewDefaultContext()
