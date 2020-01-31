@@ -2,6 +2,7 @@ package coin
 
 import (
 	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -74,14 +75,16 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper Keeper
+	keeper        Keeper
+	accountKeeper auth.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper) AppModule {
+func NewAppModule(k Keeper, accountKeeper auth.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
+		accountKeeper:  accountKeeper,
 	}
 }
 

@@ -1,0 +1,21 @@
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+allFiredEvents
+scTopics
+
+# local env variables
+.env
+
+# build directory
+build/
+
+# lol macs
+.DS_Store/
+
+.idea

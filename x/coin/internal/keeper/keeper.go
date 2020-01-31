@@ -2,8 +2,9 @@ package keeper
 
 import (
 	"fmt"
-
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/tendermint/tendermint/libs/log"
+	"strings"
 
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,19 +13,21 @@ import (
 
 // Keeper of the coin store
 type Keeper struct {
-	storeKey   sdk.StoreKey
-	cdc        *codec.Codec
-	paramspace types.ParamSubspace
-	codespace  sdk.CodespaceType
+	storeKey      sdk.StoreKey
+	cdc           *codec.Codec
+	paramspace    types.ParamSubspace
+	codespace     sdk.CodespaceType
+	AccountKeeper auth.AccountKeeper
 }
 
 // NewKeeper creates a coin keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, codespace sdk.CodespaceType) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, codespace sdk.CodespaceType, accountKeeper auth.AccountKeeper) Keeper {
 	keeper := Keeper{
-		storeKey:   key,
-		cdc:        cdc,
-		paramspace: paramspace.WithKeyTable(types.ParamKeyTable()),
-		codespace:  codespace,
+		storeKey:      key,
+		cdc:           cdc,
+		paramspace:    paramspace.WithKeyTable(types.ParamKeyTable()),
+		codespace:     codespace,
+		AccountKeeper: accountKeeper,
 	}
 	return keeper
 }
@@ -59,3 +62,13 @@ func (k Keeper) GetCoinsIterator(ctx sdk.Context) sdk.Iterator {
 	return sdk.KVStorePrefixIterator(store, []byte(types.CoinPrefix))
 }
 
+func (k Keeper) AddCoin(ctx sdk.Context, coinSymbol string, amount sdk.Int, address sdk.AccAddress) error {
+	acc := k.AccountKeeper.GetAccount(ctx, address)
+	err := acc.SetCoins(acc.GetCoins().Add(sdk.Coins{sdk.NewCoin(strings.ToLower(coinSymbol), amount)}))
+	// TODO: Better error handling
+	if err == nil {
+		//return sdk.NewError(types.DefaultCodespace, types.)
+	}
+	k.AccountKeeper.SetAccount(ctx, acc)
+	return nil
+}

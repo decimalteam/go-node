@@ -10,7 +10,7 @@ import (
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.ValidatorUpdate {
 
-	// TODO: Define logic for when you would like to initalize a new genesis
+	// TODO: Create DEU coin
 
 	return []abci.ValidatorUpdate{}
 }
