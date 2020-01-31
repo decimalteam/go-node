@@ -37,6 +37,5 @@ type (
 	CodeType     = types.CodeType
 	GenesisState = types.GenesisState
 	Params       = types.Params
-
-	// TODO: Fill out module types
+	Coin         = types.Coin
 )

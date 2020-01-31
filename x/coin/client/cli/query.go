@@ -58,11 +58,11 @@ func GetCmdGetCoin(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "Returns coin information by symbol",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			solutionHash := args[0]
+			symbol := args[0]
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryGetCoin, solutionHash), nil)
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryGetCoin, symbol), nil)
 			if err != nil {
-				fmt.Printf("could not resolve scavenge %s \n%s\n", solutionHash, err.Error())
+				fmt.Printf("could not resolve coin %s \n%s\n", symbol, err.Error())
 
 				return nil
 			}

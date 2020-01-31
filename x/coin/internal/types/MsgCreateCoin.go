@@ -9,24 +9,24 @@ import (
 var _ sdk.Msg = &MsgCreateCoin{}
 
 type MsgCreateCoin struct {
-	Creator              sdk.AccAddress `json:"creator" yams:"creator"`
+	Creator              sdk.AccAddress `json:"creator" yaml:"creator"`
 	Title                string         `json:"title" yaml:"title"`                                   // Full coin title (Bitcoin)
 	ConstantReserveRatio uint           `json:"constant_reserve_ratio" yaml:"constant_reserve_ratio"` // between 10 and 100
 	Symbol               string         `json:"symbol" yaml:"symbol"`                                 // Short coin title (BTC)
-	InitialAmount        sdk.Int        `json:"initial_amount" yaml:"initial_amount"`
+	InitialVolume        sdk.Int        `json:"initial_volume" yaml:"initial_volume"`
 	InitialReserve       sdk.Int        `json:"initial_reserve" yaml:"initial_reserve"`
-	LimitAmount          sdk.Int        `json:"limit_amount" yaml:"limit_amount"` // How many coins can be issued
+	LimitVolume          sdk.Int        `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
 }
 
-func NewMsgCreateCoin(title string, crr uint, symbol string, initAmount sdk.Int, initReserve sdk.Int, limitAmount sdk.Int, creator sdk.AccAddress) MsgCreateCoin {
+func NewMsgCreateCoin(title string, crr uint, symbol string, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int, creator sdk.AccAddress) MsgCreateCoin {
 	return MsgCreateCoin{
 		Creator:              creator,
 		Title:                title,
 		ConstantReserveRatio: crr,
 		Symbol:               symbol,
-		InitialAmount:        initAmount,
+		InitialVolume:        initVolume,
 		InitialReserve:       initReserve,
-		LimitAmount:          limitAmount,
+		LimitVolume:          limitVolume,
 	}
 }
 
@@ -63,13 +63,13 @@ func (msg MsgCreateCoin) ValidateBasic() sdk.Error {
 	if match, _ := regexp.MatchString(allowedCoinSymbols, msg.Symbol); !match {
 		return sdk.NewError(DefaultCodespace, InvalidCoinSymbol, fmt.Sprintf("Invalid coin symbol. Should be %s", allowedCoinSymbols))
 	}
-	// Check coin initial amount to be correct
-	if msg.InitialAmount.LT(minCoinSupply) || msg.InitialAmount.GT(maxCoinSupply) {
-		return sdk.NewError(DefaultCodespace, InvalidCoinInitAmount, fmt.Sprintf("Coin initial amount should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), msg.InitialAmount.String()))
+	// Check coin initial volume to be correct
+	if msg.InitialVolume.LT(minCoinSupply) || msg.InitialVolume.GT(maxCoinSupply) {
+		return sdk.NewError(DefaultCodespace, InvalidCoinInitVolume, fmt.Sprintf("Coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), msg.InitialVolume.String()))
 	}
 	// Check coin initial reserve to be correct
 	if msg.InitialReserve.LT(minCoinReserve) {
-		return sdk.NewError(DefaultCodespace, InvalidCoinInitReserve, fmt.Sprintf("Coin reserve should be greater than or equal to %s", minCoinReserve.String()))
+		return sdk.NewError(DefaultCodespace, InvalidCoinInitReserve, fmt.Sprintf("Coin initial reserve should be greater than or equal to %s", minCoinReserve.String()))
 	}
 	return nil
 }

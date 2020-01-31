@@ -12,5 +12,5 @@ const (
 
 	QuerierRoute = ModuleName
 
-	CoinPrefix   = "coin-"
+	CoinPrefix = "coin-"
 )
