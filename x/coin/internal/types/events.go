@@ -4,6 +4,7 @@ package types
 const (
 	EventTypeCreateCoin = "CreateCoin"
 	EventTypeBuyCoin    = "BuyCoin"
+	EventTypeSellCoin   = "SellCoin"
 	// Create Coin
 	AttributeSymbol      = "symbol"
 	AttributeTitle       = "title"
@@ -12,11 +13,13 @@ const (
 	AttributeInitReserve = "initReserve"
 	AttributeLimitVolume = "limitVolume"
 
-	// Buy Coin
+	// Buy/Sell Coin
 	AttributeCoinToBuy       = "coinToBuy"
 	AttributeCoinToSell      = "coinToSell"
 	AttributeAmountToBuy     = "amountToBuy"
 	AttributeMaxAmountToSell = "maxAmountToSell"
+	AttributeAmountToSell    = "amountToSell"
+	AttributeMinAmountToBuy  = "minAmountToBuy"
 
 	AttributeValueCategory = ModuleName
 )

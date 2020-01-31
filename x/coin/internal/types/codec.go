@@ -8,6 +8,7 @@ import (
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgCreateCoin{}, "coin/CreateCoin", nil)
 	cdc.RegisterConcrete(MsgBuyCoin{}, "coin/BuyCoin", nil)
+	cdc.RegisterConcrete(MsgSellCoin{}, "coin/SellCoin", nil)
 }
 
 // ModuleCdc defines the module codec
