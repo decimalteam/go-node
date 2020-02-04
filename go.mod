@@ -10,7 +10,7 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/onsi/ginkgo v1.8.0 // indirect
-	github.com/onsi/gomega v1.5.0
+	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/pelletier/go-toml v1.5.0 // indirect
 	github.com/prometheus/common v0.6.0 // indirect
 	github.com/prometheus/procfs v0.0.3 // indirect
