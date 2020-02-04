@@ -7,10 +7,10 @@ const (
 	// Change this params
 	ChainID = "decimal-testnet"
 
-	TitleTestBaseCoin  = "tDCL"
-	SymbolTestBaseCoin = "Test decimal coin"
-	TitleBaseCoin      = "DCL"
-	SymbolBaseCoin     = "Decimal coin"
+	TitleTestBaseCoin  = "Test decimal coin"
+	SymbolTestBaseCoin = "tDCL"
+	TitleBaseCoin      = "Decimal coin"
+	SymbolBaseCoin     = "DCL"
 )
 
 var (
@@ -24,8 +24,8 @@ type Config struct {
 	InitialVolumeBaseCoin sdk.Int `json:"initial_volume" yaml:"initial_volume"`
 }
 
-func DefaultConfig(cnf *Config) *Config {
-	if ChainID == "testnet" {
+func (cnf *Config) GetDefaultConfig(chainId string) *Config {
+	if chainId == "decimal-testnet" {
 		cnf.TitleBaseCoin = TitleTestBaseCoin
 		cnf.SymbolBaseCoin = SymbolTestBaseCoin
 		cnf.InitialVolumeBaseCoin = InitialVolumeTestBaseCoin
@@ -36,5 +36,4 @@ func DefaultConfig(cnf *Config) *Config {
 		cnf.InitialVolumeBaseCoin = InitialVolumeBaseCoin
 		return cnf
 	}
-
 }

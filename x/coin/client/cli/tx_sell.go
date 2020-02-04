@@ -15,7 +15,7 @@ import (
 
 func GetCmdSellCoin(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "sell [coinToSell] [zmountToSell] [coinToBuy] [minAmountToBuy]",
+		Use:   "sell [coinToSell] [amountToSell] [coinToBuy] [minAmountToBuy]",
 		Short: "Sell coin",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {

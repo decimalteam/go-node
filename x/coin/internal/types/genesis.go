@@ -44,7 +44,7 @@ func ValidateGenesis(data GenesisState) error {
 	}
 	// Check coin initial volume to be correct
 	if data.InitialVolume.LT(minCoinSupply) || data.InitialVolume.GT(maxCoinSupply) {
-		return sdk.NewError(DefaultCodespace, InvalidCoinInitVolume, fmt.Sprintf("Coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), msg.InitialVolume.String()))
+		return sdk.NewError(DefaultCodespace, InvalidCoinInitVolume, fmt.Sprintf("Coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), data.InitialVolume.String()))
 	}
 	return nil
 }
