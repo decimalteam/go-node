@@ -15,6 +15,9 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgCreateCoin(ctx, k, msg)
 		case types.MsgBuyCoin:
 			return handleMsgBuyCoin(ctx, k, msg)
+		case types.MsgSellCoin:
+			return handleMsgSellCoin(ctx, k, msg)
+
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -52,7 +55,9 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) sdk
 }
 
 func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) sdk.Result {
-	_ = k.AddCoin(ctx, msg.CoinToBuy, msg.AmountToBuy, msg.Buyer)
+	// TODO: formulas
+	k.UpdateBalance(ctx, msg.CoinToBuy, msg.AmountToBuy, msg.Buyer)
+	k.UpdateBalance(ctx, msg.CoinToSell, msg.MaximumAmountToSell.Neg(), msg.Buyer)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -62,6 +67,25 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) sdk.Resul
 			sdk.NewAttribute(types.AttributeCoinToSell, msg.CoinToSell),
 			sdk.NewAttribute(types.AttributeAmountToBuy, msg.AmountToBuy.String()),
 			sdk.NewAttribute(types.AttributeMaxAmountToSell, msg.MaximumAmountToSell.String()),
+		),
+	)
+
+	return sdk.Result{Events: ctx.EventManager().Events()}
+}
+
+func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin) sdk.Result {
+	// TODO: formulas
+	k.UpdateBalance(ctx, msg.CoinToBuy, msg.MinimumAmountToBuy, msg.Seller)
+	k.UpdateBalance(ctx, msg.CoinToSell, msg.AmountToSell.Neg(), msg.Seller)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeSellCoin),
+			sdk.NewAttribute(types.AttributeCoinToBuy, msg.CoinToBuy),
+			sdk.NewAttribute(types.AttributeCoinToSell, msg.CoinToSell),
+			sdk.NewAttribute(types.AttributeMinAmountToBuy, msg.MinimumAmountToBuy.String()),
+			sdk.NewAttribute(types.AttributeAmountToSell, msg.AmountToSell.String()),
 		),
 	)
 

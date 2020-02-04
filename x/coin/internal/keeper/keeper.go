@@ -62,13 +62,28 @@ func (k Keeper) GetCoinsIterator(ctx sdk.Context) sdk.Iterator {
 	return sdk.KVStorePrefixIterator(store, []byte(types.CoinPrefix))
 }
 
-func (k Keeper) AddCoin(ctx sdk.Context, coinSymbol string, amount sdk.Int, address sdk.AccAddress) error {
+// Updating balances
+func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int, address sdk.AccAddress) {
+	// Get account instance
 	acc := k.AccountKeeper.GetAccount(ctx, address)
-	err := acc.SetCoins(acc.GetCoins().Add(sdk.Coins{sdk.NewCoin(strings.ToLower(coinSymbol), amount)}))
-	// TODO: Better error handling
-	if err == nil {
-		//return sdk.NewError(types.DefaultCodespace, types.)
+	// Get account coins information
+	coins := acc.GetCoins()
+	isNeg := amount.IsNegative()
+	updAmount := sdk.NewInt(0)
+	// Converting amount TODO: use Abs of int
+	if isNeg {
+		updAmount = amount.Neg()
+	} else {
+		updAmount = amount
 	}
+	updCoin := sdk.Coins{sdk.NewCoin(strings.ToLower(coinSymbol), updAmount)}
+	// Updating coin information
+	if isNeg {
+		coins = coins.Sub(updCoin)
+	} else {
+		coins = coins.Add(updCoin)
+	}
+	_ = acc.SetCoins(coins)
+	// Update account information
 	k.AccountKeeper.SetAccount(ctx, acc)
-	return nil
 }
