@@ -194,6 +194,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coinSubspace,
 		coin.DefaultCodespace,
 		app.accountKeeper,
+		app.bankKeeper,
 	)
 
 	// TODO: Add your module(s) keepers

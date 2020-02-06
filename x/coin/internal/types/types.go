@@ -28,21 +28,3 @@ func (c Coin) String() string {
 func (c Coin) IsBase() bool {
 	return c.Symbol == "DEU"
 }
-
-//func (c Coin) UnmarshalJSON(bz []byte) error {
-//	var alias Coin
-//
-//	err := json.Unmarshal(bz, &alias)
-//	if err != nil {
-//		return err
-//	}
-//
-//	c.Volume = alias.Volume
-//	c.Symbol = alias.Symbol
-//	c.Title = alias.Title
-//	c.ConstantReserveRatio = alias.ConstantReserveRatio
-//	c.Reserve = alias.Reserve
-//	c.LimitVolume = alias.LimitVolume
-//
-//	return nil
-//}

@@ -9,7 +9,7 @@ import (
 // Check if coin exists
 func ExistsCoin(cliCtx client.CLIContext, symbol string) (bool, error) {
 	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types.ModuleName, types.QueryGetCoin, symbol), nil)
-	if err != nil {
+	if err == nil {
 		return res != nil, nil
 	} else {
 		return false, err

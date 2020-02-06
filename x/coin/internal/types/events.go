@@ -2,9 +2,11 @@ package types
 
 // coin module event types
 const (
-	EventTypeCreateCoin = "CreateCoin"
-	EventTypeBuyCoin    = "BuyCoin"
-	EventTypeSellCoin   = "SellCoin"
+	EventTypeCreateCoin    = "CreateCoin"
+	EventTypeBuyCoin       = "BuyCoin"
+	EventTypeSellCoin      = "SellCoin"
+	EventTypeSendCoin      = "SendCoin"
+	EventTypeMultiSendCoin = "MultiSendCoin"
 	// Create Coin
 	AttributeSymbol      = "symbol"
 	AttributeTitle       = "title"
@@ -20,6 +22,11 @@ const (
 	AttributeMaxAmountToSell = "maxAmountToSell"
 	AttributeAmountToSell    = "amountToSell"
 	AttributeMinAmountToBuy  = "minAmountToBuy"
+
+	// Send/MultiSend Coin
+	AttributeCoin     = "coin"
+	AttributeAmount   = "amount"
+	AttributeReceiver = "receiver"
 
 	AttributeValueCategory = ModuleName
 )
