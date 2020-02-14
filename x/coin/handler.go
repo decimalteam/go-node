@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strings"
 )
 
 // NewHandler creates an sdk.Handler for all the coin type messages
@@ -17,6 +18,10 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgBuyCoin(ctx, k, msg)
 		case types.MsgSellCoin:
 			return handleMsgSellCoin(ctx, k, msg)
+		case types.MsgSendCoin:
+			return handleMsgSendCoin(ctx, k, msg)
+		case types.MsgMultiSendCoin:
+			return handleMsgMultiSendCoin(ctx, k, msg)
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
@@ -90,4 +95,41 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin) sdk.Res
 	)
 
 	return sdk.Result{Events: ctx.EventManager().Events()}
+}
+
+func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) sdk.Result {
+	// TODO: commission
+	_ = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coin), msg.Amount)})
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeSendCoin),
+			sdk.NewAttribute(types.AttributeCoin, msg.Coin),
+			sdk.NewAttribute(types.AttributeAmount, msg.Amount.String()),
+			sdk.NewAttribute(types.AttributeReceiver, string(msg.Receiver)),
+		),
+	)
+
+	return sdk.Result{Events: ctx.EventManager().Events()}
+}
+
+// TODO: add it (don't know how to add it to cli)
+func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoin) sdk.Result {
+	for i := range msg.Coins {
+		// TODO: Commission
+		_ = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Coins[i].Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coins[i].Coin), msg.Coins[i].Amount)})
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+				sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeMultiSendCoin),
+				sdk.NewAttribute(types.AttributeCoin, msg.Coins[i].Coin),
+				sdk.NewAttribute(types.AttributeAmount, msg.Coins[i].Amount.String()),
+				sdk.NewAttribute(types.AttributeReceiver, string(msg.Coins[i].Receiver)),
+			),
+		)
+	}
+	return sdk.Result{Events: ctx.EventManager().Events()}
+
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 )
 
+// Returns account for given address if exists
 func GetAccount(cliCtx ctx.CLIContext, addr sdk.AccAddress) (exported.Account, error) {
 	ar := auth.NewAccountRetriever(cliCtx)
 	account, _, err := ar.GetAccountWithHeight(addr)

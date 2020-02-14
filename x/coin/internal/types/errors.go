@@ -20,9 +20,12 @@ const (
 	InvalidCoinInitReserve CodeType = 107
 	CodeInvalid            CodeType = 108
 
-	// Buy Coin
+	// Buy/Sell Coin
 	SameCoins              CodeType = 109
 	CoinToBuyNotExists     CodeType = 110
 	CoinToSellNotExists    CodeType = 111
 	InsufficientCoinToSell CodeType = 112
+
+	// Send Coin
+	InvalidAmount CodeType = 113
 )

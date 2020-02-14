@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/tendermint/tendermint/libs/log"
 	"strings"
 
@@ -18,16 +19,18 @@ type Keeper struct {
 	paramspace    types.ParamSubspace
 	codespace     sdk.CodespaceType
 	AccountKeeper auth.AccountKeeper
+	BankKeeper    bank.Keeper
 }
 
 // NewKeeper creates a coin keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, codespace sdk.CodespaceType, accountKeeper auth.AccountKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, codespace sdk.CodespaceType, accountKeeper auth.AccountKeeper, coinKeeper bank.Keeper) Keeper {
 	keeper := Keeper{
 		storeKey:      key,
 		cdc:           cdc,
 		paramspace:    paramspace.WithKeyTable(types.ParamKeyTable()),
 		codespace:     codespace,
 		AccountKeeper: accountKeeper,
+		BankKeeper:    coinKeeper,
 	}
 	return keeper
 }
@@ -62,6 +65,15 @@ func (k Keeper) GetCoinsIterator(ctx sdk.Context) sdk.Iterator {
 	return sdk.KVStorePrefixIterator(store, []byte(types.CoinPrefix))
 }
 
+// Returns integer abs
+func Abs(x sdk.Int) sdk.Int {
+	if x.IsNegative() {
+		return x.Neg()
+	} else {
+		return x
+	}
+}
+
 // Updating balances
 func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int, address sdk.AccAddress) {
 	// Get account instance
@@ -69,13 +81,7 @@ func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int
 	// Get account coins information
 	coins := acc.GetCoins()
 	isNeg := amount.IsNegative()
-	updAmount := sdk.NewInt(0)
-	// Converting amount TODO: use Abs of int
-	if isNeg {
-		updAmount = amount.Neg()
-	} else {
-		updAmount = amount
-	}
+	updAmount := Abs(amount)
 	updCoin := sdk.Coins{sdk.NewCoin(strings.ToLower(coinSymbol), updAmount)}
 	// Updating coin information
 	if isNeg {
@@ -83,6 +89,7 @@ func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int
 	} else {
 		coins = coins.Add(updCoin)
 	}
+	// Update coin information
 	_ = acc.SetCoins(coins)
 	// Update account information
 	k.AccountKeeper.SetAccount(ctx, acc)
