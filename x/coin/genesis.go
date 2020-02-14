@@ -1,7 +1,6 @@
 package coin
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -11,9 +10,9 @@ import (
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.ValidatorUpdate {
 	var coin = types.Coin{
-		Title:  config.TitleBaseCoin,
-		Symbol: config.SymbolBaseCoin,
-		Volume: config.InitialVolumeBaseCoin,
+		Title:  k.Config.TitleBaseCoin,
+		Symbol: k.Config.SymbolBaseCoin,
+		Volume: k.Config.InitialVolumeBaseCoin,
 	}
 	k.SetCoin(ctx, coin)
 	return []abci.ValidatorUpdate{}
@@ -22,5 +21,5 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis
 func ExportGenesis(ctx sdk.Context, k Keeper) (data types.GenesisState) {
 	// TODO: Define logic for exporting state
-	return types.NewGenesisState("Decimal Coin", "CDL", sdk.NewInt(1000000000000))
+	return types.NewGenesisState(k.Config.TitleBaseCoin, k.Config.SymbolBaseCoin, k.Config.InitialVolumeBaseCoin)
 }

@@ -3,9 +3,9 @@ package config
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 const (
-
 	// Change this params
-	ChainID = "decimal-testnet"
+	ChainID = "decimal"
+	//
 
 	TitleTestBaseCoin  = "Test decimal coin"
 	SymbolTestBaseCoin = "tDCL"
@@ -14,7 +14,7 @@ const (
 )
 
 var (
-	InitialVolumeTestBaseCoin = sdk.NewInt(1000000000000)
+	InitialVolumeTestBaseCoin = sdk.NewInt(250000000000)
 	InitialVolumeBaseCoin     = sdk.NewInt(1000000000000)
 )
 
@@ -24,16 +24,19 @@ type Config struct {
 	InitialVolumeBaseCoin sdk.Int `json:"initial_volume" yaml:"initial_volume"`
 }
 
-func (cnf *Config) GetDefaultConfig(chainId string) *Config {
+func GetDefaultConfig(chainId string) *Config {
+	cnf := Config{}
 	if chainId == "decimal-testnet" {
 		cnf.TitleBaseCoin = TitleTestBaseCoin
 		cnf.SymbolBaseCoin = SymbolTestBaseCoin
 		cnf.InitialVolumeBaseCoin = InitialVolumeTestBaseCoin
-		return cnf
-	} else {
+		return &cnf
+	} else if chainId == "decimal" {
 		cnf.TitleBaseCoin = TitleBaseCoin
 		cnf.SymbolBaseCoin = SymbolBaseCoin
 		cnf.InitialVolumeBaseCoin = InitialVolumeBaseCoin
-		return cnf
+		return &cnf
+	} else {
+		return &cnf
 	}
 }

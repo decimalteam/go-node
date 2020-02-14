@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/config"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -20,10 +21,11 @@ type Keeper struct {
 	codespace     sdk.CodespaceType
 	AccountKeeper auth.AccountKeeper
 	BankKeeper    bank.Keeper
+	Config        *config.Config
 }
 
 // NewKeeper creates a coin keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, codespace sdk.CodespaceType, accountKeeper auth.AccountKeeper, coinKeeper bank.Keeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, codespace sdk.CodespaceType, accountKeeper auth.AccountKeeper, coinKeeper bank.Keeper, config *config.Config) Keeper {
 	keeper := Keeper{
 		storeKey:      key,
 		cdc:           cdc,
@@ -31,6 +33,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspac
 		codespace:     codespace,
 		AccountKeeper: accountKeeper,
 		BankKeeper:    coinKeeper,
+		Config:        config,
 	}
 	return keeper
 }

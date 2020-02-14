@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bitbucket.org/decimalteam/go-node/config"
 	"encoding/json"
 	"io"
 	"os"
@@ -109,6 +110,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
+	config := config.GetDefaultConfig(config.ChainID)
+
 	// Here you initialize your application with the store keys it requires
 	var app = &newApp{
 		BaseApp: bApp,
@@ -195,6 +198,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.DefaultCodespace,
 		app.accountKeeper,
 		app.bankKeeper,
+		config,
 	)
 
 	// TODO: Add your module(s) keepers
