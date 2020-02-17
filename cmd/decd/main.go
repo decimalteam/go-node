@@ -33,9 +33,9 @@ func main() {
 	cdc := app.MakeCodec()
 
 	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(types.Bech32PrefixAccAddr, types.Bech32PrefixAccPub)
-	config.SetBech32PrefixForValidator(types.Bech32PrefixValAddr, types.Bech32PrefixValPub)
-	config.SetBech32PrefixForConsensusNode(types.Bech32PrefixConsAddr, types.Bech32PrefixConsPub)
+	config.SetBech32PrefixForAccount(types.DecimalPrefixAccAddr, types.DecimalPrefixAccPub)
+	config.SetBech32PrefixForValidator(types.DecimalPrefixValAddr, types.DecimalPrefixValPub)
+	config.SetBech32PrefixForConsensusNode(types.DecimalPrefixConsAddr, types.DecimalPrefixConsPub)
 	config.Seal()
 
 	ctx := server.NewDefaultContext()

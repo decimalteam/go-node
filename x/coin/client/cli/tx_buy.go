@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
@@ -46,6 +47,10 @@ func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 				return sdk.NewError(types.DefaultCodespace, types.CoinToSellNotExists, fmt.Sprintf("Coin to sell with symbol %s does not exist", coinToSellSymbol))
 			}
 			// TODO: Validate limits and check if sufficient balance (formulas)
+
+			value := formulas.CalculatePurchaseReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.ConstantReserveRatio, amountToBuy)
+			fmt.Printf("(%v)\n", value)
+
 			// Get account balance
 			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
 			balance := acc.GetCoins()

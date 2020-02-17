@@ -4,7 +4,7 @@ import sdk "github.com/cosmos/cosmos-sdk/types"
 
 const (
 	// Change this params
-	ChainID = "decimal"
+	ChainID = "decimal-testnet"
 	//
 
 	TitleTestBaseCoin  = "Test decimal coin"
