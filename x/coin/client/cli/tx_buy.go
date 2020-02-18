@@ -29,13 +29,6 @@ func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 			var coinToSellSymbol = args[2]
 			var maxAmountToSell, _ = sdk.NewIntFromString(args[3])
 
-			// Do basic validating
-			msg := types.NewMsgBuyCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, amountToBuy, maxAmountToSell)
-			err := msg.ValidateBasic()
-			if err != nil {
-				return err
-			}
-
 			// Check if coin to buy exists
 			coinToBuy, _ := cliUtils.GetCoin(cliCtx, coinToBuySymbol)
 			if coinToBuy.Symbol != coinToBuySymbol {
@@ -48,8 +41,14 @@ func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 			}
 			// TODO: Validate limits and check if sufficient balance (formulas)
 
-			value := formulas.CalculatePurchaseReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.ConstantReserveRatio, amountToBuy)
-			fmt.Printf("(%v)\n", value)
+			valueBuy := formulas.CalculatePurchaseReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.ConstantReserveRatio, amountToBuy)
+
+			// Do basic validating
+			msg := types.NewMsgBuyCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, valueBuy, maxAmountToSell)
+			err := msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
 
 			// Get account balance
 			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
