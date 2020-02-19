@@ -14,7 +14,7 @@ const (
 )
 
 var (
-	InitialVolumeTestBaseCoin = sdk.NewInt(250000000000)
+	InitialVolumeTestBaseCoin = sdk.NewInt(10000)
 	InitialVolumeBaseCoin     = sdk.NewInt(1000000000000)
 )
 

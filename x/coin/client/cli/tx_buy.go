@@ -16,18 +16,17 @@ import (
 
 func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "buy [coinToBuy] [amountToBuy] [coinToSell] [maxAmountToSell]",
+		Use:   "buy [coinToBuy] [coinToSell] [amountToSell]",
 		Short: "Buy coin",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			var coinToBuySymbol = args[0]
-			var amountToBuy, _ = sdk.NewIntFromString(args[1])
 
-			var coinToSellSymbol = args[2]
-			var maxAmountToSell, _ = sdk.NewIntFromString(args[3])
+			var coinToSellSymbol = args[1]
+			var amountToSell, _ = sdk.NewIntFromString(args[2])
 
 			// Check if coin to buy exists
 			coinToBuy, _ := cliUtils.GetCoin(cliCtx, coinToBuySymbol)
@@ -41,10 +40,10 @@ func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 			}
 			// TODO: Validate limits and check if sufficient balance (formulas)
 
-			valueBuy := formulas.CalculatePurchaseReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.ConstantReserveRatio, amountToBuy)
+			valueSell := formulas.CalculatePurchaseReturn(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.ConstantReserveRatio, amountToSell)
 
 			// Do basic validating
-			msg := types.NewMsgBuyCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, valueBuy, maxAmountToSell)
+			msg := types.NewMsgBuyCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, valueSell, amountToSell)
 			err := msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -53,7 +52,7 @@ func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 			// Get account balance
 			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
 			balance := acc.GetCoins()
-			if balance.AmountOf(strings.ToLower(coinToSellSymbol)).LT(maxAmountToSell) {
+			if balance.AmountOf(strings.ToLower(coinToSellSymbol)).LT(amountToSell) {
 				return sdk.NewError(types.DefaultCodespace, types.InsufficientCoinToSell, "Not enough coin to sell")
 			}
 

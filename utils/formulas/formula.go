@@ -15,6 +15,7 @@ func newFloat(x float64) *big.Float {
 }
 
 // Return = supply * ((1 + deposit / reserve) ^ (crr / 100) - 1)
+// Рассчитывает сколько монет мы получим заплатив deposit DLC (Покупка формула 2)
 func CalculatePurchaseReturn(supply sdk.Int, reserve sdk.Int, crr uint, deposit sdk.Int) sdk.Int {
 	if deposit.Equal(sdk.NewInt(0)) {
 		return sdk.NewInt(0)
@@ -43,7 +44,9 @@ func CalculatePurchaseReturn(supply sdk.Int, reserve sdk.Int, crr uint, deposit 
 }
 
 // reversed function CalculatePurchaseReturn
-// deposit = reserve * (((wantReceive + supply) / supply)^(100/c) - 1)
+// deposit = reserve * (((wantReceive + supply) / supply)^(100 / crr) - 1)
+// Рассчитывает сколько DLC надо заплатить , чтобы получить wantReceive монет (Покупка)
+
 func CalculatePurchaseAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantReceive sdk.Int) sdk.Int {
 	if wantReceive.Equal(sdk.NewInt(0)) {
 		return sdk.NewInt(0)
@@ -72,6 +75,7 @@ func CalculatePurchaseAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantRece
 }
 
 // Return = reserve * (1 - (1 - sellAmount / supply) ^ (100 / crr))
+// Рассчитывает сколько DCL вы получите, если продадите sellAmount монет. (Продажа)
 func CalculateSaleReturn(supply sdk.Int, reserve sdk.Int, crr uint, sellAmount sdk.Int) sdk.Int {
 	// special case for 0 sell amount
 	if sellAmount.Equal(sdk.NewInt(0)) {
@@ -107,7 +111,9 @@ func CalculateSaleReturn(supply sdk.Int, reserve sdk.Int, crr uint, sellAmount s
 }
 
 // reversed function CalculateSaleReturn
-// -(-1 + (-(wantReceive - reserve)/reserve)^(1/crr)) * supply
+// -(-1 + (-(wantReceive - reserve)/reserve)^(crr / 100)) * supply
+// Рассчитывает сколько монет надо продать, чтобы получить wantReceive DCL. (Продажа 2)
+
 func CalculateSaleAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantReceive sdk.Int) sdk.Int {
 	if wantReceive.Equal(sdk.NewInt(0)) {
 		return sdk.NewInt(0)
@@ -127,10 +133,10 @@ func CalculateSaleAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantReceive 
 	res := newFloat(0).Sub(tWantReceive, tReserve)  // (wantReceive - reserve)
 	res.Neg(res)                                    // -(wantReceive - reserve)
 	res.Quo(res, tReserve)                          // -(wantReceive - reserve)/reserve
-	res = math.Pow(res, newFloat(float64(crr)/100)) // (-(wantReceive - reserve)/reserve)^(1/crr)
-	res.Add(res, newFloat(-1))                      // -1 + (-(wantReceive - reserve)/reserve)^(1/crr)
-	res.Neg(res)                                    // -(-1 + (-(wantReceive - reserve)/reserve)^(1/crr))
-	res.Mul(res, tSupply)                           // -(-1 + (-(wantReceive - reserve)/reserve)^(1/crr)) * supply
+	res = math.Pow(res, newFloat(float64(crr)/100)) // (-(wantReceive - reserve)/reserve)^(crr/100)
+	res.Add(res, newFloat(-1))                      // -1 + (-(wantReceive - reserve)/reserve)^(crr/100)
+	res.Neg(res)                                    // -(-1 + (-(wantReceive - reserve)/reserve)^(crr/100))
+	res.Mul(res, tSupply)                           // -(-1 + (-(wantReceive - reserve)/reserve)^(crr/100)) * supply
 
 	converted, _ := res.Int(nil)
 	result := sdk.NewIntFromBigInt(converted)

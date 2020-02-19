@@ -1,6 +1,8 @@
 package math
 
-import "math/big"
+import (
+	"math/big"
+)
 
 // Pow returns a big.Float representation of z**w. Precision is the same as the one
 // of the first argument. The function panics when z is negative.
