@@ -1,8 +1,6 @@
 package math
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"math"
 	"math/big"
 )
 
