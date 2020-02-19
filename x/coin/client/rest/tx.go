@@ -7,6 +7,11 @@ import (
 )
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+	r.HandleFunc("/coin/create", CoinCreateRequestHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/coin/send", CoinSendRequestHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/coin/sell", CoinSellRequestHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/coin/buy", CoinBuyRequestHandlerFn(cliCtx)).Methods("POST")
+
 	// r.HandleFunc(
 	// TODO: Define the Rest route ,
 	// Call the function which should be executed for this route),

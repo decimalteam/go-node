@@ -3,12 +3,11 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/log"
 
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // Keeper of the validator store

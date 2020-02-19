@@ -1,9 +1,5 @@
 package types
 
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
-
 // TODO: Describe your actions, these will implment the interface of `sdk.Msg`
 /*
 verify interface at compile time

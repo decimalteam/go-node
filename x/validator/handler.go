@@ -3,8 +3,8 @@ package validator
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // NewHandler creates an sdk.Handler for all the validator type messages

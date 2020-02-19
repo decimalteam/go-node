@@ -1,9 +1,9 @@
 package validator
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // InitGenesis initialize default parameters
