@@ -14,8 +14,8 @@ const (
 )
 
 var (
-	InitialVolumeTestBaseCoin = sdk.NewInt(10000)
-	InitialVolumeBaseCoin     = sdk.NewInt(1000000000000)
+	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("10000000000000000000000")
+	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("100000000000000000000000")
 )
 
 type Config struct {
