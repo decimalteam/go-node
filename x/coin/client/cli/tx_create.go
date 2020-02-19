@@ -34,6 +34,11 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 			var initVolume, _ = sdk.NewIntFromString(args[4])
 			var limitVolume, _ = sdk.NewIntFromString(args[5])
 
+			//price := formulas.CalculateSaleReturn(initVolume, initReserve, uint(crr), sdk.NewIntWithDecimal(1, 18))
+			//_price := big.NewFloat(0).SetInt(price.BigInt())
+			//_price = _price.Quo(_price, big.NewFloat(1000000000000000000))
+			//fmt.Printf("Цена: (%v) tCDL \n", _price)
+
 			msg := types.NewMsgCreateCoin(title, uint(crr), symbol, initVolume, initReserve, limitVolume, cliCtx.GetFromAddress())
 			err = msg.ValidateBasic()
 			if err != nil {

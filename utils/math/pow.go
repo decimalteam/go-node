@@ -1,6 +1,8 @@
 package math
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"math"
 	"math/big"
 )
 
@@ -39,3 +41,33 @@ func Pow(z *big.Float, w *big.Float) *big.Float {
 	return x.SetPrec(z.Prec())
 
 }
+
+//func PowInt(z sdk.Int, w sdk.Int) sdk.Int {
+//
+//	if z.Sign() < 0 {
+//		panic("Pow: negative base")
+//	}
+//
+//	// Pow(z, 0) = 1.0
+//	if w.Sign() == 0 {
+//		return sdk.NewInt(1)
+//	}
+//
+//	// Pow(z, 1) = z
+//	// Pow(+Inf, n) = +Inf
+//	if w.Equal(sdk.NewInt(1)) || math.IsInf(math.Inf(z.Sign()), 1) {
+//		return z
+//	}
+//
+//	// Pow(z, -w) = 1 / Pow(z, w)
+//	if w.Sign() < 0 {
+//		return sdk.NewInt(1).Quo(PowInt(z, w))
+//	}
+//
+//	// compute w**z as exp(z log(w))
+//	x := new(sdk.Int)
+//	logZ := Log(new(big.Float).Copy(z).SetPrec(z.Prec() + 64))
+//	x = w.Mul(logZ)
+//	x.
+//	return x
+//}
