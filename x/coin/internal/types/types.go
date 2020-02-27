@@ -24,7 +24,3 @@ func (c Coin) String() string {
 		Volume: %s
 	`, c.Title, c.ConstantReserveRatio, c.Symbol, c.Reserve.String(), c.LimitVolume.String(), c.Volume.String()))
 }
-
-func (c Coin) IsBase() bool {
-	return c.Symbol == "DEU"
-}

@@ -19,7 +19,7 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"bitbucket.org/decimalteam/go-node/app"
-	"bitbucket.org/decimalteam/go-node/cmd/deccli/types"
+	"bitbucket.org/decimalteam/go-node/config"
 	coincmd "bitbucket.org/decimalteam/go-node/x/coin/client/cli"
 )
 
@@ -29,11 +29,11 @@ func main() {
 	cdc := app.MakeCodec()
 
 	// Read in the configuration file for the sdk
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(types.DecimalPrefixAccAddr, types.DecimalPrefixAccPub)
-	config.SetBech32PrefixForValidator(types.DecimalPrefixValAddr, types.DecimalPrefixValPub)
-	config.SetBech32PrefixForConsensusNode(types.DecimalPrefixConsAddr, types.DecimalPrefixConsPub)
-	config.Seal()
+	_config := sdk.GetConfig()
+	_config.SetBech32PrefixForAccount(config.DecimalPrefixAccAddr, config.DecimalPrefixAccPub)
+	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
+	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
+	_config.Seal()
 
 	rootCmd := &cobra.Command{
 		Use:   "deccli",

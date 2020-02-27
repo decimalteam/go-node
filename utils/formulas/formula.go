@@ -14,10 +14,6 @@ func newFloat(x float64) *big.Float {
 	return big.NewFloat(x).SetPrec(precision)
 }
 
-func newIntPrec(x sdk.Int) sdk.Int {
-	return sdk.NewInt(x.Int64()).Mul(sdk.NewInt(precision))
-}
-
 // Return = supply * ((1 + deposit / reserve) ^ (crr / 100) - 1)
 // Рассчитывает сколько монет мы получим заплатив deposit DLC (Покупка формула 2)
 func CalculatePurchaseReturn(supply sdk.Int, reserve sdk.Int, crr uint, deposit sdk.Int) sdk.Int {
@@ -31,16 +27,6 @@ func CalculatePurchaseReturn(supply sdk.Int, reserve sdk.Int, crr uint, deposit 
 		return result.Quo(reserve)
 	}
 
-	//tSupply1 := newIntPrec(supply)
-	//tReserve1 := newIntPrec(reserve)
-	//tDeposit1 := newIntPrec(deposit)
-	//
-	//res1 := tDeposit1.Quo(reserve)                           // deposit * precision / reserve
-	//res1 = res1.Add(newIntPrec(sdk.NewInt(1)))            // 1 * precision  + (deposit * precision / reserve)
-	//res1 = math.PowInt(res1, sdk.NewInt(int64(crr / 100)))   // (1 * precision + (deposit * precision / reserve)) ^ (crr / 100)
-	//res1 = res1.Add(res1, newFloat(1))                       // ((1 + deposit / reserve) ^ (crr / 100) - 1)
-	//res.Mul(res, tSupply)                           // supply * ((1 + deposit / reserve) ^ (crr / 100) - 1)
-	//----------
 	tSupply := newFloat(0).SetInt(supply.BigInt())
 	tReserve := newFloat(0).SetInt(reserve.BigInt())
 	tDeposit := newFloat(0).SetInt(deposit.BigInt())
@@ -115,8 +101,9 @@ func CalculateSaleReturn(supply sdk.Int, reserve sdk.Int, crr uint, sellAmount s
 	res := newFloat(0).Quo(tSellAmount, tSupply)      // sellAmount / supply
 	res.Sub(newFloat(1), res)                         // (1 - sellAmount / supply)
 	res = math.Pow(res, newFloat(100/(float64(crr)))) // (1 - sellAmount / supply) ^ (100 / crr)
-	res.Sub(newFloat(1), res)                         // (1 - (1 - sellAmount / supply) ^ (1 / (crr / 100)))
-	res.Mul(res, tReserve)                            // reserve * (1 - (1 - sellAmount / supply) ^ (1 / (crr / 100)))
+	res64, _ := res.Float64()
+	res.Sub(newFloat(1), newFloat(res64)) // (1 - (1 - sellAmount / supply) ^ (1 / (crr / 100)))
+	res.Mul(res, tReserve)                // reserve * (1 - (1 - sellAmount / supply) ^ (1 / (crr / 100)))
 
 	converted, _ := res.Int(nil)
 	result := sdk.NewIntFromBigInt(converted)

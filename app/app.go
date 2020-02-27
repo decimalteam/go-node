@@ -2,7 +2,12 @@ package app
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
+	"crypto/ed25519"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"golang.org/x/crypto/sha3"
+	"hash"
 	"io"
 	"os"
 
@@ -294,10 +299,42 @@ func (app *newApp) LoadHeight(height int64) error {
 
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (app *newApp) ModuleAccountAddrs() map[string]bool {
+
+	publicKey, privateKey, _ := ed25519.GenerateKey(nil)
+	keccak256 := makeHasher(sha3.NewLegacyKeccak256())
+	add := make([]byte, 32)
+	keccak256(add, publicKey)
+	address := "0x" + hex.EncodeToString(add[len(add)-20:])
+
+	fmt.Printf("address: (%v) \n", address)
+	fmt.Printf("seed: (%v) \n", privateKey.Seed())
+	fmt.Printf("publicKeyString: (%v) \n", hex.EncodeToString(publicKey))
+	fmt.Printf("privateKey: (%v) \n", hex.EncodeToString(privateKey)[:64])
+
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
 	}
-
 	return modAccAddrs
+}
+
+type hasher func(dest []byte, data []byte)
+
+func makeHasher(h hash.Hash) hasher {
+	// sha3.state supports Read to get the sum, use it to avoid the overhead of Sum.
+	// Read alters the state but we reset the hash before every operation.
+	type readerHash interface {
+		hash.Hash
+		Read([]byte) (int, error)
+	}
+	rh, ok := h.(readerHash)
+	if !ok {
+		panic("can't find Read method on hash")
+	}
+	outputLen := rh.Size()
+	return func(dest []byte, data []byte) {
+		rh.Reset()
+		rh.Write(data)
+		rh.Read(dest[:outputLen])
+	}
 }

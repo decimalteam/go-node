@@ -3,6 +3,30 @@ package config
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 const (
+	DecimalMainPrefix = "dx"
+
+	// PrefixValidator is the prefix for validator keys
+	PrefixValidator = "val"
+	// PrefixConsensus is the prefix for consensus keys
+	PrefixConsensus = "cons"
+	// PrefixPublic is the prefix for public keys
+	PrefixPublic = "pub"
+	// PrefixOperator is the prefix for operator keys
+	PrefixOperator = "oper"
+
+	// DecimalPrefixAccAddr defines the Decimal prefix of an account's address
+	DecimalPrefixAccAddr = DecimalMainPrefix
+	// DecimalPrefixAccPub defines the Decimal prefix of an account's public key
+	DecimalPrefixAccPub = DecimalMainPrefix + PrefixPublic
+	// DecimalPrefixValAddr defines the Decimal prefix of a validator's operator address
+	DecimalPrefixValAddr = DecimalMainPrefix + PrefixValidator + PrefixOperator
+	// DecimalPrefixValPub defines the Decimal prefix of a validator's operator public key
+	DecimalPrefixValPub = DecimalMainPrefix + PrefixValidator + PrefixOperator + PrefixPublic
+	// DecimalPrefixConsAddr defines the Decimal prefix of a consensus node address
+	DecimalPrefixConsAddr = DecimalMainPrefix + PrefixValidator + PrefixConsensus
+	// DecimalPrefixConsPub defines the Decimal prefix of a consensus node public key
+	DecimalPrefixConsPub = DecimalMainPrefix + PrefixValidator + PrefixConsensus + PrefixPublic
+
 	// Change this params
 	ChainID = "decimal-testnet"
 	//
@@ -22,14 +46,14 @@ var (
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("100000000000000000000000")
 
 	// test params buy
-	//InitialReserveTestCoin, _ = sdk.NewIntFromString("120798840222697144373637")  //    120798.840222697144373637
-	//InitialVolumeTestCoin, _ = sdk.NewIntFromString("54363225921077956709926174")  //  54363225.921077956709926174
-	//CRRTestCoin = 88
+	InitialReserveTestCoin, _ = sdk.NewIntFromString("120798840222697144373637")   //    120798.840222697144373637
+	InitialVolumeTestCoin, _  = sdk.NewIntFromString("54363225921077956709926174") //  54363225.921077956709926174
+	CRRTestCoin               = 88
 
 	// test params sell
-	InitialReserveTestCoin, _ = sdk.NewIntFromString("86177720949431621141039204") //86177720.949431621141039204
-	InitialVolumeTestCoin, _  = sdk.NewIntFromString("19735598708313902262960810") //19735598.708313902262960810
-	CRRTestCoin               = 75
+	//InitialReserveTestCoin, _ = sdk.NewIntFromString("86177720949431621141039204") //86177720.949431621141039204
+	//InitialVolumeTestCoin, _  = sdk.NewIntFromString("19735598708313902262960810") //19735598.708313902262960810
+	//CRRTestCoin               = 75
 )
 
 type Config struct {

@@ -35,7 +35,7 @@ const maxCoinNameBytes = 64
 const allowedCoinSymbols = "^[A-Z0-9]{3,10}$"
 
 var minCoinSupply = sdk.NewInt(1)
-var maxCoinSupply, _ = sdk.NewIntFromString("1000000000000000000000000000000")
+var maxCoinSupply, _ = sdk.NewIntFromString("100000000000000000000000000000000000000000")
 
 var minCoinReserve = sdk.NewInt(10)
 

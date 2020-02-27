@@ -15,7 +15,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	app "bitbucket.org/decimalteam/go-node/app"
-	"bitbucket.org/decimalteam/go-node/cmd/decd/types"
+	"bitbucket.org/decimalteam/go-node/config"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -32,11 +32,11 @@ var invCheckPeriod uint
 func main() {
 	cdc := app.MakeCodec()
 
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(types.DecimalPrefixAccAddr, types.DecimalPrefixAccPub)
-	config.SetBech32PrefixForValidator(types.DecimalPrefixValAddr, types.DecimalPrefixValPub)
-	config.SetBech32PrefixForConsensusNode(types.DecimalPrefixConsAddr, types.DecimalPrefixConsPub)
-	config.Seal()
+	_config := sdk.GetConfig()
+	_config.SetBech32PrefixForAccount(config.DecimalPrefixAccAddr, config.DecimalPrefixAccPub)
+	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
+	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
+	_config.Seal()
 
 	ctx := server.NewDefaultContext()
 	cobra.EnableCommandSorting = false

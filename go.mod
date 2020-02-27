@@ -20,11 +20,12 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.4.0
+	github.com/syndtr/goleveldb v1.0.1-0.20190923125748-758128399b1d // indirect
 	github.com/tendermint/crypto v0.0.0-20190823183015-45b1026d81ae // indirect
 	github.com/tendermint/go-amino v0.15.1
 	github.com/tendermint/tendermint v0.32.7
 	github.com/tendermint/tm-db v0.2.0
-	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
+	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80 // indirect
 	golang.org/x/text v0.3.2 // indirect
 	google.golang.org/genproto v0.0.0-20190701230453-710ae3a149df // indirect

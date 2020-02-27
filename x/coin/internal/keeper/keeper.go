@@ -97,3 +97,7 @@ func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int
 	// Update account information
 	k.AccountKeeper.SetAccount(ctx, acc)
 }
+
+func (k Keeper) IsCoinBase(symbol string) bool {
+	return k.Config.SymbolBaseCoin == symbol
+}
