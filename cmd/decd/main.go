@@ -14,8 +14,8 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 
-	app "bitbucket.org/decimalteam/go-node/app"
-	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/app"
+	"bitbucket.org/decimalteam/go-node/cmd/decd/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
