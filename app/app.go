@@ -2,12 +2,10 @@ package app
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
-	"crypto/ed25519"
-	"encoding/hex"
+	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/crypto/sha3"
-	"hash"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"io"
 	"os"
 
@@ -31,6 +29,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/ethereum/go-ethereum/crypto"
+	"golang.org/x/crypto/sha3"
 )
 
 const appName = "decimal"
@@ -300,41 +300,30 @@ func (app *newApp) LoadHeight(height int64) error {
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (app *newApp) ModuleAccountAddrs() map[string]bool {
 
-	publicKey, privateKey, _ := ed25519.GenerateKey(nil)
-	keccak256 := makeHasher(sha3.NewLegacyKeccak256())
-	add := make([]byte, 32)
-	keccak256(add, publicKey)
-	address := "0x" + hex.EncodeToString(add[len(add)-20:])
+	// Получаем адрес и ключи формата Ed25519 (Ethereum)
+	privateKey, err := crypto.GenerateKey()
+	if err != nil {
+		panic(err)
+	}
+	privateKeyBytes := crypto.FromECDSA(privateKey)
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		panic(err)
+	}
+	publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
+	address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(publicKeyBytes[1:])
 
 	fmt.Printf("address: (%v) \n", address)
-	fmt.Printf("seed: (%v) \n", privateKey.Seed())
-	fmt.Printf("publicKeyString: (%v) \n", hex.EncodeToString(publicKey))
-	fmt.Printf("privateKey: (%v) \n", hex.EncodeToString(privateKey)[:64])
+	fmt.Printf("publicKey: (%v) \n", hexutil.Encode(hash.Sum(nil)[12:]))
+	//fmt.Printf("publicKeyBytes: (%v) \n", hexutil.Encode(publicKeyBytes)[4:])
+	fmt.Printf("privateKeyBytes: (%v) \n", hexutil.Encode(privateKeyBytes)[2:])
 
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
 	}
 	return modAccAddrs
-}
-
-type hasher func(dest []byte, data []byte)
-
-func makeHasher(h hash.Hash) hasher {
-	// sha3.state supports Read to get the sum, use it to avoid the overhead of Sum.
-	// Read alters the state but we reset the hash before every operation.
-	type readerHash interface {
-		hash.Hash
-		Read([]byte) (int, error)
-	}
-	rh, ok := h.(readerHash)
-	if !ok {
-		panic("can't find Read method on hash")
-	}
-	outputLen := rh.Size()
-	return func(dest []byte, data []byte) {
-		rh.Reset()
-		rh.Write(data)
-		rh.Read(dest[:outputLen])
-	}
 }

@@ -6,7 +6,8 @@ import (
 	"path"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/keys"
+	//"github.com/cosmos/cosmos-sdk/client/keys"
+
 	"github.com/cosmos/cosmos-sdk/client/lcd"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,6 +22,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/config"
 	coincmd "bitbucket.org/decimalteam/go-node/x/coin/client/cli"
+	"bitbucket.org/decimalteam/go-node/x/coin/client/cli/keys"
 )
 
 func main() {
@@ -30,6 +32,8 @@ func main() {
 
 	// Read in the configuration file for the sdk
 	_config := sdk.GetConfig()
+	_config.SetCoinType(60)
+	_config.SetFullFundraiserPath("44'/60'/0'/0/0")
 	_config.SetBech32PrefixForAccount(config.DecimalPrefixAccAddr, config.DecimalPrefixAccPub)
 	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
 	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)

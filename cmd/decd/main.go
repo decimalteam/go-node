@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bitbucket.org/decimalteam/go-node/config"
 	"encoding/json"
 	"io"
 
@@ -15,7 +16,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	"bitbucket.org/decimalteam/go-node/app"
-	"bitbucket.org/decimalteam/go-node/cmd/decd/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,6 +34,8 @@ func main() {
 	cdc := app.MakeCodec()
 
 	_config := sdk.GetConfig()
+	_config.SetCoinType(60)
+	_config.SetFullFundraiserPath("44'/60'/0'/0/0")
 	_config.SetBech32PrefixForAccount(config.DecimalPrefixAccAddr, config.DecimalPrefixAccPub)
 	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
 	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
