@@ -2,8 +2,9 @@ package keys
 
 import (
 	"bufio"
-	"crypto/ed25519"
 	"fmt"
+	"github.com/tendermint/tendermint/crypto/ed25519"
+	ed25519GL "golang.org/x/crypto/ed25519"
 	"os"
 	"reflect"
 	"strings"
@@ -180,10 +181,10 @@ func (kb *dbKeybase) persistDerivedKey(seed []byte, passwd, name, fullHdPath str
 	// if we have a password, use it to encrypt the private key and store it
 	// else store the public key only
 	if passwd != "" {
-		fmt.Printf("secp256k1: (%v) \n", secp256k1.PrivKeySecp256k1(derivedPriv))
-		priv, _, _ := ed25519.GenerateKey(nil)
-		fmt.Printf("ed25519: (%v) \n", priv)
-		info = kb.writeLocalKey(name, secp256k1.PrivKeySecp256k1(derivedPriv), passwd)
+		_, _privKey, _ := ed25519GL.GenerateKey(nil)
+		var privKey [64]byte
+		copy(privKey[:], _privKey)
+		info = kb.writeLocalKey(name, ed25519.PrivKeyEd25519(privKey), passwd)
 	} else {
 		pubk := secp256k1.PrivKeySecp256k1(derivedPriv).PubKey()
 		info = kb.writeOfflineKey(name, pubk)

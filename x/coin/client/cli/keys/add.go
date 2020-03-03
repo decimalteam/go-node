@@ -317,6 +317,7 @@ func printCreate(cmd *cobra.Command, info keys.Info, showMnemonic bool, mnemonic
 	case OutputFormatText:
 		cmd.PrintErrln()
 		//TODO "printKeyInfo(info, keys.Bech32KeyOutput)"
+		fmt.Printf("info: (%v) \n", info)
 		//printKeyInfo(info, keys.Bech32KeyOutput)
 
 		// print mnemonic unless requested not to.
@@ -327,6 +328,8 @@ func printCreate(cmd *cobra.Command, info keys.Info, showMnemonic bool, mnemonic
 			cmd.PrintErrln(mnemonic)
 		}
 	case OutputFormatJSON:
+		fmt.Printf("info: (%v) \n", info)
+		//TODO "printKeyInfo(info, keys.Bech32KeyOutput)"
 		out, err := keys.Bech32KeyOutput(info)
 		if err != nil {
 			return err
