@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
+	"bitbucket.org/decimalteam/go-node/utils/crypto/keys"
 )
 
 type testCases struct {

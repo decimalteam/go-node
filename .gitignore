@@ -14,7 +14,9 @@ scTopics
 
 # build directory
 build/
-.idea/
+
 # lol macs
 .DS_Store/
 
+.idea
+.idea/workspace.xml
