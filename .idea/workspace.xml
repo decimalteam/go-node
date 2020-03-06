@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="d8984580-29c4-420e-8eb3-03f993c59c1d" name="Default Changelist" comment="add crypto ed25519_">
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DatabaseView">
+    <option name="SHOW_INTERMEDIATE" value="true" />
+    <option name="GROUP_DATA_SOURCES" value="true" />
+    <option name="GROUP_SCHEMA" value="true" />
+    <option name="GROUP_CONTENTS" value="false" />
+    <option name="SORT_POSITIONED" value="false" />
+    <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
+    <option name="HIDDEN_KINDS">
+      <set />
+    </option>
+    <expand />
+    <select />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
+  </component>
+  <component name="GOROOT" path="/snap/go/5243" />
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="cryptoV1" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GoLibraries">
+    <option name="indexEntireGoPath" value="false" />
+  </component>
+  <component name="ProjectId" id="1X6txhPIFrEJJ91vhITZUlTNykO" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DefaultGoTemplateProperty" value="Go File" />
+    <property name="GO_FMT" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="go.import.settings.migrated" value="true" />
+    <property name="go.sdk.automatically.set" value="true" />
+    <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
+    <property name="last_opened_file_path" value="$USER_HOME$" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/utils/math" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/utils" />
+      <recent name="$PROJECT_DIR$/utils/formulas" />
+      <recent name="$PROJECT_DIR$/x/coin/internal" />
+      <recent name="$PROJECT_DIR$/cmd/deccli/types" />
+      <recent name="$PROJECT_DIR$/cmd/deccli" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Go Build.Daemon">
+    <configuration name="Daemon add genesis acc" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="go-node" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <parameters value="add-genesis-account Dx1hler27flg2vq62jfef6zttjyjglfkhxf84q0zy 1000000000000000deu,100000000stake" />
+      <kind value="DIRECTORY" />
+      <filePath value="$PROJECT_DIR$/" />
+      <package value="bitbucket.org/decimalteam/go-node" />
+      <directory value="$PROJECT_DIR$/cmd/decd" />
+      <output_directory value="$USER_HOME$/go/bin" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Daemon" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="go-node" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <parameters value="start" />
+      <kind value="DIRECTORY" />
+      <filePath value="$PROJECT_DIR$/" />
+      <package value="bitbucket.org/decimalteam/go-node" />
+      <directory value="$PROJECT_DIR$/cmd/decd" />
+      <output_directory value="$USER_HOME$/go/bin" />
+      <method v="2">
+        <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_start decimal" />
+      </method>
+    </configuration>
+    <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="go-node" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <kind value="DIRECTORY" />
+      <filePath value="$PROJECT_DIR$/" />
+      <package value="bitbucket.org/decimalteam/go-node" />
+      <directory value="$PROJECT_DIR$/cmd/decd" />
+      <method v="2" />
+    </configuration>
+    <configuration name="cli BUY" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="go-node" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <parameters value="tx coin buy CRT tDCL 37110000000000000000  --from tim" />
+      <kind value="DIRECTORY" />
+      <filePath value="$PROJECT_DIR$/" />
+      <package value="bitbucket.org/decimalteam/go-node" />
+      <directory value="$PROJECT_DIR$/cmd/deccli" />
+      <method v="2" />
+    </configuration>
+    <configuration name="cli CREATE coin (1)" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="go-node" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <parameters value="tx coin create DecimalLegacy DEU 71 123513351222222000000000000000000 681612612316000000000000000000 1000 --from tim" />
+      <kind value="DIRECTORY" />
+      <filePath value="$PROJECT_DIR$/" />
+      <package value="bitbucket.org/decimalteam/go-node" />
+      <directory value="$PROJECT_DIR$/cmd/deccli" />
+      <method v="2" />
+    </configuration>
+    <configuration name="cli CREATE coin (2)" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="go-node" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <parameters value="tx coin create DecimalLegacy DEU 91 1261645656456533000000000000000000 13132159991417783000000000000000000 1000 --from tim" />
+      <kind value="DIRECTORY" />
+      <filePath value="$PROJECT_DIR$/" />
+      <package value="bitbucket.org/decimalteam/go-node" />
+      <directory value="$PROJECT_DIR$/cmd/deccli" />
+      <method v="2" />
+    </configuration>
+    <configuration name="cli CREATE coin (3)" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="go-node" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <parameters value="tx coin create DecimalLegacy DEU 65 133513351222222000000000000000000 751612612316000000000000000000 1000 --from tim" />
+      <kind value="DIRECTORY" />
+      <filePath value="$PROJECT_DIR$/" />
+      <package value="bitbucket.org/decimalteam/go-node" />
+      <directory value="$PROJECT_DIR$/cmd/deccli" />
+      <method v="2" />
+    </configuration>
+    <configuration name="cli CREATE coin (4)" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="go-node" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <parameters value="tx coin create DecimalLegacy DEU 43 233513351222222000000000000000000 1751612612316000000000000000000 1000 --from tim" />
+      <kind value="DIRECTORY" />
+      <filePath value="$PROJECT_DIR$/" />
+      <package value="bitbucket.org/decimalteam/go-node" />
+      <directory value="$PROJECT_DIR$/cmd/deccli" />
+      <method v="2" />
+    </configuration>
+    <configuration name="cli CREATE coin (5)" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="go-node" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <parameters value="tx coin create DecimalLegacy DEU 83 233513351222222000000000000000000 1751612612316000000000000000000 1000 --from tim" />
+      <kind value="DIRECTORY" />
+      <filePath value="$PROJECT_DIR$/" />
+      <package value="bitbucket.org/decimalteam/go-node" />
+      <directory value="$PROJECT_DIR$/cmd/deccli" />
+      <method v="2" />
+    </configuration>
+    <configuration name="cli CREATE coin" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="go-node" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <parameters value="tx coin create DecimalLegacy DEU 70 13871036603123280940971798 356700419543091882846056330 1000 --from tim" />
+      <kind value="DIRECTORY" />
+      <filePath value="$PROJECT_DIR$/" />
+      <package value="bitbucket.org/decimalteam/go-node" />
+      <directory value="$PROJECT_DIR$/cmd/deccli" />
+      <method v="2" />
+    </configuration>
+    <configuration name="cli SELL" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="go-node" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <parameters value="tx coin sell CRT 4380000000000000000 tDCL --from tim" />
+      <kind value="DIRECTORY" />
+      <filePath value="$PROJECT_DIR$/" />
+      <package value="bitbucket.org/decimalteam/go-node" />
+      <directory value="$PROJECT_DIR$/cmd/deccli" />
+      <method v="2" />
+    </configuration>
+    <configuration name="cli add account" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="go-node" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <parameters value="keys add tim" />
+      <kind value="DIRECTORY" />
+      <filePath value="$PROJECT_DIR$/" />
+      <package value="bitbucket.org/decimalteam/go-node" />
+      <directory value="$PROJECT_DIR$/cmd/deccli" />
+      <output_directory value="$USER_HOME$/go/bin" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Go Build.Daemon add genesis acc" />
+      <item itemvalue="Go Build.Daemon" />
+      <item itemvalue="Go Build.cli BUY" />
+      <item itemvalue="Go Build.cli CREATE coin (1)" />
+      <item itemvalue="Go Build.cli CREATE coin (2)" />
+      <item itemvalue="Go Build.cli CREATE coin (3)" />
+      <item itemvalue="Go Build.cli CREATE coin (4)" />
+      <item itemvalue="Go Build.cli CREATE coin (5)" />
+      <item itemvalue="Go Build.cli CREATE coin" />
+      <item itemvalue="Go Build.cli SELL" />
+      <item itemvalue="Go Build.cli add account" />
+    </list>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="change prefix address" />
+    <MESSAGE value="change genesis" />
+    <MESSAGE value="fix genesis" />
+    <MESSAGE value="add formula" />
+    <MESSAGE value="change formula" />
+    <MESSAGE value="fix formula sell / buy" />
+    <MESSAGE value="add price" />
+    <MESSAGE value="add info price" />
+    <MESSAGE value="change config" />
+    <MESSAGE value="add crypto" />
+    <MESSAGE value="add crypto ed25519" />
+    <MESSAGE value="add crypto ed25519_" />
+    <option name="LAST_COMMIT_MESSAGE" value="add crypto ed25519_" />
+  </component>
+  <component name="VgoProject">
+    <integration-enabled>true</integration-enabled>
+    <proxy>direct</proxy>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="317" y="200" width="1468" height="684" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1583223325880">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="317" y="200" width="1468" height="684" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583223325880" />
+    <state x="2338" y="190" key="#com.intellij.execution.impl.EditConfigurationsDialog/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580814211738" />
+    <state x="700" y="367" width="510" height="337" key="#com.intellij.tools.ToolEditorDialog" timestamp="1582087741521">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="700" y="367" width="510" height="337" key="#com.intellij.tools.ToolEditorDialog/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1582087741521" />
+    <state x="2620" y="363" width="510" height="337" key="#com.intellij.tools.ToolEditorDialog/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580811933453" />
+    <state x="188" y="132" width="1654" height="839" key="CommitChangelistDialog2" timestamp="1583490720384">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="188" y="132" width="1654" height="839" key="CommitChangelistDialog2/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490720384" />
+    <state x="2445" y="112" width="860" height="839" key="CommitChangelistDialog2/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580824640546" />
+    <state x="2617" y="296" width="515" height="472" key="EnvironmentVariablesDialog" timestamp="1580446554490">
+      <screen x="1920" y="0" width="1920" height="1080" />
+    </state>
+    <state x="2617" y="296" width="515" height="472" key="EnvironmentVariablesDialog/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580446554490" />
+    <state x="743" y="299" width="424" height="484" key="FileChooserDialogImpl" timestamp="1582889487037">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="743" y="299" key="FileChooserDialogImpl/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1582889487037" />
+    <state x="2663" y="290" width="424" height="484" key="FileChooserDialogImpl/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580821311194" />
+    <state width="1874" height="447" key="GridCell.Tab.0.bottom" timestamp="1583490906924">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state width="1874" height="447" key="GridCell.Tab.0.bottom/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490906924" />
+    <state width="1874" height="273" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580823814454" />
+    <state width="1874" height="447" key="GridCell.Tab.0.center" timestamp="1583490906924">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state width="1874" height="447" key="GridCell.Tab.0.center/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490906924" />
+    <state width="1874" height="273" key="GridCell.Tab.0.center/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580823814453" />
+    <state width="1874" height="447" key="GridCell.Tab.0.left" timestamp="1583490906924">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state width="1874" height="447" key="GridCell.Tab.0.left/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490906924" />
+    <state width="1874" height="273" key="GridCell.Tab.0.left/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580823814453" />
+    <state width="1874" height="447" key="GridCell.Tab.0.right" timestamp="1583490906924">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state width="1874" height="447" key="GridCell.Tab.0.right/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490906924" />
+    <state width="1874" height="273" key="GridCell.Tab.0.right/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580823814453" />
+    <state width="1172" height="645" key="GridCell.Tab.1.bottom" timestamp="1583490906919">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state width="1172" height="645" key="GridCell.Tab.1.bottom/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490906919" />
+    <state width="1874" height="273" key="GridCell.Tab.1.bottom/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580823814390" />
+    <state width="1172" height="645" key="GridCell.Tab.1.center" timestamp="1583490906919">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state width="1172" height="645" key="GridCell.Tab.1.center/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490906919" />
+    <state width="1874" height="273" key="GridCell.Tab.1.center/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580823814390" />
+    <state width="1172" height="645" key="GridCell.Tab.1.left" timestamp="1583490906919">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state width="1172" height="645" key="GridCell.Tab.1.left/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490906919" />
+    <state width="1874" height="273" key="GridCell.Tab.1.left/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580823814390" />
+    <state width="1172" height="645" key="GridCell.Tab.1.right" timestamp="1583490906919">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state width="1172" height="645" key="GridCell.Tab.1.right/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490906919" />
+    <state width="1874" height="273" key="GridCell.Tab.1.right/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580823814390" />
+    <state x="182" y="113" width="1536" height="839" key="MergeDialog" timestamp="1583490812732">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="182" y="113" width="1536" height="839" key="MergeDialog/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490812732" />
+    <state x="665" y="250" width="580" height="564" key="MultipleFileMergeDialog" timestamp="1583490812736">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="665" y="250" width="580" height="564" key="MultipleFileMergeDialog/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490812736" />
+    <state x="555" y="278" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1583223466399">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="555" y="278" width="800" height="528" key="Vcs.Push.Dialog.v2/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583223466399" />
+    <state x="2475" y="268" width="800" height="528" key="Vcs.Push.Dialog.v2/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580449588374" />
+    <state width="960" height="507" key="XDebugger.FullValuePopup" timestamp="1583487974556">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state width="960" height="507" key="XDebugger.FullValuePopup/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583487974556" />
+    <state x="100" y="144" width="1720" height="763" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1583487305370">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="100" y="144" width="1720" height="763" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583487305370" />
+    <state x="2020" y="125" width="1720" height="814" key="com.intellij.history.integration.ui.views.FileHistoryDialog/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580816106707" />
+    <state x="841" y="280" key="com.intellij.tools.ToolSelectDialog.dimensionServiceKey" timestamp="1582087742277">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="841" y="280" key="com.intellij.tools.ToolSelectDialog.dimensionServiceKey/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1582087742277" />
+    <state x="2761" y="270" key="com.intellij.tools.ToolSelectDialog.dimensionServiceKey/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580811934135" />
+    <state x="2759" y="186" width="920" height="522" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1580822679072">
+      <screen x="1920" y="0" width="1920" height="1080" />
+    </state>
+    <state x="2759" y="186" width="920" height="522" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580822679072" />
+    <state x="1938" y="0" width="1458" height="970" key="dock-window-1" timestamp="1583306107477">
+      <screen x="1920" y="0" width="1920" height="1080" />
+    </state>
+    <state x="1938" y="0" width="1458" height="970" key="dock-window-1/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583306107477" />
+    <state x="3840" y="0" width="1563" height="970" key="dock-window-1/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580808800897" />
+    <state x="1920" y="0" width="1484" height="828" key="dock-window-2" timestamp="1582801279137">
+      <screen x="1920" y="0" width="1920" height="1080" />
+    </state>
+    <state x="1920" y="0" width="1484" height="828" key="dock-window-2/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1582801279137" />
+    <state x="367" y="127" width="1389" height="814" key="find.popup" timestamp="1583482800925">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="367" y="127" width="1389" height="814" key="find.popup/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583482800925" />
+    <state x="364" y="127" width="1389" height="814" key="find.popup/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580824034082" />
+    <state x="686" y="246" width="537" height="572" key="git4idea.branch.GitSmartOperationDialog" timestamp="1583490781295">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="686" y="246" width="537" height="572" key="git4idea.branch.GitSmartOperationDialog/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490781295" />
+    <state x="708" y="332" width="503" height="387" key="git4idea.merge.GitMergeDialog" timestamp="1583491096022">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="708" y="332" width="503" height="387" key="git4idea.merge.GitMergeDialog/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583491096022" />
+    <state x="2628" y="325" width="493" height="413" key="git4idea.merge.GitMergeDialog/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580448749813" />
+    <state x="591" y="332" width="728" height="413" key="git4idea.merge.GitPullDialog" timestamp="1583306126082">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="591" y="332" width="728" height="413" key="git4idea.merge.GitPullDialog/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583306126082" />
+    <state x="2511" y="325" width="738" height="413" key="git4idea.merge.GitPullDialog/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580807957622" />
+    <state x="720" y="428" width="479" height="207" key="git4idea.ui.GitResetDialog" timestamp="1583306004241">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="720" y="428" width="479" height="207" key="git4idea.ui.GitResetDialog/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583306004241" />
+    <state x="705" y="151" width="500" height="761" key="refactoring.ChangeSignatureDialog" timestamp="1582889905035">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="705" y="151" width="500" height="761" key="refactoring.ChangeSignatureDialog/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1582889905035" />
+    <state x="623" y="247" width="672" height="678" key="search.everywhere.popup" timestamp="1582867224901">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="623" y="247" width="672" height="678" key="search.everywhere.popup/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1582867224901" />
+    <state x="685" y="446" width="540" height="172" key="vcs.readOnlyHandler.ReadOnlyStatusDialog" timestamp="1582888548221">
+      <screen x="0" y="27" width="1920" height="1012" />
+    </state>
+    <state x="685" y="446" width="540" height="172" key="vcs.readOnlyHandler.ReadOnlyStatusDialog/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1582888548221" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/go/pkg/mod/github.com/cosmos/cosmos-sdk@v0.37.4/crypto/keys/keybase.go</url>
+          <line>172</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/go/pkg/mod/github.com/cosmos/cosmos-sdk@v0.37.4/crypto/keys/keybase.go</url>
+          <line>173</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/go/pkg/mod/github.com/cosmos/cosmos-sdk@v0.37.4/crypto/keys/keybase.go</url>
+          <line>183</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/go/pkg/mod/github.com/cosmos/cosmos-sdk@v0.37.4/crypto/keys/keybase.go</url>
+          <line>184</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/go/pkg/mod/github.com/cosmos/cosmos-sdk@v0.37.4/crypto/keys/keybase.go</url>
+          <line>181</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/x/coin/client/cli/keys/add.go</url>
+          <line>356</line>
+          <option name="timeStamp" value="21" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/x/coin/client/cli/keys/add.go</url>
+          <line>332</line>
+          <option name="timeStamp" value="22" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/x/coin/client/cli/keys/add.go</url>
+          <line>297</line>
+          <option name="timeStamp" value="23" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/x/coin/client/cli/crypto/keys/keybase.go</url>
+          <line>126</line>
+          <option name="timeStamp" value="25" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
