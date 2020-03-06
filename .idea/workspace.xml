@@ -2,59 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d8984580-29c4-420e-8eb3-03f993c59c1d" name="Default Changelist" comment="add crypto ed25519">
-      <change afterPath="$PROJECT_DIR$/utils/keys/add.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/add_ledger_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/add_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/codec.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/codec_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/delete.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/delete_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/export.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/export_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/import.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/import_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/list.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/list_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/mnemonic.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/mnemonic_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/parse.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/parse_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/root.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/root_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/show.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/show_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/types.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/update.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/update_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/keys/utils.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/deccli/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/deccli/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/crypto/keys/keybase.go" beforeDir="false" afterPath="$PROJECT_DIR$/x/coin/client/cli/crypto/keys/keybase.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/crypto/keys/mintkey/mintkey_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/x/coin/client/cli/crypto/keys/mintkey/mintkey_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/add.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/add_ledger_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/add_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/codec.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/codec_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/delete.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/delete_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/export.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/export_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/import.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/import_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/list.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/list_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/mnemonic.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/mnemonic_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/parse.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/parse_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/root.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/root_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/show.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/show_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/types.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/update.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/update_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/x/coin/client/cli/keys/utils.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -334,10 +282,10 @@
     </state>
     <state x="700" y="367" width="510" height="337" key="#com.intellij.tools.ToolEditorDialog/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1582087741521" />
     <state x="2620" y="363" width="510" height="337" key="#com.intellij.tools.ToolEditorDialog/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580811933453" />
-    <state x="188" y="132" width="1654" height="839" key="CommitChangelistDialog2" timestamp="1583489893516">
+    <state x="188" y="132" width="1654" height="839" key="CommitChangelistDialog2" timestamp="1583490016569">
       <screen x="0" y="27" width="1920" height="1012" />
     </state>
-    <state x="188" y="132" width="1654" height="839" key="CommitChangelistDialog2/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583489893516" />
+    <state x="188" y="132" width="1654" height="839" key="CommitChangelistDialog2/0.27.1920.1012/1920.0.1920.1080@0.27.1920.1012" timestamp="1583490016569" />
     <state x="2445" y="112" width="860" height="839" key="CommitChangelistDialog2/1920.0.1920.1080/0.27.1920.1012/3840.0.1920.1080@1920.0.1920.1080" timestamp="1580824640546" />
     <state x="2617" y="296" width="515" height="472" key="EnvironmentVariablesDialog" timestamp="1580446554490">
       <screen x="1920" y="0" width="1920" height="1080" />
@@ -509,12 +457,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/utils/crypto/keys/output.go</url>
-          <line>117</line>
+          <line>110</line>
           <option name="timeStamp" value="34" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/utils/crypto/keys/output.go</url>
-          <line>120</line>
+          <line>118</line>
           <option name="timeStamp" value="36" />
         </line-breakpoint>
       </breakpoints>
