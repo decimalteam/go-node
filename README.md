@@ -1,6 +1,6 @@
 # Decimal Go Node
 
-## Installation 
+## Installation
 
 - Install [Golang](https://golang.org/doc/install)
 
