@@ -3,28 +3,28 @@ package keys
 import (
 	"bufio"
 	"bytes"
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	cryptoEth "github.com/ethereum/go-ethereum/crypto"
+	//"github.com/ethereum/go-ethereum/common/hexutil"
+	//cryptoEth "github.com/ethereum/go-ethereum/crypto"
 	"sort"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
-	//"github.com/cosmos/cosmos-sdk/crypto/keys"
+	//"bitbucket.org/decimalteam/go-node/utils/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"bitbucket.org/decimalteam/go-node/x/coin/client/cli/crypto/keys"
+	"bitbucket.org/decimalteam/go-node/utils/crypto/keys"
 	"github.com/cosmos/go-bip39"
-	"github.com/miguelmota/go-ethereum-hdwallet"
+	//"github.com/miguelmota/go-ethereum-hdwallet"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/multisig"
 	"github.com/tendermint/tendermint/libs/cli"
-	"golang.org/x/crypto/sha3"
+	//"golang.org/x/crypto/sha3"
 )
 
 const (
@@ -110,11 +110,10 @@ func runAddCmd(cmd *cobra.Command, args []string) error {
 	} else {
 
 		//TODO "NewKeyBaseFromHomeFlag()"
-		kb = keys.NewInMemory()
-		//kb, err = NewKeyBaseFromHomeFlag()
-		//if err != nil {
-		//	return err
-		//}
+		kb, err = NewKeyBaseFromHomeFlag()
+		if err != nil {
+			return err
+		}
 
 		_, err = kb.Get(name)
 		if err == nil {
@@ -253,47 +252,6 @@ func runAddCmd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Получаем адрес и ключи формата Ed25519 (Ethereum)
-	privateKey, err := cryptoEth.GenerateKey()
-	if err != nil {
-		panic(err)
-	}
-	privateKeyBytes := cryptoEth.FromECDSA(privateKey)
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		panic(err)
-	}
-	publicKeyBytes := cryptoEth.FromECDSAPub(publicKeyECDSA)
-	address := cryptoEth.PubkeyToAddress(*publicKeyECDSA).Hex()
-	hash := sha3.NewLegacyKeccak256()
-	hash.Write(publicKeyBytes[1:])
-
-	fmt.Printf("address: (%v) \n", address)
-	fmt.Printf("publicKey: (%v) \n", hexutil.Encode(hash.Sum(nil)[12:]))
-	//fmt.Printf("publicKeyBytes: (%v) \n", hexutil.Encode(publicKeyBytes)[4:])
-	fmt.Printf("privateKeyBytes_HEX: (%v) \n", hexutil.Encode(privateKeyBytes)[2:])
-	fmt.Printf("privateKeyBytes: (%v) \n", privateKeyBytes)
-	fmt.Printf("privateKey: (%v) \n", privateKey)
-	fmt.Printf("--------------------------------------------------------------- \n")
-
-	//Мнемоник
-	seed := bip39.NewSeed(mnemonic, "")
-	wallet, err := hdwallet.NewFromSeed(seed)
-	if err != nil {
-		panic(err)
-	}
-	path := hdwallet.MustParseDerivationPath("m/44'/60'/0'/0/0")
-	account1, err := wallet.Derive(path, false)
-	priv, err := wallet.PrivateKey(account1)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(account1.Address.Hex())
-	privateKeyBytes1 := cryptoEth.FromECDSA(priv)
-	fmt.Printf("privateKeyBytes_HEX: (%v) \n", hexutil.Encode(privateKeyBytes1)[2:])
-
 	// этой командой создаётся адрес
 	info, err := kb.CreateAccount(name, mnemonic, bip39Passphrase, encryptPassword, account, index)
 	if err != nil {
@@ -318,7 +276,7 @@ func printCreate(cmd *cobra.Command, info keys.Info, showMnemonic bool, mnemonic
 		cmd.PrintErrln()
 		//TODO "printKeyInfo(info, keys.Bech32KeyOutput)"
 		fmt.Printf("info: (%v) \n", info)
-		//printKeyInfo(info, keys.Bech32KeyOutput)
+		printKeyInfo(info, keys.Bech32KeyOutput)
 
 		// print mnemonic unless requested not to.
 		if showMnemonic {
@@ -330,7 +288,7 @@ func printCreate(cmd *cobra.Command, info keys.Info, showMnemonic bool, mnemonic
 	case OutputFormatJSON:
 		fmt.Printf("info: (%v) \n", info)
 		//TODO "printKeyInfo(info, keys.Bech32KeyOutput)"
-		out, err := keys.Bech32KeyOutput(info)
+		out, err := keys.HEXKeyOutput(info)
 		if err != nil {
 			return err
 		}

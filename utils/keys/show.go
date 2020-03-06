@@ -11,9 +11,9 @@ import (
 	"github.com/tendermint/tendermint/crypto/multisig"
 	"github.com/tendermint/tendermint/libs/cli"
 
+	"bitbucket.org/decimalteam/go-node/utils/crypto/keys"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -151,7 +151,7 @@ func validateMultisigThreshold(k, nKeys int) error {
 func getBechKeyOut(bechPrefix string) (bechKeyOutFn, error) {
 	switch bechPrefix {
 	case sdk.PrefixAccount:
-		return keys.Bech32KeyOutput, nil
+		return keys.HEXKeyOutput, nil
 	case sdk.PrefixValidator:
 		return keys.Bech32ValKeyOutput, nil
 	case sdk.PrefixConsensus:

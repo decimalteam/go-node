@@ -1,6 +1,7 @@
 package keys
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/crypto/keys"
 	"bufio"
 	"fmt"
 	"os"
@@ -12,7 +13,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
+	//"bitbucket.org/decimalteam/go-node/utils/crypto/keys"
 )
 
 // available output formats.

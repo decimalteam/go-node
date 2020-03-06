@@ -1,13 +1,14 @@
 package keys
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/crypto/keys"
 	"bufio"
 	"errors"
 
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
+	//"bitbucket.org/decimalteam/go-node/utils/crypto/keys"
 
 	"github.com/spf13/cobra"
 )

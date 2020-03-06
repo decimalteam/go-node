@@ -1,10 +1,8 @@
 package keys
 
 import (
-	ed25519GL "bitbucket.org/decimalteam/go-node/utils/crypto/ed25519"
 	"bufio"
 	"fmt"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	"os"
 	"reflect"
 	"strings"
@@ -21,6 +19,7 @@ import (
 
 	tmcrypto "github.com/tendermint/tendermint/crypto"
 	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 	dbm "github.com/tendermint/tm-db"
 )
 
@@ -171,23 +170,18 @@ func (kb dbKeybase) CreateMulti(name string, pub tmcrypto.PubKey) (Info, error) 
 
 func (kb *dbKeybase) persistDerivedKey(seed []byte, passwd, name, fullHdPath string) (info Info, err error) {
 	// create master key and derive first key:
-	//masterPriv, ch := hd.ComputeMastersFromSeed(seed)
-	//derivedPriv, err := hd.DerivePrivateKeyForPath(masterPriv, ch, fullHdPath)
-	//if err != nil {
-	//	return
-	//}
+	masterPriv, ch := hd.ComputeMastersFromSeed(seed)
+	derivedPriv, err := hd.DerivePrivateKeyForPath(masterPriv, ch, fullHdPath)
+	if err != nil {
+		return
+	}
 
 	// if we have a password, use it to encrypt the private key and store it
 	// else store the public key only
-	_privKey := ed25519GL.NewKeyFromSeed(seed)
 	if passwd != "" {
-		var privKey [64]byte
-		copy(privKey[:], _privKey)
-		info = kb.writeLocalKey(name, ed25519.PrivKeyEd25519(privKey), passwd)
+		info = kb.writeLocalKey(name, secp256k1.PrivKeySecp256k1(derivedPriv), passwd)
 	} else {
-		var pubKey [32]byte
-		copy(pubKey[:], _privKey[32:])
-		pubk := ed25519.PubKeyEd25519(pubKey)
+		pubk := secp256k1.PrivKeySecp256k1(derivedPriv).PubKey()
 		info = kb.writeOfflineKey(name, pubk)
 	}
 	return

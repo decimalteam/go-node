@@ -10,8 +10,8 @@ import (
 
 	"github.com/tendermint/tendermint/libs/cli"
 
+	"bitbucket.org/decimalteam/go-node/utils/crypto/keys"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	"github.com/cosmos/cosmos-sdk/tests"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

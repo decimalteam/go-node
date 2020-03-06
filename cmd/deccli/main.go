@@ -21,8 +21,8 @@ import (
 
 	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/keys"
 	coincmd "bitbucket.org/decimalteam/go-node/x/coin/client/cli"
-	"bitbucket.org/decimalteam/go-node/x/coin/client/cli/keys"
 )
 
 func main() {
