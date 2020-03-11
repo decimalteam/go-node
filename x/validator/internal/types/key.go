@@ -1,5 +1,7 @@
 package types
 
+import sdk "github.com/cosmos/cosmos-sdk/types"
+
 const (
 	// ModuleName is the name of the module
 	ModuleName = "validator"
@@ -11,4 +13,10 @@ const (
 	RouterKey = ModuleName
 
 	QuerierRoute = ModuleName
+
+	ValidatorKey = 0x01
 )
+
+func GetValidatorKey(addr sdk.ValAddress) []byte {
+	return append([]byte(byte(ValidatorKey)), addr.Bytes()...)
+}

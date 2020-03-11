@@ -1,42 +1,47 @@
 package types
 
-// TODO: Describe your actions, these will implment the interface of `sdk.Msg`
-/*
-verify interface at compile time
-var _ sdk.Msg = &Msg<Action>{}
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto"
+)
 
-Msg<Action> - struct for unjailing jailed validator
-type Msg<Action> struct {
-	ValidatorAddr sdk.ValAddress `json:"address" yaml:"address"` // address of the validator operator
+var _ sdk.Msg = &MsgCreateValidator{}
+
+type MsgCreateValidator struct {
+	Commission    Commission     `json:"commission" yaml:"commission"`
+	DelegatorAddr sdk.AccAddress `json:"delegator_addr" yaml:"delegator_addr"`
+	ValidatorAddr sdk.ValAddress `json:"validator_addr" yaml:"validator_addr"`
+	PubKey        crypto.PubKey  `json:"pub_key" yaml:"pub_key"`
+	TotalStake    []sdk.Coin     `json:"value" yaml:"value"`
 }
 
-NewMsg<Action> creates a new Msg<Action> instance
-func NewMsg<Action>(validatorAddr sdk.ValAddress) Msg<Action> {
-	return Msg<Action>{
+func NewMsgCreateValidator(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, commission Commission, stake sdk.Coin) MsgCreateValidator {
+	return MsgCreateValidator{
+		Commission:    commission,
+		DelegatorAddr: sdk.AccAddress(validatorAddr),
 		ValidatorAddr: validatorAddr,
+		PubKey:        pubKey,
+		TotalStake:    []sdk.Coin{stake},
 	}
 }
 
-const <action>Const = "<action>"
+const CreateValidatorConst = "CreateValidator"
 
 // nolint
-func (msg Msg<Action>) Route() string { return RouterKey }
-func (msg Msg<Action>) Type() string  { return <action>Const }
-func (msg Msg<Action>) GetSigners() []sdk.AccAddress {
+func (msg MsgCreateValidator) Route() string { return RouterKey }
+func (msg MsgCreateValidator) Type() string  { return CreateValidatorConst }
+func (msg MsgCreateValidator) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddr)}
 }
 
-GetSignBytes gets the bytes for the message signer to sign on
-func (msg Msg<Action>) GetSignBytes() []byte {
+func (msg MsgCreateValidator) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-ValidateBasic validity check for the AnteHandler
-func (msg Msg<Action>) ValidateBasic() sdk.Error {
+func (msg MsgCreateValidator) ValidateBasic() sdk.Error {
 	if msg.ValidatorAddr.Empty() {
-		return ErrBadValidatorAddr(DefaultCodespace)
+		return ErrEmptyValidatorAddr(DefaultCodespace)
 	}
 	return nil
 }
-*/

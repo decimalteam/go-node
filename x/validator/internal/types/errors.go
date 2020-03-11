@@ -11,11 +11,9 @@ const (
 	// Default validator codespace
 	DefaultCodespace sdk.CodespaceType = ModuleName
 
-	// CodeInvalid      CodeType = 101
+	CodeEmptyValidatorAddr CodeType = 101
 )
 
-// TODO: Fill out some custom errors for the module
-// You can see how they are constructed below:
-// func ErrInvalid(codespace sdk.CodespaceType) sdk.Error {
-// 	return sdk.NewError(codespace, CodeInvalid, "custom error message")
-// }
+func ErrEmptyValidatorAddr(codespace sdk.CodespaceType) sdk.Error {
+	return sdk.NewError(codespace, CodeEmptyValidatorAddr, "empty validator address")
+}

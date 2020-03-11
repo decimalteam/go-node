@@ -12,27 +12,22 @@ func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		// TODO: Define your msg cases
-		// 
-		//Example:
-		// case MsgSet<Action>:
-		// 	return handleMsg<Action>(ctx, keeper, msg)
+		case types.MsgCreateValidator:
+			return handleMsgCreateValidator(ctx, keeper, msg)
 		default:
-			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName,  msg)
+			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
 		}
 	}
 }
 
-// handde<Action> does x
-func handleMsg<Action>(ctx sdk.Context, msg MsgType, k Keeper) sdk.Result {
+func handleMsgCreateValidator(ctx sdk.Context, msg types.MsgCreateValidator, k Keeper) sdk.Result {
 
-	err := k.<Action>(ctx, msg.ValidatorAddr)
+	err := k.CreateValidator(ctx, msg.ValidatorAddr)
 	if err != nil {
 		return err.Result()
 	}
 
-	// TODO: Define your msg events
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

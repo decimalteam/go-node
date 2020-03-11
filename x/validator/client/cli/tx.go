@@ -1,7 +1,12 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/context"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	"github.com/spf13/cobra"
 
@@ -14,40 +19,60 @@ import (
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	validatorTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("%S transactions subcommands", types.ModuleName),
+		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
 	validatorTxCmd.AddCommand(client.PostCommands(
-	// TODO: Add tx based commands
-	// GetCmd<Action>(cdc)
+		GetCmdCreateValidator(cdc),
 	)...)
 
 	return validatorTxCmd
 }
 
-// Example:
-//
-// GetCmd<Action> is the CLI command for doing <Action>
-// func GetCmd<Action>(cdc *codec.Codec) *cobra.Command {
-// 	return &cobra.Command{
-// 		Use:   "/* Describe your action cmd */",
-// 		Short: "/* Provide a short description on the cmd */",
-// 		Args:  cobra.ExactArgs(2), // Does your request require arguments
-// 		RunE: func(cmd *cobra.Command, args []string) error {
-// 			cliCtx := context.NewCLIContext().WithCodec(cdc)
+// GetCmdCreateValidator is the CLI command for doing CreateValidator
+func GetCmdCreateValidator(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "Create validator",
+		Short: "create [val_address] [pub_key] [amount] [coin] [commission]",
+		Args:  cobra.ExactArgs(5),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-// 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
-// 			msg := types.NewMsg<Action>(/* Action params */)
-// 			err = msg.ValidateBasic()
-// 			if err != nil {
-// 				return err
-// 			}
+			valAddress, err := sdk.ValAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
 
-// 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-// 		},
-// 	}
-// }
+			amount, ok := sdk.NewIntFromString(args[2])
+			if !ok {
+				return errors.New("Invalid amount ")
+			}
+
+			stake := sdk.NewCoin(args[3], amount)
+			commission, err := sdk.NewDecFromStr(args[4])
+			if err != nil {
+				return err
+			}
+
+			pubKeyStr := args[1]
+
+			pubKey, err := sdk.GetConsPubKeyBech32(pubKeyStr)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateValidator(valAddress, pubKey, types.Commission{Rate: commission}, stake)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}

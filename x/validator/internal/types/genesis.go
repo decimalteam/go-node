@@ -2,7 +2,7 @@ package types
 
 // GenesisState - all validator state that must be provided at genesis
 type GenesisState struct {
-	// TODO: Fill out what is needed by the module for genesis
+	Validators []Validator `json:"validators"`
 }
 
 // NewGenesisState creates a new GenesisState object
@@ -18,7 +18,7 @@ func NewGenesisState(
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		// TODO: Fill out according to your genesis state, these values will be initialized but empty
+		Validators: []Validator{},
 	}
 }
 
