@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
@@ -16,17 +15,17 @@ import (
 
 func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "buy [coinToBuy] [coinToSell] [amountToSell]",
+		Use:   "buy [coinToBuy] [amountToBuy] [coinToSell] [maxAmountToSell]",
 		Short: "Buy coin",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			var coinToBuySymbol = args[0]
-
-			var coinToSellSymbol = args[1]
-			var amountToSell, _ = sdk.NewIntFromString(args[2])
+			var coinToSellSymbol = args[2]
+			var amountToBuy, _ = sdk.NewIntFromString(args[1])
+			var maxAmountToSell, _ = sdk.NewIntFromString(args[3])
 
 			// Check if coin to buy exists
 			coinToBuy, _ := cliUtils.GetCoin(cliCtx, coinToBuySymbol)
@@ -38,12 +37,13 @@ func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 			if coinToSell.Symbol != coinToSellSymbol {
 				return sdk.NewError(types.DefaultCodespace, types.CoinToSellNotExists, fmt.Sprintf("Coin to sell with symbol %s does not exist", coinToSellSymbol))
 			}
-			// TODO: Validate limits and check if sufficient balance (formulas)
-
-			valueSell := formulas.CalculatePurchaseReturn(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.ConstantReserveRatio, amountToSell)
-
+			// Calculate amounts and check limits
+			amountBuy, amountSell, calcErr := cliUtils.BuyCoinCalculateAmounts(coinToBuy, coinToSell, amountToBuy, maxAmountToSell)
+			if calcErr != nil {
+				return calcErr
+			}
 			// Do basic validating
-			msg := types.NewMsgBuyCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, valueSell, amountToSell)
+			msg := types.NewMsgBuyCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, amountBuy, amountSell)
 			err := msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -52,7 +52,7 @@ func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 			// Get account balance
 			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
 			balance := acc.GetCoins()
-			if balance.AmountOf(strings.ToLower(coinToSellSymbol)).LT(amountToSell) {
+			if balance.AmountOf(strings.ToLower(coinToSellSymbol)).LT(amountSell) {
 				return sdk.NewError(types.DefaultCodespace, types.InsufficientCoinToSell, "Not enough coin to sell")
 			}
 

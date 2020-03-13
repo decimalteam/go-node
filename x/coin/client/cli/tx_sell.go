@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
@@ -16,9 +15,9 @@ import (
 
 func GetCmdSellCoin(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "sell [coinToSell] [amountToSell] [coinToBuy]",
+		Use:   "sell [coinToSell] [amountToSell] [coinToBuy] [minAmountToBuy]",
 		Short: "Sell coin",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
@@ -27,6 +26,7 @@ func GetCmdSellCoin(cdc *codec.Codec) *cobra.Command {
 			var amountToSell, _ = sdk.NewIntFromString(args[1])
 
 			var coinToBuySymbol = args[2]
+			var amountToBuy, _ = sdk.NewIntFromString(args[3])
 
 			// Check if coin to buy exists
 			coinToBuy, _ := cliUtils.GetCoin(cliCtx, coinToBuySymbol)
@@ -38,13 +38,13 @@ func GetCmdSellCoin(cdc *codec.Codec) *cobra.Command {
 			if coinToSell.Symbol != coinToSellSymbol {
 				return sdk.NewError(types.DefaultCodespace, types.CoinToSellNotExists, fmt.Sprintf("Coin to sell with symbol %s does not exist", coinToSellSymbol))
 			}
-			// TODO: Validate limits and check if sufficient balance (formulas)
-
-			valueSell := formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.ConstantReserveRatio, amountToSell)
-
+			amountBuy, amountSell, err := cliUtils.SellCoinCalculateAmounts(coinToBuy, coinToSell, amountToBuy, amountToSell)
+			if err != nil {
+				return err
+			}
 			// Do basic validating
-			msg := types.NewMsgSellCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, valueSell, amountToSell)
-			err := msg.ValidateBasic()
+			msg := types.NewMsgSellCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, amountSell, amountBuy)
+			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}

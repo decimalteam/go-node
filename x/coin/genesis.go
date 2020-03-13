@@ -18,11 +18,11 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 
 	//test
 	var testCoin = types.Coin{
-		Title:                k.Config.TitleTestCoin,
-		Symbol:               k.Config.SymbolTestCoin,
-		Volume:               k.Config.InitialVolumeTestCoin,
-		Reserve:              k.Config.InitialReserveTestCoin,
-		ConstantReserveRatio: k.Config.ConstantReserveRatioTest,
+		Title:   k.Config.TitleTestCoin,
+		Symbol:  k.Config.SymbolTestCoin,
+		Volume:  k.Config.InitialVolumeTestCoin,
+		Reserve: k.Config.InitialReserveTestCoin,
+		CRR:     k.Config.ConstantReserveRatioTest,
 	}
 
 	k.SetCoin(ctx, testCoin)

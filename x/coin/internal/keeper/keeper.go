@@ -78,7 +78,7 @@ func Abs(x sdk.Int) sdk.Int {
 }
 
 // Updating balances
-func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int, address sdk.AccAddress) {
+func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int, address sdk.AccAddress) error {
 	// Get account instance
 	acc := k.AccountKeeper.GetAccount(ctx, address)
 	// Get account coins information
@@ -93,11 +93,21 @@ func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int
 		coins = coins.Add(updCoin)
 	}
 	// Update coin information
-	_ = acc.SetCoins(coins)
+	err := acc.SetCoins(coins)
+	if err != nil {
+		return err
+	}
 	// Update account information
 	k.AccountKeeper.SetAccount(ctx, acc)
+	return nil
 }
 
 func (k Keeper) IsCoinBase(symbol string) bool {
 	return k.Config.SymbolBaseCoin == symbol
+}
+
+func (k Keeper) UpdateCoin(ctx sdk.Context, coin types.Coin, reserve sdk.Int, volume sdk.Int) {
+	coin.Reserve = reserve
+	coin.Volume = volume
+	k.SetCoin(ctx, coin)
 }
