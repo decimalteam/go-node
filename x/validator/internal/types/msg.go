@@ -12,7 +12,7 @@ type MsgCreateValidator struct {
 	DelegatorAddr sdk.AccAddress `json:"delegator_addr" yaml:"delegator_addr"`
 	ValidatorAddr sdk.ValAddress `json:"validator_addr" yaml:"validator_addr"`
 	PubKey        crypto.PubKey  `json:"pub_key" yaml:"pub_key"`
-	TotalStake    []sdk.Coin     `json:"value" yaml:"value"`
+	Stake         sdk.Coin       `json:"value" yaml:"value"`
 }
 
 func NewMsgCreateValidator(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, commission Commission, stake sdk.Coin) MsgCreateValidator {
@@ -21,7 +21,7 @@ func NewMsgCreateValidator(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, c
 		DelegatorAddr: sdk.AccAddress(validatorAddr),
 		ValidatorAddr: validatorAddr,
 		PubKey:        pubKey,
-		TotalStake:    []sdk.Coin{stake},
+		Stake:         stake,
 	}
 }
 

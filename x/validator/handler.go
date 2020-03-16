@@ -8,7 +8,7 @@ import (
 )
 
 // NewHandler creates an sdk.Handler for all the validator type messages
-func NewHandler(k Keeper) sdk.Handler {
+func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
@@ -21,18 +21,27 @@ func NewHandler(k Keeper) sdk.Handler {
 	}
 }
 
-func handleMsgCreateValidator(ctx sdk.Context, msg types.MsgCreateValidator, k Keeper) sdk.Result {
+func handleMsgCreateValidator(ctx sdk.Context, k Keeper, msg types.MsgCreateValidator) sdk.Result {
+	// check to see if the pubkey or sender has been registered before
+	if _, err := k.GetValidator(ctx, msg.ValidatorAddr); err != nil {
+		return ErrValidatorOwnerExists(k.Codespace()).Result()
+	}
 
-	err := k.CreateValidator(ctx, msg.ValidatorAddr)
+	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(msg.PubKey)); found {
+		return ErrValidatorPubKeyExists(k.Codespace()).Result()
+	}
+
+	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Stake, msg.Commission)
+	err := k.SetValidator(ctx, val)
 	if err != nil {
-		return err.Result()
+		return types.ErrInvalidStruct(k.Codespace()).Result()
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddr.String()),
+			types.EventTypeCreateValidator,
+			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddr.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Stake.Amount.String()),
 		),
 	)
 

@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -71,8 +72,8 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper Keeper
-	// TODO: Add keepers that your application depends on
+	keeper       Keeper
+	supplyKeeper supply.Keeper
 }
 
 // NewAppModule creates a new AppModule object
@@ -117,7 +118,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, genesisState)
+	InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
