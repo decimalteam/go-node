@@ -8,36 +8,40 @@ import (
 )
 
 // NewHandler creates an sdk.Handler for all the validator type messages
-func NewHandler(k Keeper) sdk.Handler {
+func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		// TODO: Define your msg cases
-		// 
-		//Example:
-		// case MsgSet<Action>:
-		// 	return handleMsg<Action>(ctx, keeper, msg)
+		case types.MsgCreateValidator:
+			return handleMsgCreateValidator(ctx, keeper, msg)
 		default:
-			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName,  msg)
+			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
 		}
 	}
 }
 
-// handde<Action> does x
-func handleMsg<Action>(ctx sdk.Context, msg MsgType, k Keeper) sdk.Result {
-
-	err := k.<Action>(ctx, msg.ValidatorAddr)
-	if err != nil {
-		return err.Result()
+func handleMsgCreateValidator(ctx sdk.Context, k Keeper, msg types.MsgCreateValidator) sdk.Result {
+	// check to see if the pubkey or sender has been registered before
+	if _, err := k.GetValidator(ctx, msg.ValidatorAddr); err != nil {
+		return ErrValidatorOwnerExists(k.Codespace()).Result()
 	}
 
-	// TODO: Define your msg events
+	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(msg.PubKey)); found {
+		return ErrValidatorPubKeyExists(k.Codespace()).Result()
+	}
+
+	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Stake, msg.Commission)
+	err := k.SetValidator(ctx, val)
+	if err != nil {
+		return types.ErrInvalidStruct(k.Codespace()).Result()
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddr.String()),
+			types.EventTypeCreateValidator,
+			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddr.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Stake.Amount.String()),
 		),
 	)
 

@@ -1,29 +1,34 @@
 package types
 
-// GenesisState - all validator state that must be provided at genesis
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+// GenesisState - all staking state that must be provided at genesis
 type GenesisState struct {
-	// TODO: Fill out what is needed by the module for genesis
+	Params              Params               `json:"params" yaml:"params"`
+	LastTotalPower      sdk.Int              `json:"last_total_power" yaml:"last_total_power"`
+	LastValidatorPowers []LastValidatorPower `json:"last_validator_powers" yaml:"last_validator_powers"`
+	Validators          Validators           `json:"validators" yaml:"validators"`
+	Exported            bool                 `json:"exported" yaml:"exported"`
 }
 
-// NewGenesisState creates a new GenesisState object
-func NewGenesisState(
-/* TODO: Fill out with what is needed for genesis state*/
-) GenesisState {
+// Last validator power, needed for validator set update logic
+type LastValidatorPower struct {
+	Address sdk.ValAddress
+	Power   int64
+}
 
+func NewGenesisState(params Params, validators []Validator) GenesisState {
 	return GenesisState{
-		// TODO: Fill out according to your genesis state
+		Params:     params,
+		Validators: validators,
 	}
 }
 
-// DefaultGenesisState - default GenesisState used by Cosmos Hub
+// get raw genesis raw message for testing
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		// TODO: Fill out according to your genesis state, these values will be initialized but empty
+		Params: DefaultParams(),
 	}
-}
-
-// ValidateGenesis validates the validator genesis parameters
-func ValidateGenesis(data GenesisState) error {
-	// TODO: Create a sanity check to make sure the state conforms to the modules needs
-	return nil
 }

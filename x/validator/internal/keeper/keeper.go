@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"container/list"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -10,21 +13,29 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const aminoCacheSize = 500
+
 // Keeper of the validator store
 type Keeper struct {
-	storeKey   sdk.StoreKey
-	cdc        *codec.Codec
-	paramspace types.ParamSubspace
-	codespace  sdk.CodespaceType
+	storeKey      sdk.StoreKey
+	cdc           *codec.Codec
+	paramSpace    types.ParamSubspace
+	codespace     sdk.CodespaceType
+	stakingKeeper staking.Keeper
+	coinKeeper    coin.Keeper
+
+	validatorCache     map[string]cachedValidator
+	validatorCacheList *list.List
 }
 
 // NewKeeper creates a validator keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, codespace sdk.CodespaceType) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, codespace sdk.CodespaceType, coinKeeper coin.Keeper) Keeper {
 	keeper := Keeper{
 		storeKey:   key,
 		cdc:        cdc,
-		paramspace: paramspace.WithKeyTable(types.ParamKeyTable()),
+		paramSpace: paramSpace.WithKeyTable(ParamKeyTable()),
 		codespace:  codespace,
+		coinKeeper: coinKeeper,
 	}
 	return keeper
 }
@@ -34,10 +45,14 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
+func (k Keeper) Codespace() sdk.CodespaceType {
+	return k.codespace
+}
+
 // Get returns the pubkey from the adddress-pubkey relation
-func (k Keeper) Get(ctx sdk.Context, key string) (/* TODO: Fill out this type */, error) {
+func (k Keeper) Get(ctx sdk.Context, key []byte) (interface{}, error) {
 	store := ctx.KVStore(k.storeKey)
-	var item /* TODO: Fill out this type */
+	var item interface{}
 	byteKey := []byte(key)
 	err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(byteKey), &item)
 	if err != nil {
@@ -46,13 +61,31 @@ func (k Keeper) Get(ctx sdk.Context, key string) (/* TODO: Fill out this type */
 	return item, nil
 }
 
-func (k Keeper) set(ctx sdk.Context, key string, value /* TODO: fill out this type */ ) {
+func (k Keeper) set(ctx sdk.Context, key []byte, value interface{}) error {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(value)
-	store.Set([]byte(key), bz)
+	bz, err := k.cdc.MarshalBinaryLengthPrefixed(value)
+	if err != nil {
+		return err
+	}
+	store.Set(key, bz)
+	return nil
 }
 
 func (k Keeper) delete(ctx sdk.Context, key string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete([]byte(key))
+}
+
+// Load the last total validator power.
+func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdk.Int {
+	power, err := k.Get(ctx, []byte{types.LastTotalPowerKey})
+	if err != nil {
+		return sdk.ZeroInt()
+	}
+	return power.(sdk.Int)
+}
+
+// Set the last total validator power.
+func (k Keeper) SetLastTotalPower(ctx sdk.Context, power sdk.Int) error {
+	return k.set(ctx, []byte{types.LastTotalPowerKey}, power)
 }
