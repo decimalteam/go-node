@@ -31,6 +31,12 @@ func GetCoin(cliCtx client.CLIContext, symbol string) (types.Coin, error) {
 // Calculate amountToSell and amountToBuy for BuyCoin TX
 // In CLI part amountToSell is maxAmountToSell
 func BuyCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, amountToBuy sdk.Int, amountToSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err sdk.Error) {
+	if coinToSell.IsBase() {
+		return formulas.CalculatePurchaseReturn(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountToSell), amountToSell, nil
+	}
+	if coinToBuy.IsBase() {
+		return formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountToSell), amountToSell, nil
+	}
 	amountBuyInBaseCoin := formulas.CalculatePurchaseAmount(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountToBuy)
 	amountSellRequired := formulas.CalculateSaleAmount(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountBuyInBaseCoin)
 
@@ -48,6 +54,7 @@ func BuyCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, amount
 	if coinToBuy.Volume.Add(amountToBuy).GT(coinToBuy.LimitVolume) {
 		return sdk.Int{}, sdk.Int{}, sdk.NewError(types.DefaultCodespace, types.TxBreaksVolumeLimit, "Tx breaks LimitVolume rule")
 	}
+
 	coinToSellMinReserve := formulas.GetReserveLimitFromCRR(coinToSell.CRR)
 	if coinToSell.Reserve.Sub(amountSellInBaseCoin).LT(coinToSellMinReserve) {
 		return sdk.Int{}, sdk.Int{}, sdk.NewError(types.DefaultCodespace, types.TxBreaksMinReserveLimit, "Tx breaks MinReserveLimit rule")
@@ -58,6 +65,13 @@ func BuyCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, amount
 // Calculate amountToSell and amountToBuy for SellCoin TX
 // In CLI part amountToBuy is minAmountToBuy
 func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, amountToBuy sdk.Int, amountToSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err sdk.Error) {
+	if coinToSell.IsBase() {
+		return formulas.CalculatePurchaseReturn(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountToSell), amountToSell, nil
+	}
+	if coinToBuy.IsBase() {
+		return formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountToSell), amountToSell, nil
+	}
+
 	amountSellInBaseCoin := formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountToSell)
 
 	amountBuy = formulas.CalculatePurchaseReturn(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountSellInBaseCoin)

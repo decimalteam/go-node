@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/config"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
@@ -23,4 +24,12 @@ func (c Coin) String() string {
 		LimitVolume: %s
 		Volume: %s
 	`, c.Title, c.CRR, c.Symbol, c.Reserve.String(), c.LimitVolume.String(), c.Volume.String()))
+}
+
+func (c Coin) IsBase() bool {
+	if config.ChainID == "decimal-testnet" {
+		return c.Symbol == config.SymbolTestBaseCoin
+	} else {
+		return c.Symbol == config.SymbolBaseCoin
+	}
 }
