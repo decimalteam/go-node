@@ -5,6 +5,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"bytes"
 	"errors"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"time"
 )
@@ -60,6 +61,22 @@ func (k Keeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (types.Valida
 	return validator, nil
 }
 
+// get the set of all validators with no limits, used during genesis dump
+func (k Keeper) GetAllValidators(ctx sdk.Context) (validators []types.Validator) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{types.ValidatorsKey})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		validator, err := types.UnmarshalValidator(k.cdc, iterator.Value())
+		if err != nil {
+			continue
+		}
+		validators = append(validators, validator)
+	}
+	return validators
+}
+
 func (k Keeper) SetValidator(ctx sdk.Context, validator types.Validator) error {
 	return k.set(ctx, types.GetValidatorKey(validator.ValAddress), validator)
 }
@@ -95,72 +112,70 @@ func (k Keeper) TotalPowerValidator(ctx sdk.Context, validator types.Validator) 
 //_______________________________________________________________________
 // Validator Queue
 
-// gets a specific validator queue timeslice. A timeslice is a slice of ValAddresses corresponding to unbonding validators
+// gets a specific validator queue timeSlice. A timeSlice is a slice of ValAddresses corresponding to unbonding validators
 // that expire at a certain time.
-func (k Keeper) GetValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (valAddrs []sdk.ValAddress) {
-	bz, err := k.Get(ctx, types.GetValidatorQueueTimeKey(timestamp))
-	if bz == nil {
+func (k Keeper) GetValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []sdk.ValAddress {
+	var valAddr []sdk.ValAddress
+	err := k.Get(ctx, types.GetValidatorQueueTimeKey(timestamp), &valAddr)
+	if valAddr == nil || err != nil {
 		return []sdk.ValAddress{}
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &valAddrs)
-	return valAddrs
+	return valAddr
 }
 
-// Sets a specific validator queue timeslice.
-func (k Keeper) SetValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []sdk.ValAddress) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(keys)
-	store.Set(types.GetValidatorQueueTimeKey(timestamp), bz)
+// Sets a specific validator queue timeSlice.
+func (k Keeper) SetValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []sdk.ValAddress) error {
+	return k.set(ctx, types.GetValidatorQueueTimeKey(timestamp), keys)
 }
 
-// Deletes a specific validator queue timeslice.
+// Deletes a specific validator queue timeSlice.
 func (k Keeper) DeleteValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Time) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetValidatorQueueTimeKey(timestamp))
+	k.delete(ctx, types.GetValidatorQueueTimeKey(timestamp))
 }
 
 // Insert an validator address to the appropriate timeslice in the validator queue
-func (k Keeper) InsertValidatorQueue(ctx sdk.Context, val types.Validator) {
+func (k Keeper) InsertValidatorQueue(ctx sdk.Context, val types.Validator) error {
 	timeSlice := k.GetValidatorQueueTimeSlice(ctx, val.UnbondingCompletionTime)
 	var keys []sdk.ValAddress
 	if len(timeSlice) == 0 {
-		keys = []sdk.ValAddress{val.OperatorAddress}
+		keys = []sdk.ValAddress{val.ValAddress}
 	} else {
-		keys = append(timeSlice, val.OperatorAddress)
+		keys = append(timeSlice, val.ValAddress)
 	}
-	k.SetValidatorQueueTimeSlice(ctx, val.UnbondingCompletionTime, keys)
+	return k.SetValidatorQueueTimeSlice(ctx, val.UnbondingCompletionTime, keys)
 }
 
 // Delete a validator address from the validator queue
-func (k Keeper) DeleteValidatorQueue(ctx sdk.Context, val types.Validator) {
+func (k Keeper) DeleteValidatorQueue(ctx sdk.Context, val types.Validator) error {
 	timeSlice := k.GetValidatorQueueTimeSlice(ctx, val.UnbondingCompletionTime)
-	newTimeSlice := []sdk.ValAddress{}
+	var newTimeSlice []sdk.ValAddress
 	for _, addr := range timeSlice {
-		if !bytes.Equal(addr, val.OperatorAddress) {
+		if !bytes.Equal(addr, val.ValAddress) {
 			newTimeSlice = append(newTimeSlice, addr)
 		}
 	}
 	if len(newTimeSlice) == 0 {
 		k.DeleteValidatorQueueTimeSlice(ctx, val.UnbondingCompletionTime)
 	} else {
-		k.SetValidatorQueueTimeSlice(ctx, val.UnbondingCompletionTime, newTimeSlice)
+		return k.SetValidatorQueueTimeSlice(ctx, val.UnbondingCompletionTime, newTimeSlice)
 	}
+	return nil
 }
 
 // Returns all the validator queue timeslices from time 0 until endTime
 func (k Keeper) ValidatorQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
-	return store.Iterator(types.ValidatorQueueKey, sdk.InclusiveEndBytes(types.GetValidatorQueueTimeKey(endTime)))
+	return store.Iterator([]byte{types.ValidatorQueueKey}, sdk.InclusiveEndBytes(types.GetValidatorQueueTimeKey(endTime)))
 }
 
 // Returns a concatenated list of all the timeslices before currTime, and deletes the timeslices from the queue
-func (k Keeper) GetAllMatureValidatorQueue(ctx sdk.Context, currTime time.Time) (matureValsAddrs []sdk.ValAddress) {
+func (k Keeper) GetAllMatureValidatorQueue(ctx sdk.Context) (matureValsAddrs []sdk.ValAddress) {
 	// gets an iterator for all timeslices from time 0 until the current Blockheader time
 	validatorTimesliceIterator := k.ValidatorQueueIterator(ctx, ctx.BlockHeader().Time)
 	defer validatorTimesliceIterator.Close()
 
 	for ; validatorTimesliceIterator.Valid(); validatorTimesliceIterator.Next() {
-		timeslice := []sdk.ValAddress{}
+		var timeslice []sdk.ValAddress
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
 		matureValsAddrs = append(matureValsAddrs, timeslice...)
 	}
@@ -170,29 +185,112 @@ func (k Keeper) GetAllMatureValidatorQueue(ctx sdk.Context, currTime time.Time) 
 
 // Unbonds all the unbonding validators that have finished their unbonding period
 func (k Keeper) UnbondAllMatureValidatorQueue(ctx sdk.Context) {
-	store := ctx.KVStore(k.storeKey)
 	validatorTimesliceIterator := k.ValidatorQueueIterator(ctx, ctx.BlockHeader().Time)
 	defer validatorTimesliceIterator.Close()
 
 	for ; validatorTimesliceIterator.Valid(); validatorTimesliceIterator.Next() {
-		timeslice := []sdk.ValAddress{}
+		var timeslice []sdk.ValAddress
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
 
 		for _, valAddr := range timeslice {
-			val, found := k.GetValidator(ctx, valAddr)
-			if !found {
-				panic("validator in the unbonding queue was not found")
+			val, err := k.GetValidator(ctx, valAddr)
+			if err != nil {
+				continue
 			}
 
-			if !val.IsUnbonding() {
-				panic("unexpected validator in unbonding queue; status was not unbonding")
+			val, err = k.unbondingToUnbonded(ctx, val)
+			if err != nil {
+				continue
 			}
-			val = k.unbondingToUnbonded(ctx, val)
-			if val.GetDelegatorShares().IsZero() {
-				k.RemoveValidator(ctx, val.OperatorAddress)
+			if len(val.DelegatorShares) == 0 {
+				err = k.RemoveValidator(ctx, val.ValAddress)
 			}
 		}
 
-		store.Delete(validatorTimesliceIterator.Key())
+		k.delete(ctx, validatorTimesliceIterator.Key())
 	}
+}
+
+func (k Keeper) RemoveValidator(ctx sdk.Context, address sdk.ValAddress) error {
+
+	// first retrieve the old validator record
+	validator, err := k.GetValidator(ctx, address)
+	if err != nil {
+		return err
+	}
+
+	if !validator.IsUnbonded() {
+		return errors.New("cannot call RemoveValidator on bonded or unbonding validators")
+	}
+	for _, stakeCoin := range validator.StakeCoins {
+		if !stakeCoin.IsZero() {
+			return errors.New("attempting to remove a validator which still contains tokens")
+		}
+	}
+
+	// delete the old validator record
+	k.delete(ctx, types.GetValidatorKey(address))
+	k.delete(ctx, types.GetValidatorByConsAddrKey(sdk.ConsAddress(validator.PubKey.Address())))
+	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, k.TotalPowerValidator(ctx, validator)))
+	return nil
+}
+
+//_______________________________________________________________________
+// Last Validator Index
+
+// Set the last validator power.
+func (k Keeper) SetLastValidatorPower(ctx sdk.Context, operator sdk.ValAddress, power int64) error {
+	return k.set(ctx, types.GetLastValidatorPowerKey(operator), power)
+}
+
+// Delete the last validator power.
+func (k Keeper) DeleteLastValidatorPower(ctx sdk.Context, operator sdk.ValAddress) {
+	k.delete(ctx, types.GetLastValidatorPowerKey(operator))
+}
+
+// validator index
+func (k Keeper) DeleteValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) {
+	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, k.TotalPowerValidator(ctx, validator)))
+}
+
+// Iterate over last validator powers.
+func (k Keeper) IterateLastValidatorPowers(ctx sdk.Context, handler func(operator sdk.ValAddress, power int64) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, []byte{types.LastValidatorPowerKey})
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		addr := sdk.ValAddress(iter.Key()[1:])
+		var power int64
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &power)
+		if handler(addr, power) {
+			break
+		}
+	}
+}
+
+// iterate through the active validator set and perform the provided function
+func (k Keeper) IterateLastValidators(ctx sdk.Context, fn func(index int64, validator types.Validator) (stop bool)) {
+	iterator := k.LastValidatorsIterator(ctx)
+	defer iterator.Close()
+	i := int64(0)
+	for ; iterator.Valid(); iterator.Next() {
+		address := types.AddressFromLastValidatorPowerKey(iterator.Key())
+		validator, err := k.GetValidator(ctx, address)
+		if err != nil {
+			panic(fmt.Sprintf("validator record not found for address: %v\n", address))
+		}
+
+		stop := fn(i, validator) // XXX is this safe will the validator unexposed fields be able to get written to?
+		if stop {
+			break
+		}
+		i++
+	}
+}
+
+// returns an iterator for the consensus validators in the last block
+func (k Keeper) LastValidatorsIterator(ctx sdk.Context) (iterator sdk.Iterator) {
+	store := ctx.KVStore(k.storeKey)
+	iterator = sdk.KVStorePrefixIterator(store, []byte{types.LastValidatorPowerKey})
+	return iterator
 }

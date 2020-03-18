@@ -23,6 +23,8 @@ const (
 	ValidatorsByConsAddrKey   = 0x03
 	ValidatorsByPowerIndexKey = 0x04
 	ValidatorQueueKey         = 0x05
+	LastValidatorPowerKey     = 0x06
+	ValidatorsKey             = 0x07
 )
 
 func GetValidatorKey(addr sdk.ValAddress) []byte {
@@ -65,4 +67,14 @@ func GetValidatorsByPowerIndexKey(validator Validator, power sdk.Int) []byte {
 func GetValidatorQueueTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append([]byte{ValidatorQueueKey}, bz...)
+}
+
+// get the bonded validator index key for an operator address
+func GetLastValidatorPowerKey(valAddress sdk.ValAddress) []byte {
+	return append([]byte{LastValidatorPowerKey}, valAddress...)
+}
+
+// Get the validator operator address from LastValidatorPowerKey
+func AddressFromLastValidatorPowerKey(key []byte) []byte {
+	return key[1:] // remove prefix bytes
 }
