@@ -5,6 +5,7 @@ import (
 	"container/list"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -23,6 +24,7 @@ type Keeper struct {
 	codespace     sdk.CodespaceType
 	stakingKeeper staking.Keeper
 	coinKeeper    coin.Keeper
+	supplyKeeper  supply.Keeper
 
 	validatorCache     map[string]cachedValidator
 	validatorCacheList *list.List
@@ -50,15 +52,13 @@ func (k Keeper) Codespace() sdk.CodespaceType {
 }
 
 // Get returns the pubkey from the adddress-pubkey relation
-func (k Keeper) Get(ctx sdk.Context, key []byte) (interface{}, error) {
+func (k Keeper) Get(ctx sdk.Context, key []byte, value interface{}) error {
 	store := ctx.KVStore(k.storeKey)
-	var item interface{}
-	byteKey := []byte(key)
-	err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(byteKey), &item)
+	err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(key), &value)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return item, nil
+	return nil
 }
 
 func (k Keeper) set(ctx sdk.Context, key []byte, value interface{}) error {
@@ -71,18 +71,19 @@ func (k Keeper) set(ctx sdk.Context, key []byte, value interface{}) error {
 	return nil
 }
 
-func (k Keeper) delete(ctx sdk.Context, key string) {
+func (k Keeper) delete(ctx sdk.Context, key []byte) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete([]byte(key))
+	store.Delete(key)
 }
 
 // Load the last total validator power.
 func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdk.Int {
-	power, err := k.Get(ctx, []byte{types.LastTotalPowerKey})
+	power := sdk.Int{}
+	err := k.Get(ctx, []byte{types.LastTotalPowerKey}, &power)
 	if err != nil {
 		return sdk.ZeroInt()
 	}
-	return power.(sdk.Int)
+	return power
 }
 
 // Set the last total validator power.
