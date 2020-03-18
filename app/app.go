@@ -2,6 +2,7 @@ package app
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/validator"
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
@@ -54,7 +55,7 @@ var (
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		coin.AppModuleBasic{},
-		// TODO: Add your module(s) AppModuleBasic
+		validator.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
@@ -83,15 +84,15 @@ type newApp struct {
 	tkeys map[string]*sdk.TransientStoreKey
 
 	// Keepers
-	accountKeeper  auth.AccountKeeper
-	bankKeeper     bank.Keeper
-	stakingKeeper  staking.Keeper
-	slashingKeeper slashing.Keeper
-	distrKeeper    distr.Keeper
-	supplyKeeper   supply.Keeper
-	paramsKeeper   params.Keeper
-	coinKeeper     coin.Keeper
-	// TODO: Add your module(s)
+	accountKeeper   auth.AccountKeeper
+	bankKeeper      bank.Keeper
+	stakingKeeper   staking.Keeper
+	slashingKeeper  slashing.Keeper
+	distrKeeper     distr.Keeper
+	supplyKeeper    supply.Keeper
+	paramsKeeper    params.Keeper
+	coinKeeper      coin.Keeper
+	validatorKeeper validator.Keeper
 
 	// Module Manager
 	mm *module.Manager
@@ -134,6 +135,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
 	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	coinSubspace := app.paramsKeeper.Subspace(coin.DefaultParamspace)
+	validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(
 		app.cdc,
@@ -206,7 +208,13 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		config,
 	)
 
-	// TODO: Add your module(s) keepers
+	app.validatorKeeper = validator.NewKeeper(
+		app.cdc,
+		keys[validator.StoreKey],
+		validatorSubspace,
+		validator.DefaultCodespace,
+		app.coinKeeper,
+	)
 
 	app.mm = module.NewManager(
 		genaccounts.NewAppModule(app.accountKeeper),
@@ -216,7 +224,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
-		// TODO: Add your module(s)
+		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 	)
@@ -235,7 +243,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		bank.ModuleName,
 		slashing.ModuleName,
 		coin.ModuleName,
-		// TODO: Add your module(s)
+		validator.ModuleName,
 		supply.ModuleName,
 		genutil.ModuleName,
 	)

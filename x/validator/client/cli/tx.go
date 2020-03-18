@@ -26,17 +26,17 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	validatorTxCmd.AddCommand(client.PostCommands(
-		GetCmdCreateValidator(cdc),
+		GetCmdDeclareCandidate(cdc),
 	)...)
 
 	return validatorTxCmd
 }
 
-// GetCmdCreateValidator is the CLI command for doing CreateValidator
-func GetCmdCreateValidator(cdc *codec.Codec) *cobra.Command {
+// GetCmdDeclareCandidate is the CLI command for doing CreateValidator
+func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "Create validator",
-		Short: "create [val_address] [pub_key] [amount] [coin] [commission]",
+		Short: "Declare candidate",
+		Use:   "declare [address] [pub_key] [amount] [coin] [commission]",
 		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)

@@ -5,9 +5,9 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 )
 
-var _ sdk.Msg = &MsgCreateValidator{}
+var _ sdk.Msg = &MsgDeclareCandidate{}
 
-type MsgCreateValidator struct {
+type MsgDeclareCandidate struct {
 	Commission    Commission     `json:"commission" yaml:"commission"`
 	DelegatorAddr sdk.AccAddress `json:"delegator_addr" yaml:"delegator_addr"`
 	ValidatorAddr sdk.ValAddress `json:"validator_addr" yaml:"validator_addr"`
@@ -15,8 +15,8 @@ type MsgCreateValidator struct {
 	Stake         sdk.Coin       `json:"value" yaml:"value"`
 }
 
-func NewMsgCreateValidator(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, commission Commission, stake sdk.Coin) MsgCreateValidator {
-	return MsgCreateValidator{
+func NewMsgCreateValidator(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, commission Commission, stake sdk.Coin) MsgDeclareCandidate {
+	return MsgDeclareCandidate{
 		Commission:    commission,
 		DelegatorAddr: sdk.AccAddress(validatorAddr),
 		ValidatorAddr: validatorAddr,
@@ -28,18 +28,18 @@ func NewMsgCreateValidator(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, c
 const CreateValidatorConst = "CreateValidator"
 
 // nolint
-func (msg MsgCreateValidator) Route() string { return RouterKey }
-func (msg MsgCreateValidator) Type() string  { return CreateValidatorConst }
-func (msg MsgCreateValidator) GetSigners() []sdk.AccAddress {
+func (msg MsgDeclareCandidate) Route() string { return RouterKey }
+func (msg MsgDeclareCandidate) Type() string  { return CreateValidatorConst }
+func (msg MsgDeclareCandidate) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddr)}
 }
 
-func (msg MsgCreateValidator) GetSignBytes() []byte {
+func (msg MsgDeclareCandidate) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgCreateValidator) ValidateBasic() sdk.Error {
+func (msg MsgDeclareCandidate) ValidateBasic() sdk.Error {
 	if msg.ValidatorAddr.Empty() {
 		return ErrEmptyValidatorAddr(DefaultCodespace)
 	}

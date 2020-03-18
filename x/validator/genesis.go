@@ -4,7 +4,6 @@ import (
 	vtypes "bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/exported"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -17,8 +16,9 @@ import (
 // data. Finally, it updates the bonded validators.
 // Returns final validator set after applying all declaration and delegations
 func InitGenesis(ctx sdk.Context, keeper Keeper,
-	supplyKeeper types.SupplyKeeper, data GenesisState) (res []abci.ValidatorUpdate) {
+	supplyKeeper types.SupplyKeeper, data GenesisState) []abci.ValidatorUpdate {
 
+	var updates []abci.ValidatorUpdate
 	bondedTokens := make(map[string]sdk.Int)
 	notBondedTokens := make(map[string]sdk.Int)
 
@@ -162,16 +162,16 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 			}
 			update := validator.ABCIValidatorUpdate(keeper.TotalPowerValidator(ctx, validator))
 			update.Power = lv.Power // keep the next-val-set offset, use the last power for the first block
-			res = append(res, update)
+			updates = append(updates, update)
 		}
 	} else {
-		res, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+		updates, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
 		if err != nil {
 			panic(fmt.Sprintln("Init genesis error: ", err))
 		}
 	}
 
-	return res
+	return updates
 }
 
 // ExportGenesis returns a GenesisState for a given context and keeper. The
@@ -212,8 +212,8 @@ func WriteValidators(ctx sdk.Context, keeper Keeper) (vals []tmtypes.GenesisVali
 	keeper.IterateLastValidators(ctx, func(_ int64, validator vtypes.Validator) (stop bool) {
 		vals = append(vals, tmtypes.GenesisValidator{
 			PubKey: validator.PubKey,
-			Power:  validator.GetConsensusPower(),
-			Name:   validator.GetMoniker(),
+			Power:  validator.ConsensusPower(keeper.TotalPowerValidator(ctx, validator)),
+			Name:   validator.Description.Moniker,
 		})
 
 		return false

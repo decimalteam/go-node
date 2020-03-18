@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"container/list"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -18,13 +17,12 @@ const aminoCacheSize = 500
 
 // Keeper of the validator store
 type Keeper struct {
-	storeKey      sdk.StoreKey
-	cdc           *codec.Codec
-	paramSpace    types.ParamSubspace
-	codespace     sdk.CodespaceType
-	stakingKeeper staking.Keeper
-	coinKeeper    coin.Keeper
-	supplyKeeper  supply.Keeper
+	storeKey     sdk.StoreKey
+	cdc          *codec.Codec
+	paramSpace   types.ParamSubspace
+	codespace    sdk.CodespaceType
+	coinKeeper   coin.Keeper
+	supplyKeeper supply.Keeper
 
 	validatorCache     map[string]cachedValidator
 	validatorCacheList *list.List

@@ -12,8 +12,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		case types.MsgCreateValidator:
-			return handleMsgCreateValidator(ctx, keeper, msg)
+		case types.MsgDeclareCandidate:
+			return handleMsgDeclareCandidate(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -21,14 +21,14 @@ func NewHandler(keeper Keeper) sdk.Handler {
 	}
 }
 
-func handleMsgCreateValidator(ctx sdk.Context, k Keeper, msg types.MsgCreateValidator) sdk.Result {
+func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCandidate) sdk.Result {
 	// check to see if the pubkey or sender has been registered before
 	if _, err := k.GetValidator(ctx, msg.ValidatorAddr); err != nil {
-		return ErrValidatorOwnerExists(k.Codespace()).Result()
+		return types.ErrValidatorOwnerExists(k.Codespace()).Result()
 	}
 
-	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(msg.PubKey)); found {
-		return ErrValidatorPubKeyExists(k.Codespace()).Result()
+	if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(msg.PubKey)); err != nil {
+		return types.ErrValidatorPubKeyExists(k.Codespace()).Result()
 	}
 
 	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Stake, msg.Commission)
@@ -39,7 +39,7 @@ func handleMsgCreateValidator(ctx sdk.Context, k Keeper, msg types.MsgCreateVali
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeCreateValidator,
+			types.EventTypeDeclareCandidate,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddr.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Stake.Amount.String()),
 		),
