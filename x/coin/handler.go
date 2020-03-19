@@ -24,6 +24,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgSendCoin(ctx, k, msg)
 		case types.MsgMultiSendCoin:
 			return handleMsgMultiSendCoin(ctx, k, msg)
+		case types.MsgSellAllCoin:
+			return handleMsgSellAllCoin(ctx, k, msg)
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
@@ -233,5 +235,65 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 		)
 	}
 	return sdk.Result{Events: ctx.EventManager().Events()}
+}
 
+func handleMsgSellAllCoin(ctx sdk.Context, k Keeper, msg types.MsgSellAllCoin) sdk.Result {
+	coinToBuy, _ := k.GetCoin(ctx, msg.CoinToBuy)
+	if coinToBuy.Symbol != msg.CoinToBuy {
+		return sdk.Result{
+			Code:      types.CoinToBuyNotExists,
+			Codespace: types.DefaultCodespace,
+		}
+	}
+	// Check if coin to sell exists
+	coinToSell, _ := k.GetCoin(ctx, msg.CoinToSell)
+	if coinToSell.Symbol != msg.CoinToSell {
+		return sdk.Result{
+			Code:      types.CoinToSellNotExists,
+			Codespace: types.DefaultCodespace,
+		}
+	}
+	acc := k.AccountKeeper.GetAccount(ctx, msg.Seller)
+	balance := acc.GetCoins()
+
+	amountBuy, amountSell, calcErr := cliUtils.SellCoinCalculateAmounts(coinToBuy, coinToSell, msg.AmountToBuy, balance.AmountOf(strings.ToLower(msg.CoinToSell)))
+
+	if calcErr != nil {
+		return sdk.Result{Codespace: calcErr.Codespace(), Code: calcErr.Code()}
+	}
+
+	err := k.UpdateBalance(ctx, msg.CoinToBuy, amountBuy, msg.Seller)
+	if err != nil {
+		return sdk.Result{
+			Code:      types.UpdateBalanceError,
+			Codespace: types.DefaultCodespace,
+		}
+	}
+	err = k.UpdateBalance(ctx, msg.CoinToSell, amountSell.Neg(), msg.Seller)
+	if err != nil {
+		return sdk.Result{
+			Code:      types.UpdateBalanceError,
+			Codespace: types.DefaultCodespace,
+		}
+	}
+	amountBuyInBaseCoin := formulas.CalculateSaleReturn(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountBuy)
+	amountSellInBaseCoin := formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountSell)
+	k.UpdateCoin(ctx, coinToSell, coinToSell.Reserve.Sub(amountBuyInBaseCoin), coinToSell.Volume.Sub(amountSell))
+	k.UpdateCoin(ctx, coinToBuy, coinToBuy.Reserve.Add(amountSellInBaseCoin), coinToBuy.Volume.Add(amountBuy))
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeSellCoin),
+			sdk.NewAttribute(types.AttributeCoinToBuy, msg.CoinToBuy),
+			sdk.NewAttribute(types.AttributeCoinToSell, msg.CoinToSell),
+			sdk.NewAttribute(types.AttributeAmountToBuy, amountBuy.String()),
+			sdk.NewAttribute(types.AttributeAmountToSell, amountSell.String()),
+			sdk.NewAttribute(types.AttributeAmountToBuyInBaseCoin, amountBuyInBaseCoin.String()),
+			sdk.NewAttribute(types.AttributeAmountToSellInBaseCoin, amountSellInBaseCoin.String()),
+		),
+	)
+
+	return sdk.Result{Events: ctx.EventManager().Events()}
 }

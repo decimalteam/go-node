@@ -23,6 +23,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdBuyCoin(cdc),
 		GetCmdSellCoin(cdc),
 		GetCmdSendCoin(cdc),
+		GetCmdSellAllCoin(cdc),
 	)...)
 
 	return coinTxCmd
