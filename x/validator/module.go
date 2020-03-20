@@ -10,10 +10,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 	abci "github.com/tendermint/tendermint/abci/types"
+	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 var (
@@ -67,7 +71,26 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(StoreKey, cdc)
 }
 
-//____________________________________________________________________________
+//_____________________________________
+// extra helpers
+
+// CreateValidatorMsgHelpers - used for gen-tx
+func (AppModuleBasic) CreateValidatorMsgHelpers(ipDefault string) (
+	fs *flag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string) {
+	return cli.CreateValidatorMsgHelpers(ipDefault)
+}
+
+// PrepareFlagsForTxCreateValidator - used for gen-tx
+func (AppModuleBasic) PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID,
+	chainID string, valPubKey crypto.PubKey) {
+	cli.PrepareFlagsForTxCreateValidator(config, nodeID, chainID, valPubKey)
+}
+
+// BuildCreateValidatorMsg - used for gen-tx
+func (AppModuleBasic) BuildCreateValidatorMsg(cliCtx context.CLIContext,
+	txBldr authtypes.TxBuilder) (authtypes.TxBuilder, sdk.Msg, error) {
+	return cli.BuildCreateValidatorMsg(cliCtx, txBldr)
+}
 
 // AppModule implements an application module for the validator module.
 type AppModule struct {

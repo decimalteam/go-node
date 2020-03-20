@@ -29,13 +29,14 @@ type Keeper struct {
 }
 
 // NewKeeper creates a validator keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, codespace sdk.CodespaceType, coinKeeper coin.Keeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, codespace sdk.CodespaceType, coinKeeper coin.Keeper, supplyKeeper supply.Keeper) Keeper {
 	keeper := Keeper{
-		storeKey:   key,
-		cdc:        cdc,
-		paramSpace: paramSpace.WithKeyTable(ParamKeyTable()),
-		codespace:  codespace,
-		coinKeeper: coinKeeper,
+		storeKey:     key,
+		cdc:          cdc,
+		paramSpace:   paramSpace.WithKeyTable(ParamKeyTable()),
+		codespace:    codespace,
+		coinKeeper:   coinKeeper,
+		supplyKeeper: supplyKeeper,
 	}
 	return keeper
 }

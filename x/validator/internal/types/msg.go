@@ -9,29 +9,28 @@ var _ sdk.Msg = &MsgDeclareCandidate{}
 
 type MsgDeclareCandidate struct {
 	Commission    Commission     `json:"commission" yaml:"commission"`
-	DelegatorAddr sdk.AccAddress `json:"delegator_addr" yaml:"delegator_addr"`
-	ValidatorAddr sdk.ValAddress `json:"validator_addr" yaml:"validator_addr"`
+	ValidatorAddr sdk.AccAddress `json:"validator_addr" yaml:"validator_addr"`
 	PubKey        crypto.PubKey  `json:"pub_key" yaml:"pub_key"`
 	Stake         sdk.Coin       `json:"value" yaml:"value"`
+	Description   Description    `json:"description"`
 }
 
-func NewMsgCreateValidator(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, commission Commission, stake sdk.Coin) MsgDeclareCandidate {
+func NewMsgDeclareCandidate(validatorAddr sdk.AccAddress, pubKey crypto.PubKey, commission Commission, stake sdk.Coin, description Description) MsgDeclareCandidate {
 	return MsgDeclareCandidate{
 		Commission:    commission,
-		DelegatorAddr: sdk.AccAddress(validatorAddr),
 		ValidatorAddr: validatorAddr,
 		PubKey:        pubKey,
 		Stake:         stake,
+		Description:   description,
 	}
 }
 
-const CreateValidatorConst = "CreateValidator"
+const DeclareCandidateConst = "declare_candidate"
 
-// nolint
 func (msg MsgDeclareCandidate) Route() string { return RouterKey }
-func (msg MsgDeclareCandidate) Type() string  { return CreateValidatorConst }
+func (msg MsgDeclareCandidate) Type() string  { return DeclareCandidateConst }
 func (msg MsgDeclareCandidate) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddr)}
+	return []sdk.AccAddress{msg.ValidatorAddr}
 }
 
 func (msg MsgDeclareCandidate) GetSignBytes() []byte {

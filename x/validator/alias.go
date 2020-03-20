@@ -42,5 +42,5 @@ type (
 	GenesisState = types.GenesisState
 	Params       = types.Params
 
-	// TODO: Fill out module types
+	MsgDeclareCandidate = types.MsgDeclareCandidate
 )

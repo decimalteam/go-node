@@ -49,7 +49,7 @@ var (
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
-		staking.AppModuleBasic{},
+		//staking.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		params.AppModuleBasic{},
 		slashing.AppModuleBasic{},
@@ -112,7 +112,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// TODO: Add the keys that module requires
 	keys := sdk.NewKVStoreKeys(bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
-		supply.StoreKey, distr.StoreKey, slashing.StoreKey, params.StoreKey, coin.StoreKey)
+		supply.StoreKey, distr.StoreKey, slashing.StoreKey, params.StoreKey, coin.StoreKey, validator.StoreKey)
 
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -192,11 +192,11 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	app.stakingKeeper = *stakingKeeper.SetHooks(
-		staking.NewMultiStakingHooks(
-			app.distrKeeper.Hooks(),
-			app.slashingKeeper.Hooks()),
-	)
+	//app.stakingKeeper = *stakingKeeper.SetHooks(
+	//	staking.NewMultiStakingHooks(
+	//		app.distrKeeper.Hooks(),
+	//		app.slashingKeeper.Hooks()),
+	//)
 
 	app.coinKeeper = coin.NewKeeper(
 		app.cdc,
@@ -214,6 +214,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		validatorSubspace,
 		validator.DefaultCodespace,
 		app.coinKeeper,
+		app.supplyKeeper,
 	)
 
 	app.mm = module.NewManager(
@@ -226,7 +227,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
+		//staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
 	app.mm.SetOrderBeginBlockers(distr.ModuleName, slashing.ModuleName)
@@ -238,7 +239,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.mm.SetOrderInitGenesis(
 		genaccounts.ModuleName,
 		distr.ModuleName,
-		staking.ModuleName,
+		//staking.ModuleName,
 		auth.ModuleName,
 		bank.ModuleName,
 		slashing.ModuleName,

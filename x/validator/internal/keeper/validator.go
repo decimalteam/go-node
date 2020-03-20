@@ -114,7 +114,7 @@ func (k Keeper) TotalPowerValidator(ctx sdk.Context, validator types.Validator) 
 		if err != nil {
 			continue
 		}
-		power.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.ConstantReserveRatio, token.Amount))
+		power.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, token.Amount))
 	}
 	return power
 }

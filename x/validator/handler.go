@@ -23,7 +23,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCandidate) sdk.Result {
 	// check to see if the pubkey or sender has been registered before
-	if _, err := k.GetValidator(ctx, msg.ValidatorAddr); err != nil {
+	if _, err := k.GetValidator(ctx, sdk.ValAddress(msg.ValidatorAddr)); err != nil {
 		return types.ErrValidatorOwnerExists(k.Codespace()).Result()
 	}
 
@@ -31,7 +31,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		return types.ErrValidatorPubKeyExists(k.Codespace()).Result()
 	}
 
-	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Stake, msg.Commission)
+	val := types.NewValidator(sdk.ValAddress(msg.ValidatorAddr), msg.PubKey, msg.Stake, msg.Commission)
 	err := k.SetValidator(ctx, val)
 	if err != nil {
 		return types.ErrInvalidStruct(k.Codespace()).Result()
