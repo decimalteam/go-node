@@ -16,12 +16,12 @@ const (
 	AttributeLimitVolume = "limitVolume"
 
 	// Buy/Sell Coin
-	AttributeCoinToBuy       = "coinToBuy"
-	AttributeCoinToSell      = "coinToSell"
-	AttributeAmountToBuy     = "amountToBuy"
-	AttributeMaxAmountToSell = "maxAmountToSell"
-	AttributeAmountToSell    = "amountToSell"
-	AttributeMinAmountToBuy  = "minAmountToBuy"
+	AttributeCoinToBuy              = "coinToBuy"
+	AttributeCoinToSell             = "coinToSell"
+	AttributeAmountToBuy            = "amountToBuy"
+	AttributeAmountToSell           = "amountToSell"
+	AttributeAmountToSellInBaseCoin = "amountToSellInBaseCoin"
+	AttributeAmountToBuyInBaseCoin  = "amountToBuyInBaseCoin"
 
 	// Send/MultiSend Coin
 	AttributeCoin     = "coin"

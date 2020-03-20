@@ -7,20 +7,20 @@ import (
 var _ sdk.Msg = &MsgSellCoin{}
 
 type MsgSellCoin struct {
-	Seller             sdk.AccAddress `json:"seller" yaml:"seller"`
-	CoinToBuy          string         `json:"coin_to_buy" yaml:"coin_to_buy"`
-	CoinToSell         string         `json:"coin_to_sell" yaml:"coin_to_sell"`
-	AmountToSell       sdk.Int        `json:"amount_to_sell" yaml:"amount_to_sell"`
-	MinimumAmountToBuy sdk.Int        `json:"minimum_amount_to_buy" yaml:"minimum_amount_to_buy"`
+	Seller       sdk.AccAddress `json:"seller" yaml:"seller"`
+	CoinToBuy    string         `json:"coin_to_buy" yaml:"coin_to_buy"`
+	CoinToSell   string         `json:"coin_to_sell" yaml:"coin_to_sell"`
+	AmountToSell sdk.Int        `json:"amount_to_sell" yaml:"amount_to_sell"`
+	AmountToBuy  sdk.Int        `json:"amount_to_buy" yaml:"amount_to_buy"`
 }
 
-func NewMsgSellCoin(seller sdk.AccAddress, coinToBuy string, coinToSell string, amountToSell sdk.Int, minAmountToBuy sdk.Int) MsgSellCoin {
+func NewMsgSellCoin(seller sdk.AccAddress, coinToBuy string, coinToSell string, amountToSell sdk.Int, amountToBuy sdk.Int) MsgSellCoin {
 	return MsgSellCoin{
-		Seller:             seller,
-		CoinToBuy:          coinToBuy,
-		AmountToSell:       amountToSell,
-		CoinToSell:         coinToSell,
-		MinimumAmountToBuy: minAmountToBuy,
+		Seller:       seller,
+		CoinToBuy:    coinToBuy,
+		AmountToSell: amountToSell,
+		CoinToSell:   coinToSell,
+		AmountToBuy:  amountToBuy,
 	}
 }
 

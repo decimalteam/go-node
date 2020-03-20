@@ -7,20 +7,20 @@ import (
 var _ sdk.Msg = &MsgBuyCoin{}
 
 type MsgBuyCoin struct {
-	Buyer               sdk.AccAddress `json:"buyer" yaml:"buyer"`
-	CoinToBuy           string         `json:"coin_to_buy" yaml:"coin_to_buy"`
-	CoinToSell          string         `json:"coin_to_sell" yaml:"coin_to_sell"`
-	AmountToBuy         sdk.Int        `json:"amount_to_buy" yaml:"amount_to_buy"`
-	MaximumAmountToSell sdk.Int        `json:"maximum_amount_to_sell" yaml:"maximum_amount_to_sell"`
+	Buyer        sdk.AccAddress `json:"buyer" yaml:"buyer"`
+	CoinToBuy    string         `json:"coin_to_buy" yaml:"coin_to_buy"`
+	CoinToSell   string         `json:"coin_to_sell" yaml:"coin_to_sell"`
+	AmountToBuy  sdk.Int        `json:"amount_to_buy" yaml:"amount_to_buy"`
+	AmountToSell sdk.Int        `json:"amount_to_sell" yaml:"amount_to_sell"`
 }
 
-func NewMsgBuyCoin(buyer sdk.AccAddress, coinToBuy string, coinToSell string, amountToBuy sdk.Int, maxAmountToSell sdk.Int) MsgBuyCoin {
+func NewMsgBuyCoin(buyer sdk.AccAddress, coinToBuy string, coinToSell string, amountToBuy sdk.Int, amountToSell sdk.Int) MsgBuyCoin {
 	return MsgBuyCoin{
-		Buyer:               buyer,
-		CoinToBuy:           coinToBuy,
-		AmountToBuy:         amountToBuy,
-		CoinToSell:          coinToSell,
-		MaximumAmountToSell: maxAmountToSell,
+		Buyer:        buyer,
+		CoinToBuy:    coinToBuy,
+		AmountToBuy:  amountToBuy,
+		CoinToSell:   coinToSell,
+		AmountToSell: amountToSell,
 	}
 }
 

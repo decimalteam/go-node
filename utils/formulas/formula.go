@@ -15,7 +15,7 @@ func newFloat(x float64) *big.Float {
 }
 
 // Return = supply * ((1 + deposit / reserve) ^ (crr / 100) - 1)
-// Рассчитывает сколько монет мы получим заплатив deposit DLC (Покупка формула 2)
+// Рассчитывает сколько монет мы получим заплатив deposit DCL (Покупка формула 2)
 func CalculatePurchaseReturn(supply sdk.Int, reserve sdk.Int, crr uint, deposit sdk.Int) sdk.Int {
 	if deposit.Equal(sdk.NewInt(0)) {
 		return sdk.NewInt(0)
@@ -45,7 +45,7 @@ func CalculatePurchaseReturn(supply sdk.Int, reserve sdk.Int, crr uint, deposit 
 
 // reversed function CalculatePurchaseReturn
 // deposit = reserve * (((wantReceive + supply) / supply)^(100 / crr) - 1)
-// Рассчитывает сколько DLC надо заплатить , чтобы получить wantReceive монет (Покупка)
+// Рассчитывает сколько DCL надо заплатить , чтобы получить wantReceive монет (Покупка)
 
 func CalculatePurchaseAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantReceive sdk.Int) sdk.Int {
 	if wantReceive.Equal(sdk.NewInt(0)) {
@@ -143,4 +143,28 @@ func CalculateSaleAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantReceive 
 	result := sdk.NewIntFromBigInt(converted)
 
 	return result
+}
+
+func GetReserveLimitFromCRR(crr uint) sdk.Int {
+	convert, _ := sdk.NewIntFromString("1000000000000000000")
+	// CRR always between 10 and 100
+	if 10 <= crr && crr <= 19 {
+		return sdk.NewInt(100000).Mul(convert)
+	} else if 20 <= crr && crr <= 29 {
+		return sdk.NewInt(90000).Mul(convert)
+	} else if 30 <= crr && crr <= 39 {
+		return sdk.NewInt(80000).Mul(convert)
+	} else if 40 <= crr && crr <= 49 {
+		return sdk.NewInt(70000).Mul(convert)
+	} else if 50 <= crr && crr <= 59 {
+		return sdk.NewInt(60000).Mul(convert)
+	} else if 60 <= crr && crr <= 69 {
+		return sdk.NewInt(50000).Mul(convert)
+	} else if 70 <= crr && crr <= 79 {
+		return sdk.NewInt(40000).Mul(convert)
+	} else if 80 <= crr && crr <= 89 {
+		return sdk.NewInt(30000).Mul(convert)
+	} else {
+		return sdk.NewInt(10000).Mul(convert)
+	}
 }

@@ -21,11 +21,14 @@ const (
 	CodeInvalid            CodeType = 108
 
 	// Buy/Sell Coin
-	SameCoins              CodeType = 109
-	CoinToBuyNotExists     CodeType = 110
-	CoinToSellNotExists    CodeType = 111
-	InsufficientCoinToSell CodeType = 112
-
+	SameCoins               CodeType = 109
+	CoinToBuyNotExists      CodeType = 110
+	CoinToSellNotExists     CodeType = 111
+	InsufficientCoinToSell  CodeType = 112
+	TxBreaksVolumeLimit     CodeType = 113
+	TxBreaksMinReserveLimit CodeType = 114
+	UpdateBalanceError      CodeType = 115
+	AmountBuyIsTooSmall     CodeType = 116
 	// Send Coin
-	InvalidAmount CodeType = 113
+	InvalidAmount CodeType = 117
 )

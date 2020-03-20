@@ -55,7 +55,7 @@ func CoinSellRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 		// TODO: Validate limits and check if sufficient balance (formulas)
 
-		valueSell := formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.ConstantReserveRatio, amountToSell)
+		valueSell := formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountToSell)
 
 		// Do basic validating
 		msg := types.NewMsgSellCoin(addr, coinToBuySymbol, coinToSellSymbol, valueSell, amountToSell)
