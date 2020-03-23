@@ -20,7 +20,5 @@ pipelines:
               variables:
                 SSH_USER: 'centos'
                 SERVER: '139.59.133.148'
-                PORT: 22
-                SSH_KEY: $FRA_SSH_KEY
                 MODE: 'command'
                 COMMAND: './ci-scripts/update.sh'
