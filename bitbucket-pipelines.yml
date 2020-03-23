@@ -20,5 +20,5 @@ pipelines:
               variables:
                 SSH_USER: 'centos'
                 SERVER: '139.59.133.148'
-                MODE: 'command'
+                MODE: 'script'
                 COMMAND: './ci-scripts/update.sh'
