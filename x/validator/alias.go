@@ -3,7 +3,6 @@ package validator
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -12,10 +11,11 @@ const (
 	ModuleName        = types.ModuleName
 	RouterKey         = types.RouterKey
 	StoreKey          = types.StoreKey
-	DefaultParamspace = types.DefaultParamspace
+	DefaultParamSpace = keeper.DefaultParamSpace
 	DefaultCodespace  = types.DefaultCodespace
-	QueryParams       = types.QueryParams
 	QuerierRoute      = types.QuerierRoute
+	NotBondedPoolName = types.NotBondedPoolName
+	BondedPoolName    = types.BondedPoolName
 )
 
 var (
@@ -30,6 +30,10 @@ var (
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
 	// TODO: Fill out variable aliases
+
+	ErrValidatorOwnerExists  = types.ErrValidatorOwnerExists
+	ErrValidatorPubKeyExists = types.ErrValidatorPubKeyExists
+	ErrInvalidStruct         = types.ErrInvalidStruct
 )
 
 type (
@@ -38,5 +42,5 @@ type (
 	GenesisState = types.GenesisState
 	Params       = types.Params
 
-	// TODO: Fill out module types
+	MsgDeclareCandidate = types.MsgDeclareCandidate
 )

@@ -87,6 +87,16 @@ func (k Keeper) SetValidatorByConsAddr(ctx sdk.Context, validator types.Validato
 	return k.set(ctx, types.GetValidatorByConsAddrKey(consAddr), validator.ValAddress)
 }
 
+// get a single validator by consensus address
+func (k Keeper) GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (types.Validator, error) {
+	var valAddr sdk.ValAddress
+	err := k.Get(ctx, types.GetValidatorByConsAddrKey(consAddr), &valAddr)
+	if err == nil {
+		return types.Validator{}, errors.New("not found validator ")
+	}
+	return k.GetValidator(ctx, valAddr)
+}
+
 // validator index
 func (k Keeper) SetValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) error {
 	// jailed validators are not kept in the power index
@@ -104,7 +114,7 @@ func (k Keeper) TotalPowerValidator(ctx sdk.Context, validator types.Validator) 
 		if err != nil {
 			continue
 		}
-		power.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.ConstantReserveRatio, token.Amount))
+		power.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, token.Amount))
 	}
 	return power
 }
