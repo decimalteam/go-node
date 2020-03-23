@@ -35,7 +35,7 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 			var initReserve, _ = sdk.NewIntFromString(args[3])
 			var initVolume, _ = sdk.NewIntFromString(args[4])
 			var limitVolume, _ = sdk.NewIntFromString(args[5])
-
+			// TODO: take reserve from creator and give it initial volume
 			price := formulas.CalculateSaleReturn(initVolume, initReserve, uint(crr), sdk.NewIntWithDecimal(1, 18))
 			_price := big.NewFloat(0).SetInt(price.BigInt())
 			_price = _price.Quo(_price, big.NewFloat(1000000000000000000))

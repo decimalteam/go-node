@@ -43,7 +43,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) sdk
 		LimitVolume: msg.LimitVolume,
 		Volume:      msg.InitialVolume,
 	}
-
+	// TODO: take reserve from creator and give it initial volume
 	k.SetCoin(ctx, coin)
 
 	ctx.EventManager().EmitEvent(

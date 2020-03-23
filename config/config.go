@@ -39,6 +39,9 @@ const (
 	// test coin
 	TitleTestCoin  = "Crypton coin"
 	SymbolTestCoin = "CRT"
+
+	// Check config
+	DecimalCheckPrefix = "Dc"
 )
 
 var (

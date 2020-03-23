@@ -2,6 +2,7 @@ package app
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/check"
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
@@ -91,6 +92,7 @@ type newApp struct {
 	supplyKeeper   supply.Keeper
 	paramsKeeper   params.Keeper
 	coinKeeper     coin.Keeper
+	checkKeeper    check.Keeper
 	// TODO: Add your module(s)
 
 	// Module Manager
@@ -134,6 +136,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
 	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	coinSubspace := app.paramsKeeper.Subspace(coin.DefaultParamspace)
+	checkSubspace := app.paramsKeeper.Subspace(check.DefaultParamspace)
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(
 		app.cdc,
@@ -206,6 +209,15 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		config,
 	)
 
+	app.checkKeeper = check.NewKeeper(
+		app.cdc,
+		keys[check.StoreKey],
+		checkSubspace,
+		check.DefaultCodespace,
+		app.coinKeeper,
+		app.accountKeeper,
+	)
+
 	// TODO: Add your module(s) keepers
 
 	app.mm = module.NewManager(
@@ -216,6 +228,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
+		check.NewAppModule(app.checkKeeper, app.coinKeeper, app.accountKeeper),
 		// TODO: Add your module(s)
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
@@ -235,6 +248,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		bank.ModuleName,
 		slashing.ModuleName,
 		coin.ModuleName,
+		check.ModuleName,
 		// TODO: Add your module(s)
 		supply.ModuleName,
 		genutil.ModuleName,

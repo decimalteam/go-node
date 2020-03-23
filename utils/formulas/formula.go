@@ -22,9 +22,7 @@ func CalculatePurchaseReturn(supply sdk.Int, reserve sdk.Int, crr uint, deposit 
 	}
 
 	if crr == 100 {
-		result := sdk.NewInt(1).Mul(supply).Mul(deposit)
-
-		return result.Quo(reserve)
+		return sdk.NewInt(1).Mul(supply).Mul(deposit).Quo(reserve)
 	}
 
 	tSupply := newFloat(0).SetInt(supply.BigInt())
