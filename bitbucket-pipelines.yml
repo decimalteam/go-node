@@ -12,4 +12,4 @@ pipelines:
             - export GO111MODULE=on
             - cd "${PACKAGE_PATH}"
             - go get ./...
-            - go build -v
+            - make all
