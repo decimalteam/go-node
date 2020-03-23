@@ -22,7 +22,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	checkQueryCmd.AddCommand(
 		client.GetCommands(
-		// TODO: Add query Cmds
+			GetCmdIssueCheck(queryRoute, cdc),
 		)...,
 	)
 

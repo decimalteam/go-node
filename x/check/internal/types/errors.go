@@ -11,6 +11,8 @@ const (
 	// Default check codespace
 	DefaultCodespace sdk.CodespaceType = ModuleName
 
+	InvalidVRS       CodeType = 101
+	InvalidPublicKey CodeType = 102
 	// CodeInvalid      CodeType = 101
 )
 

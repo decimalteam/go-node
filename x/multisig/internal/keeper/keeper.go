@@ -35,22 +35,22 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // Get returns the pubkey from the adddress-pubkey relation
-func (k Keeper) Get(ctx sdk.Context, key string) ( /* TODO: Fill out this type */ , error) {
-store := ctx.KVStore(k.storeKey)
-var item /* TODO: Fill out this type */
-byteKey := []byte(key)
-err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(byteKey), &item)
-if err != nil {
-return nil, err
-}
-return item, nil
-}
-
-func (k Keeper) set(ctx sdk.Context, key string, value /* TODO: fill out this type */) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(value)
-	store.Set([]byte(key), bz)
-}
+//func (k Keeper) Get(ctx sdk.Context, key string) ( /* TODO: Fill out this type */ , error) {
+//store := ctx.KVStore(k.storeKey)
+//var item /* TODO: Fill out this type */
+//byteKey := []byte(key)
+//err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(byteKey), &item)
+//if err != nil {
+//return nil, err
+//}
+//return item, nil
+//}
+//
+//func (k Keeper) set(ctx sdk.Context, key string, value /* TODO: fill out this type */) {
+//	store := ctx.KVStore(k.storeKey)
+//	bz := k.cdc.MustMarshalBinaryLengthPrefixed(value)
+//	store.Set([]byte(key), bz)
+//}
 
 func (k Keeper) delete(ctx sdk.Context, key string) {
 	store := ctx.KVStore(k.storeKey)

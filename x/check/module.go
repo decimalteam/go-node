@@ -1,7 +1,9 @@
 package check
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/coin"
 	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -74,15 +76,19 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper Keeper
+	keeper     Keeper
+	coinKeeper coin.Keeper
+	accKeeper  auth.AccountKeeper
 	// TODO: Add keepers that your application depends on
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper /*TODO: Add Keepers that your application depends on*/) AppModule {
+func NewAppModule(k Keeper, coinKeeper coin.Keeper, accKeeper auth.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
+		coinKeeper:     coinKeeper,
+		accKeeper:      accKeeper,
 		// TODO: Add keepers that your application depends on
 	}
 }
@@ -120,7 +126,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.stakingKeeper, genesisState)
+	InitGenesis(ctx, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 

@@ -13,15 +13,14 @@ const (
 	StoreKey          = types.StoreKey
 	DefaultParamspace = types.DefaultParamspace
 	DefaultCodespace  = types.DefaultCodespace
-	QueryParams       = types.QueryParams
 	QuerierRoute      = types.QuerierRoute
 )
 
 var (
 	// functions aliases
 	NewKeeper           = keeper.NewKeeper
-	NewQuerier          = keeper.NewQuerier
 	RegisterCodec       = types.RegisterCodec
+	NewQuerier          = keeper.NewQuerier
 	NewGenesisState     = types.NewGenesisState
 	DefaultGenesisState = types.DefaultGenesisState
 	ValidateGenesis     = types.ValidateGenesis
