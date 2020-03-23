@@ -13,8 +13,8 @@ const (
 	StoreKey          = types.StoreKey
 	DefaultParamspace = types.DefaultParamspace
 	DefaultCodespace  = types.DefaultCodespace
-	QueryParams       = types.QueryParams
-	QuerierRoute      = types.QuerierRoute
+	//QueryParams       = types.QueryParams
+	QuerierRoute = types.QuerierRoute
 )
 
 var (
