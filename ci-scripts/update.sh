@@ -8,8 +8,12 @@ if [ ! -d $DECIMALTEAM ] ; then
   mkdir -p "$DECIMALDIR"
   cd "$DECIMALDIR" || exit
   git clone --branch "$BRANCH" "$DECIMALGIT" .
+  printf "Cloned. Building...\n"
+  make all
 else
   printf "Pulling new version..."
   cd "$DECIMALDIR" || exit
   git pull origin "$BRANCH"
+  printf "Pulled. Building...\n"
+  make all
 fi

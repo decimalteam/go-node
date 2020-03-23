@@ -15,13 +15,12 @@ pipelines:
             - make all
       - step:
           name: Deploy (Frankrurt)
-          deployment: frankfurt-test
           script:
             - pipe: atlassian/ssh-run:0.2.4
-                variables:
-                  SSH_USER: 'centos'
-                  SERVER: '139.59.133.148'
-                  PORT: 22
-                  SSH_KEY: $FRA_SSH_KEY
-                  MODE: 'command'
-                  COMMAND: './ci-scripts/update.sh'
+              variables:
+                SSH_USER: 'centos'
+                SERVER: '139.59.133.148'
+                PORT: 22
+                SSH_KEY: $FRA_SSH_KEY
+                MODE: 'command'
+                COMMAND: './ci-scripts/update.sh'
