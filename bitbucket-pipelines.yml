@@ -18,7 +18,8 @@ pipelines:
           script:
             - pipe: atlassian/ssh-run:0.2.4
               variables:
-                SSH_USER: 'centos'
-                SERVER: '139.59.133.148'
+                SSH_USER: $FRA_USER
+                SERVER: $FRA_HOST
                 MODE: 'script'
                 COMMAND: './ci-scripts/update.sh'
+                SSH_KEY: $FRA_KEY
