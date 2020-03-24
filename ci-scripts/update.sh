@@ -4,6 +4,7 @@ DECIMALDIR="$HOME/go/src/bitbucket.org/decimalteam/go-node"
 DECIMALGIT="git@bitbucket.org:decimalteam/go-node.git"
 BRANCH="develop"
 SERVICEPATH="/etc/systemd/system/decd.service"
+DECDBIN="$HOME/go/bin/decd"
 printf "Decimal folder: %s\n" "$DECIMALDIR"
 
 if [ ! -d $DECIMALDIR ] ; then
@@ -21,19 +22,18 @@ else
   make all
 fi
 
-printf "Restrting service..."
+printf "Restarting service...\n"
 
 if [ ! -d $SERVICEPATH ] ; then
-  printf "No service file found. Creating."
+  printf "No service file found. Creating.\n"
   sudo touch $SERVICEPATH
   echo "[Unit]
 Description=Decimal daemon
 
 [Service]
-User=centos
 Type=simple
-Environment=PATH=$PATH:/home/centos/go/bin
-ExecStart=decd start" | sudo tee $SERVICEPATH
+ExecStart=$DECDBIN start" | sudo tee $SERVICEPATH
+  sudo systemctl daemon-reload
   sudo systemctl start decd
 else
   sudo systemctl restart decd
