@@ -32,6 +32,7 @@ Description=Decimal daemon
 [Service]
 User=centos
 Type=simple
+Environment=PATH=$PATH:/home/centos/go/bin
 ExecStart=decd start" | sudo tee $SERVICEPATH
   sudo systemctl start decd
 else
