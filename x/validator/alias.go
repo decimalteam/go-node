@@ -3,6 +3,8 @@ package validator
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking/exported"
 )
 
 const (
@@ -16,6 +18,7 @@ const (
 	QuerierRoute      = types.QuerierRoute
 	NotBondedPoolName = types.NotBondedPoolName
 	BondedPoolName    = types.BondedPoolName
+	DefaultBondDenom  = types.DefaultBondDenom
 )
 
 var (
@@ -25,7 +28,6 @@ var (
 	RegisterCodec       = types.RegisterCodec
 	NewGenesisState     = types.NewGenesisState
 	DefaultGenesisState = types.DefaultGenesisState
-	// TODO: Fill out function aliases
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
@@ -44,3 +46,7 @@ type (
 
 	MsgDeclareCandidate = types.MsgDeclareCandidate
 )
+
+func (k Keeper) Delegation(sdk.Context, sdk.AccAddress, sdk.ValAddress) exported.DelegationI {
+	panic("implement me")
+}

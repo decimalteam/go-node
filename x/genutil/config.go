@@ -1,4 +1,4 @@
-package genesis
+package genutil
 
 import "github.com/tendermint/tendermint/crypto"
 

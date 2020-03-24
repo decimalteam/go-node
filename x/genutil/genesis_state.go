@@ -1,12 +1,14 @@
-package genesis
+package genutil
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/pkg/errors"
+	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/common"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
@@ -106,4 +108,19 @@ func ValidateGenesis(cdc *codec.Codec, genesisState GenesisState) error {
 		}
 	}
 	return nil
+}
+
+// InitGenesis - initialize accounts and deliver genesis transactions
+func InitGenesis(ctx sdk.Context, cdc *codec.Codec, validatorKeeper validator.Keeper,
+	deliverTx deliverTxfn, genesisState GenesisState) []abci.ValidatorUpdate {
+
+	var validators []abci.ValidatorUpdate
+	var err error
+	if len(genesisState.GenTxs) > 0 {
+		validators, err = DeliverGenTxs(ctx, cdc, genesisState.GenTxs, validatorKeeper, deliverTx)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return validators
 }

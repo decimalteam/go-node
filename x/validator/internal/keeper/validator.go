@@ -103,11 +103,19 @@ func (k Keeper) SetValidatorByPowerIndex(ctx sdk.Context, validator types.Valida
 	if validator.Jailed {
 		return nil
 	}
-	power := k.TotalPowerValidator(ctx, validator)
+	power := k.TotalCoinsValidator(ctx, validator)
 	return k.set(ctx, types.GetValidatorsByPowerIndexKey(validator, power), validator.ValAddress)
 }
 
-func (k Keeper) TotalPowerValidator(ctx sdk.Context, validator types.Validator) sdk.Int {
+// validator index
+func (k Keeper) SetNewValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) error {
+	return k.set(ctx, types.GetValidatorsByPowerIndexKey(validator, validator.StakeCoins.AmountOf(types.DefaultBondDenom)), validator.ValAddress)
+}
+
+func (k Keeper) TotalCoinsValidator(ctx sdk.Context, validator types.Validator) sdk.Int {
+	if !validator.StakeCoins.AmountOf(types.DefaultBondDenom).IsZero() {
+		return validator.StakeCoins.AmountOf(types.DefaultBondDenom)
+	}
 	power := sdk.Int{}
 	for _, token := range validator.StakeCoins {
 		coin, err := k.coinKeeper.GetCoin(ctx, token.Denom)
@@ -212,7 +220,7 @@ func (k Keeper) UnbondAllMatureValidatorQueue(ctx sdk.Context) {
 			if err != nil {
 				continue
 			}
-			if len(val.DelegatorShares) == 0 {
+			if val.DelegatorShares.IsZero() {
 				err = k.RemoveValidator(ctx, val.ValAddress)
 			}
 		}
@@ -241,7 +249,7 @@ func (k Keeper) RemoveValidator(ctx sdk.Context, address sdk.ValAddress) error {
 	// delete the old validator record
 	k.delete(ctx, types.GetValidatorKey(address))
 	k.delete(ctx, types.GetValidatorByConsAddrKey(sdk.ConsAddress(validator.PubKey.Address())))
-	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, k.TotalPowerValidator(ctx, validator)))
+	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, k.TotalCoinsValidator(ctx, validator)))
 	return nil
 }
 
@@ -260,7 +268,7 @@ func (k Keeper) DeleteLastValidatorPower(ctx sdk.Context, operator sdk.ValAddres
 
 // validator index
 func (k Keeper) DeleteValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) {
-	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, k.TotalPowerValidator(ctx, validator)))
+	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, k.TotalCoinsValidator(ctx, validator)))
 }
 
 // Iterate over last validator powers.
@@ -303,4 +311,39 @@ func (k Keeper) LastValidatorsIterator(ctx sdk.Context) (iterator sdk.Iterator) 
 	store := ctx.KVStore(k.storeKey)
 	iterator = sdk.KVStorePrefixIterator(store, []byte{types.LastValidatorPowerKey})
 	return iterator
+}
+
+// Delegation get the delegation interface for a particular set of delegator and validator addresses
+func (k Keeper) Delegation(ctx sdk.Context, addrDel sdk.AccAddress, addrVal sdk.ValAddress) types.Delegation {
+	bond, ok := k.GetDelegation(ctx, addrDel, addrVal)
+	if !ok {
+		return types.Delegation{}
+	}
+
+	return bond
+}
+
+// Update the tokens of an existing validator, update the validators power index key
+func (k Keeper) AddValidatorTokensAndShares(ctx sdk.Context, validator types.Validator,
+	tokens sdk.Coins) (valOut types.Validator, addedShares sdk.Dec) {
+
+	k.DeleteValidatorByPowerIndex(ctx, validator)
+	for _, token := range tokens {
+		totalCoins := k.TotalCoinsValidator(ctx, validator)
+		validator, addedShares = validator.AddTokensFromDel(token, totalCoins)
+	}
+	k.SetValidator(ctx, validator)
+	k.SetValidatorByPowerIndex(ctx, validator)
+	return validator, addedShares
+}
+
+// Update the tokens of an existing validator, update the validators power index key
+func (k Keeper) RemoveValidatorTokensAndShares(ctx sdk.Context, validator types.Validator,
+	sharesToRemove sdk.Dec) (valOut types.Validator, removedTokens sdk.Int) {
+
+	k.DeleteValidatorByPowerIndex(ctx, validator)
+	validator, removedTokens = validator.RemoveDelShares(sharesToRemove)
+	k.SetValidator(ctx, validator)
+	k.SetValidatorByPowerIndex(ctx, validator)
+	return validator, removedTokens
 }

@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/genesis"
+	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"fmt"
@@ -38,7 +38,7 @@ func CollectGenTxsCmd(ctx *server.Context, cdc *codec.Codec,
 			config := ctx.Config
 			config.SetRoot(viper.GetString(cli.HomeFlag))
 			name := viper.GetString(client.FlagName)
-			nodeID, valPubKey, err := genesis.InitializeNodeValidatorFiles(config)
+			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(config)
 			if err != nil {
 				return err
 			}
@@ -54,7 +54,7 @@ func CollectGenTxsCmd(ctx *server.Context, cdc *codec.Codec,
 			}
 
 			toPrint := newPrintInfo(config.Moniker, genDoc.ChainID, nodeID, genTxsDir, json.RawMessage(""))
-			initCfg := genesis.NewInitConfig(genDoc.ChainID, genTxsDir, name, nodeID, valPubKey)
+			initCfg := genutil.NewInitConfig(genDoc.ChainID, genTxsDir, name, nodeID, valPubKey)
 
 			appMessage, err := GenAppStateFromConfig(cdc, config, initCfg, *genDoc, genAccIterator)
 			if err != nil {
@@ -107,7 +107,7 @@ func displayInfo(cdc *codec.Codec, info printInfo) error {
 
 // GenAppStateFromConfig gets the genesis app state from the config
 func GenAppStateFromConfig(cdc *codec.Codec, config *cfg.Config,
-	initCfg genesis.InitConfig, genDoc tmtypes.GenesisDoc,
+	initCfg genutil.InitConfig, genDoc tmtypes.GenesisDoc,
 	genAccIterator types.GenesisAccountsIterator,
 ) (appState json.RawMessage, err error) {
 
@@ -127,12 +127,12 @@ func GenAppStateFromConfig(cdc *codec.Codec, config *cfg.Config,
 	}
 
 	// create the app state
-	appGenesisState, err := genesis.GenesisStateFromGenDoc(cdc, genDoc)
+	appGenesisState, err := genutil.GenesisStateFromGenDoc(cdc, genDoc)
 	if err != nil {
 		return appState, err
 	}
 
-	appGenesisState, err = genesis.SetGenTxsInAppGenesisState(cdc, appGenesisState, appGenTxs)
+	appGenesisState, err = genutil.SetGenTxsInAppGenesisState(cdc, appGenesisState, appGenTxs)
 	if err != nil {
 		return appState, err
 	}
@@ -211,8 +211,8 @@ func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 
 		msg := msgs[0].(validator.MsgDeclareCandidate)
 		// validate delegator and validator addresses and funds against the accounts in the state
-		delAddr := msg.ValidatorAddr.String()
-		valAddr := msg.ValidatorAddr.String()
+		delAddr := sdk.AccAddress(msg.ValidatorAddr).String()
+		valAddr := sdk.AccAddress(msg.ValidatorAddr).String()
 
 		delAcc, delOk := addrMap[delAddr]
 		if !delOk {

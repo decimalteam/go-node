@@ -1,9 +1,8 @@
 package validator
 
 import (
-	"fmt"
-
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -23,18 +22,33 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCandidate) sdk.Result {
 	// check to see if the pubkey or sender has been registered before
-	if _, err := k.GetValidator(ctx, sdk.ValAddress(msg.ValidatorAddr)); err != nil {
+	if _, err := k.GetValidator(ctx, msg.ValidatorAddr); err == nil {
 		return types.ErrValidatorOwnerExists(k.Codespace()).Result()
 	}
 
-	if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(msg.PubKey)); err != nil {
+	if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(msg.PubKey)); err == nil {
 		return types.ErrValidatorPubKeyExists(k.Codespace()).Result()
 	}
 
-	val := types.NewValidator(sdk.ValAddress(msg.ValidatorAddr), msg.PubKey, msg.Stake, msg.Commission)
+	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Stake, msg.Commission)
 	err := k.SetValidator(ctx, val)
 	if err != nil {
 		return types.ErrInvalidStruct(k.Codespace()).Result()
+	}
+	err = k.SetValidatorByConsAddr(ctx, val)
+	if err != nil {
+		return types.ErrInvalidStruct(k.Codespace()).Result()
+	}
+	err = k.SetNewValidatorByPowerIndex(ctx, val)
+	if err != nil {
+		return types.ErrInvalidStruct(k.Codespace()).Result()
+	}
+
+	k.AfterValidatorCreated(ctx, val.ValAddress)
+
+	_, err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), val.StakeCoins, sdk.Unbonded, val, true)
+	if err != nil {
+		return sdk.NewError(k.Codespace(), types.CodeInvalidDelegation, err.Error()).Result()
 	}
 
 	ctx.EventManager().EmitEvent(

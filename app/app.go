@@ -2,6 +2,7 @@ package app
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 	"crypto/ecdsa"
 	"encoding/json"
@@ -25,7 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/genaccounts"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
@@ -111,8 +111,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	bApp.SetAppVersion(version.Version)
 
 	// TODO: Add the keys that module requires
-	keys := sdk.NewKVStoreKeys(bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
-		supply.StoreKey, distr.StoreKey, slashing.StoreKey, params.StoreKey, coin.StoreKey, validator.StoreKey)
+	keys := sdk.NewKVStoreKeys(bam.MainStoreKey, auth.StoreKey, /*staking.StoreKey,*/
+		supply.StoreKey, distr.StoreKey /*slashing.StoreKey,*/, params.StoreKey, coin.StoreKey, validator.StoreKey)
 
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -190,13 +190,13 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		slashing.DefaultCodespace,
 	)
 
-	// register the staking hooks
-	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	//app.stakingKeeper = *stakingKeeper.SetHooks(
-	//	staking.NewMultiStakingHooks(
-	//		app.distrKeeper.Hooks(),
-	//		app.slashingKeeper.Hooks()),
-	//)
+	//register the staking hooks
+	//NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
+	app.stakingKeeper = *stakingKeeper.SetHooks(
+		staking.NewMultiStakingHooks(
+			app.distrKeeper.Hooks(),
+			app.slashingKeeper.Hooks()),
+	)
 
 	app.coinKeeper = coin.NewKeeper(
 		app.cdc,
@@ -219,14 +219,14 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	app.mm = module.NewManager(
 		genaccounts.NewAppModule(app.accountKeeper),
-		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
+		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
+		slashing.NewAppModule(app.slashingKeeper, app.validatorKeeper),
 		//staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
@@ -240,11 +240,11 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		genaccounts.ModuleName,
 		distr.ModuleName,
 		//staking.ModuleName,
+		validator.ModuleName,
 		auth.ModuleName,
 		bank.ModuleName,
-		slashing.ModuleName,
+		//slashing.ModuleName,
 		coin.ModuleName,
-		validator.ModuleName,
 		supply.ModuleName,
 		genutil.ModuleName,
 	)

@@ -23,6 +23,7 @@ type Keeper struct {
 	codespace    sdk.CodespaceType
 	coinKeeper   coin.Keeper
 	supplyKeeper supply.Keeper
+	hooks        types.ValidatorHooks
 
 	validatorCache     map[string]cachedValidator
 	validatorCacheList *list.List
@@ -30,13 +31,25 @@ type Keeper struct {
 
 // NewKeeper creates a validator keeper
 func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, codespace sdk.CodespaceType, coinKeeper coin.Keeper, supplyKeeper supply.Keeper) Keeper {
+
+	// ensure bonded and not bonded module accounts are set
+	if addr := supplyKeeper.GetModuleAddress(types.BondedPoolName); addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.BondedPoolName))
+	}
+
+	if addr := supplyKeeper.GetModuleAddress(types.NotBondedPoolName); addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.NotBondedPoolName))
+	}
+
 	keeper := Keeper{
-		storeKey:     key,
-		cdc:          cdc,
-		paramSpace:   paramSpace.WithKeyTable(ParamKeyTable()),
-		codespace:    codespace,
-		coinKeeper:   coinKeeper,
-		supplyKeeper: supplyKeeper,
+		storeKey:           key,
+		cdc:                cdc,
+		paramSpace:         paramSpace.WithKeyTable(ParamKeyTable()),
+		codespace:          codespace,
+		coinKeeper:         coinKeeper,
+		supplyKeeper:       supplyKeeper,
+		validatorCache:     make(map[string]cachedValidator, aminoCacheSize),
+		validatorCacheList: list.New(),
 	}
 	return keeper
 }

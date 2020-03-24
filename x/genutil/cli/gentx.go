@@ -1,7 +1,7 @@
 package cli
 
 import (
-	genutil "bitbucket.org/decimalteam/go-node/utils/genesis"
+	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -24,6 +24,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -122,11 +123,14 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := client.NewCLIContext().WithCodec(cdc)
 
+			viper.Set(client.FlagGenerateOnly, true)
+
 			// create a 'create-validator' message
 			txBldr, msg, err := smbh.BuildCreateValidatorMsg(cliCtx, txBldr)
 			if err != nil {
 				return err
 			}
+			log.Println(msg)
 
 			info, err := txBldr.Keybase().Get(name)
 			if err != nil {

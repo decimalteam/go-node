@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
@@ -22,6 +21,8 @@ const (
 
 	// Default maximum entries in a UBD/RED pair
 	DefaultMaxEntries uint16 = 7
+
+	DefaultBondDenom string = "tdcl"
 )
 
 // nolint - Keys for parameter access
@@ -75,7 +76,7 @@ func (p Params) Equal(p2 Params) bool {
 
 // DefaultParams returns a default set of parameters.
 func DefaultParams() Params {
-	return NewParams(DefaultUnbondingTime, DefaultMaxValidators, DefaultMaxEntries, sdk.DefaultBondDenom)
+	return NewParams(DefaultUnbondingTime, DefaultMaxValidators, DefaultMaxEntries, DefaultBondDenom)
 }
 
 // String returns a human readable string representation of the parameters.

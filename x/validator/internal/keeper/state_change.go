@@ -45,7 +45,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// fetch the validator
 		valAddr := sdk.ValAddress(iterator.Value())
-		validator, err := k.GetValidator(ctx, valAddr)
+		validator, err := k.GetValidator(ctx, valAddr[2:])
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
@@ -56,7 +56,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// if we get to a zero-power validator (which we don't bond),
 		// there are no more possible bonded validators
-		if validator.PotentialConsensusPower(k.TotalPowerValidator(ctx, validator)) == 0 {
+		if validator.PotentialConsensusPower(k.TotalCoinsValidator(ctx, validator)) == 0 {
 			break
 		}
 
@@ -86,12 +86,12 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		oldPowerBytes, found := last[valAddrBytes]
 
 		// calculate the new power bytes
-		newPower := validator.ConsensusPower(k.TotalPowerValidator(ctx, validator))
+		newPower := validator.ConsensusPower(k.TotalCoinsValidator(ctx, validator))
 		newPowerBytes := k.cdc.MustMarshalBinaryLengthPrefixed(newPower)
 
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
-			updates = append(updates, validator.ABCIValidatorUpdate(k.TotalPowerValidator(ctx, validator)))
+			updates = append(updates, validator.ABCIValidatorUpdate(k.TotalCoinsValidator(ctx, validator)))
 
 			// set validator power on lookup index
 			err = k.SetLastValidatorPower(ctx, valAddr, newPower)
@@ -298,4 +298,36 @@ func sortNoLongerBonded(last validatorsByAddr) [][]byte {
 		return bytes.Compare(noLongerBonded[i], noLongerBonded[j]) == -1
 	})
 	return noLongerBonded
+}
+
+// send a validator to jail
+func (k Keeper) jailValidator(ctx sdk.Context, validator types.Validator) error {
+	if validator.Jailed {
+		return fmt.Errorf("cannot jail already jailed validator, validator: %v\n", validator)
+	}
+
+	validator.Jailed = true
+	err := k.SetValidator(ctx, validator)
+	if err != nil {
+		return err
+	}
+	k.DeleteValidatorByPowerIndex(ctx, validator)
+}
+
+// remove a validator from jail
+func (k Keeper) unjailValidator(ctx sdk.Context, validator types.Validator) error {
+	if !validator.Jailed {
+		return fmt.Errorf("cannot unjail already unjailed validator, validator: %v\n", validator)
+	}
+
+	validator.Jailed = false
+	err := k.SetValidator(ctx, validator)
+	if err != nil {
+		return err
+	}
+	err = k.SetValidatorByPowerIndex(ctx, validator)
+	if err != nil {
+		return err
+	}
+	return nil
 }

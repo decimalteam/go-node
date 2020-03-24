@@ -12,8 +12,8 @@ import (
 type Validator struct {
 	ValAddress              sdk.ValAddress `json:"val_address"`
 	PubKey                  crypto.PubKey  `json:"pub_key"`
-	StakeCoins              []sdk.Coin     `json:"stake_coins"`
-	DelegatorShares         sdk.Coins      `json:"delegator_shares"`
+	StakeCoins              sdk.Coins      `json:"stake_coins"`
+	DelegatorShares         sdk.Dec        `json:"delegator_shares"`
 	Status                  BondStatus     `json:"status"`
 	Commission              Commission     `json:"commission"`
 	Jailed                  bool           `json:"jailed"`
@@ -21,6 +21,42 @@ type Validator struct {
 	UnbondingHeight         int64          `json:"unbonding_height"`
 	Description             Description    `json:"description"`
 }
+
+func (v Validator) TokensFromShares(sdk.Dec) sdk.Dec {
+	panic("implement me")
+}
+
+func (v Validator) TokensFromSharesTruncated(sdk.Dec) sdk.Dec {
+	panic("implement me")
+}
+
+func (v Validator) TokensFromSharesRoundUp(sdk.Dec) sdk.Dec {
+	panic("implement me")
+}
+
+func (v Validator) SharesFromTokens(tokens sdk.Int, valTokens sdk.Int, delTokens sdk.Dec) (sdk.Dec, sdk.Error) {
+	if v.StakeCoins.IsZero() {
+		return sdk.Dec{}, ErrInsufficientShares(DefaultCodespace)
+	}
+
+	return delTokens.MulInt(tokens).QuoInt(valTokens), nil
+}
+
+func (v Validator) SharesFromTokensTruncated(amt sdk.Int) (sdk.Dec, sdk.Error) {
+	panic("implement me")
+}
+
+func (v Validator) IsJailed() bool                { return v.Jailed }
+func (v Validator) GetMoniker() string            { return v.Description.Moniker }
+func (v Validator) GetStatus() sdk.BondStatus     { return sdk.BondStatus(v.Status) }
+func (v Validator) GetOperator() sdk.ValAddress   { return v.ValAddress }
+func (v Validator) GetConsPubKey() crypto.PubKey  { return v.PubKey }
+func (v Validator) GetConsAddr() sdk.ConsAddress  { return sdk.ConsAddress(v.PubKey.Address()) }
+func (v Validator) GetTokens() sdk.Coins          { return v.StakeCoins }
+func (v Validator) GetToken(denom string) sdk.Int { return v.StakeCoins.AmountOf(denom) }
+func (v Validator) GetBondedTokens() sdk.Int      { return v.BondedTokens() }
+func (v Validator) GetCommission() sdk.Dec        { return v.Commission.Rate }
+func (v Validator) GetDelegatorShares() sdk.Dec   { return v.DelegatorShares }
 
 type Validators []Validator
 
@@ -69,7 +105,7 @@ func NewValidator(valAddress sdk.ValAddress, pubKey crypto.PubKey, coin sdk.Coin
 	return Validator{
 		ValAddress: valAddress,
 		PubKey:     pubKey,
-		StakeCoins: []sdk.Coin{coin},
+		StakeCoins: sdk.Coins{coin},
 		Status:     Unbonded,
 		Commission: commission,
 	}
@@ -133,4 +169,69 @@ func (v Validator) ABCIValidatorUpdateZero() abci.ValidatorUpdate {
 		PubKey: tmtypes.TM2PB.PubKey(v.PubKey),
 		Power:  0,
 	}
+}
+
+// get the bonded tokens which the validator holds
+func (v Validator) BondedTokens() sdk.Int {
+	if v.IsBonded() {
+		return v.StakeCoins.AmountOf(DefaultBondDenom)
+	}
+	return sdk.ZeroInt()
+}
+
+// AddTokensFromDel adds tokens to a validator
+func (v Validator) AddTokensFromDel(token sdk.Coin, totalVal sdk.Int) (Validator, sdk.Dec) {
+
+	// calculate the shares to issue
+	var issuedShares sdk.Dec
+	if v.DelegatorShares.IsZero() {
+		// the first delegation to a validator sets the exchange rate to one
+		issuedShares = token.Amount.ToDec()
+	} else {
+		shares, err := v.SharesFromTokens(token.Amount, totalVal, v.DelegatorShares)
+		if err != nil {
+			panic(err)
+		}
+
+		issuedShares = shares
+	}
+
+	v.StakeCoins = v.StakeCoins.Add(sdk.NewCoins(token))
+	v.DelegatorShares = v.DelegatorShares.Add(issuedShares)
+
+	return v, issuedShares
+}
+
+// RemoveDelShares removes delegator shares from a validator.
+// NOTE: because token fractions are left in the valiadator,
+//       the exchange rate of future shares of this validator can increase.
+func (v Validator) RemoveDelShares(delShares sdk.Dec) (Validator, sdk.Int) {
+
+	remainingShares := v.DelegatorShares.Sub(delShares)
+	var issuedTokens sdk.Int
+	if remainingShares.IsZero() {
+
+		// last delegation share gets any trimmings
+		issuedTokens = v.Tokens
+		v.Tokens = sdk.ZeroInt()
+	} else {
+
+		// leave excess tokens in the validator
+		// however fully use all the delegator shares
+		issuedTokens = v.TokensFromShares(delShares).TruncateInt()
+		v.Tokens = v.Tokens.Sub(issuedTokens)
+		if v.Tokens.IsNegative() {
+			panic("attempting to remove more tokens than available in validator")
+		}
+	}
+
+	v.DelegatorShares = remainingShares
+	return v, issuedTokens
+}
+
+// In some situations, the exchange rate becomes invalid, e.g. if
+// Validator loses all tokens due to slashing. In this case,
+// make all future delegations invalid.
+func (v Validator) InvalidExRate() bool {
+	return v.StakeCoins.IsZero() && v.DelegatorShares.IsPositive()
 }

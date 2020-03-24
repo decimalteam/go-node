@@ -2,7 +2,7 @@ package main
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
-	genutil "bitbucket.org/decimalteam/go-node/utils/genesis/cli"
+	genutil "bitbucket.org/decimalteam/go-node/x/genutil/cli"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"io"
@@ -20,7 +20,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
@@ -50,13 +49,13 @@ func main() {
 	}
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
+		genutil.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
 		genutil.CollectGenTxsCmd(ctx, cdc, genaccounts.AppModuleBasic{}, app.DefaultNodeHome),
 		genutil.GenTxCmd(
 			ctx, cdc, app.ModuleBasics, validator.AppModuleBasic{},
 			genaccounts.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
-		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
+		genutil.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
 		// AddGenesisAccountCmd allows users to add accounts to the genesis file
 		genaccscli.AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome),
 	)

@@ -1,6 +1,7 @@
-package genesis
+package genutil
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -89,7 +90,7 @@ type deliverTxfn func(abci.RequestDeliverTx) abci.ResponseDeliverTx
 
 // DeliverGenTxs - deliver a genesis transaction
 func DeliverGenTxs(ctx sdk.Context, cdc *codec.Codec, genTxs []json.RawMessage,
-	stakingKeeper types.StakingKeeper, deliverTx deliverTxfn) []abci.ValidatorUpdate {
+	validatorKeeper validator.Keeper, deliverTx deliverTxfn) ([]abci.ValidatorUpdate, error) {
 
 	for _, genTx := range genTxs {
 		var tx authtypes.StdTx
@@ -100,7 +101,7 @@ func DeliverGenTxs(ctx sdk.Context, cdc *codec.Codec, genTxs []json.RawMessage,
 			panic(res.Log)
 		}
 	}
-	return stakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	return validatorKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
 }
 
 // InitializeNodeValidatorFiles creates private validator and p2p configuration files.

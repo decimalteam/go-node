@@ -6,7 +6,7 @@ import (
 
 // RegisterCodec registers concrete types on codec
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgDeclareCandidate{}, "coin/declare_candidate", nil)
+	cdc.RegisterConcrete(MsgDeclareCandidate{}, "validator/declare_candidate", nil)
 }
 
 // ModuleCdc defines the module codec
