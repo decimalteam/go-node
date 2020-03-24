@@ -1,4 +1,5 @@
 #!/bin/sh
+
 DECIMALDIR="$HOME/go/src/bitbucket.org/decimalteam/go-node"
 DECIMALGIT="git@bitbucket.org:decimalteam/go-node.git"
 BRANCH="develop"
