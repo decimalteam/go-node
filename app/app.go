@@ -3,11 +3,11 @@ package app
 import (
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/check"
-	"bitbucket.org/decimalteam/go-node/x/validator"
-	"crypto/ecdsa"
+
+	//"bitbucket.org/decimalteam/go-node/x/check"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+
 	"encoding/json"
-	"fmt"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"io"
 	"os"
 
@@ -26,13 +26,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/genaccounts"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"github.com/ethereum/go-ethereum/crypto"
-	"golang.org/x/crypto/sha3"
 )
 
 const appName = "decimal"
@@ -50,13 +47,13 @@ var (
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
-		//staking.AppModuleBasic{},
+		staking.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		params.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		coin.AppModuleBasic{},
-		validator.AppModuleBasic{},
+		//validator.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
@@ -85,17 +82,16 @@ type newApp struct {
 	tkeys map[string]*sdk.TransientStoreKey
 
 	// Keepers
-	accountKeeper   auth.AccountKeeper
-	bankKeeper      bank.Keeper
-	stakingKeeper   staking.Keeper
-	slashingKeeper  slashing.Keeper
-	distrKeeper     distr.Keeper
-	supplyKeeper    supply.Keeper
-	paramsKeeper    params.Keeper
-	coinKeeper      coin.Keeper
-	checkKeeper     check.Keeper
-	validatorKeeper validator.Keeper
-	// TODO: Add your module(s)
+	accountKeeper  auth.AccountKeeper
+	bankKeeper     bank.Keeper
+	stakingKeeper  staking.Keeper
+	slashingKeeper slashing.Keeper
+	distrKeeper    distr.Keeper
+	supplyKeeper   supply.Keeper
+	paramsKeeper   params.Keeper
+	coinKeeper     coin.Keeper
+	checkKeeper    check.Keeper
+	//validatorKeeper validator.Keeper
 
 	// Module Manager
 	mm *module.Manager
@@ -115,7 +111,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// TODO: Add the keys that module requires
 	keys := sdk.NewKVStoreKeys(bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
-		supply.StoreKey, distr.StoreKey, slashing.StoreKey, params.StoreKey, coin.StoreKey, check.StoreKey, validator.StoreKey)
+		supply.StoreKey, distr.StoreKey, slashing.StoreKey, params.StoreKey, coin.StoreKey /*, check.StoreKey*/)
 
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -139,7 +135,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	coinSubspace := app.paramsKeeper.Subspace(coin.DefaultParamspace)
 	checkSubspace := app.paramsKeeper.Subspace(check.DefaultParamspace)
-	validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
+	//validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(
 		app.cdc,
@@ -194,13 +190,13 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		slashing.DefaultCodespace,
 	)
 
-	// register the staking hooks
-	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	//app.stakingKeeper = *stakingKeeper.SetHooks(
-	//	staking.NewMultiStakingHooks(
-	//		app.distrKeeper.Hooks(),
-	//		app.slashingKeeper.Hooks()),
-	//)
+	//register the staking hooks
+	//NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
+	app.stakingKeeper = *stakingKeeper.SetHooks(
+		staking.NewMultiStakingHooks(
+			app.distrKeeper.Hooks(),
+			app.slashingKeeper.Hooks()),
+	)
 
 	app.coinKeeper = coin.NewKeeper(
 		app.cdc,
@@ -222,14 +218,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	)
 
 	// TODO: Add your module(s) keepers
-	app.validatorKeeper = validator.NewKeeper(
-		app.cdc,
-		keys[validator.StoreKey],
-		validatorSubspace,
-		validator.DefaultCodespace,
-		app.coinKeeper,
-		app.supplyKeeper,
-	)
 
 	app.mm = module.NewManager(
 		genaccounts.NewAppModule(app.accountKeeper),
@@ -241,9 +229,9 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		check.NewAppModule(app.checkKeeper, app.coinKeeper, app.accountKeeper),
 		// TODO: Add your module(s)
-		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
+		//validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
-		//staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
 	app.mm.SetOrderBeginBlockers(distr.ModuleName, slashing.ModuleName)
@@ -255,12 +243,12 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.mm.SetOrderInitGenesis(
 		genaccounts.ModuleName,
 		distr.ModuleName,
-		//staking.ModuleName,
+		staking.ModuleName,
+		//validator.ModuleName,
 		auth.ModuleName,
 		bank.ModuleName,
 		slashing.ModuleName,
 		coin.ModuleName,
-		validator.ModuleName,
 		check.ModuleName,
 		// TODO: Add your module(s)
 		supply.ModuleName,
@@ -328,25 +316,25 @@ func (app *newApp) LoadHeight(height int64) error {
 func (app *newApp) ModuleAccountAddrs() map[string]bool {
 
 	// Получаем адрес и ключи формата Ed25519 (Ethereum)
-	privateKey, err := crypto.GenerateKey()
-	if err != nil {
-		panic(err)
-	}
-	privateKeyBytes := crypto.FromECDSA(privateKey)
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		panic(err)
-	}
-	publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
-	address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
-	hash := sha3.NewLegacyKeccak256()
-	hash.Write(publicKeyBytes[1:])
+	//privateKey, err := crypto.GenerateKey()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//privateKeyBytes := crypto.FromECDSA(privateKey)
+	//publicKey := privateKey.Public()
+	//publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	//if !ok {
+	//	panic(err)
+	//}
+	//publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
+	//address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
+	//hash := sha3.NewLegacyKeccak256()
+	//hash.Write(publicKeyBytes[1:])
 
-	fmt.Printf("address: (%v) \n", address)
-	fmt.Printf("publicKey: (%v) \n", hexutil.Encode(hash.Sum(nil)[12:]))
+	//fmt.Printf("address: (%v) \n", address)
+	//fmt.Printf("publicKey: (%v) \n", hexutil.Encode(hash.Sum(nil)[12:]))
 	//fmt.Printf("publicKeyBytes: (%v) \n", hexutil.Encode(publicKeyBytes)[4:])
-	fmt.Printf("privateKeyBytes: (%v) \n", hexutil.Encode(privateKeyBytes)[2:])
+	//fmt.Printf("privateKeyBytes: (%v) \n", hexutil.Encode(privateKeyBytes)[2:])
 
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
