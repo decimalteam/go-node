@@ -40,7 +40,10 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Check if enough balance
-			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+			acc, err := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
 			balance := acc.GetCoins()
 			if balance.AmountOf(strings.ToLower(coin)).LT(amount) {
 				return sdk.NewError(types.DefaultCodespace, types.InsufficientCoinToSell, "Not enough coin to send")

@@ -53,6 +53,7 @@ var (
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		coin.AppModuleBasic{},
+		check.AppModuleBasic{},
 		//validator.AppModuleBasic{},
 	)
 	// account permissions

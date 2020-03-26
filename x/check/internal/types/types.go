@@ -17,6 +17,7 @@ import (
 	"strconv"
 )
 
+// TODO: Move to sdk.Int (now use big.Int, because NewSdkIntFromBigInt has limit for bits length)
 type CheckData struct {
 	Nonce    []byte
 	ChainID  string
@@ -24,10 +25,10 @@ type CheckData struct {
 	Coin     [10]byte
 	Value    *sdk.Int
 	GasCoin  [10]byte
-	Lock     *sdk.Int
-	V        *sdk.Int
-	R        *sdk.Int
-	S        *sdk.Int
+	Lock     *big.Int
+	V        *big.Int
+	R        *big.Int
+	S        *big.Int
 }
 
 func rlpHash(x interface{}) (h common.Hash, err error) {
@@ -41,7 +42,7 @@ func rlpHash(x interface{}) (h common.Hash, err error) {
 }
 
 func NewSdkIntFromBytes(bytes []byte) *sdk.Int {
-	newInt := sdk.NewIntFromBigInt(big.NewInt(0).SetBytes(bytes))
+	newInt := sdk.Int{}
 	return &newInt
 }
 
@@ -66,17 +67,17 @@ func (check *CheckData) String() string {
 
 func (check *CheckData) PublicKey() (string, error) {
 
-	if check.V.BigInt().BitLen() > 8 {
+	if check.V.BitLen() > 8 {
 		return "", sdk.NewError(DefaultCodespace, InvalidVRS, "Invalid V, R, S values")
 	}
 
-	v := byte(check.V.BigInt().Uint64() - 27)
-	if !crypto.ValidateSignatureValues(v, check.R.BigInt(), check.S.BigInt(), true) {
+	v := byte(check.V.Uint64() - 27)
+	if !crypto.ValidateSignatureValues(v, check.R, check.S, true) {
 		return "", sdk.NewError(DefaultCodespace, InvalidVRS, "Invalid V, R, S values")
 	}
 
-	r := check.R.BigInt().Bytes()
-	s := check.S.BigInt().Bytes()
+	r := check.R.Bytes()
+	s := check.S.Bytes()
 
 	sig := make([]byte, 65)
 	copy(sig[32-len(r):32], r)
@@ -190,8 +191,7 @@ func (check *Check) Sign(prKey string) (Signed, error) {
 	if err != nil {
 		return nil, err
 	}
-	convertedLock := sdk.NewIntFromBigInt(big.NewInt(0).SetBytes(lock))
-	check.Lock = &convertedLock
+	check.Lock = big.NewInt(0).SetBytes(lock)
 
 	msgHashWithLock, err := rlpHash([]interface{}{
 		check.Nonce,
@@ -205,20 +205,16 @@ func (check *Check) Sign(prKey string) (Signed, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	privateKey, err := crypto.HexToECDSA(prKey)
-	if err != nil {
-		return nil, err
-	}
+	privateKey := crypto.ToECDSAUnsafe([]byte(prKey))
 
 	sig, err := crypto.Sign(msgHashWithLock[:], privateKey)
 	if err != nil {
 		return nil, err
 	}
 
-	check.R = NewSdkIntFromBytes(sig[:32])
-	check.S = NewSdkIntFromBytes(sig[32:64])
-	check.V = NewSdkIntFromBytes([]byte{sig[64] + 27})
+	check.R = new(big.Int).SetBytes(sig[:32])
+	check.S = new(big.Int).SetBytes(sig[32:64])
+	check.V = new(big.Int).SetBytes([]byte{sig[64] + 27})
 
 	return check, nil
 }

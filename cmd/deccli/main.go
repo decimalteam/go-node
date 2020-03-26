@@ -22,8 +22,9 @@ import (
 
 	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/config"
+	checkCmd "bitbucket.org/decimalteam/go-node/x/check/client/cli"
 	//"bitbucket.org/decimalteam/go-node/utils/keys"
-	coincmd "bitbucket.org/decimalteam/go-node/x/coin/client/cli"
+	coinCmd "bitbucket.org/decimalteam/go-node/x/coin/client/cli"
 )
 
 func main() {
@@ -97,8 +98,8 @@ func queryCmd(cdc *amino.Codec) *cobra.Command {
 	)
 
 	// add modules' query commands
-	app.ModuleBasics.AddQueryCommands(coincmd.GetQueryCmd("coin", cdc), cdc)
-
+	app.ModuleBasics.AddQueryCommands(coinCmd.GetQueryCmd("coin", cdc), cdc)
+	app.ModuleBasics.AddQueryCommands(checkCmd.GetQueryCmd("check", cdc), cdc)
 	app.ModuleBasics.AddQueryCommands(queryCmd, cdc)
 
 	return queryCmd
@@ -122,7 +123,7 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 	)
 
 	// add modules' tx commands
-	app.ModuleBasics.AddTxCommands(coincmd.GetTxCmd(cdc), cdc)
+	app.ModuleBasics.AddTxCommands(coinCmd.GetTxCmd(cdc), cdc)
 	app.ModuleBasics.AddTxCommands(txCmd, cdc)
 
 	return txCmd
