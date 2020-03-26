@@ -24,10 +24,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -50,19 +48,19 @@ var (
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		//staking.AppModuleBasic{},
-		distr.AppModuleBasic{},
+		//distr.AppModuleBasic{},
 		params.AppModuleBasic{},
-		slashing.AppModuleBasic{},
+		//slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		coin.AppModuleBasic{},
 		validator.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:     nil,
-		distr.ModuleName:          nil,
-		staking.BondedPoolName:    {supply.Burner, supply.Staking},
-		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
+		auth.FeeCollectorName: nil,
+		//distr.ModuleName:            nil,
+		validator.BondedPoolName:    {supply.Burner, supply.Staking},
+		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
 	}
 )
 
@@ -84,11 +82,11 @@ type newApp struct {
 	tkeys map[string]*sdk.TransientStoreKey
 
 	// Keepers
-	accountKeeper   auth.AccountKeeper
-	bankKeeper      bank.Keeper
-	stakingKeeper   staking.Keeper
-	slashingKeeper  slashing.Keeper
-	distrKeeper     distr.Keeper
+	accountKeeper auth.AccountKeeper
+	bankKeeper    bank.Keeper
+	//stakingKeeper   staking.Keeper
+	//slashingKeeper  slashing.Keeper
+	//distrKeeper     distr.Keeper
 	supplyKeeper    supply.Keeper
 	paramsKeeper    params.Keeper
 	coinKeeper      coin.Keeper
@@ -112,7 +110,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// TODO: Add the keys that module requires
 	keys := sdk.NewKVStoreKeys(bam.MainStoreKey, auth.StoreKey, /*staking.StoreKey,*/
-		supply.StoreKey, distr.StoreKey /*slashing.StoreKey,*/, params.StoreKey, coin.StoreKey, validator.StoreKey)
+		supply.StoreKey /*, distr.StoreKey*/ /*slashing.StoreKey,*/, params.StoreKey, coin.StoreKey, validator.StoreKey)
 
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -131,9 +129,9 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// Set specific subspaces
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSupspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
-	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
-	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
-	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
+	//stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
+	//distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
+	//slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	coinSubspace := app.paramsKeeper.Subspace(coin.DefaultParamspace)
 	validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
 	// The AccountKeeper handles address -> account lookups
@@ -162,41 +160,41 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	)
 
 	// The staking keeper
-	stakingKeeper := staking.NewKeeper(
-		app.cdc,
-		keys[staking.StoreKey],
-		tkeys[staking.TStoreKey],
-		app.supplyKeeper,
-		stakingSubspace,
-		staking.DefaultCodespace,
-	)
+	//stakingKeeper := staking.NewKeeper(
+	//	app.cdc,
+	//	keys[staking.StoreKey],
+	//	tkeys[staking.TStoreKey],
+	//	app.supplyKeeper,
+	//	stakingSubspace,
+	//	staking.DefaultCodespace,
+	//)
 
-	app.distrKeeper = distr.NewKeeper(
-		app.cdc,
-		keys[distr.StoreKey],
-		distrSubspace,
-		&stakingKeeper,
-		app.supplyKeeper,
-		distr.DefaultCodespace,
-		auth.FeeCollectorName,
-		app.ModuleAccountAddrs(),
-	)
+	//app.distrKeeper = distr.NewKeeper(
+	//	app.cdc,
+	//	keys[distr.StoreKey],
+	//	distrSubspace,
+	//	&stakingKeeper,
+	//	app.supplyKeeper,
+	//	distr.DefaultCodespace,
+	//	auth.FeeCollectorName,
+	//	app.ModuleAccountAddrs(),
+	//)
 
-	app.slashingKeeper = slashing.NewKeeper(
-		app.cdc,
-		keys[slashing.StoreKey],
-		&stakingKeeper,
-		slashingSubspace,
-		slashing.DefaultCodespace,
-	)
+	//app.slashingKeeper = slashing.NewKeeper(
+	//	app.cdc,
+	//	keys[slashing.StoreKey],
+	//	&stakingKeeper,
+	//	slashingSubspace,
+	//	slashing.DefaultCodespace,
+	//)
 
 	//register the staking hooks
 	//NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	app.stakingKeeper = *stakingKeeper.SetHooks(
-		staking.NewMultiStakingHooks(
-			app.distrKeeper.Hooks(),
-			app.slashingKeeper.Hooks()),
-	)
+	//app.stakingKeeper = *stakingKeeper.SetHooks(
+	//	staking.NewMultiStakingHooks(
+	//		app.distrKeeper.Hooks(),
+	//		app.slashingKeeper.Hooks()),
+	//)
 
 	app.coinKeeper = coin.NewKeeper(
 		app.cdc,
@@ -223,22 +221,22 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
+		//distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.validatorKeeper),
+		//slashing.NewAppModule(app.slashingKeeper, app.validatorKeeper),
 		//staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
-	app.mm.SetOrderBeginBlockers(distr.ModuleName, slashing.ModuleName)
-	app.mm.SetOrderEndBlockers(staking.ModuleName)
+	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
+	app.mm.SetOrderEndBlockers(validator.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
 	// NOTE: The genutils moodule must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
 		genaccounts.ModuleName,
-		distr.ModuleName,
+		//distr.ModuleName,
 		//staking.ModuleName,
 		validator.ModuleName,
 		auth.ModuleName,

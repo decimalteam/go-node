@@ -116,7 +116,7 @@ func (k Keeper) TotalCoinsValidator(ctx sdk.Context, validator types.Validator) 
 	if !validator.StakeCoins.AmountOf(types.DefaultBondDenom).IsZero() {
 		return validator.StakeCoins.AmountOf(types.DefaultBondDenom)
 	}
-	power := sdk.Int{}
+	power := sdk.ZeroInt()
 	for _, token := range validator.StakeCoins {
 		coin, err := k.coinKeeper.GetCoin(ctx, token.Denom)
 		if err != nil {
@@ -338,12 +338,12 @@ func (k Keeper) AddValidatorTokensAndShares(ctx sdk.Context, validator types.Val
 }
 
 // Update the tokens of an existing validator, update the validators power index key
-func (k Keeper) RemoveValidatorTokensAndShares(ctx sdk.Context, validator types.Validator,
-	sharesToRemove sdk.Dec) (valOut types.Validator, removedTokens sdk.Int) {
-
-	k.DeleteValidatorByPowerIndex(ctx, validator)
-	validator, removedTokens = validator.RemoveDelShares(sharesToRemove)
-	k.SetValidator(ctx, validator)
-	k.SetValidatorByPowerIndex(ctx, validator)
-	return validator, removedTokens
-}
+//func (k Keeper) RemoveValidatorTokensAndShares(ctx sdk.Context, validator types.Validator,
+//	sharesToRemove sdk.Dec) (valOut types.Validator, removedTokens sdk.Int) {
+//
+//	k.DeleteValidatorByPowerIndex(ctx, validator)
+//	validator, removedTokens = validator.RemoveDelShares(sharesToRemove)
+//	k.SetValidator(ctx, validator)
+//	k.SetValidatorByPowerIndex(ctx, validator)
+//	return validator, removedTokens
+//}

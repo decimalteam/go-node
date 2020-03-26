@@ -1,12 +1,6 @@
 package keeper
 
-import (
-	"fmt"
-
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
-
+/*
 // Slash a validator for an infraction committed at a known height
 // Find the contributing stake at that height and burn the specified slashFactor
 // of it, updating unbonding delegations & redelegations appropriately
@@ -301,3 +295,4 @@ func (k Keeper) slashRedelegation(ctx sdk.Context, srcValidator types.Validator,
 
 	return totalSlashAmount
 }
+*/

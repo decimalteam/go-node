@@ -312,6 +312,7 @@ func (k Keeper) jailValidator(ctx sdk.Context, validator types.Validator) error 
 		return err
 	}
 	k.DeleteValidatorByPowerIndex(ctx, validator)
+	return nil
 }
 
 // remove a validator from jail

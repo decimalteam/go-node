@@ -1,11 +1,13 @@
 package types
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	tmtypes "github.com/tendermint/tendermint/types"
+	"strings"
 	"time"
 )
 
@@ -20,6 +22,28 @@ type Validator struct {
 	UnbondingCompletionTime time.Time      `json:"unbonding_completion_time"`
 	UnbondingHeight         int64          `json:"unbonding_height"`
 	Description             Description    `json:"description"`
+}
+
+// String returns a human readable string representation of a validator.
+func (v Validator) String() string {
+	bechConsPubKey, err := sdk.Bech32ifyConsPub(v.PubKey)
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf(`Validator
+  Operator Address:           %s
+  Validator Consensus Pubkey: %s
+  Jailed:                     %v
+  Status:                     %s
+  Tokens:                     %s
+  Delegator Shares:           %s
+  Description:                %s
+  Unbonding Height:           %d
+  Unbonding Completion Time:  %v
+  Commission:                 %s`, v.ValAddress, bechConsPubKey,
+		v.Jailed, v.Status, v.StakeCoins,
+		v.DelegatorShares, v.Description,
+		v.UnbondingHeight, v.UnbondingCompletionTime, v.Commission)
 }
 
 func (v Validator) TokensFromShares(sdk.Dec) sdk.Dec {
@@ -59,6 +83,14 @@ func (v Validator) GetCommission() sdk.Dec        { return v.Commission.Rate }
 func (v Validator) GetDelegatorShares() sdk.Dec   { return v.DelegatorShares }
 
 type Validators []Validator
+
+func (v Validators) String() string {
+	var out string
+	for _, val := range v {
+		out += val.String() + "\n"
+	}
+	return strings.TrimSpace(out)
+}
 
 // Description - description fields for a validator
 type Description struct {
@@ -101,13 +133,14 @@ func (b BondStatus) String() string {
 	}
 }
 
-func NewValidator(valAddress sdk.ValAddress, pubKey crypto.PubKey, coin sdk.Coin, commission Commission) Validator {
+func NewValidator(valAddress sdk.ValAddress, pubKey crypto.PubKey, commission Commission) Validator {
 	return Validator{
-		ValAddress: valAddress,
-		PubKey:     pubKey,
-		StakeCoins: sdk.Coins{coin},
-		Status:     Unbonded,
-		Commission: commission,
+		ValAddress:      valAddress,
+		PubKey:          pubKey,
+		StakeCoins:      sdk.NewCoins(),
+		Status:          Unbonded,
+		Commission:      commission,
+		DelegatorShares: sdk.ZeroDec(),
 	}
 }
 
@@ -183,7 +216,7 @@ func (v Validator) BondedTokens() sdk.Int {
 func (v Validator) AddTokensFromDel(token sdk.Coin, totalVal sdk.Int) (Validator, sdk.Dec) {
 
 	// calculate the shares to issue
-	var issuedShares sdk.Dec
+	issuedShares := sdk.ZeroDec()
 	if v.DelegatorShares.IsZero() {
 		// the first delegation to a validator sets the exchange rate to one
 		issuedShares = token.Amount.ToDec()
@@ -200,33 +233,6 @@ func (v Validator) AddTokensFromDel(token sdk.Coin, totalVal sdk.Int) (Validator
 	v.DelegatorShares = v.DelegatorShares.Add(issuedShares)
 
 	return v, issuedShares
-}
-
-// RemoveDelShares removes delegator shares from a validator.
-// NOTE: because token fractions are left in the valiadator,
-//       the exchange rate of future shares of this validator can increase.
-func (v Validator) RemoveDelShares(delShares sdk.Dec) (Validator, sdk.Int) {
-
-	remainingShares := v.DelegatorShares.Sub(delShares)
-	var issuedTokens sdk.Int
-	if remainingShares.IsZero() {
-
-		// last delegation share gets any trimmings
-		issuedTokens = v.Tokens
-		v.Tokens = sdk.ZeroInt()
-	} else {
-
-		// leave excess tokens in the validator
-		// however fully use all the delegator shares
-		issuedTokens = v.TokensFromShares(delShares).TruncateInt()
-		v.Tokens = v.Tokens.Sub(issuedTokens)
-		if v.Tokens.IsNegative() {
-			panic("attempting to remove more tokens than available in validator")
-		}
-	}
-
-	v.DelegatorShares = remainingShares
-	return v, issuedTokens
 }
 
 // In some situations, the exchange rate becomes invalid, e.g. if

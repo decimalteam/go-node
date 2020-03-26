@@ -18,7 +18,6 @@ const (
 
 	QuerierRoute = ModuleName
 
-	ValidatorKey                     = 0x01
 	LastTotalPowerKey                = 0x02
 	ValidatorsByConsAddrKey          = 0x03
 	ValidatorsByPowerIndexKey        = 0x04
@@ -36,7 +35,7 @@ const (
 )
 
 func GetValidatorKey(addr sdk.ValAddress) []byte {
-	return append([]byte{ValidatorKey}, addr.Bytes()...)
+	return append([]byte{ValidatorsKey}, addr.Bytes()...)
 }
 
 // gets the key for the validator with pubkey

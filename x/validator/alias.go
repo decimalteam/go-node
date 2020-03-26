@@ -3,8 +3,6 @@ package validator
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/exported"
 )
 
 const (
@@ -19,6 +17,8 @@ const (
 	NotBondedPoolName = types.NotBondedPoolName
 	BondedPoolName    = types.BondedPoolName
 	DefaultBondDenom  = types.DefaultBondDenom
+
+	ValidatorsKey = types.ValidatorsKey
 )
 
 var (
@@ -45,8 +45,5 @@ type (
 	Params       = types.Params
 
 	MsgDeclareCandidate = types.MsgDeclareCandidate
+	UnbondingDelegation = types.UnbondingDelegation
 )
-
-func (k Keeper) Delegation(sdk.Context, sdk.AccAddress, sdk.ValAddress) exported.DelegationI {
-	panic("implement me")
-}

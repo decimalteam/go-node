@@ -181,8 +181,8 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 func GetDelegate(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Delegate coins",
-		Use:   "set-online [validator_address] [coin] --from name/address",
-		Args:  cobra.ExactArgs(3),
+		Use:   "delegate [validator_address] [coin] --from name/address",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))

@@ -13,6 +13,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgDeclareCandidate:
 			return handleMsgDeclareCandidate(ctx, keeper, msg)
+		case types.MsgDelegate:
+			return handleMsgDelegate(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -30,7 +32,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		return types.ErrValidatorPubKeyExists(k.Codespace()).Result()
 	}
 
-	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Stake, msg.Commission)
+	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Commission)
 	err := k.SetValidator(ctx, val)
 	if err != nil {
 		return types.ErrInvalidStruct(k.Codespace()).Result()
@@ -46,7 +48,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 
 	k.AfterValidatorCreated(ctx, val.ValAddress)
 
-	_, err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), val.StakeCoins, sdk.Unbonded, val, true)
+	_, err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), sdk.NewCoins(msg.Stake), types.Unbonded, val, true)
 	if err != nil {
 		return sdk.NewError(k.Codespace(), types.CodeInvalidDelegation, err.Error()).Result()
 	}
@@ -58,6 +60,30 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Stake.Amount.String()),
 		),
 	)
+
+	return sdk.Result{Events: ctx.EventManager().Events()}
+}
+
+func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) sdk.Result {
+	val, err := k.GetValidator(ctx, msg.ValidatorAddress)
+	if err != nil {
+		return types.ErrValidatorOwnerExists(k.Codespace()).Result()
+	}
+
+	_, err = k.Delegate(ctx, msg.DelegatorAddress, sdk.NewCoins(msg.Amount), types.Unbonded, val, true)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeDelegate,
+			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
+		),
+	})
 
 	return sdk.Result{Events: ctx.EventManager().Events()}
 }

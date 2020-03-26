@@ -1,8 +1,13 @@
 package types
 
+import sdk "github.com/cosmos/cosmos-sdk/types"
+
 // Query endpoints supported by the validator querier
 const (
-	QueryParams = "parameters"
+	QueryParams               = "parameters"
+	QueryValidatorDelegations = "validatorDelegations"
+	QueryValidators           = "validators"
+	QueryPool                 = "pool"
 )
 
 /*
@@ -18,3 +23,18 @@ func (n QueryResList) String() string {
 }
 
 */
+
+// defines the params for the following queries:
+// - 'custom/staking/validator'
+// - 'custom/staking/validatorDelegations'
+// - 'custom/staking/validatorUnbondingDelegations'
+// - 'custom/staking/validatorRedelegations'
+type QueryValidatorParams struct {
+	ValidatorAddr sdk.ValAddress
+}
+
+func NewQueryValidatorParams(validatorAddr sdk.ValAddress) QueryValidatorParams {
+	return QueryValidatorParams{
+		ValidatorAddr: validatorAddr,
+	}
+}
