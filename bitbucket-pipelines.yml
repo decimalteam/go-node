@@ -13,13 +13,25 @@ pipelines:
             - cd "${PACKAGE_PATH}"
             - go get ./...
             - make all
-      - step:
-          name: Deploy (Frankrurt)
-          script:
-            - pipe: atlassian/ssh-run:0.2.4
-              variables:
-                SSH_USER: $FRA_USER
-                SERVER: $FRA_HOST
-                MODE: 'script'
-                COMMAND: './ci-scripts/update.sh'
-                SSH_KEY: $FRA_KEY
+      - parallel:
+          - step:
+              name: Deploy (Host 01)
+              script:
+                - pipe: atlassian/ssh-run:0.2.4
+                  variables:
+                    SSH_USER: $HOST01_USER
+                    SERVER: $HOST01_HOST
+                    MODE: 'script'
+                    COMMAND: './ci-scripts/update.sh'
+                    SSH_KEY: $HOST01_KEY
+
+          - step:
+              name: Deploy (Host 02)
+              script:
+                - pipe: atlassian/ssh-run:0.2.4
+                  variables:
+                    SSH_USER: $HOST02_USER
+                    SERVER: $HOST02_HOST
+                    MODE: 'script'
+                    COMMAND: './ci-scripts/update.sh'
+                    SSH_KEY: $HOST02_KEY
