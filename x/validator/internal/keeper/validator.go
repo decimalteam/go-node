@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"log"
 	"time"
 )
 
@@ -103,28 +104,31 @@ func (k Keeper) SetValidatorByPowerIndex(ctx sdk.Context, validator types.Valida
 	if validator.Jailed {
 		return nil
 	}
-	power := k.TotalCoinsValidator(ctx, validator)
+	power := validator.Tokens
 	return k.set(ctx, types.GetValidatorsByPowerIndexKey(validator, power), validator.ValAddress)
 }
 
 // validator index
 func (k Keeper) SetNewValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) error {
-	return k.set(ctx, types.GetValidatorsByPowerIndexKey(validator, validator.StakeCoins.AmountOf(types.DefaultBondDenom)), validator.ValAddress)
+	return k.set(ctx, types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), validator.ValAddress)
 }
 
-func (k Keeper) TotalCoinsValidator(ctx sdk.Context, validator types.Validator) sdk.Int {
-	if !validator.StakeCoins.AmountOf(types.DefaultBondDenom).IsZero() {
-		return validator.StakeCoins.AmountOf(types.DefaultBondDenom)
-	}
-	power := sdk.ZeroInt()
-	for _, token := range validator.StakeCoins {
-		coin, err := k.coinKeeper.GetCoin(ctx, token.Denom)
-		if err != nil {
-			continue
+func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
+	total := validator.Tokens
+	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+	for _, del := range delegations {
+		if del.Coin.Denom != types.DefaultBondDenom {
+			log.Println(del.Coin)
+			coin, err := k.coinKeeper.GetCoin(ctx, del.Coin.Denom)
+			if err != nil {
+				panic(err)
+			}
+			total.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.Coin.Amount))
+		} else {
+			total.Add(del.Coin.Amount)
 		}
-		power.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, token.Amount))
 	}
-	return power
+	return total
 }
 
 //_______________________________________________________________________
@@ -240,16 +244,14 @@ func (k Keeper) RemoveValidator(ctx sdk.Context, address sdk.ValAddress) error {
 	if !validator.IsUnbonded() {
 		return errors.New("cannot call RemoveValidator on bonded or unbonding validators")
 	}
-	for _, stakeCoin := range validator.StakeCoins {
-		if !stakeCoin.IsZero() {
-			return errors.New("attempting to remove a validator which still contains tokens")
-		}
+	if !validator.Tokens.IsZero() {
+		return errors.New("attempting to remove a validator which still contains tokens")
 	}
 
 	// delete the old validator record
 	k.delete(ctx, types.GetValidatorKey(address))
 	k.delete(ctx, types.GetValidatorByConsAddrKey(sdk.ConsAddress(validator.PubKey.Address())))
-	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, k.TotalCoinsValidator(ctx, validator)))
+	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, k.TotalStake(ctx, validator)))
 	return nil
 }
 
@@ -268,7 +270,7 @@ func (k Keeper) DeleteLastValidatorPower(ctx sdk.Context, operator sdk.ValAddres
 
 // validator index
 func (k Keeper) DeleteValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) {
-	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, k.TotalCoinsValidator(ctx, validator)))
+	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, validator.Tokens))
 }
 
 // Iterate over last validator powers.
@@ -329,8 +331,7 @@ func (k Keeper) AddValidatorTokensAndShares(ctx sdk.Context, validator types.Val
 
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 	for _, token := range tokens {
-		totalCoins := k.TotalCoinsValidator(ctx, validator)
-		validator, addedShares = validator.AddTokensFromDel(token, totalCoins)
+		validator, addedShares = validator.AddTokensFromDel(token, validator.Tokens)
 	}
 	k.SetValidator(ctx, validator)
 	k.SetValidatorByPowerIndex(ctx, validator)
@@ -347,3 +348,14 @@ func (k Keeper) AddValidatorTokensAndShares(ctx sdk.Context, validator types.Val
 //	k.SetValidatorByPowerIndex(ctx, validator)
 //	return validator, removedTokens
 //}
+
+// Update the tokens of an existing validator, update the validators power index key
+func (k Keeper) RemoveValidatorTokens(ctx sdk.Context,
+	validator types.Validator, tokensToRemove sdk.Int) types.Validator {
+
+	k.DeleteValidatorByPowerIndex(ctx, validator)
+	validator = validator.RemoveTokens(tokensToRemove)
+	k.SetValidator(ctx, validator)
+	k.SetValidatorByPowerIndex(ctx, validator)
+	return validator
+}

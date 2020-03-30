@@ -48,7 +48,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 
 	k.AfterValidatorCreated(ctx, val.ValAddress)
 
-	_, err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), sdk.NewCoins(msg.Stake), types.Unbonded, val, true)
+	_, err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
 	if err != nil {
 		return sdk.NewError(k.Codespace(), types.CodeInvalidDelegation, err.Error()).Result()
 	}
@@ -70,7 +70,7 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) sdk.Res
 		return types.ErrValidatorOwnerExists(k.Codespace()).Result()
 	}
 
-	_, err = k.Delegate(ctx, msg.DelegatorAddress, sdk.NewCoins(msg.Amount), types.Unbonded, val, true)
+	_, err = k.Delegate(ctx, msg.DelegatorAddress, msg.Amount, types.Unbonded, val, true)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(

@@ -84,7 +84,7 @@ func delegationToDelegationResponse(del types.Delegation) (types.DelegationRespo
 		del.DelegatorAddress,
 		del.ValidatorAddress,
 		del.Shares,
-		del.Coins,
+		del.Coin,
 	), nil
 }
 

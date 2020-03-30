@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"log"
 	"time"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
@@ -455,7 +454,7 @@ func (k Keeper) DequeueAllMatureRedelegationQueue(ctx sdk.Context, currTime time
 
 // Perform a delegation, set/update everything necessary within the store.
 // tokenSrc indicates the bond status of the incoming funds.
-func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoins sdk.Coins, tokenSrc types.BondStatus,
+func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.Coin, tokenSrc types.BondStatus,
 	validator types.Validator, subtractAccount bool) (sdk.Dec, sdk.Error) {
 
 	newShares := sdk.ZeroDec()
@@ -469,7 +468,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoins sdk.
 	// Get or create the delegation object
 	delegation, found := k.GetDelegation(ctx, delAddr, validator.ValAddress)
 	if !found {
-		delegation = types.NewDelegation(delAddr, validator.ValAddress, sdk.ZeroDec(), bondCoins)
+		delegation = types.NewDelegation(delAddr, validator.ValAddress, sdk.ZeroDec(), bondCoin)
 	}
 
 	// call the appropriate hook if present
@@ -497,7 +496,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoins sdk.
 			panic("invalid validator status")
 		}
 
-		err := k.supplyKeeper.DelegateCoinsFromAccountToModule(ctx, delegation.DelegatorAddress, sendName, bondCoins)
+		err := k.supplyKeeper.DelegateCoinsFromAccountToModule(ctx, delegation.DelegatorAddress, sendName, sdk.NewCoins(bondCoin))
 		if err != nil {
 			return sdk.ZeroDec(), err
 		}
@@ -511,18 +510,17 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoins sdk.
 			// do nothing
 		case (tokenSrc == types.Unbonded || tokenSrc == types.Unbonding) && validator.IsBonded():
 			// transfer pools
-			k.notBondedTokensToBonded(ctx, bondCoins)
+			k.notBondedTokensToBonded(ctx, sdk.NewCoins(bondCoin))
 		case tokenSrc == types.Bonded && !validator.IsBonded():
 			// transfer pools
-			k.bondedTokensToNotBonded(ctx, bondCoins)
+			k.bondedTokensToNotBonded(ctx, sdk.NewCoins(bondCoin))
 		default:
 			panic("unknown token source bond status")
 		}
 	}
 
-	validator, newShares = k.AddValidatorTokensAndShares(ctx, validator, bondCoins)
+	validator, newShares = k.AddValidatorTokensAndShares(ctx, validator, sdk.NewCoins(bondCoin))
 
-	log.Println(newShares)
 	// Update delegation
 	delegation.Shares = delegation.Shares.Add(newShares)
 	k.SetDelegation(ctx, delegation)

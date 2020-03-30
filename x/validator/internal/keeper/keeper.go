@@ -5,7 +5,6 @@ import (
 	"container/list"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-
 	"github.com/tendermint/tendermint/libs/log"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"

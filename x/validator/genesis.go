@@ -65,21 +65,9 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 
 		switch validator.Status {
 		case vtypes.Bonded:
-			for _, coin := range validator.StakeCoins {
-				if _, ok := bondedTokens[coin.Denom]; ok {
-					bondedTokens[coin.Denom].Add(coin.Amount)
-				} else {
-					bondedTokens[coin.Denom] = coin.Amount
-				}
-			}
+			bondedTokens[vtypes.DefaultBondDenom] = validator.Tokens
 		case vtypes.Unbonding, vtypes.Unbonded:
-			for _, coin := range validator.StakeCoins {
-				if _, ok := notBondedTokens[coin.Denom]; ok {
-					notBondedTokens[coin.Denom].Add(coin.Amount)
-				} else {
-					notBondedTokens[coin.Denom] = coin.Amount
-				}
-			}
+			notBondedTokens[vtypes.DefaultBondDenom] = validator.Tokens
 		default:
 			log.Println("Init genesis error: invalid validator status")
 		}
@@ -160,7 +148,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 			if err != nil {
 				panic(fmt.Sprintf("validator %s not found", lv.Address))
 			}
-			update := validator.ABCIValidatorUpdate(keeper.TotalCoinsValidator(ctx, validator))
+			update := validator.ABCIValidatorUpdate(keeper.TotalStake(ctx, validator))
 			update.Power = lv.Power // keep the next-val-set offset, use the last power for the first block
 			updates = append(updates, update)
 		}
@@ -212,7 +200,7 @@ func WriteValidators(ctx sdk.Context, keeper Keeper) (vals []tmtypes.GenesisVali
 	keeper.IterateLastValidators(ctx, func(_ int64, validator vtypes.Validator) (stop bool) {
 		vals = append(vals, tmtypes.GenesisValidator{
 			PubKey: validator.PubKey,
-			Power:  validator.ConsensusPower(keeper.TotalCoinsValidator(ctx, validator)),
+			Power:  validator.ConsensusPower(keeper.TotalStake(ctx, validator)),
 			Name:   validator.Description.Moniker,
 		})
 

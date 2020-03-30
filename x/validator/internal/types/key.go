@@ -32,6 +32,8 @@ const (
 	RedelegationKey                  = 0x0d
 	RedelegationByValSrcIndexKey     = 0x0e
 	RedelegationByValDstIndexKey     = 0x0f
+	ValidatorSigningInfoKey          = 0x10
+	ValidatorMissedBlockBitArrayKey  = 0x11
 )
 
 func GetValidatorKey(addr sdk.ValAddress) []byte {
@@ -241,4 +243,21 @@ func GetREDsByDelToValDstIndexKey(delAddr sdk.AccAddress, valDstAddr sdk.ValAddr
 	return append(
 		GetREDsToValDstIndexKey(valDstAddr),
 		delAddr.Bytes()...)
+}
+
+// stored by *Consensus* address (not operator address)
+func GetValidatorSigningInfoKey(v sdk.ConsAddress) []byte {
+	return append([]byte{ValidatorSigningInfoKey}, v.Bytes()...)
+}
+
+// stored by *Consensus* address (not operator address)
+func GetValidatorMissedBlockBitArrayPrefixKey(v sdk.ConsAddress) []byte {
+	return append([]byte{ValidatorMissedBlockBitArrayKey}, v.Bytes()...)
+}
+
+// stored by *Consensus* address (not operator address)
+func GetValidatorMissedBlockBitArrayKey(v sdk.ConsAddress, i int64) []byte {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(i))
+	return append(GetValidatorMissedBlockBitArrayPrefixKey(v), b...)
 }

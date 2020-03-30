@@ -34,18 +34,18 @@ type Delegation struct {
 	DelegatorAddress sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"`
 	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
 	Shares           sdk.Dec        `json:"shares" yaml:"shares"`
-	Coins            sdk.Coins      `json:"coins" yaml:"coins"`
+	Coin             sdk.Coin       `json:"coin" yaml:"coin"`
 }
 
 // NewDelegation creates a new delegation object
 func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-	shares sdk.Dec, coins sdk.Coins) Delegation {
+	shares sdk.Dec, coin sdk.Coin) Delegation {
 
 	return Delegation{
 		DelegatorAddress: delegatorAddr,
 		ValidatorAddress: validatorAddr,
 		Shares:           shares,
-		Coins:            coins,
+		Coin:             coin,
 	}
 }
 
@@ -352,8 +352,8 @@ type DelegationResponse struct {
 	Balance sdk.Coin `json:"balance" yaml:"balance"`
 }
 
-func NewDelegationResp(d sdk.AccAddress, v sdk.ValAddress, s sdk.Dec, b sdk.Coins) DelegationResponse {
-	return DelegationResponse{NewDelegation(d, v, s, b), b[0]}
+func NewDelegationResp(d sdk.AccAddress, v sdk.ValAddress, s sdk.Dec, b sdk.Coin) DelegationResponse {
+	return DelegationResponse{NewDelegation(d, v, s, b), b}
 }
 
 // String implements the Stringer interface for DelegationResponse.

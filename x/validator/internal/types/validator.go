@@ -14,7 +14,7 @@ import (
 type Validator struct {
 	ValAddress              sdk.ValAddress `json:"val_address"`
 	PubKey                  crypto.PubKey  `json:"pub_key"`
-	StakeCoins              sdk.Coins      `json:"stake_coins"`
+	Tokens                  sdk.Int        `json:"stake_coins"`
 	DelegatorShares         sdk.Dec        `json:"delegator_shares"`
 	Status                  BondStatus     `json:"status"`
 	Commission              Commission     `json:"commission"`
@@ -22,6 +22,13 @@ type Validator struct {
 	UnbondingCompletionTime time.Time      `json:"unbonding_completion_time"`
 	UnbondingHeight         int64          `json:"unbonding_height"`
 	Description             Description    `json:"description"`
+	AccumRewards            sdk.Int        `json:"accum_rewards"`
+	DelegatorStakes         []Stake        `json:"delegator_stakes"`
+}
+
+type Stake struct {
+	Delegator sdk.AccAddress `json:"delegator"`
+	Coin      sdk.Coin       `json:"coin"`
 }
 
 // String returns a human readable string representation of a validator.
@@ -41,46 +48,29 @@ func (v Validator) String() string {
   Unbonding Height:           %d
   Unbonding Completion Time:  %v
   Commission:                 %s`, v.ValAddress, bechConsPubKey,
-		v.Jailed, v.Status, v.StakeCoins,
+		v.Jailed, v.Status, v.Tokens,
 		v.DelegatorShares, v.Description,
 		v.UnbondingHeight, v.UnbondingCompletionTime, v.Commission)
 }
 
-func (v Validator) TokensFromShares(sdk.Dec) sdk.Dec {
-	panic("implement me")
-}
-
-func (v Validator) TokensFromSharesTruncated(sdk.Dec) sdk.Dec {
-	panic("implement me")
-}
-
-func (v Validator) TokensFromSharesRoundUp(sdk.Dec) sdk.Dec {
-	panic("implement me")
-}
-
 func (v Validator) SharesFromTokens(tokens sdk.Int, valTokens sdk.Int, delTokens sdk.Dec) (sdk.Dec, sdk.Error) {
-	if v.StakeCoins.IsZero() {
+	if v.Tokens.IsZero() {
 		return sdk.Dec{}, ErrInsufficientShares(DefaultCodespace)
 	}
 
 	return delTokens.MulInt(tokens).QuoInt(valTokens), nil
 }
 
-func (v Validator) SharesFromTokensTruncated(amt sdk.Int) (sdk.Dec, sdk.Error) {
-	panic("implement me")
-}
-
-func (v Validator) IsJailed() bool                { return v.Jailed }
-func (v Validator) GetMoniker() string            { return v.Description.Moniker }
-func (v Validator) GetStatus() sdk.BondStatus     { return sdk.BondStatus(v.Status) }
-func (v Validator) GetOperator() sdk.ValAddress   { return v.ValAddress }
-func (v Validator) GetConsPubKey() crypto.PubKey  { return v.PubKey }
-func (v Validator) GetConsAddr() sdk.ConsAddress  { return sdk.ConsAddress(v.PubKey.Address()) }
-func (v Validator) GetTokens() sdk.Coins          { return v.StakeCoins }
-func (v Validator) GetToken(denom string) sdk.Int { return v.StakeCoins.AmountOf(denom) }
-func (v Validator) GetBondedTokens() sdk.Int      { return v.BondedTokens() }
-func (v Validator) GetCommission() sdk.Dec        { return v.Commission.Rate }
-func (v Validator) GetDelegatorShares() sdk.Dec   { return v.DelegatorShares }
+func (v Validator) IsJailed() bool               { return v.Jailed }
+func (v Validator) GetMoniker() string           { return v.Description.Moniker }
+func (v Validator) GetStatus() sdk.BondStatus    { return sdk.BondStatus(v.Status) }
+func (v Validator) GetOperator() sdk.ValAddress  { return v.ValAddress }
+func (v Validator) GetConsPubKey() crypto.PubKey { return v.PubKey }
+func (v Validator) GetConsAddr() sdk.ConsAddress { return sdk.ConsAddress(v.PubKey.Address()) }
+func (v Validator) GetTokens() sdk.Int           { return v.Tokens }
+func (v Validator) GetBondedTokens() sdk.Int     { return v.BondedTokens() }
+func (v Validator) GetCommission() sdk.Dec       { return v.Commission.Rate }
+func (v Validator) GetDelegatorShares() sdk.Dec  { return v.DelegatorShares }
 
 type Validators []Validator
 
@@ -137,7 +127,7 @@ func NewValidator(valAddress sdk.ValAddress, pubKey crypto.PubKey, commission Co
 	return Validator{
 		ValAddress:      valAddress,
 		PubKey:          pubKey,
-		StakeCoins:      sdk.NewCoins(),
+		Tokens:          sdk.ZeroInt(),
 		Status:          Unbonded,
 		Commission:      commission,
 		DelegatorShares: sdk.ZeroDec(),
@@ -207,7 +197,7 @@ func (v Validator) ABCIValidatorUpdateZero() abci.ValidatorUpdate {
 // get the bonded tokens which the validator holds
 func (v Validator) BondedTokens() sdk.Int {
 	if v.IsBonded() {
-		return v.StakeCoins.AmountOf(DefaultBondDenom)
+		return v.Tokens
 	}
 	return sdk.ZeroInt()
 }
@@ -229,7 +219,7 @@ func (v Validator) AddTokensFromDel(token sdk.Coin, totalVal sdk.Int) (Validator
 		issuedShares = shares
 	}
 
-	v.StakeCoins = v.StakeCoins.Add(sdk.NewCoins(token))
+	v.Tokens = v.Tokens.Add(token.Amount)
 	v.DelegatorShares = v.DelegatorShares.Add(issuedShares)
 
 	return v, issuedShares
@@ -239,5 +229,17 @@ func (v Validator) AddTokensFromDel(token sdk.Coin, totalVal sdk.Int) (Validator
 // Validator loses all tokens due to slashing. In this case,
 // make all future delegations invalid.
 func (v Validator) InvalidExRate() bool {
-	return v.StakeCoins.IsZero() && v.DelegatorShares.IsPositive()
+	return v.Tokens.IsZero() && v.DelegatorShares.IsPositive()
+}
+
+// RemoveTokens removes tokens from a validator
+func (v Validator) RemoveTokens(tokens sdk.Int) Validator {
+	if tokens.IsNegative() {
+		panic(fmt.Sprintf("should not happen: trying to remove negative tokens %v", tokens))
+	}
+	if v.Tokens.LT(tokens) {
+		panic(fmt.Sprintf("should not happen: only have %v tokens, trying to remove %v", v.Tokens, tokens))
+	}
+	v.Tokens = v.Tokens.Sub(tokens)
+	return v
 }

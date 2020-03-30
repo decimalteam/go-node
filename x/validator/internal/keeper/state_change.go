@@ -56,7 +56,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// if we get to a zero-power validator (which we don't bond),
 		// there are no more possible bonded validators
-		if validator.PotentialConsensusPower(k.TotalCoinsValidator(ctx, validator)) == 0 {
+		if validator.PotentialConsensusPower(validator.Tokens) == 0 {
 			break
 		}
 
@@ -67,13 +67,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			if err != nil {
 				return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 			}
-			amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(validator.StakeCoins)
-		case validator.IsUnbonding():
-			validator, err = k.unbondingToBonded(ctx, validator)
-			if err != nil {
-				return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
-			}
-			amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(validator.StakeCoins)
+			amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, validator.Tokens)))
 		case validator.IsBonded():
 			// no state change
 		default:
@@ -86,12 +80,12 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		oldPowerBytes, found := last[valAddrBytes]
 
 		// calculate the new power bytes
-		newPower := validator.ConsensusPower(k.TotalCoinsValidator(ctx, validator))
+		newPower := validator.ConsensusPower(k.TotalStake(ctx, validator))
 		newPowerBytes := k.cdc.MustMarshalBinaryLengthPrefixed(newPower)
 
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
-			updates = append(updates, validator.ABCIValidatorUpdate(k.TotalCoinsValidator(ctx, validator)))
+			updates = append(updates, validator.ABCIValidatorUpdate(validator.Tokens))
 
 			// set validator power on lookup index
 			err = k.SetLastValidatorPower(ctx, valAddr, newPower)
@@ -124,7 +118,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
-		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(validator.StakeCoins)
+		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, validator.Tokens)))
 
 		// delete from the bonded validator index
 		k.DeleteLastValidatorPower(ctx, validator.ValAddress)
@@ -307,6 +301,7 @@ func (k Keeper) jailValidator(ctx sdk.Context, validator types.Validator) error 
 	}
 
 	validator.Jailed = true
+	validator = validator.UpdateStatus(types.Unbonded)
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
 		return err

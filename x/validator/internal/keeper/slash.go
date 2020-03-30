@@ -1,6 +1,13 @@
 package keeper
 
-/*
+import (
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto"
+	"time"
+)
+
 // Slash a validator for an infraction committed at a known height
 // Find the contributing stake at that height and burn the specified slashFactor
 // of it, updating unbonding delegations & redelegations appropriately
@@ -18,14 +25,14 @@ package keeper
 func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeight int64, power int64, slashFactor sdk.Dec) {
 	logger := k.Logger(ctx)
 
-	if slashFactor.LT(sdk.ZeroDec()) {
+	if slashFactor.IsNegative() {
 		panic(fmt.Errorf("attempted to slash with a negative slash factor: %v", slashFactor))
 	}
 
 	// Amount of slashing = slash slashFactor * power at time of infraction
-	amount := sdk.TokensFromConsensusPower(power)
-	slashAmountDec := amount.ToDec().Mul(slashFactor)
-	slashAmount := slashAmountDec.TruncateInt()
+	//amount := sdk.TokensFromConsensusPower(power)
+	//slashAmountDec := amount.ToDec().Mul(slashFactor)
+	//slashAmount := slashAmountDec.TruncateInt()
 
 	// ref https://github.com/cosmos/cosmos-sdk/issues/1348
 
@@ -45,16 +52,13 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 	if validator.IsUnbonded() {
 		panic(fmt.Sprintf("should not be slashing unbonded validator: %s", validator.ValAddress))
 	}
-
-	operatorAddress := validator.ValAddress
-
 	// call the before-modification hook
-	k.BeforeValidatorModified(ctx, operatorAddress)
+	k.BeforeValidatorModified(ctx, validator.ValAddress)
 
 	// Track remaining slash amount for the validator
 	// This will decrease when we slash unbondings and
 	// redelegations, as that stake has since unbonded
-	remainingSlashAmount := slashAmount
+	//remainingSlashAmount := slashAmount
 
 	switch {
 	case infractionHeight > ctx.BlockHeight():
@@ -72,54 +76,30 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 			infractionHeight))
 
 	case infractionHeight < ctx.BlockHeight():
-
 		// Iterate through unbonding delegations from slashed validator
-		unbondingDelegations := k.GetUnbondingDelegationsFromValidator(ctx, operatorAddress)
-		for _, unbondingDelegation := range unbondingDelegations {
-			amountSlashed := k.slashUnbondingDelegation(ctx, unbondingDelegation, infractionHeight, slashFactor)
-			if amountSlashed.IsZero() {
-				continue
-			}
-			remainingSlashAmount = remainingSlashAmount.Sub(amountSlashed)
-		}
-
-		// Iterate through redelegations from slashed source validator
-		redelegations := k.GetRedelegationsFromSrcValidator(ctx, operatorAddress)
-		for _, redelegation := range redelegations {
-			amountSlashed := k.slashRedelegation(ctx, validator, redelegation, infractionHeight, slashFactor)
-			if amountSlashed.IsZero() {
-				continue
-			}
-			remainingSlashAmount = remainingSlashAmount.Sub(amountSlashed)
-		}
+		//unbondingDelegations := k.GetUnbondingDelegationsFromValidator(ctx, validator.ValAddress)
+		//for _, unbondingDelegation := range unbondingDelegations {
+		//	amountSlashed := k.slashUnbondingDelegation(ctx, unbondingDelegation, infractionHeight, slashFactor)
+		//	if amountSlashed.IsZero() {
+		//		continue
+		//	}
+		//	remainingSlashAmount = remainingSlashAmount.Sub(amountSlashed)
+		//}
 	}
 
-	// cannot decrease balance below zero
-	tokensToBurn := sdk.MinInt(remainingSlashAmount, validator.StakeCoins)
-	tokensToBurn = sdk.MaxInt(tokensToBurn, sdk.ZeroInt()) // defensive.
-
-	// we need to calculate the *effective* slash fraction for distribution
-	if validator.Tokens.GT(sdk.ZeroInt()) {
-		effectiveFraction := tokensToBurn.ToDec().QuoRoundUp(validator.Tokens.ToDec())
-		// possible if power has changed
-		if effectiveFraction.GT(sdk.OneDec()) {
-			effectiveFraction = sdk.OneDec()
-		}
-		// call the before-slashed hook
-		k.BeforeValidatorSlashed(ctx, operatorAddress, effectiveFraction)
-	}
+	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+	amountSlashed := k.slashBondedDelegations(ctx, delegations, slashFactor)
 
 	// Deduct from validator's bonded tokens and update the validator.
 	// Burn the slashed tokens from the pool account and decrease the total supply.
-	validator = k.RemoveValidatorTokens(ctx, validator, tokensToBurn)
 
 	switch validator.GetStatus() {
 	case sdk.Bonded:
-		if err := k.burnBondedTokens(ctx, tokensToBurn); err != nil {
+		if err := k.burnBondedTokens(ctx, amountSlashed); err != nil {
 			panic(err)
 		}
 	case sdk.Unbonding, sdk.Unbonded:
-		if err := k.burnNotBondedTokens(ctx, tokensToBurn); err != nil {
+		if err := k.burnNotBondedTokens(ctx, amountSlashed); err != nil {
 			panic(err)
 		}
 	default:
@@ -129,9 +109,8 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 	// Log that a slash occurred!
 	logger.Info(fmt.Sprintf(
 		"validator %s slashed by slash factor of %s; burned %v tokens",
-		validator.GetOperator(), slashFactor.String(), tokensToBurn))
+		validator.GetOperator(), slashFactor.String(), amountSlashed))
 
-	// TODO Return event(s), blocked on https://github.com/tendermint/tendermint/pull/1803
 	return
 }
 
@@ -144,7 +123,6 @@ func (k Keeper) Jail(ctx sdk.Context, consAddr sdk.ConsAddress) {
 	k.jailValidator(ctx, validator)
 	logger := k.Logger(ctx)
 	logger.Info(fmt.Sprintf("validator %s jailed", consAddr))
-	// TODO Return event(s), blocked on https://github.com/tendermint/tendermint/pull/1803
 	return
 }
 
@@ -160,10 +138,10 @@ func (k Keeper) Unjail(ctx sdk.Context, consAddr sdk.ConsAddress) {
 	}
 	logger := k.Logger(ctx)
 	logger.Info(fmt.Sprintf("validator %s unjailed", consAddr))
-	// TODO Return event(s), blocked on https://github.com/tendermint/tendermint/pull/1803
 	return
 }
 
+/*
 // slash an unbonding delegation and update the pool
 // return the amount that would have been slashed assuming
 // the unbonding delegation had enough stake to slash
@@ -217,82 +195,237 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 
 	return totalSlashAmount
 }
+*/
 
-// slash a redelegation and update the pool
-// return the amount that would have been slashed assuming
-// the unbonding delegation had enough stake to slash
-// (the amount actually slashed may be less if there's
-// insufficient stake remaining)
-// NOTE this is only slashing for prior infractions from the source validator
-func (k Keeper) slashRedelegation(ctx sdk.Context, srcValidator types.Validator, redelegation types.Redelegation,
-	infractionHeight int64, slashFactor sdk.Dec) (totalSlashAmount sdk.Int) {
-
-	now := ctx.BlockHeader().Time
-	totalSlashAmount = sdk.ZeroInt()
-	bondedBurnedAmount, notBondedBurnedAmount := sdk.ZeroInt(), sdk.ZeroInt()
-
-	// perform slashing on all entries within the redelegation
-	for _, entry := range redelegation.Entries {
-
-		// If redelegation started before this height, stake didn't contribute to infraction
-		if entry.CreationHeight < infractionHeight {
-			continue
-		}
-
-		if entry.IsMature(now) {
-			// Redelegation no longer eligible for slashing, skip it
-			continue
-		}
-
+// return total slashed coins
+func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delegations, slashFactor sdk.Dec) sdk.Coins {
+	totalSlashAmount := sdk.ZeroInt()
+	burnedAmount := sdk.NewCoins()
+	for _, delegation := range delegations {
 		// Calculate slash amount proportional to stake contributing to infraction
-		slashAmountDec := slashFactor.MulInt(entry.InitialBalance)
+		slashAmountDec := slashFactor.MulInt(delegation.Coin.Amount)
 		slashAmount := slashAmountDec.TruncateInt()
 		totalSlashAmount = totalSlashAmount.Add(slashAmount)
 
-		// Unbond from target validator
-		sharesToUnbond := slashFactor.Mul(entry.SharesDst)
-		if sharesToUnbond.IsZero() {
+		bondSlashAmount := sdk.MinInt(slashAmount, delegation.Coin.Amount)
+
+		if bondSlashAmount.IsZero() {
 			continue
 		}
-		delegation, found := k.GetDelegation(ctx, redelegation.DelegatorAddress, redelegation.ValidatorDstAddress)
-		if !found {
-			// If deleted, delegation has zero shares, and we can't unbond any more
-			continue
-		}
-		if sharesToUnbond.GT(delegation.Shares) {
-			sharesToUnbond = delegation.Shares
-		}
 
-		tokensToBurn, err := k.unbond(ctx, redelegation.DelegatorAddress, redelegation.ValidatorDstAddress, sharesToUnbond)
-		if err != nil {
-			panic(fmt.Errorf("error unbonding delegator: %v", err))
-		}
-
-		dstValidator, found := k.GetValidator(ctx, redelegation.ValidatorDstAddress)
-		if !found {
-			panic("destination validator not found")
-		}
-
-		// tokens of a redelegation currently live in the destination validator
-		// therefor we must burn tokens from the destination-validator's bonding status
-		switch {
-		case dstValidator.IsBonded():
-			bondedBurnedAmount = bondedBurnedAmount.Add(tokensToBurn)
-		case dstValidator.IsUnbonded() || dstValidator.IsUnbonding():
-			notBondedBurnedAmount = notBondedBurnedAmount.Add(tokensToBurn)
-		default:
-			panic("unknown validator status")
-		}
+		burnedAmount = burnedAmount.Add(sdk.NewCoins(sdk.NewCoin(delegation.Coin.Denom, bondSlashAmount)))
+		delegation.Coin.Amount = delegation.Coin.Amount.Sub(bondSlashAmount)
+		k.SetDelegation(ctx, delegation)
 	}
 
-	if err := k.burnBondedTokens(ctx, bondedBurnedAmount); err != nil {
+	if err := k.burnNotBondedTokens(ctx, burnedAmount); err != nil {
 		panic(err)
 	}
-
-	if err := k.burnNotBondedTokens(ctx, notBondedBurnedAmount); err != nil {
-		panic(err)
-	}
-
-	return totalSlashAmount
+	return burnedAmount
 }
-*/
+
+// handle a validator signature, must be called once per validator per block
+func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
+	logger := k.Logger(ctx)
+	height := ctx.BlockHeight()
+	consAddr := sdk.ConsAddress(addr)
+	val, err := k.GetValidatorByConsAddr(ctx, consAddr)
+	if err != nil {
+		panic(fmt.Sprintf("Validator %s not found", consAddr))
+	}
+
+	pubkey := val.PubKey
+
+	// fetch signing info
+	signInfo, found := k.getValidatorSigningInfo(ctx, consAddr)
+	if !found {
+		panic(fmt.Sprintf("Expected signing info for validator %s but not found", consAddr))
+	}
+
+	// this is a relative index, so it counts blocks the validator *should* have signed
+	// will use the 0-value default signing info if not present, except for start height
+	index := signInfo.IndexOffset % types.SignedBlocksWindow
+	signInfo.IndexOffset++
+
+	// Update signed block bit array & counter
+	// This counter just tracks the sum of the bit array
+	// That way we avoid needing to read/write the whole array each time
+	previous := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
+	missed := !signed
+	switch {
+	case !previous && missed:
+		// Array value has changed from not missed to missed, increment counter
+		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
+		signInfo.MissedBlocksCounter++
+	case previous && !missed:
+		// Array value has changed from missed to not missed, decrement counter
+		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, false)
+		signInfo.MissedBlocksCounter--
+	default:
+		// Array value at this index has not changed, no need to update counter
+	}
+
+	if missed {
+		logger.Info(
+			fmt.Sprintf("Absent validator %s (%s) at height %d, %d missed, threshold %d", consAddr, pubkey, height, signInfo.MissedBlocksCounter, types.MinSignedPerWindow))
+	}
+
+	minHeight := signInfo.StartHeight + types.SignedBlocksWindow
+	maxMissed := types.SignedBlocksWindow - types.MinSignedPerWindow
+
+	// if we are past the minimum height and the validator has missed too many blocks, punish them
+	if height > minHeight && signInfo.MissedBlocksCounter > maxMissed {
+		validator, err := k.GetValidatorByConsAddr(ctx, consAddr)
+		if err != nil {
+			panic(err)
+		}
+		if !validator.IsJailed() {
+
+			// Downtime confirmed: slash and jail the validator
+			logger.Info(fmt.Sprintf("Validator %s past min height of %d and below signed blocks threshold of %d",
+				consAddr, minHeight, types.MinSignedPerWindow))
+
+			// We need to retrieve the stake distribution which signed the block, so we subtract ValidatorUpdateDelay from the evidence height,
+			// and subtract an additional 1 since this is the LastCommit.
+			// Note that this *can* result in a negative "distributionHeight" up to -ValidatorUpdateDelay-1,
+			// i.e. at the end of the pre-genesis block (none) = at the beginning of the genesis block.
+			// That's fine since this is just used to filter unbonding delegations & redelegations.
+			distributionHeight := height - sdk.ValidatorUpdateDelay - 1
+
+			k.Slash(ctx, consAddr, distributionHeight, power, types.SlashFractionDowntime)
+			k.Jail(ctx, consAddr)
+
+			// We need to reset the counter & array so that the validator won't be immediately slashed for downtime upon rebonding.
+			signInfo.MissedBlocksCounter = 0
+			signInfo.IndexOffset = 0
+			k.clearValidatorMissedBlockBitArray(ctx, consAddr)
+		} else {
+			// Validator was (a) not found or (b) already jailed, don't slash
+			logger.Info(
+				fmt.Sprintf("Validator %s would have been slashed for downtime, but was either not found in store or already jailed", consAddr),
+			)
+		}
+	}
+
+	// Set the updated signing info
+	k.setValidatorSigningInfo(ctx, consAddr, signInfo)
+}
+
+// Stored by *validator* address (not operator address)
+func (k Keeper) getValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress) (info types.ValidatorSigningInfo, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetValidatorSigningInfoKey(address))
+	if bz == nil {
+		found = false
+		return
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &info)
+	found = true
+	return
+}
+
+// Stored by *validator* address (not operator address)
+func (k Keeper) setValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress, info types.ValidatorSigningInfo) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(info)
+	store.Set(types.GetValidatorSigningInfoKey(address), bz)
+}
+
+// Stored by *validator* address (not operator address)
+func (k Keeper) clearValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.GetValidatorMissedBlockBitArrayPrefixKey(address))
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		store.Delete(iter.Key())
+	}
+}
+
+// Stored by *validator* address (not operator address)
+func (k Keeper) getValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress, index int64) (missed bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetValidatorMissedBlockBitArrayKey(address, index))
+	if bz == nil {
+		// lazy: treat empty key as not missed
+		missed = false
+		return
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &missed)
+	return
+}
+
+// Stored by *validator* address (not operator address)
+func (k Keeper) setValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress, index int64, missed bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(missed)
+	store.Set(types.GetValidatorMissedBlockBitArrayKey(address, index), bz)
+}
+
+// handle a validator signing two blocks at the same height
+// power: power of the double-signing validator at the height of infraction
+func (k Keeper) HandleDoubleSign(ctx sdk.Context, addr crypto.Address, infractionHeight int64, timestamp time.Time, power int64) {
+	logger := k.Logger(ctx)
+
+	// calculate the age of the evidence
+	t := ctx.BlockHeader().Time
+	age := t.Sub(timestamp)
+
+	// fetch the validator public key
+	consAddr := sdk.ConsAddress(addr)
+	validator, err := k.GetValidatorByConsAddr(ctx, consAddr)
+	if err != nil {
+		panic(fmt.Sprintf("Validator %s not found", consAddr))
+	}
+
+	pubkey := validator.PubKey
+
+	if validator.IsUnbonded() {
+		// Defensive.
+		// Simulation doesn't take unbonding periods into account, and
+		// Tendermint might break this assumption at some point.
+		return
+	}
+
+	// fetch the validator signing info
+	signInfo, found := k.getValidatorSigningInfo(ctx, consAddr)
+	if !found {
+		panic(fmt.Sprintf("Expected signing info for validator %s but not found", consAddr))
+	}
+
+	// validator is already tombstoned
+	if signInfo.Tombstoned {
+		logger.Info(fmt.Sprintf("Ignored double sign from %s at height %d, validator already tombstoned", sdk.ConsAddress(pubkey.Address()), infractionHeight))
+		return
+	}
+
+	// double sign confirmed
+	logger.Info(fmt.Sprintf("Confirmed double sign from %s at height %d, age of %d", sdk.ConsAddress(pubkey.Address()), infractionHeight, age))
+
+	// We need to retrieve the stake distribution which signed the block, so we subtract ValidatorUpdateDelay from the evidence height.
+	// Note that this *can* result in a negative "distributionHeight", up to -ValidatorUpdateDelay,
+	// i.e. at the end of the pre-genesis block (none) = at the beginning of the genesis block.
+	// That's fine since this is just used to filter unbonding delegations & redelegations.
+	distributionHeight := infractionHeight - sdk.ValidatorUpdateDelay
+
+	// get the percentage slash penalty fraction
+	fraction := types.SlashFractionDoubleSign
+
+	// Slash validator
+	// `power` is the int64 power of the validator as provided to/by
+	// Tendermint. This value is validator.Tokens as sent to Tendermint via
+	// ABCI, and now received as evidence.
+	// The fraction is passed in to separately to slash unbonding and rebonding delegations.
+	k.Slash(ctx, consAddr, distributionHeight, power, fraction)
+
+	// Jail validator if not already jailed
+	// begin unbonding validator if not already unbonding (tombstone)
+	if !validator.IsJailed() {
+		k.Jail(ctx, consAddr)
+	}
+
+	// Set tombstoned to be true
+	signInfo.Tombstoned = true
+
+	// Set validator signing info
+	k.setValidatorSigningInfo(ctx, consAddr, signInfo)
+}
