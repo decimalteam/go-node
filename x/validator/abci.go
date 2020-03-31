@@ -96,6 +96,26 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper) []abci.Valida
 	}
 	coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
 
+	remainder := sdk.NewIntFromBigInt(rewards.BigInt())
+
+	vals := k.GetAllValidators(ctx)
+
+	totalPower := sdk.ZeroInt()
+
+	for _, val := range vals {
+		totalPower = totalPower.Add(k.TotalStake(ctx, val))
+	}
+
+	for _, val := range vals {
+		r := rewards.Mul(k.TotalStake(ctx, val)).Quo(totalPower)
+		remainder.Sub(r)
+		val = val.AddAccumReward(r)
+		err = k.SetValidator(ctx, val)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	if height%120 == 0 {
 		err = k.PayRewards(ctx)
 		if err != nil {

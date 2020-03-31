@@ -225,6 +225,8 @@ func (k Keeper) bondValidator(ctx sdk.Context, validator types.Validator) (types
 		return types.Validator{}, err
 	}
 
+	k.AfterValidatorBonded(ctx, validator.GetConsAddr(), validator.ValAddress)
+
 	return validator, nil
 }
 

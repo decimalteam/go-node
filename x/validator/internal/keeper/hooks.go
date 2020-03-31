@@ -1,15 +1,18 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"time"
 )
-
-// Implements StakingHooks interface
-var _ types.StakingHooks = Keeper{}
 
 // AfterValidatorCreated - call hook if registered
 func (k Keeper) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress) {
+	val, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
+		panic(err)
+	}
+	k.addPubkey(ctx, val.PubKey)
 	if k.hooks != nil {
 		k.hooks.AfterValidatorCreated(ctx, valAddr)
 	}
@@ -31,6 +34,18 @@ func (k Keeper) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress,
 
 // AfterValidatorBonded - call hook if registered
 func (k Keeper) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+	_, found := k.getValidatorSigningInfo(ctx, consAddr)
+	if !found {
+		signingInfo := types.NewValidatorSigningInfo(
+			consAddr,
+			ctx.BlockHeight(),
+			0,
+			time.Unix(0, 0),
+			false,
+			0,
+		)
+		k.setValidatorSigningInfo(ctx, consAddr, signingInfo)
+	}
 	if k.hooks != nil {
 		k.hooks.AfterValidatorBonded(ctx, consAddr, valAddr)
 	}

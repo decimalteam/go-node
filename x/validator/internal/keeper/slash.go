@@ -229,12 +229,10 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	logger := k.Logger(ctx)
 	height := ctx.BlockHeight()
 	consAddr := sdk.ConsAddress(addr)
-	val, err := k.GetValidatorByConsAddr(ctx, consAddr)
+	pubkey, err := k.getPubkey(ctx, addr)
 	if err != nil {
-		panic(fmt.Sprintf("Validator %s not found", consAddr))
+		panic(fmt.Sprintf("Validator consensus-address %s not found", consAddr))
 	}
-
-	pubkey := val.PubKey
 
 	// fetch signing info
 	signInfo, found := k.getValidatorSigningInfo(ctx, consAddr)
@@ -428,4 +426,25 @@ func (k Keeper) HandleDoubleSign(ctx sdk.Context, addr crypto.Address, infractio
 
 	// Set validator signing info
 	k.setValidatorSigningInfo(ctx, consAddr, signInfo)
+}
+
+func (k Keeper) getPubkey(ctx sdk.Context, address crypto.Address) (crypto.PubKey, error) {
+	store := ctx.KVStore(k.storeKey)
+	var pubkey crypto.PubKey
+	err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(types.GetAddrPubkeyRelationKey(address)), &pubkey)
+	if err != nil {
+		return nil, fmt.Errorf("address %s not found", sdk.ConsAddress(address))
+	}
+	return pubkey, nil
+}
+
+func (k Keeper) addPubkey(ctx sdk.Context, pubkey crypto.PubKey) {
+	addr := pubkey.Address()
+	k.setAddrPubkeyRelation(ctx, addr, pubkey)
+}
+
+func (k Keeper) setAddrPubkeyRelation(ctx sdk.Context, addr crypto.Address, pubkey crypto.PubKey) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(pubkey)
+	store.Set(types.GetAddrPubkeyRelationKey(addr), bz)
 }

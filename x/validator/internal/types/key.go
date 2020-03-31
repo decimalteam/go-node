@@ -34,6 +34,7 @@ const (
 	RedelegationByValDstIndexKey     = 0x0f
 	ValidatorSigningInfoKey          = 0x10
 	ValidatorMissedBlockBitArrayKey  = 0x11
+	AddrPubkeyRelationKey            = 0x12
 )
 
 func GetValidatorKey(addr sdk.ValAddress) []byte {

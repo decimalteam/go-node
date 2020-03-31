@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"log"
 )
 
 func (k Keeper) PayRewards(ctx sdk.Context) error {
@@ -14,13 +13,12 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 			continue
 		}
 		rewards := val.AccumRewards
-		log.Println(rewards)
 		remainder := val.AccumRewards
 		totalStake := k.TotalStake(ctx, val)
 		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
 		for _, del := range delegations {
 			reward := sdk.NewIntFromBigInt(rewards.BigInt())
-			if del.Coin.Denom != sdk.DefaultBondDenom {
+			if del.Coin.Denom != types.DefaultBondDenom {
 				coinDel, err := k.coinKeeper.GetCoin(ctx, del.Coin.Denom)
 				if err != nil {
 					return err
@@ -31,14 +29,18 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 				if reward.LT(sdk.NewInt(1)) {
 					continue
 				}
-
-				err = k.coinKeeper.UpdateBalance(ctx, types.DefaultBondDenom, reward, del.DelegatorAddress)
-				if err != nil {
+			} else {
+				reward = reward.Mul(del.Coin.Amount).Quo(totalStake)
+				if reward.LT(sdk.NewInt(1)) {
 					continue
 				}
-
-				remainder.Sub(reward)
 			}
+
+			err := k.coinKeeper.UpdateBalance(ctx, types.DefaultBondDenom, reward, del.DelegatorAddress)
+			if err != nil {
+				continue
+			}
+			remainder.Sub(reward)
 		}
 		val.AccumRewards = sdk.ZeroInt()
 	}

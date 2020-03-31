@@ -54,3 +54,8 @@ func (i ValidatorSigningInfo) String() string {
 		i.Address, i.StartHeight, i.IndexOffset, i.JailedUntil,
 		i.Tombstoned, i.MissedBlocksCounter)
 }
+
+// get pubkey relation key used to get the pubkey from the address
+func GetAddrPubkeyRelationKey(address []byte) []byte {
+	return append([]byte{AddrPubkeyRelationKey}, address...)
+}

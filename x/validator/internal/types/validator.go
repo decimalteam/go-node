@@ -243,3 +243,8 @@ func (v Validator) RemoveTokens(tokens sdk.Int) Validator {
 	v.Tokens = v.Tokens.Sub(tokens)
 	return v
 }
+
+func (v Validator) AddAccumReward(reward sdk.Int) Validator {
+	v.AccumRewards = v.AccumRewards.Add(reward)
+	return v
+}
