@@ -13,7 +13,10 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 			continue
 		}
 		rewards := val.AccumRewards
-		remainder := val.AccumRewards
+
+		rewards = rewards.ToDec().Mul(val.Commission.Rate).TruncateInt()
+
+		remainder := rewards
 		totalStake := k.TotalStake(ctx, val)
 		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
 		for _, del := range delegations {
