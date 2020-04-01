@@ -14,8 +14,13 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		}
 		rewards := val.AccumRewards
 
-		rewards = rewards.ToDec().Mul(val.Commission.Rate).TruncateInt()
+		rewardsVal := rewards.ToDec().Mul(val.Commission.Rate).TruncateInt()
+		err := k.coinKeeper.UpdateBalance(ctx, types.DefaultBondDenom, rewardsVal, sdk.AccAddress(val.ValAddress))
+		if err != nil {
+			return err
+		}
 
+		rewards = rewards.Sub(rewardsVal)
 		remainder := rewards
 		totalStake := k.TotalStake(ctx, val)
 		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
@@ -26,7 +31,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 				if err != nil {
 					return err
 				}
-				defAmount := formulas.CalculateSaleAmount(coinDel.Volume, coinDel.Reserve, coinDel.CRR, del.Coin.Amount)
+				defAmount := formulas.CalculateSaleReturn(coinDel.Volume, coinDel.Reserve, coinDel.CRR, del.Coin.Amount)
 
 				reward = reward.Mul(defAmount).Quo(totalStake)
 				if reward.LT(sdk.NewInt(1)) {

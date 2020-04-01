@@ -16,20 +16,21 @@ const aminoCacheSize = 500
 
 // Keeper of the validator store
 type Keeper struct {
-	storeKey     sdk.StoreKey
-	cdc          *codec.Codec
-	paramSpace   types.ParamSubspace
-	codespace    sdk.CodespaceType
-	coinKeeper   coin.Keeper
-	supplyKeeper supply.Keeper
-	hooks        types.ValidatorHooks
+	storeKey         sdk.StoreKey
+	cdc              *codec.Codec
+	paramSpace       types.ParamSubspace
+	codespace        sdk.CodespaceType
+	coinKeeper       coin.Keeper
+	supplyKeeper     supply.Keeper
+	hooks            types.ValidatorHooks
+	FeeCollectorName string
 
 	validatorCache     map[string]cachedValidator
 	validatorCacheList *list.List
 }
 
 // NewKeeper creates a validator keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, codespace sdk.CodespaceType, coinKeeper coin.Keeper, supplyKeeper supply.Keeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, codespace sdk.CodespaceType, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, feeCollectorName string) Keeper {
 
 	// ensure bonded and not bonded module accounts are set
 	if addr := supplyKeeper.GetModuleAddress(types.BondedPoolName); addr == nil {
@@ -49,6 +50,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspac
 		supplyKeeper:       supplyKeeper,
 		validatorCache:     make(map[string]cachedValidator, aminoCacheSize),
 		validatorCacheList: list.New(),
+		FeeCollectorName:   feeCollectorName,
 	}
 	return keeper
 }

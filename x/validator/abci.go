@@ -1,10 +1,12 @@
 package validator
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
@@ -32,7 +34,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 }
 
 // EndBlocker called every block, process inflation, update validator set.
-func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper) []abci.ValidatorUpdate {
+func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper) []abci.ValidatorUpdate {
 	// Calculate validator set changes.
 	//
 	// NOTE: ApplyAndReturnValidatorSetUpdates has to come before
@@ -95,6 +97,25 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper) []abci.Valida
 		panic(err)
 	}
 	coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
+
+	feeCollector := supplyKeeper.GetModuleAccount(ctx, k.FeeCollectorName)
+	feesCollectedInt := feeCollector.GetCoins()
+	for _, fee := range feesCollectedInt {
+		if fee.Denom == types.DefaultBondDenom {
+			rewards.Add(fee.Amount)
+		} else {
+			feeCoin, err := coinKeeper.GetCoin(ctx, fee.Denom)
+			if err != nil {
+				panic(err)
+			}
+			feeInBaseCoin := formulas.CalculateSaleReturn(feeCoin.Volume, feeCoin.Reserve, feeCoin.CRR, fee.Amount)
+			rewards.Add(feeInBaseCoin)
+		}
+		err = supplyKeeper.BurnCoins(ctx, k.FeeCollectorName, feesCollectedInt)
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	remainder := sdk.NewIntFromBigInt(rewards.BigInt())
 

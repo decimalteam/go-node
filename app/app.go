@@ -57,7 +57,7 @@ var (
 	)
 	// account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName: nil,
+		auth.FeeCollectorName: {supply.Burner},
 		//distr.ModuleName:            nil,
 		validator.BondedPoolName:    {supply.Burner, supply.Staking},
 		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
@@ -213,6 +213,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		validator.DefaultCodespace,
 		app.coinKeeper,
 		app.supplyKeeper,
+		auth.FeeCollectorName,
 	)
 
 	app.mm = module.NewManager(
