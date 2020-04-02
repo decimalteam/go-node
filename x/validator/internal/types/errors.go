@@ -50,6 +50,10 @@ func ErrDelegatorShareExRateInvalid(codespace sdk.CodespaceType) sdk.Error {
 		"cannot delegate to validators with invalid (zero) ex-rate")
 }
 
+func ErrNoUnbondingDelegation(codespace sdk.CodespaceType) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidDelegation, "no unbonding delegation found")
+}
+
 func ErrBadDelegationAddr(codespace sdk.CodespaceType) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidInput, "unexpected address length for this (address, validator) pair")
 }

@@ -1,19 +1,16 @@
 package keeper
 
 import (
-	"fmt"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"log"
-
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // NewQuerier creates a new querier for validator clients.
 func NewQuerier(k Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, sdk.Error) {
-		log.Println(path[0])
 		switch path[0] {
 		case types.QueryParams:
 			return queryParams(ctx, k)

@@ -193,7 +193,7 @@ func (k Keeper) RemoveUnbondingDelegation(ctx sdk.Context, ubd types.UnbondingDe
 // the given addresses. It creates the unbonding delegation if it does not exist
 func (k Keeper) SetUnbondingDelegationEntry(ctx sdk.Context,
 	delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-	creationHeight int64, minTime time.Time, balance sdk.Int) types.UnbondingDelegation {
+	creationHeight int64, minTime time.Time, balance sdk.Coin) types.UnbondingDelegation {
 
 	ubd, found := k.GetUnbondingDelegation(ctx, delegatorAddr, validatorAddr)
 	if found {
@@ -529,4 +529,120 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 
 	return newShares, nil
+}
+
+// Undelegate unbonds an amount of delegator shares from a given validator. It
+// will verify that the unbonding entries between the delegator and validator
+// are not exceeded and unbond the staked tokens (based on shares) by creating
+// an unbonding object and inserting it into the unbonding queue which will be
+// processed during the staking EndBlocker.
+func (k Keeper) Undelegate(
+	ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin,
+) (time.Time, sdk.Error) {
+
+	validator, foundErr := k.GetValidator(ctx, valAddr)
+	if foundErr != nil {
+		return time.Time{}, types.ErrNoDelegatorForAddress(k.Codespace())
+	}
+
+	err := k.unbond(ctx, delAddr, valAddr, amount)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	// transfer the validator tokens to the not bonded pool
+	if validator.IsBonded() {
+		k.bondedTokensToNotBonded(ctx, sdk.NewCoins(amount))
+	}
+
+	completionTime := ctx.BlockHeader().Time.Add(types.DefaultUnbondingTime)
+	ubd := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, amount)
+	k.InsertUBDQueue(ctx, ubd, completionTime)
+
+	return completionTime, nil
+}
+
+// unbond a particular delegation and perform associated store operations
+func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, coin sdk.Coin) sdk.Error {
+	// check if a delegation object exists in the store
+	delegation, found := k.GetDelegation(ctx, delAddr, valAddr)
+	if !found {
+		return types.ErrNoDelegatorForAddress(k.Codespace())
+	}
+
+	// call the before-delegation-modified hook
+	k.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
+
+	// ensure that we have enough shares to remove
+	if delegation.Coin.Amount.LT(coin.Amount) {
+		return types.ErrNotEnoughDelegationShares(k.Codespace(), delegation.Shares.String())
+	}
+
+	// get validator
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
+		return types.ErrNoValidatorFound(k.Codespace())
+	}
+
+	// subtract shares from delegation
+	delegation.Coin = delegation.Coin.Sub(coin)
+
+	// remove the delegation
+	if delegation.Coin.IsZero() {
+		k.RemoveDelegation(ctx, delegation)
+	} else {
+		k.SetDelegation(ctx, delegation)
+		// call the after delegation modification hook
+		k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+	}
+
+	if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
+		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
+		err = k.RemoveValidator(ctx, validator.ValAddress)
+		if err != nil {
+			return sdk.NewError(k.Codespace(), 1, err.Error())
+		}
+	}
+
+	return nil
+}
+
+// CompleteUnbonding completes the unbonding of all mature entries in the
+// retrieved unbonding delegation object.
+func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
+	valAddr sdk.ValAddress) sdk.Error {
+
+	ubd, found := k.GetUnbondingDelegation(ctx, delAddr, valAddr)
+	if !found {
+		return types.ErrNoUnbondingDelegation(k.Codespace())
+	}
+
+	ctxTime := ctx.BlockHeader().Time
+
+	// loop through all the entries and complete unbonding mature entries
+	for i := 0; i < len(ubd.Entries); i++ {
+		entry := ubd.Entries[i]
+		if entry.IsMature(ctxTime) {
+			ubd.RemoveEntry(int64(i))
+			i--
+
+			// track undelegation only when remaining or truncated shares are non-zero
+			if !entry.Balance.IsZero() {
+				amt := sdk.NewCoins(entry.Balance)
+				err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, ubd.DelegatorAddress, amt)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	// set the unbonding delegation or remove it if there are no more entries
+	if len(ubd.Entries) == 0 {
+		k.RemoveUnbondingDelegation(ctx, ubd)
+	} else {
+		k.SetUnbondingDelegation(ctx, ubd)
+	}
+
+	return nil
 }

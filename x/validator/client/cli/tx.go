@@ -32,6 +32,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetDelegate(cdc),
 		GetSetOnline(cdc),
 		GetSetOffline(cdc),
+		GetUnbond(cdc),
 	)...)
 
 	return validatorTxCmd
@@ -234,6 +235,33 @@ func GetSetOffline(cdc *codec.Codec) *cobra.Command {
 			valAddress := cliCtx.GetFromAddress()
 
 			msg := types.NewMsgSetOffline(sdk.ValAddress(valAddress))
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+func GetUnbond(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Short: "Unbond delegation",
+		Use:   "unbond [validator-address] [coin] --from name/address",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			valAddress, err := sdk.ValAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			delAddress := cliCtx.GetFromAddress()
+
+			coin, err := sdk.ParseCoin(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUnbond(valAddress, delAddress, coin)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

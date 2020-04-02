@@ -112,8 +112,8 @@ type UnbondingDelegation struct {
 type UnbondingDelegationEntry struct {
 	CreationHeight int64     `json:"creation_height" yaml:"creation_height"` // height which the unbonding took place
 	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"` // time at which the unbonding delegation will complete
-	InitialBalance sdk.Int   `json:"initial_balance" yaml:"initial_balance"` // atoms initially scheduled to receive at completion
-	Balance        sdk.Int   `json:"balance" yaml:"balance"`                 // atoms to receive at completion
+	InitialBalance sdk.Coin  `json:"initial_balance" yaml:"initial_balance"` // atoms initially scheduled to receive at completion
+	Balance        sdk.Coin  `json:"balance" yaml:"balance"`                 // atoms to receive at completion
 }
 
 // IsMature - is the current entry mature
@@ -124,7 +124,7 @@ func (e UnbondingDelegationEntry) IsMature(currentTime time.Time) bool {
 // NewUnbondingDelegation - create a new unbonding delegation object
 func NewUnbondingDelegation(delegatorAddr sdk.AccAddress,
 	validatorAddr sdk.ValAddress, creationHeight int64, minTime time.Time,
-	balance sdk.Int) UnbondingDelegation {
+	balance sdk.Coin) UnbondingDelegation {
 
 	entry := NewUnbondingDelegationEntry(creationHeight, minTime, balance)
 	return UnbondingDelegation{
@@ -136,7 +136,7 @@ func NewUnbondingDelegation(delegatorAddr sdk.AccAddress,
 
 // NewUnbondingDelegation - create a new unbonding delegation object
 func NewUnbondingDelegationEntry(creationHeight int64, completionTime time.Time,
-	balance sdk.Int) UnbondingDelegationEntry {
+	balance sdk.Coin) UnbondingDelegationEntry {
 
 	return UnbondingDelegationEntry{
 		CreationHeight: creationHeight,
@@ -148,7 +148,7 @@ func NewUnbondingDelegationEntry(creationHeight int64, completionTime time.Time,
 
 // AddEntry - append entry to the unbonding delegation
 func (d *UnbondingDelegation) AddEntry(creationHeight int64,
-	minTime time.Time, balance sdk.Int) {
+	minTime time.Time, balance sdk.Coin) {
 
 	entry := NewUnbondingDelegationEntry(creationHeight, minTime, balance)
 	d.Entries = append(d.Entries, entry)

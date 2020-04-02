@@ -8,6 +8,7 @@ import (
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgDeclareCandidate{}, "validator/declare_candidate", nil)
 	cdc.RegisterConcrete(MsgDelegate{}, "validator/delegate", nil)
+	cdc.RegisterConcrete(MsgUnbond{}, "validator/unbond", nil)
 }
 
 // ModuleCdc defines the module codec

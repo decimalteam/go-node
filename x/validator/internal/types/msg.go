@@ -157,7 +157,7 @@ const UnbondConst = "unbond"
 func (msg MsgUnbond) Route() string { return RouterKey }
 func (msg MsgUnbond) Type() string  { return UnbondConst }
 func (msg MsgUnbond) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddress)}
+	return []sdk.AccAddress{msg.DelegatorAddress}
 }
 
 func (msg MsgUnbond) GetSignBytes() []byte {

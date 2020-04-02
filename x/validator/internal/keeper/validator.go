@@ -104,7 +104,7 @@ func (k Keeper) SetValidatorByPowerIndex(ctx sdk.Context, validator types.Valida
 	if validator.Jailed {
 		return nil
 	}
-	power := validator.Tokens
+	power := k.TotalStake(ctx, validator)
 	return k.set(ctx, types.GetValidatorsByPowerIndexKey(validator, power), validator.ValAddress)
 }
 

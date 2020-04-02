@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"time"
 )
 
 // NewHandler creates an sdk.Handler for all the validator type messages
@@ -15,6 +16,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 			return handleMsgDeclareCandidate(ctx, keeper, msg)
 		case types.MsgDelegate:
 			return handleMsgDelegate(ctx, keeper, msg)
+		case types.MsgUnbond:
+			return handleMsgUnbond(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -71,6 +74,9 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) sdk.Res
 	}
 
 	_, err = k.Delegate(ctx, msg.DelegatorAddress, msg.Amount, types.Unbonded, val, true)
+	if err != nil {
+		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -84,6 +90,32 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) sdk.Res
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
 		),
 	})
+
+	return sdk.Result{Events: ctx.EventManager().Events()}
+}
+
+func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) sdk.Result {
+	completionTime, err := k.Undelegate(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.Amount)
+	if err != nil {
+		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
+	}
+
+	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUnbond,
+			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
+		),
+	})
+
+	return sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}
 
 	return sdk.Result{Events: ctx.EventManager().Events()}
 }
