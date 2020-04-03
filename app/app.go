@@ -2,13 +2,11 @@ package app
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/check"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bitbucket.org/decimalteam/go-node/x/validator"
-	"crypto/ecdsa"
-	"bitbucket.org/decimalteam/go-node/x/check"
-
 	//"bitbucket.org/decimalteam/go-node/x/check"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
+	//"github.com/cosmos/cosmos-sdk/x/genutil"
 
 	"encoding/json"
 	"io"
@@ -29,7 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/staking"
+	//"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
@@ -93,7 +91,7 @@ type newApp struct {
 	paramsKeeper    params.Keeper
 	coinKeeper      coin.Keeper
 	validatorKeeper validator.Keeper
-	checkKeeper		check.Keeper
+	checkKeeper     check.Keeper
 
 	// Module Manager
 	mm *module.Manager
@@ -115,7 +113,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	keys := sdk.NewKVStoreKeys(bam.MainStoreKey, auth.StoreKey, /*staking.StoreKey,*/
 		supply.StoreKey /*, distr.StoreKey*/ /*slashing.StoreKey,*/, params.StoreKey, coin.StoreKey, validator.StoreKey)
 
-	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
+	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
 	config := config.GetDefaultConfig(config.ChainID)
 

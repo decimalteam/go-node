@@ -31,6 +31,7 @@ if [ ! -d $SERVICEPATH ] ; then
 Description=Decimal daemon
 
 [Service]
+User=centos
 Type=simple
 ExecStart=$DECDBIN start" | sudo tee $SERVICEPATH
   sudo systemctl daemon-reload

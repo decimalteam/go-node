@@ -30,11 +30,11 @@ func CoinSellAllRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		baseReq := req.BaseReq
 
-		addr, err := sdk.AccAddressFromBech32(baseReq.From)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
+		//addr, err := sdk.AccAddressFromBech32(baseReq.From)
+		//if err != nil {
+		//	rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		//	return
+		//}
 		var coinToSellSymbol = req.CoinToSell
 		var coinToBuySymbol = req.CoinToBuy
 
