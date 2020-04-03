@@ -2,6 +2,9 @@ package app
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/genutil"
+	"bitbucket.org/decimalteam/go-node/x/validator"
+	"crypto/ecdsa"
 	"bitbucket.org/decimalteam/go-node/x/check"
 
 	//"bitbucket.org/decimalteam/go-node/x/check"
@@ -24,10 +27,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
@@ -47,21 +48,21 @@ var (
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
-		staking.AppModuleBasic{},
-		distr.AppModuleBasic{},
+		//staking.AppModuleBasic{},
+		//distr.AppModuleBasic{},
 		params.AppModuleBasic{},
-		slashing.AppModuleBasic{},
+		//slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		coin.AppModuleBasic{},
 		check.AppModuleBasic{},
-		//validator.AppModuleBasic{},
+		validator.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:     nil,
-		distr.ModuleName:          nil,
-		staking.BondedPoolName:    {supply.Burner, supply.Staking},
-		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
+		auth.FeeCollectorName: {supply.Burner},
+		//distr.ModuleName:            nil,
+		validator.BondedPoolName:    {supply.Burner, supply.Staking},
+		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
 	}
 )
 
@@ -83,16 +84,16 @@ type newApp struct {
 	tkeys map[string]*sdk.TransientStoreKey
 
 	// Keepers
-	accountKeeper  auth.AccountKeeper
-	bankKeeper     bank.Keeper
-	stakingKeeper  staking.Keeper
-	slashingKeeper slashing.Keeper
-	distrKeeper    distr.Keeper
-	supplyKeeper   supply.Keeper
-	paramsKeeper   params.Keeper
-	coinKeeper     coin.Keeper
-	checkKeeper    check.Keeper
-	//validatorKeeper validator.Keeper
+	accountKeeper auth.AccountKeeper
+	bankKeeper    bank.Keeper
+	//stakingKeeper   staking.Keeper
+	//slashingKeeper  slashing.Keeper
+	//distrKeeper     distr.Keeper
+	supplyKeeper    supply.Keeper
+	paramsKeeper    params.Keeper
+	coinKeeper      coin.Keeper
+	validatorKeeper validator.Keeper
+	checkKeeper		check.Keeper
 
 	// Module Manager
 	mm *module.Manager
@@ -111,8 +112,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	bApp.SetAppVersion(version.Version)
 
 	// TODO: Add the keys that module requires
-	keys := sdk.NewKVStoreKeys(bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
-		supply.StoreKey, distr.StoreKey, slashing.StoreKey, params.StoreKey, coin.StoreKey /*, check.StoreKey*/)
+	keys := sdk.NewKVStoreKeys(bam.MainStoreKey, auth.StoreKey, /*staking.StoreKey,*/
+		supply.StoreKey /*, distr.StoreKey*/ /*slashing.StoreKey,*/, params.StoreKey, coin.StoreKey, validator.StoreKey)
 
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -131,12 +132,12 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// Set specific subspaces
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSupspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
-	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
-	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
-	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
+	//stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
+	//distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
+	//slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	coinSubspace := app.paramsKeeper.Subspace(coin.DefaultParamspace)
 	checkSubspace := app.paramsKeeper.Subspace(check.DefaultParamspace)
-	//validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
+	validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(
 		app.cdc,
@@ -163,41 +164,41 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	)
 
 	// The staking keeper
-	stakingKeeper := staking.NewKeeper(
-		app.cdc,
-		keys[staking.StoreKey],
-		tkeys[staking.TStoreKey],
-		app.supplyKeeper,
-		stakingSubspace,
-		staking.DefaultCodespace,
-	)
+	//stakingKeeper := staking.NewKeeper(
+	//	app.cdc,
+	//	keys[staking.StoreKey],
+	//	tkeys[staking.TStoreKey],
+	//	app.supplyKeeper,
+	//	stakingSubspace,
+	//	staking.DefaultCodespace,
+	//)
 
-	app.distrKeeper = distr.NewKeeper(
-		app.cdc,
-		keys[distr.StoreKey],
-		distrSubspace,
-		&stakingKeeper,
-		app.supplyKeeper,
-		distr.DefaultCodespace,
-		auth.FeeCollectorName,
-		app.ModuleAccountAddrs(),
-	)
+	//app.distrKeeper = distr.NewKeeper(
+	//	app.cdc,
+	//	keys[distr.StoreKey],
+	//	distrSubspace,
+	//	&stakingKeeper,
+	//	app.supplyKeeper,
+	//	distr.DefaultCodespace,
+	//	auth.FeeCollectorName,
+	//	app.ModuleAccountAddrs(),
+	//)
 
-	app.slashingKeeper = slashing.NewKeeper(
-		app.cdc,
-		keys[slashing.StoreKey],
-		&stakingKeeper,
-		slashingSubspace,
-		slashing.DefaultCodespace,
-	)
+	//app.slashingKeeper = slashing.NewKeeper(
+	//	app.cdc,
+	//	keys[slashing.StoreKey],
+	//	&stakingKeeper,
+	//	slashingSubspace,
+	//	slashing.DefaultCodespace,
+	//)
 
-	//register the staking hooks
-	//NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	app.stakingKeeper = *stakingKeeper.SetHooks(
-		staking.NewMultiStakingHooks(
-			app.distrKeeper.Hooks(),
-			app.slashingKeeper.Hooks()),
-	)
+	// register the staking hooks
+	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
+	//app.stakingKeeper = *stakingKeeper.SetHooks(
+	//	staking.NewMultiStakingHooks(
+	//		app.distrKeeper.Hooks(),
+	//		app.slashingKeeper.Hooks()),
+	//)
 
 	app.coinKeeper = coin.NewKeeper(
 		app.cdc,
@@ -218,41 +219,47 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.accountKeeper,
 	)
 
-	// TODO: Add your module(s) keepers
+	app.validatorKeeper = validator.NewKeeper(
+		app.cdc,
+		keys[validator.StoreKey],
+		validatorSubspace,
+		validator.DefaultCodespace,
+		app.coinKeeper,
+		app.supplyKeeper,
+		auth.FeeCollectorName,
+	)
 
 	app.mm = module.NewManager(
 		genaccounts.NewAppModule(app.accountKeeper),
-		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
+		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
+		//distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
+		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
 		check.NewAppModule(app.checkKeeper, app.coinKeeper, app.accountKeeper),
-		// TODO: Add your module(s)
-		//validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
+		//slashing.NewAppModule(app.slashingKeeper, app.validatorKeeper),
+		//staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
-	app.mm.SetOrderBeginBlockers(distr.ModuleName, slashing.ModuleName)
-	app.mm.SetOrderEndBlockers(staking.ModuleName)
+	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
+	app.mm.SetOrderEndBlockers(validator.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
 	// NOTE: The genutils moodule must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
 		genaccounts.ModuleName,
-		distr.ModuleName,
-		staking.ModuleName,
-		//validator.ModuleName,
+		//distr.ModuleName,
+		//staking.ModuleName,
+		validator.ModuleName,
 		auth.ModuleName,
 		bank.ModuleName,
-		slashing.ModuleName,
+		//slashing.ModuleName,
 		coin.ModuleName,
-		check.ModuleName,
-		// TODO: Add your module(s)
 		supply.ModuleName,
+		check.ModuleName,
 		genutil.ModuleName,
 	)
 
