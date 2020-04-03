@@ -7,18 +7,16 @@ import (
 var _ sdk.Msg = &MsgSellAllCoin{}
 
 type MsgSellAllCoin struct {
-	Seller      sdk.AccAddress `json:"seller" yaml:"seller"`
-	CoinToBuy   string         `json:"coin_to_buy" yaml:"coin_to_buy"`
-	CoinToSell  string         `json:"coin_to_sell" yaml:"coin_to_sell"`
-	AmountToBuy sdk.Int        `json:"amount_to_buy" yaml:"amount_to_buy"`
+	Seller     sdk.AccAddress `json:"seller" yaml:"seller"`
+	CoinToBuy  string         `json:"coin_to_buy" yaml:"coin_to_buy"`
+	CoinToSell string         `json:"coin_to_sell" yaml:"coin_to_sell"`
 }
 
-func NewMsgSellAllCoin(seller sdk.AccAddress, coinToBuy string, coinToSell string, amountToBuy sdk.Int) MsgSellAllCoin {
+func NewMsgSellAllCoin(seller sdk.AccAddress, coinToBuy string, coinToSell string) MsgSellAllCoin {
 	return MsgSellAllCoin{
-		Seller:      seller,
-		CoinToBuy:   coinToBuy,
-		CoinToSell:  coinToSell,
-		AmountToBuy: amountToBuy,
+		Seller:     seller,
+		CoinToBuy:  coinToBuy,
+		CoinToSell: coinToSell,
 	}
 }
 

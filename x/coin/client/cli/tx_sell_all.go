@@ -15,7 +15,7 @@ import (
 
 func GetCmdSellAllCoin(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "sell_all [coinToSell] [coinToBuy] [minAmountToBuy]",
+		Use:   "sell_all [coinToSell] [coinToBuy]",
 		Short: "Sell all coin",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -46,7 +46,7 @@ func GetCmdSellAllCoin(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 			// Do basic validating
-			msg := types.NewMsgSellAllCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, minAmountToBuy)
+			msg := types.NewMsgSellAllCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
