@@ -35,3 +35,14 @@ pipelines:
                     MODE: 'script'
                     COMMAND: './ci-scripts/update.sh'
                     SSH_KEY: $HOST02_KEY
+
+          - step:
+              name: Deploy (Host 03)
+              script:
+                - pipe: atlassian/ssh-run:0.2.4
+                  variables:
+                    SSH_USER: $HOST03_USER
+                    SERVER: $HOST03_HOST
+                    MODE: 'script'
+                    COMMAND: './ci-scripts/update.sh'
+                    SSH_KEY: $HOST03_KEY
