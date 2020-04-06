@@ -51,10 +51,10 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 			remainder.Sub(reward)
 		}
 		val.AccumRewards = sdk.ZeroInt()
-		//err = k.SetValidator(ctx, val)
-		//if err != nil {
-		//	panic(err)
-		//}
+		err = k.SetValidator(ctx, val)
+		if err != nil {
+			panic(err)
+		}
 	}
 	return nil
 }
