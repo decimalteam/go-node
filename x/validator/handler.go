@@ -116,6 +116,4 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) sdk.Result 
 	})
 
 	return sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}
-
-	return sdk.Result{Events: ctx.EventManager().Events()}
 }
