@@ -84,7 +84,7 @@ func (k Keeper) SetValidator(ctx sdk.Context, validator types.Validator) error {
 
 // validator index
 func (k Keeper) SetValidatorByConsAddr(ctx sdk.Context, validator types.Validator) error {
-	consAddr := sdk.ConsAddress(validator.PubKey.Address())
+	consAddr := sdk.GetConsAddress(validator.PubKey)
 	return k.set(ctx, types.GetValidatorByConsAddrKey(consAddr), validator.ValAddress)
 }
 

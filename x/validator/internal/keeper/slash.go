@@ -273,7 +273,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 
 	// if we are past the minimum height and the validator has missed too many blocks, punish them
 	if height > minHeight && signInfo.MissedBlocksCounter > maxMissed {
-		validator, err := k.GetValidatorByConsAddr(ctx, consAddr)
+		validator, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pubkey))
 		if err != nil {
 			panic(err)
 		}
