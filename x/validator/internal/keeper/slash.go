@@ -268,42 +268,42 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			fmt.Sprintf("Absent validator %s (%s) at height %d, %d missed, threshold %d", consAddr, pubkey, height, signInfo.MissedBlocksCounter, types.MinSignedPerWindow))
 	}
 
-	//minHeight := signInfo.StartHeight + types.SignedBlocksWindow
-	//maxMissed := types.SignedBlocksWindow - types.MinSignedPerWindow
+	minHeight := signInfo.StartHeight + types.SignedBlocksWindow
+	maxMissed := types.SignedBlocksWindow - types.MinSignedPerWindow
 
-	// if we are past the minimum height and the validator has missed too many blocks, punish them
-	//if height > minHeight && signInfo.MissedBlocksCounter > maxMissed {
-	//	validator, err := k.GetValidatorByConsAddr(ctx, consAddr)
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	if !validator.IsJailed() {
-	//
-	//		// Downtime confirmed: slash and jail the validator
-	//		logger.Info(fmt.Sprintf("Validator %s past min height of %d and below signed blocks threshold of %d",
-	//			consAddr, minHeight, types.MinSignedPerWindow))
-	//
-	//		// We need to retrieve the stake distribution which signed the block, so we subtract ValidatorUpdateDelay from the evidence height,
-	//		// and subtract an additional 1 since this is the LastCommit.
-	//		// Note that this *can* result in a negative "distributionHeight" up to -ValidatorUpdateDelay-1,
-	//		// i.e. at the end of the pre-genesis block (none) = at the beginning of the genesis block.
-	//		// That's fine since this is just used to filter unbonding delegations & redelegations.
-	//		distributionHeight := height - sdk.ValidatorUpdateDelay - 1
-	//
-	//		k.Slash(ctx, consAddr, distributionHeight, power, types.SlashFractionDowntime)
-	//		k.Jail(ctx, consAddr)
-	//
-	//		// We need to reset the counter & array so that the validator won't be immediately slashed for downtime upon rebonding.
-	//		signInfo.MissedBlocksCounter = 0
-	//		signInfo.IndexOffset = 0
-	//		k.clearValidatorMissedBlockBitArray(ctx, consAddr)
-	//	} else {
-	//		// Validator was (a) not found or (b) already jailed, don't slash
-	//		logger.Info(
-	//			fmt.Sprintf("Validator %s would have been slashed for downtime, but was either not found in store or already jailed", consAddr),
-	//		)
-	//	}
-	//}
+	//if we are past the minimum height and the validator has missed too many blocks, punish them
+	if height > minHeight && signInfo.MissedBlocksCounter > maxMissed {
+		validator, err := k.GetValidatorByConsAddr(ctx, consAddr)
+		if err != nil {
+			panic(err)
+		}
+		if !validator.IsJailed() {
+
+			// Downtime confirmed: slash and jail the validator
+			logger.Info(fmt.Sprintf("Validator %s past min height of %d and below signed blocks threshold of %d",
+				consAddr, minHeight, types.MinSignedPerWindow))
+
+			// We need to retrieve the stake distribution which signed the block, so we subtract ValidatorUpdateDelay from the evidence height,
+			// and subtract an additional 1 since this is the LastCommit.
+			// Note that this *can* result in a negative "distributionHeight" up to -ValidatorUpdateDelay-1,
+			// i.e. at the end of the pre-genesis block (none) = at the beginning of the genesis block.
+			// That's fine since this is just used to filter unbonding delegations & redelegations.
+			distributionHeight := height - sdk.ValidatorUpdateDelay - 1
+
+			k.Slash(ctx, consAddr, distributionHeight, power, types.SlashFractionDowntime)
+			k.Jail(ctx, consAddr)
+
+			// We need to reset the counter & array so that the validator won't be immediately slashed for downtime upon rebonding.
+			signInfo.MissedBlocksCounter = 0
+			signInfo.IndexOffset = 0
+			k.clearValidatorMissedBlockBitArray(ctx, consAddr)
+		} else {
+			// Validator was (a) not found or (b) already jailed, don't slash
+			logger.Info(
+				fmt.Sprintf("Validator %s would have been slashed for downtime, but was either not found in store or already jailed", consAddr),
+			)
+		}
+	}
 
 	// Set the updated signing info
 	k.setValidatorSigningInfo(ctx, consAddr, signInfo)
