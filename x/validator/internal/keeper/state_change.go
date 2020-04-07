@@ -214,10 +214,7 @@ func (k Keeper) bondValidator(ctx sdk.Context, validator types.Validator) (types
 	if err != nil {
 		return types.Validator{}, err
 	}
-	err = k.SetValidatorByPowerIndex(ctx, validator)
-	if err != nil {
-		return types.Validator{}, err
-	}
+	k.SetValidatorByPowerIndex(ctx, validator)
 
 	// delete from queue if present
 	err = k.DeleteValidatorQueue(ctx, validator)
@@ -262,10 +259,7 @@ func (k Keeper) beginUnbondingValidator(ctx sdk.Context, validator types.Validat
 	if err != nil {
 		return types.Validator{}, err
 	}
-	err = k.SetValidatorByPowerIndex(ctx, validator)
-	if err != nil {
-		return types.Validator{}, err
-	}
+	k.SetValidatorByPowerIndex(ctx, validator)
 
 	// Adds to unbonding validator queue
 	err = k.InsertValidatorQueue(ctx, validator)
@@ -323,9 +317,6 @@ func (k Keeper) unjailValidator(ctx sdk.Context, validator types.Validator) erro
 	if err != nil {
 		return err
 	}
-	err = k.SetValidatorByPowerIndex(ctx, validator)
-	if err != nil {
-		return err
-	}
+	k.SetValidatorByPowerIndex(ctx, validator)
 	return nil
 }

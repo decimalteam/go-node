@@ -40,14 +40,8 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 	if err != nil {
 		return types.ErrInvalidStruct(k.Codespace()).Result()
 	}
-	err = k.SetValidatorByConsAddr(ctx, val)
-	if err != nil {
-		return types.ErrInvalidStruct(k.Codespace()).Result()
-	}
-	err = k.SetNewValidatorByPowerIndex(ctx, val)
-	if err != nil {
-		return types.ErrInvalidStruct(k.Codespace()).Result()
-	}
+	k.SetValidatorByConsAddr(ctx, val)
+	k.SetNewValidatorByPowerIndex(ctx, val)
 
 	k.AfterValidatorCreated(ctx, val.ValAddress)
 

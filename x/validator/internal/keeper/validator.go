@@ -83,34 +83,35 @@ func (k Keeper) SetValidator(ctx sdk.Context, validator types.Validator) error {
 }
 
 // validator index
-func (k Keeper) SetValidatorByConsAddr(ctx sdk.Context, validator types.Validator) error {
+func (k Keeper) SetValidatorByConsAddr(ctx sdk.Context, validator types.Validator) {
+	store := ctx.KVStore(k.storeKey)
 	consAddr := sdk.GetConsAddress(validator.PubKey)
-	return k.set(ctx, types.GetValidatorByConsAddrKey(consAddr), validator.ValAddress)
+	store.Set(types.GetValidatorByConsAddrKey(consAddr), validator.ValAddress)
 }
 
 // get a single validator by consensus address
 func (k Keeper) GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (types.Validator, error) {
-	var valAddr sdk.ValAddress
-	err := k.Get(ctx, types.GetValidatorByConsAddrKey(consAddr), &valAddr)
-	if err == nil {
+	store := ctx.KVStore(k.storeKey)
+	valAddr := store.Get(types.GetValidatorByConsAddrKey(consAddr))
+	if valAddr == nil {
 		return types.Validator{}, errors.New("not found validator ")
 	}
 	return k.GetValidator(ctx, valAddr)
 }
 
 // validator index
-func (k Keeper) SetValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) error {
+func (k Keeper) SetValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) {
 	// jailed validators are not kept in the power index
 	if validator.Jailed {
-		return nil
+		return
 	}
 	power := k.TotalStake(ctx, validator)
-	return k.set(ctx, types.GetValidatorsByPowerIndexKey(validator, power), validator.ValAddress)
+	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, power), validator.ValAddress)
 }
 
 // validator index
-func (k Keeper) SetNewValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) error {
-	return k.set(ctx, types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), validator.ValAddress)
+func (k Keeper) SetNewValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) {
+	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), validator.ValAddress)
 }
 
 func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {

@@ -16,14 +16,15 @@ import (
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 	vals := k.GetAllValidators(ctx)
 	for _, val := range vals {
-		log.Println(val.PubKey)
+		log.Println(sdk.GetConsAddress(val.PubKey))
+		log.Println(k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(val.PubKey)))
 	}
 
 	// Iterate over all the validators which *should* have signed this block
 	// store whether or not they have actually signed it and slash/unbond any
 	// which have missed too many blocks in a row (downtime slashing)
 	for _, voteInfo := range req.LastCommitInfo.GetVotes() {
-		log.Println(voteInfo.Validator.Address)
+		log.Println(sdk.ConsAddress(voteInfo.Validator.Address))
 		k.HandleValidatorSignature(ctx, voteInfo.Validator.Address, voteInfo.Validator.Power, voteInfo.SignedLastBlock)
 	}
 

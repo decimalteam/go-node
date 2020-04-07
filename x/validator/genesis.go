@@ -43,17 +43,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 		}
 
 		// Manually set indices for the first time
-		err = keeper.SetValidatorByConsAddr(ctx, validator)
-		if err != nil {
-			log.Println("Init genesis error: ", err)
-			continue
-		}
-		err = keeper.SetValidatorByPowerIndex(ctx, validator)
-		if err != nil {
-			log.Println("Init genesis error: ", err)
-			continue
-		}
-
+		keeper.SetValidatorByConsAddr(ctx, validator)
+		keeper.SetValidatorByPowerIndex(ctx, validator)
 		// update timeslice if necessary
 		if validator.IsUnbonding() {
 			err = keeper.InsertValidatorQueue(ctx, validator)
