@@ -62,12 +62,21 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// apply the appropriate state change if necessary
 		switch {
-		case validator.IsUnbonded():
+		case validator.IsUnbonded() && validator.Online:
 			validator, err = k.unbondedToBonded(ctx, validator)
 			if err != nil {
 				return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 			}
 			amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, validator.Tokens)))
+		case validator.IsUnbonding():
+			validator, err = k.unbondingToBonded(ctx, validator)
+			if err != nil {
+				return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
+			}
+			delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+			for _, delegation := range delegations {
+				amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(sdk.NewCoins(delegation.Coin))
+			}
 		case validator.IsBonded():
 			// no state change
 		default:
@@ -95,7 +104,9 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		}
 
 		// validator still in the validator set, so delete from the copy
-		delete(last, valAddrBytes)
+		if validator.Online {
+			delete(last, valAddrBytes)
+		}
 
 		// keep count
 		count++
@@ -114,11 +125,13 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		}
 
 		// bonded to unbonding
-		validator, err = k.bondedToUnbonding(ctx, validator)
-		if err != nil {
-			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
+		if validator.Online {
+			validator, err = k.bondedToUnbonding(ctx, validator)
+			if err != nil {
+				return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
+			}
+			amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, validator.Tokens)))
 		}
-		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, validator.Tokens)))
 
 		// delete from the bonded validator index
 		k.DeleteLastValidatorPower(ctx, validator.ValAddress)

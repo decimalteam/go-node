@@ -18,6 +18,12 @@ func NewHandler(keeper Keeper) sdk.Handler {
 			return handleMsgDelegate(ctx, keeper, msg)
 		case types.MsgUnbond:
 			return handleMsgUnbond(ctx, keeper, msg)
+		case types.MsgEditCandidate:
+			return handleMsgEditCandidate(ctx, keeper, msg)
+		case types.MsgSetOnline:
+			return handleMsgSetOnline(ctx, keeper, msg)
+		case types.MsgSetOffline:
+			return handleMsgSetOffline(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -35,7 +41,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		return types.ErrValidatorPubKeyExists(k.Codespace()).Result()
 	}
 
-	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Commission)
+	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Commission, msg.RewardAddr)
 	err := k.SetValidator(ctx, val)
 	if err != nil {
 		return types.ErrInvalidStruct(k.Codespace()).Result()
@@ -70,7 +76,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) sdk.Result {
 	val, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
-		return types.ErrValidatorOwnerExists(k.Codespace()).Result()
+		return types.ErrNoValidatorFound(k.Codespace()).Result()
 	}
 
 	_, err = k.Delegate(ctx, msg.DelegatorAddress, msg.Amount, types.Unbonded, val, true)
@@ -116,6 +122,82 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) sdk.Result 
 	})
 
 	return sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}
+}
+
+func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidate) sdk.Result {
+	validator, err := k.GetValidatorByConsAddr(ctx, sdk.ConsAddress(msg.PubKey.Address()))
+	if err != nil {
+		return types.ErrNoValidatorFound(k.Codespace()).Result()
+	}
+
+	validator.ValAddress = msg.ValidatorAddress
+	validator.RewardAddress = msg.RewardAddress
+
+	err = k.SetValidatorByConsAddr(ctx, validator)
+	if err != nil {
+		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
+	}
+	err = k.SetValidator(ctx, validator)
+	if err != nil {
+		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddress.String()),
+		),
+	})
+
+	return sdk.Result{Events: ctx.EventManager().Events()}
+}
+
+func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) sdk.Result {
+	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
+	if err != nil {
+		return types.ErrNoValidatorFound(k.Codespace()).Result()
+	}
+
+	validator.Online = true
+
+	err = k.SetValidator(ctx, validator)
+	if err != nil {
+		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddress.String()),
+		),
+	})
+
+	return sdk.Result{Events: ctx.EventManager().Events()}
+}
+
+func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) sdk.Result {
+	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
+	if err != nil {
+		return types.ErrNoValidatorFound(k.Codespace()).Result()
+	}
+
+	validator.Online = false
+	validator.UpdateStatus(types.Unbonded)
+
+	err = k.SetValidator(ctx, validator)
+	if err != nil {
+		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddress.String()),
+		),
+	})
 
 	return sdk.Result{Events: ctx.EventManager().Events()}
 }

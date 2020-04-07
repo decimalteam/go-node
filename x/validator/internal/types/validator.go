@@ -23,7 +23,8 @@ type Validator struct {
 	UnbondingHeight         int64          `json:"unbonding_height"`
 	Description             Description    `json:"description"`
 	AccumRewards            sdk.Int        `json:"accum_rewards"`
-	DelegatorStakes         []Stake        `json:"delegator_stakes"`
+	RewardAddress           sdk.AccAddress `json:"reward_address"`
+	Online                  bool           `json:"online"`
 }
 
 type Stake struct {
@@ -123,7 +124,7 @@ func (b BondStatus) String() string {
 	}
 }
 
-func NewValidator(valAddress sdk.ValAddress, pubKey crypto.PubKey, commission Commission) Validator {
+func NewValidator(valAddress sdk.ValAddress, pubKey crypto.PubKey, commission Commission, rewardAddress sdk.AccAddress) Validator {
 	return Validator{
 		ValAddress:      valAddress,
 		PubKey:          pubKey,
@@ -131,6 +132,8 @@ func NewValidator(valAddress sdk.ValAddress, pubKey crypto.PubKey, commission Co
 		Status:          Unbonded,
 		Commission:      commission,
 		DelegatorShares: sdk.ZeroDec(),
+		RewardAddress:   rewardAddress,
+		Online:          true,
 	}
 }
 

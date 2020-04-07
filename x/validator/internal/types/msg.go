@@ -10,15 +10,17 @@ var _ sdk.Msg = &MsgDeclareCandidate{}
 type MsgDeclareCandidate struct {
 	Commission    Commission     `json:"commission" yaml:"commission"`
 	ValidatorAddr sdk.ValAddress `json:"validator_addr" yaml:"validator_addr"`
+	RewardAddr    sdk.AccAddress `json:"reward_addr" yaml:"reward_addr"`
 	PubKey        crypto.PubKey  `json:"pub_key" yaml:"pub_key"`
 	Stake         sdk.Coin       `json:"value" yaml:"value"`
 	Description   Description    `json:"description"`
 }
 
-func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, commission Commission, stake sdk.Coin, description Description) MsgDeclareCandidate {
+func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, commission Commission, stake sdk.Coin, description Description, rewardAddress sdk.AccAddress) MsgDeclareCandidate {
 	return MsgDeclareCandidate{
 		Commission:    commission,
 		ValidatorAddr: validatorAddr,
+		RewardAddr:    rewardAddress,
 		PubKey:        pubKey,
 		Stake:         stake,
 		Description:   description,
@@ -45,6 +47,8 @@ func (msg MsgDeclareCandidate) ValidateBasic() sdk.Error {
 	return nil
 }
 
+// -----------------------------------------------------------------------------------------
+
 type MsgDelegate struct {
 	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
@@ -62,7 +66,7 @@ func NewMsgDelegate(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, 
 const DelegateConst = "delegate"
 
 func (msg MsgDelegate) Route() string { return RouterKey }
-func (msg MsgDelegate) Type() string  { return DeclareCandidateConst }
+func (msg MsgDelegate) Type() string  { return DelegateConst }
 func (msg MsgDelegate) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.DelegatorAddress}
 }
@@ -82,6 +86,8 @@ func (msg MsgDelegate) ValidateBasic() sdk.Error {
 	return nil
 }
 
+// -----------------------------------------------------------------------------------------
+
 type MsgSetOnline struct {
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
 }
@@ -90,7 +96,7 @@ func NewMsgSetOnline(validatorAddr sdk.ValAddress) MsgSetOnline {
 	return MsgSetOnline{ValidatorAddress: validatorAddr}
 }
 
-const SetOnlineConst = "set_online"
+const SetOnlineConst = "set-online"
 
 func (msg MsgSetOnline) Route() string { return RouterKey }
 func (msg MsgSetOnline) Type() string  { return SetOnlineConst }
@@ -110,6 +116,8 @@ func (msg MsgSetOnline) ValidateBasic() sdk.Error {
 	return nil
 }
 
+// -----------------------------------------------------------------------------------------
+
 type MsgSetOffline struct {
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
 }
@@ -118,7 +126,7 @@ func NewMsgSetOffline(validatorAddr sdk.ValAddress) MsgSetOffline {
 	return MsgSetOffline{ValidatorAddress: validatorAddr}
 }
 
-const SetOfflineConst = "set_offline"
+const SetOfflineConst = "set-offline"
 
 func (msg MsgSetOffline) Route() string { return RouterKey }
 func (msg MsgSetOffline) Type() string  { return SetOfflineConst }
@@ -137,6 +145,8 @@ func (msg MsgSetOffline) ValidateBasic() sdk.Error {
 	}
 	return nil
 }
+
+// -----------------------------------------------------------------------------------------
 
 type MsgUnbond struct {
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
@@ -171,6 +181,45 @@ func (msg MsgUnbond) ValidateBasic() sdk.Error {
 	}
 	if msg.DelegatorAddress.Empty() {
 		return ErrNilDelegatorAddr(DefaultCodespace)
+	}
+	return nil
+}
+
+// -----------------------------------------------------------------------------------------
+
+type MsgEditCandidate struct {
+	PubKey           crypto.PubKey  `json:"pub_key"`
+	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+	RewardAddress    sdk.AccAddress `json:"reward_address"`
+}
+
+func NewMsgEditCandidate(pubKey crypto.PubKey, validatorAddress sdk.ValAddress, rewardAddress sdk.AccAddress) MsgEditCandidate {
+	return MsgEditCandidate{
+		PubKey:           pubKey,
+		ValidatorAddress: validatorAddress,
+		RewardAddress:    rewardAddress,
+	}
+}
+
+const EditCandidateConst = "edit-candidate"
+
+func (msg MsgEditCandidate) Route() string { return RouterKey }
+func (msg MsgEditCandidate) Type() string  { return EditCandidateConst }
+func (msg MsgEditCandidate) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddress)}
+}
+
+func (msg MsgEditCandidate) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg MsgEditCandidate) ValidateBasic() sdk.Error {
+	if msg.PubKey == nil {
+		return ErrEmptyPubKey(DefaultCodespace)
+	}
+	if msg.ValidatorAddress.Empty() {
+		return ErrEmptyValidatorAddr(DefaultCodespace)
 	}
 	return nil
 }

@@ -33,6 +33,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetSetOnline(cdc),
 		GetSetOffline(cdc),
 		GetUnbond(cdc),
+		GetEditCandidate(cdc),
 	)...)
 
 	return validatorTxCmd
@@ -40,9 +41,9 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 // GetCmdDeclareCandidate is the CLI command for doing CreateValidator
 func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+	command := &cobra.Command{
 		Short: "Declare candidate",
-		Use:   "declare [pub_key] [coin] [commission]",
+		Use:   "declare [pub_key] [coin] [commission] --from name/address",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -59,14 +60,23 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			pubKeyStr := args[0]
-
-			pubKey, err := sdk.GetConsPubKeyBech32(pubKeyStr)
+			pubKey, err := sdk.GetConsPubKeyBech32(args[0])
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddress), pubKey, types.Commission{Rate: commission}, stake, types.Description{})
+			rewardAddressStr := viper.GetString(FlagRewardAddress)
+			rewardAddress := sdk.AccAddress{}
+			if rewardAddressStr != "" {
+				rewardAddress, err = sdk.AccAddressFromBech32(rewardAddressStr)
+				if err != nil {
+					return err
+				}
+			} else {
+				rewardAddress = valAddress
+			}
+
+			msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddress), pubKey, types.Commission{Rate: commission}, stake, types.Description{}, rewardAddress)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -75,6 +85,7 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+	return command
 }
 
 //__________________________________________________________
@@ -168,7 +179,7 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 	}
 	commissionRates := types.Commission{Rate: commission}
 
-	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commissionRates, amount, types.Description(description))
+	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commissionRates, amount, types.Description(description), valAddr)
 
 	ip := viper.GetString(FlagIP)
 	nodeID := viper.GetString(FlagNodeID)
@@ -262,6 +273,36 @@ func GetUnbond(cdc *codec.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgUnbond(valAddress, delAddress, coin)
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+func GetEditCandidate(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Short: "Edit candidate",
+		Use:   "edit-candidate [pub_key] [validator-address] [reward-address]",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			pubKey, err := sdk.GetConsPubKeyBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			valAddress, err := sdk.ValAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+
+			rewardAddress, err := sdk.AccAddressFromBech32(args[2])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgEditCandidate(pubKey, valAddress, rewardAddress)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
