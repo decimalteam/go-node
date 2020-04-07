@@ -297,7 +297,6 @@ func (k Keeper) jailValidator(ctx sdk.Context, validator types.Validator) error 
 	}
 
 	validator.Jailed = true
-	validator = validator.UpdateStatus(types.Unbonded)
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
 		return err
