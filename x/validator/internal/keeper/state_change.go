@@ -45,7 +45,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// fetch the validator
 		valAddr := sdk.ValAddress(iterator.Value())
-		validator, err := k.GetValidator(ctx, valAddr[2:])
+		validator, err := k.GetValidator(ctx, valAddr)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
