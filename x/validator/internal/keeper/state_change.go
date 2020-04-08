@@ -26,6 +26,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	var updates []abci.ValidatorUpdate
 
 	store := ctx.KVStore(k.storeKey)
+	// TODO The maximum number of validators should increase
 	maxValidators := k.GetParams(ctx).MaxValidators
 	totalPower := sdk.ZeroInt()
 	var amtFromBondedToNotBonded, amtFromNotBondedToBonded sdk.Coins
@@ -85,7 +86,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
-			updates = append(updates, validator.ABCIValidatorUpdate(validator.Tokens))
+			updates = append(updates, validator.ABCIValidatorUpdate(k.TotalStake(ctx, validator)))
 
 			// set validator power on lookup index
 			err = k.SetLastValidatorPower(ctx, valAddr, newPower)
@@ -113,13 +114,13 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
 
-		// bonded to unbonding
-		validator, err = k.bondedToUnbonding(ctx, validator)
+		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, k.TotalStake(ctx, validator))))
+
+		validator.UpdateStatus(types.Unbonded)
+		err = k.SetValidator(ctx, validator)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
-		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, validator.Tokens)))
-
 		// delete from the bonded validator index
 		k.DeleteLastValidatorPower(ctx, validator.ValAddress)
 
