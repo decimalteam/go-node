@@ -160,7 +160,6 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) sdk.R
 	}
 
 	validator.Online = true
-
 	err = k.SetValidator(ctx, validator)
 	if err != nil {
 		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
@@ -184,7 +183,6 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) sdk
 	}
 
 	validator.Online = false
-	validator.UpdateStatus(types.Unbonded)
 
 	err = k.SetValidator(ctx, validator)
 	if err != nil {

@@ -279,6 +279,10 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		}
 		if !validator.IsJailed() {
 
+			if !validator.Online {
+				return
+			}
+
 			// Downtime confirmed: slash and jail the validator
 			logger.Info(fmt.Sprintf("Validator %s past min height of %d and below signed blocks threshold of %d",
 				consAddr, minHeight, types.MinSignedPerWindow))
