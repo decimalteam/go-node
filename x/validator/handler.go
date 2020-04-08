@@ -127,10 +127,7 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 	validator.ValAddress = msg.ValidatorAddress
 	validator.RewardAddress = msg.RewardAddress
 
-	err = k.SetValidatorByConsAddr(ctx, validator)
-	if err != nil {
-		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
-	}
+	k.SetValidatorByConsAddr(ctx, validator)
 	err = k.SetValidator(ctx, validator)
 	if err != nil {
 		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
