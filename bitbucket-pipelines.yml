@@ -68,12 +68,15 @@ pipelines:
     develop:
       - <<: *build
       - parallel:
-          - step: Deploy host 01
-            deployment: test01
-            <<: *deploy-script
-          - step: Deploy host 02
-            deployment: test02
-            <<: *deploy-script
-          - step: Deploy host 03
-            deployment: test03
-            <<: *deploy-script
+          - <<: *deploy-01
+          - <<: *deploy-02
+          - <<: *deploy-03
+#          - step: Deploy host 01
+#            deployment: test01
+#            <<: *deploy-script
+#          - step: Deploy host 02
+#            deployment: test02
+#            <<: *deploy-script
+#          - step: Deploy host 03
+#            deployment: test03
+#            <<: *deploy-script
