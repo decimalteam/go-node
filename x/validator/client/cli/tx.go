@@ -221,7 +221,7 @@ func GetSetOnline(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Set online validator",
 		Use:   "set-online --from name/address",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
@@ -238,7 +238,7 @@ func GetSetOffline(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Set offline validator",
 		Use:   "set-offline --from name/address",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
