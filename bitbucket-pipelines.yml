@@ -70,10 +70,10 @@ pipelines:
       - parallel:
           - step: Deploy host 01
             deployment: test01
-            script <<: *deploy-script
+            <<: *deploy-script
           - step: Deploy host 02
             deployment: test02
-            script <<: *deploy-script
+            <<: *deploy-script
           - step: Deploy host 03
             deployment: test03
-            script <<: *deploy-script
+            <<: *deploy-script
