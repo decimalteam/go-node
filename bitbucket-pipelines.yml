@@ -14,7 +14,7 @@ pipelines:
             - go get ./...
             - make all
           artifacts:
-            - go/bin/*
+            - ${GOPATH}/bin/**
       - parallel:
           - step:
               name: Deploy (Host 01)
