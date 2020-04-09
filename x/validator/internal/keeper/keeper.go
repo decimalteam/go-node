@@ -103,3 +103,7 @@ func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdk.Int {
 func (k Keeper) SetLastTotalPower(ctx sdk.Context, power sdk.Int) error {
 	return k.set(ctx, []byte{types.LastTotalPowerKey}, power)
 }
+
+func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (coin.Coin, error) {
+	return k.coinKeeper.GetCoin(ctx, symbol)
+}
