@@ -155,6 +155,7 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) sdk.R
 	if err != nil {
 		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
 	}
+	k.SetValidatorByPowerIndex(ctx, validator)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -179,6 +180,7 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) sdk
 	if err != nil {
 		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
 	}
+	k.DeleteValidatorByPowerIndex(ctx, validator)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
