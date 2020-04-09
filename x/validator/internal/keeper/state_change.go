@@ -122,7 +122,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, k.TotalStake(ctx, validator))))
 
-		validator.UpdateStatus(types.Unbonded)
+		validator = validator.UpdateStatus(types.Unbonded)
 		err = k.SetValidator(ctx, validator)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
