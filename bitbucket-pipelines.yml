@@ -28,7 +28,8 @@ deploy-script: &deploy-script
         REMOTE_PATH: '/home/$USER/decimal'
 
 deploy-01: &deploy-01
-  - step: Deploy on Host 01
+  - step:
+    name: Deploy on Host 01
     deployment: test01
     script:
       - pipe: atlassian/sftp-deploy:0.5.4
@@ -40,7 +41,8 @@ deploy-01: &deploy-01
           REMOTE_PATH: '/home/$HOST01_USER/decimal'
 
 deploy-02: &deploy-02
-  - step: Deploy on Host 02
+  - step:
+    name: Deploy on Host 02
     deployment: test02
     script:
       - pipe: atlassian/sftp-deploy:0.5.4
@@ -52,7 +54,8 @@ deploy-02: &deploy-02
           REMOTE_PATH: '/home/$HOST02_USER/decimal'
 
 deploy-03: &deploy-03
-  - step: Deploy on Host 03
+  - step:
+    name: Deploy on Host 03
     deployment: test03
     script:
       - pipe: atlassian/sftp-deploy:0.5.4
@@ -71,12 +74,3 @@ pipelines:
           - <<: *deploy-01
           - <<: *deploy-02
           - <<: *deploy-03
-#          - step: Deploy host 01
-#            deployment: test01
-#            <<: *deploy-script
-#          - step: Deploy host 02
-#            deployment: test02
-#            <<: *deploy-script
-#          - step: Deploy host 03
-#            deployment: test03
-#            <<: *deploy-script
