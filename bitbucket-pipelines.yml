@@ -13,6 +13,7 @@ pipelines:
             - cd "${PACKAGE_PATH}"
             - go get ./...
             - make all
+            - ls ${GOPATH}/bin
           artifacts:
             - ${GOPATH}/bin/**
       - parallel:
