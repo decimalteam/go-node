@@ -1,54 +1,79 @@
 image: golang:1.13
 
+build: &build
+  - step:
+      name: Build
+      script:
+        - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
+        - mkdir -pv "${PACKAGE_PATH}"
+        - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
+        - export GO111MODULE=on
+        - cd "${PACKAGE_PATH}"
+        - go get ./...
+        - make all
+        - mkdir ${BITBUCKET_CLONE_DIR}/build
+        - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
+      artifacts:
+        - build/deccli
+        - build/decd
+
+deploy-script: &deploy-script
+  script:
+    - pipe: atlassian/sftp-deploy:0.5.4
+      variables:
+        USER: $USER
+        SSH_KEY: $SSHKEY
+        SERVER: $HOST
+        LOCAL_PATH: 'build'
+        REMOTE_PATH: '/home/$USER/decimal'
+
+deploy-01: &deploy-01
+  - step: Deploy on Host 01
+    deployment: test01
+    script:
+      - pipe: atlassian/sftp-deploy:0.5.4
+        variables:
+          USER: $HOST01_USER
+          SSH_KEY: $HOST01_KEY
+          SERVER: $HOST01_HOST
+          LOCAL_PATH: 'build'
+          REMOTE_PATH: '/home/$HOST01_USER/decimal'
+
+deploy-02: &deploy-02
+  - step: Deploy on Host 02
+    deployment: test02
+    script:
+      - pipe: atlassian/sftp-deploy:0.5.4
+        variables:
+          USER: $HOST02_USER
+          SSH_KEY: $HOST02_KEY
+          SERVER: $HOST02_HOST
+          LOCAL_PATH: 'build'
+          REMOTE_PATH: '/home/$HOST02_USER/decimal'
+
+deploy-03: &deploy-03
+  - step: Deploy on Host 03
+    deployment: test03
+    script:
+      - pipe: atlassian/sftp-deploy:0.5.4
+        variables:
+          USER: $HOST03_USER
+          SSH_KEY: $HOST03_KEY
+          SERVER: $HOST03_HOST
+          LOCAL_PATH: 'build'
+          REMOTE_PATH: '/home/$HOST03_USER/decimal'
+
 pipelines:
   branches:
     develop:
-      - step:
-          name: Build
-          script:
-            - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
-            - mkdir -pv "${PACKAGE_PATH}"
-            - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
-            - export GO111MODULE=on
-            - cd "${PACKAGE_PATH}"
-            - go get ./...
-            - make all
-            - mkdir ${BITBUCKET_CLONE_DIR}/build
-            - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
-            - ls ${BITBUCKET_CLONE_DIR}/build
-          artifacts:
-            - build/deccli
-            - build/decd
+      - <<: *build
       - parallel:
-          - step:
-              name: Deploy (Host 01)
-              script:
-                - pipe: atlassian/ssh-run:0.2.4
-                  variables:
-                    SSH_USER: $HOST01_USER
-                    SERVER: $HOST01_HOST
-                    MODE: 'script'
-                    COMMAND: './ci-scripts/update.sh'
-                    SSH_KEY: $HOST01_KEY
-
-          - step:
-              name: Deploy (Host 02)
-              script:
-                - pipe: atlassian/ssh-run:0.2.4
-                  variables:
-                    SSH_USER: $HOST02_USER
-                    SERVER: $HOST02_HOST
-                    MODE: 'script'
-                    COMMAND: './ci-scripts/update.sh'
-                    SSH_KEY: $HOST02_KEY
-
-          - step:
-              name: Deploy (Host 03)
-              script:
-                - pipe: atlassian/ssh-run:0.2.4
-                  variables:
-                    SSH_USER: $HOST03_USER
-                    SERVER: $HOST03_HOST
-                    MODE: 'script'
-                    COMMAND: './ci-scripts/update.sh'
-                    SSH_KEY: $HOST03_KEY
+          - step: Deploy host 01
+            deployment: test01
+            script <<: *deploy-script
+          - step: Deploy host 02
+              deployment: test02
+              script <<: *deploy-script
+          - step: Deploy host 03
+              deployment: test03
+              script <<: *deploy-script
