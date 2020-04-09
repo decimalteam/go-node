@@ -16,7 +16,8 @@ pipelines:
             - mkdir ${BITBUCKET_CLONE_DIR}/build
             - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
           artifacts:
-            - ${BITBUCKET_CLONE_DIR}/build/*
+            - ${BITBUCKET_CLONE_DIR}/build/deccli
+            - ${BITBUCKET_CLONE_DIR}/build/decd
       - parallel:
           - step:
               name: Deploy (Host 01)
