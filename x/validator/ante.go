@@ -370,6 +370,7 @@ func DeductFees(supplyKeeper types.SupplyKeeper, coinKeeper coin.Keeper, ctx sdk
 
 	commission := sdk.NewIntFromBigInt(fee.Amount.BigInt())
 
+	// TODO вопрос с регистрозависимостью
 	var denom string
 	if fee.Denom == "tdcl" {
 		denom = "tDCL"

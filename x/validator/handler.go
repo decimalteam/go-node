@@ -150,6 +150,10 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) sdk.R
 		return types.ErrNoValidatorFound(k.Codespace()).Result()
 	}
 
+	if validator.Online {
+		return sdk.NewError(k.Codespace(), 1, "Validator already online").Result()
+	}
+
 	validator.Online = true
 	err = k.SetValidator(ctx, validator)
 	if err != nil {
@@ -172,6 +176,10 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) sdk
 	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
 		return types.ErrNoValidatorFound(k.Codespace()).Result()
+	}
+
+	if !validator.Online {
+		return sdk.NewError(k.Codespace(), 1, "Validator already offline").Result()
 	}
 
 	validator.Online = false
