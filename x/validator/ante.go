@@ -8,12 +8,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-
-	"github.com/tendermint/tendermint/crypto/ed25519"
-
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/multisig"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -364,14 +363,18 @@ func DeductFees(supplyKeeper types.SupplyKeeper, coinKeeper coin.Keeper, ctx sdk
 
 	fee := sdk.Coin{}
 	if len(coins) >= 1 {
-		fee = coins[0]
+		fee = fees[0]
 	} else {
 		return sdk.Result{}
 	}
 
 	commission := sdk.NewIntFromBigInt(fee.Amount.BigInt())
 
-	feeCoin, errFee := coinKeeper.GetCoin(ctx, fee.Denom)
+	var denom string
+	if fee.Denom == "tdcl" {
+		denom = "tDCL"
+	}
+	feeCoin, errFee := coinKeeper.GetCoin(ctx, strings.ToUpper(denom))
 	if errFee != nil {
 		return sdk.ErrInvalidCoins("Fees coins is not exist: " + errFee.Error()).Result()
 	}
