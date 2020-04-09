@@ -13,6 +13,7 @@ const (
 	FlagAmount              = "amount"
 	FlagSharesAmount        = "shares-amount"
 	FlagSharesFraction      = "shares-fraction"
+	FlagRewardAddress       = "reward-addr"
 
 	FlagMoniker  = "moniker"
 	FlagIdentity = "identity"

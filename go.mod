@@ -9,9 +9,9 @@ require (
 	github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d
 	github.com/cosmos/ledger-cosmos-go v0.10.3
 	github.com/ethereum/go-ethereum v1.9.11
+	github.com/gin-gonic/gin v1.6.2
 	github.com/golang/mock v1.3.1 // indirect
 	github.com/gorilla/mux v1.7.3
-	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/pelletier/go-toml v1.5.0 // indirect
@@ -32,5 +32,5 @@ require (
 	golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7
 	golang.org/x/net v0.0.0-20190921015927-1a5e07d1ff72 // indirect
 	google.golang.org/genproto v0.0.0-20190701230453-710ae3a149df // indirect
-	gopkg.in/yaml.v2 v2.2.4
+	gopkg.in/yaml.v2 v2.2.8
 )

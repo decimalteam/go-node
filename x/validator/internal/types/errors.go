@@ -18,8 +18,14 @@ const (
 	CodeInvalidStruct CodeType = 201
 	CodeInvalidInput  CodeType = 202
 
-	CodeInvalidDelegation = 301
+	CodeInvalidDelegation CodeType = 301
+
+	CodeEmptyPubKey CodeType = 401
 )
+
+func ErrEmptyPubKey(codespace sdk.CodespaceType) sdk.Error {
+	return sdk.NewError(codespace, CodeEmptyPubKey, `empty PubKey`)
+}
 
 func ErrEmptyValidatorAddr(codespace sdk.CodespaceType) sdk.Error {
 	return sdk.NewError(codespace, CodeEmptyValidatorAddr, "empty validator address")

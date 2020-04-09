@@ -26,6 +26,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	var updates []abci.ValidatorUpdate
 
 	store := ctx.KVStore(k.storeKey)
+	// TODO The maximum number of validators should increase
 	maxValidators := k.GetParams(ctx).MaxValidators
 	totalPower := sdk.ZeroInt()
 	var amtFromBondedToNotBonded, amtFromNotBondedToBonded sdk.Coins
@@ -45,7 +46,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// fetch the validator
 		valAddr := sdk.ValAddress(iterator.Value())
-		validator, err := k.GetValidator(ctx, valAddr[2:])
+		validator, err := k.GetValidator(ctx, valAddr)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
@@ -85,7 +86,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
-			updates = append(updates, validator.ABCIValidatorUpdate(validator.Tokens))
+			updates = append(updates, validator.ABCIValidatorUpdate(k.TotalStake(ctx, validator)))
 
 			// set validator power on lookup index
 			err = k.SetLastValidatorPower(ctx, valAddr, newPower)
@@ -113,13 +114,13 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
 
-		// bonded to unbonding
-		validator, err = k.bondedToUnbonding(ctx, validator)
+		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, k.TotalStake(ctx, validator))))
+
+		validator.UpdateStatus(types.Unbonded)
+		err = k.SetValidator(ctx, validator)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
-		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, validator.Tokens)))
-
 		// delete from the bonded validator index
 		k.DeleteLastValidatorPower(ctx, validator.ValAddress)
 
@@ -214,10 +215,7 @@ func (k Keeper) bondValidator(ctx sdk.Context, validator types.Validator) (types
 	if err != nil {
 		return types.Validator{}, err
 	}
-	err = k.SetValidatorByPowerIndex(ctx, validator)
-	if err != nil {
-		return types.Validator{}, err
-	}
+	k.SetValidatorByPowerIndex(ctx, validator)
 
 	// delete from queue if present
 	err = k.DeleteValidatorQueue(ctx, validator)
@@ -262,10 +260,7 @@ func (k Keeper) beginUnbondingValidator(ctx sdk.Context, validator types.Validat
 	if err != nil {
 		return types.Validator{}, err
 	}
-	err = k.SetValidatorByPowerIndex(ctx, validator)
-	if err != nil {
-		return types.Validator{}, err
-	}
+	k.SetValidatorByPowerIndex(ctx, validator)
 
 	// Adds to unbonding validator queue
 	err = k.InsertValidatorQueue(ctx, validator)
@@ -303,7 +298,6 @@ func (k Keeper) jailValidator(ctx sdk.Context, validator types.Validator) error 
 	}
 
 	validator.Jailed = true
-	validator = validator.UpdateStatus(types.Unbonded)
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
 		return err
@@ -323,9 +317,6 @@ func (k Keeper) unjailValidator(ctx sdk.Context, validator types.Validator) erro
 	if err != nil {
 		return err
 	}
-	err = k.SetValidatorByPowerIndex(ctx, validator)
-	if err != nil {
-		return err
-	}
+	k.SetValidatorByPowerIndex(ctx, validator)
 	return nil
 }
