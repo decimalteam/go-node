@@ -15,6 +15,7 @@ pipelines:
             - make all
             - mkdir ${BITBUCKET_CLONE_DIR}/build
             - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
+            - ls ${BITBUCKET_CLONE_DIR}/build
           artifacts:
             - ${BITBUCKET_CLONE_DIR}/build/deccli
             - ${BITBUCKET_CLONE_DIR}/build/decd
