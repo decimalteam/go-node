@@ -27,45 +27,6 @@ deploy-script: &deploy-script
         LOCAL_PATH: 'build/*'
         REMOTE_PATH: '/home/$USER/decimal/'
 
-deploy-01: &deploy-01
-  - step:
-      name: Deploy on Host 01
-      deployment: test01
-      script:
-        - pipe: atlassian/sftp-deploy:0.5.4
-          variables:
-            USER: $HOST01_USER
-            SSH_KEY: $HOST01_KEY
-            SERVER: $HOST01_HOST
-            LOCAL_PATH: 'build'
-            REMOTE_PATH: '/home/$HOST01_USER/decimal'
-
-deploy-02: &deploy-02
-  - step:
-      name: Deploy on Host 02
-      deployment: test02
-      script:
-        - pipe: atlassian/sftp-deploy:0.5.4
-          variables:
-            USER: $HOST02_USER
-            SSH_KEY: $HOST02_KEY
-            SERVER: $HOST02_HOST
-            LOCAL_PATH: 'build'
-            REMOTE_PATH: '/home/$HOST02_USER/decimal'
-
-deploy-03: &deploy-03
-  - step:
-      name: Deploy on Host 03
-      deployment: test03
-      script:
-        - pipe: atlassian/sftp-deploy:0.5.4
-          variables:
-            USER: $HOST03_USER
-            SSH_KEY: $HOST03_KEY
-            SERVER: $HOST03_HOST
-            LOCAL_PATH: 'build'
-            REMOTE_PATH: '/home/$HOST03_USER/decimal'
-
 pipelines:
   branches:
     develop:
