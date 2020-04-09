@@ -71,7 +71,7 @@ func (k Keeper) GetAllValidators(ctx sdk.Context) (validators []types.Validator)
 	for ; iterator.Valid(); iterator.Next() {
 		validator, err := types.UnmarshalValidator(k.cdc, iterator.Value())
 		if err != nil {
-			continue
+			panic(err)
 		}
 		validators = append(validators, validator)
 	}
@@ -112,6 +112,22 @@ func (k Keeper) SetValidatorByPowerIndex(ctx sdk.Context, validator types.Valida
 // validator index
 func (k Keeper) SetNewValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) {
 	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), validator.ValAddress)
+}
+
+func (k Keeper) GetAllValidatorsByPowerIndex(ctx sdk.Context) []types.Validator {
+	var validators []types.Validator
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{types.ValidatorsByPowerIndexKey})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		validator, err := k.GetValidator(ctx, iterator.Value())
+		if err != nil {
+			panic(err)
+		}
+		validators = append(validators, validator)
+	}
+	return validators
 }
 
 func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {

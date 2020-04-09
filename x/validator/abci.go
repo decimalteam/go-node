@@ -100,7 +100,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 
 	remainder := sdk.NewIntFromBigInt(rewards.BigInt())
 
-	vals := k.GetAllValidators(ctx)
+	vals := k.GetAllValidatorsByPowerIndex(ctx)
 
 	totalPower := sdk.ZeroInt()
 
