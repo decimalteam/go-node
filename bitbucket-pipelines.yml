@@ -13,6 +13,8 @@ pipelines:
             - cd "${PACKAGE_PATH}"
             - go get ./...
             - make all
+          artifacts:
+            - go/bin/*
       - parallel:
           - step:
               name: Deploy (Host 01)
