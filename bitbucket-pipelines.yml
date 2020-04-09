@@ -72,8 +72,8 @@ pipelines:
             deployment: test01
             script <<: *deploy-script
           - step: Deploy host 02
-              deployment: test02
-              script <<: *deploy-script
+            deployment: test02
+            script <<: *deploy-script
           - step: Deploy host 03
-              deployment: test03
-              script <<: *deploy-script
+            deployment: test03
+            script <<: *deploy-script
