@@ -13,9 +13,10 @@ pipelines:
             - cd "${PACKAGE_PATH}"
             - go get ./...
             - make all
-            - ls ${GOPATH}/bin
+            - mkdir ${BITBUCKET_CLONE_DIR}/build
+            - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
           artifacts:
-            - ${GOPATH}/bin/**
+            - ${BITBUCKET_CLONE_DIR}/build/*
       - parallel:
           - step:
               name: Deploy (Host 01)
