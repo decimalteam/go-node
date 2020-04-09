@@ -21,6 +21,8 @@ const (
 	CodeInvalidDelegation CodeType = 301
 
 	CodeEmptyPubKey CodeType = 401
+
+	CodeCoinReserveIsNotSufficient CodeType = 501
 )
 
 func ErrEmptyPubKey(codespace sdk.CodespaceType) sdk.Error {
@@ -74,4 +76,8 @@ func ErrNotEnoughDelegationShares(codespace sdk.CodespaceType, shares string) sd
 
 func ErrNilDelegatorAddr(codespace sdk.CodespaceType) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidInput, "delegator address is nil")
+}
+
+func ErrCoinReserveIsNotSufficient(codespace sdk.CodespaceType, reserve string, amount string) sdk.Error {
+	return sdk.NewError(codespace, CodeCoinReserveIsNotSufficient, fmt.Sprintf("Coin reserve balance is not sufficient for transaction. Has: %s, required %s", reserve, amount))
 }

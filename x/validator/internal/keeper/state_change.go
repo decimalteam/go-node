@@ -64,6 +64,9 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		// apply the appropriate state change if necessary
 		switch {
 		case validator.IsUnbonded():
+			if !validator.Online {
+				break
+			}
 			validator, err = k.unbondedToBonded(ctx, validator)
 			if err != nil {
 				return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
