@@ -24,8 +24,8 @@ deploy-script: &deploy-script
         USER: $USER
         SSH_KEY: $SSHKEY
         SERVER: $HOST
-        LOCAL_PATH: 'build'
-        REMOTE_PATH: '/home/$USER/decimal'
+        LOCAL_PATH: 'build/*'
+        REMOTE_PATH: '/home/$USER/decimal/'
 
 deploy-01: &deploy-01
   - step:
@@ -71,6 +71,15 @@ pipelines:
     develop:
       - <<: *build
       - parallel:
-          - <<: *deploy-01
-          - <<: *deploy-02
-          - <<: *deploy-03
+          - step:
+              name: Deploy on host 01
+              deployment: test01
+              <<: *deploy-script
+          - step:
+              name: Deploy on host 02
+              deployment: test02
+              <<: *deploy-script
+          - step:
+              name: Deploy on host 03
+              deployment: test03
+              <<: *deploy-script
