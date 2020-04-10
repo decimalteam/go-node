@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -188,6 +189,15 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 		k.SetUnbondingDelegation(ctx, unbondingDelegation)
 		if err := k.burnNotBondedTokens(ctx, sdk.NewCoins(sdk.NewCoin(entry.Balance.Denom, burnedAmount))); err != nil {
 			panic(err)
+		}
+
+		if entry.Balance.Denom != DefaultParamSpace {
+			coin, err := k.GetCoin(ctx, entry.Balance.Denom)
+			if err != nil {
+				panic(err)
+			}
+			ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, burnedAmount)
+			k.coinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(burnedAmount))
 		}
 	}
 
