@@ -27,8 +27,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	var updates []abci.ValidatorUpdate
 
 	store := ctx.KVStore(k.storeKey)
-	// TODO The maximum number of validators should increase
-	maxValidators := k.GetParams(ctx).MaxValidators
+	maxValidators := k.getValidatorsCountForBlock(ctx, ctx.BlockHeight())
 	totalPower := sdk.ZeroInt()
 	var amtFromBondedToNotBonded, amtFromNotBondedToBonded sdk.Coins
 
@@ -40,7 +39,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	// Iterate over validators, highest power to lowest.
 	iterator := sdk.KVStoreReversePrefixIterator(store, []byte{types.ValidatorsByPowerIndexKey})
 	defer iterator.Close()
-	for count := 0; iterator.Valid() && count < int(maxValidators); iterator.Next() {
+	for count := 0; iterator.Valid() && count < maxValidators; iterator.Next() {
 
 		// everything that is iterated in this loop is becoming or already a
 		// part of the bonded validator set
@@ -325,4 +324,13 @@ func (k Keeper) unjailValidator(ctx sdk.Context, validator types.Validator) erro
 	}
 	k.SetValidatorByPowerIndex(ctx, validator)
 	return nil
+}
+
+func (k Keeper) getValidatorsCountForBlock(ctx sdk.Context, block int64) int {
+	count := 16 + (block/518400)*4
+	if uint16(count) > k.GetParams(ctx).MaxValidators {
+		return int(k.GetParams(ctx).MaxValidators)
+	}
+
+	return int(count)
 }
