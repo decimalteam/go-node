@@ -28,16 +28,6 @@ deploy-script: &deploy-script
         REMOTE_PATH: '/home/$USER/decimal/'
         DEBUG: 'true'
 
-restart-daemon: &restart-daemon
-  script:
-    - pipe: atlassian/ssh-run:0.2.4
-      variables:
-        SSH_USER: $USER
-        SERVER: $HOST
-        SSH_KEY: $SSHKEY
-        MODE: 'command'
-        COMMAND: 'sudo systemctl restart decd'
-
 pipelines:
   branches:
     develop:
@@ -55,17 +45,3 @@ pipelines:
               name: Deploy on host 03
               deployment: test03
               <<: *deploy-script
-
-      - parallel:
-          - step:
-              name: Restart daemon on host 01
-              deployment: test01
-              <<: *restart-daemon
-          - step:
-              name: Restart daemon on host 02
-              deployment: test02
-              <<: *restart-daemon
-          - step:
-              name: Restart daemon on host 03
-              deployment: test03
-              <<: *restart-daemon
