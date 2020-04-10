@@ -287,7 +287,7 @@ func (k Keeper) DeleteLastValidatorPower(ctx sdk.Context, operator sdk.ValAddres
 
 // validator index
 func (k Keeper) DeleteValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) {
-	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, validator.Tokens))
+	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, k.TotalStake(ctx, validator)))
 }
 
 // Iterate over last validator powers.
