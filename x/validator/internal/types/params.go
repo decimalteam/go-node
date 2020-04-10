@@ -16,7 +16,7 @@ const (
 	DefaultUnbondingTime = time.Hour * 24 * 30
 
 	// Default maximum number of bonded validators
-	DefaultMaxValidators uint16 = 100
+	DefaultMaxValidators uint16 = 256
 
 	// Default maximum entries in a UBD/RED pair
 	DefaultMaxEntries uint16 = 7
