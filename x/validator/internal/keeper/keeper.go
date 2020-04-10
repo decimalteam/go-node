@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/tendermint/tendermint/libs/log"
+	"strings"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -105,5 +106,5 @@ func (k Keeper) SetLastTotalPower(ctx sdk.Context, power sdk.Int) error {
 }
 
 func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (coin.Coin, error) {
-	return k.coinKeeper.GetCoin(ctx, symbol)
+	return k.coinKeeper.GetCoin(ctx, strings.ToUpper(symbol))
 }

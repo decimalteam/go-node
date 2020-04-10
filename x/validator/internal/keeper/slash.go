@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -189,6 +190,15 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 		if err := k.burnNotBondedTokens(ctx, sdk.NewCoins(sdk.NewCoin(entry.Balance.Denom, burnedAmount))); err != nil {
 			panic(err)
 		}
+
+		if entry.Balance.Denom != DefaultParamSpace {
+			coin, err := k.GetCoin(ctx, entry.Balance.Denom)
+			if err != nil {
+				panic(err)
+			}
+			ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, burnedAmount)
+			k.coinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(burnedAmount))
+		}
 	}
 
 	return totalSlashAmount
@@ -213,6 +223,15 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 		burnedAmount = burnedAmount.Add(sdk.NewCoins(sdk.NewCoin(delegation.Coin.Denom, bondSlashAmount)))
 		delegation.Coin.Amount = delegation.Coin.Amount.Sub(bondSlashAmount)
 		k.SetDelegation(ctx, delegation)
+
+		if delegation.Coin.Denom != DefaultParamSpace {
+			coin, err := k.GetCoin(ctx, delegation.Coin.Denom)
+			if err != nil {
+				panic(err)
+			}
+			ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondSlashAmount)
+			k.coinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(bondSlashAmount))
+		}
 	}
 
 	if err := k.burnNotBondedTokens(ctx, burnedAmount); err != nil {
