@@ -223,6 +223,15 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 		burnedAmount = burnedAmount.Add(sdk.NewCoins(sdk.NewCoin(delegation.Coin.Denom, bondSlashAmount)))
 		delegation.Coin.Amount = delegation.Coin.Amount.Sub(bondSlashAmount)
 		k.SetDelegation(ctx, delegation)
+
+		if delegation.Coin.Denom != DefaultParamSpace {
+			coin, err := k.GetCoin(ctx, delegation.Coin.Denom)
+			if err != nil {
+				panic(err)
+			}
+			ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondSlashAmount)
+			k.coinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(bondSlashAmount))
+		}
 	}
 
 	if err := k.burnNotBondedTokens(ctx, burnedAmount); err != nil {
