@@ -45,3 +45,4 @@ pipelines:
               name: Deploy on host 03
               deployment: test03
               <<: *deploy-script
+
