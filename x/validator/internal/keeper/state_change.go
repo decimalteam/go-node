@@ -67,14 +67,14 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		// apply the appropriate state change if necessary
 		switch {
 		case validator.IsUnbonded():
-			if !validator.Online {
-				break
+			if validator.Online {
+				validator, err = k.unbondedToBonded(ctx, validator)
+				log.Println(validator)
+				if err != nil {
+					return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
+				}
+				amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, k.TotalStake(ctx, validator))))
 			}
-			validator, err = k.unbondedToBonded(ctx, validator)
-			if err != nil {
-				return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
-			}
-			amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, validator.Tokens)))
 		case validator.IsBonded():
 			// no state change
 		default:
@@ -122,7 +122,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, k.TotalStake(ctx, validator))))
 
-		validator.UpdateStatus(types.Unbonded)
+		validator = validator.UpdateStatus(types.Unbonded)
 		err = k.SetValidator(ctx, validator)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
