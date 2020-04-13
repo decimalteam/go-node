@@ -34,6 +34,37 @@ pipelines:
       - <<: *build
       - parallel:
           - step:
+              name: Stop on host 01
+              script:
+                - pipe: atlassian/ssh-run:0.2.5
+                  variables:
+                    SSH_USER: $HOST01_USER
+                    SERVER: $HOST01_HOST
+                    SSH_KEY: $HOST01_KEY
+                    COMMAND: 'sudo systemctl stop decd'
+                    MODE: 'command'
+          - step:
+              name: Stop on host 02
+              script:
+                - pipe: atlassian/ssh-run:0.2.5
+                  variables:
+                    SSH_USER: $HOST02_USER
+                    SERVER: $HOST02_HOST
+                    SSH_KEY: $HOST02_KEY
+                    COMMAND: 'sudo systemctl stop decd'
+                    MODE: 'command'
+          - step:
+              name: Stop on host 03
+              script:
+                - pipe: atlassian/ssh-run:0.2.5
+                  variables:
+                    SSH_USER: $HOST03_USER
+                    SERVER: $HOST03_HOST
+                    SSH_KEY: $HOST03_KEY
+                    COMMAND: 'sudo systemctl stop decd'
+                    MODE: 'command'
+      - parallel:
+          - step:
               name: Deploy on host 01
               deployment: test01
               <<: *deploy-script
