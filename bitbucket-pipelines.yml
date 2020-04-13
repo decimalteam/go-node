@@ -47,7 +47,7 @@ pipelines:
               <<: *deploy-script
 
   tags:
-    'breaking/*':
+    'wipe/*':
       - step:
           name: Restart blockchain on validator node.
           script:
