@@ -76,13 +76,8 @@ build-deploy: &build-deploy
           <<: *deploy-script
 
 pipelines:
-  branches:
-    develop:
-      - <<: *build-deploy
-
   tags:
     'wipe/*':
-      - <<: *build-deploy
       - step:
           name: Restart blockchain on validator node.
           script:
@@ -115,3 +110,7 @@ pipelines:
                     SSH_KEY: $HOST03_KEY
                     COMMAND: 'ci-scripts/restart_node.sh'
                     MODE: 'script'
+
+  branches:
+    develop:
+      - <<: *build-deploy
