@@ -46,3 +46,37 @@ pipelines:
               deployment: test03
               <<: *deploy-script
 
+  tags:
+    'breaking/*':
+      - step:
+          name: Restart blockchain on validator node.
+          script:
+            - pipe: atlassian/ssh-run:0.2.5
+              variables:
+                SSH_USER: $HOST01_USER
+                SERVER: $HOST01_HOST
+                SSH_KEY: $HOST01_KEY
+                COMMAND: 'ci-scripts/restart_validator.sh'
+                MODE: 'script'
+      - parallel:
+          - step:
+              name: Restart blockchain on host 02.
+              script:
+                - pipe: atlassian/ssh-run:0.2.5
+                  variables:
+                    SSH_USER: $HOST02_USER
+                    SERVER: $HOST02_HOST
+                    SSH_KEY: $HOST02_KEY
+                    COMMAND: 'ci-scripts/restart_node.sh'
+                    MODE: 'script'
+
+          - step:
+              name: Restart blockchain on host 03.
+              script:
+                - pipe: atlassian/ssh-run:0.2.5
+                  variables:
+                    SSH_USER: $HOST03_USER
+                    SERVER: $HOST03_HOST
+                    SSH_KEY: $HOST03_KEY
+                    COMMAND: 'ci-scripts/restart_node.sh'
+                    MODE: 'script'
