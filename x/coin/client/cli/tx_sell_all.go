@@ -1,16 +1,17 @@
 package cli
 
 import (
+	"fmt"
+	"strings"
+
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 func GetCmdSellAllCoin(cdc *codec.Codec) *cobra.Command {
@@ -29,12 +30,12 @@ func GetCmdSellAllCoin(cdc *codec.Codec) *cobra.Command {
 			// Check if coin to buy exists
 			coinToBuy, _ := cliUtils.GetCoin(cliCtx, coinToBuySymbol)
 			if coinToBuy.Symbol != coinToBuySymbol {
-				return sdk.NewError(types.DefaultCodespace, types.CoinToBuyNotExists, fmt.Sprintf("Coin to buy with symbol %s does not exist", coinToBuySymbol))
+				return sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, fmt.Sprintf("Coin to buy with symbol %s does not exist", coinToBuySymbol))
 			}
 			// Check if coin to sell exists
 			coinToSell, _ := cliUtils.GetCoin(cliCtx, coinToSellSymbol)
 			if coinToSell.Symbol != coinToSellSymbol {
-				return sdk.NewError(types.DefaultCodespace, types.CoinToSellNotExists, fmt.Sprintf("Coin to sell with symbol %s does not exist", coinToSellSymbol))
+				return sdkerrors.New(types.DefaultCodespace, types.CoinToSellNotExists, fmt.Sprintf("Coin to sell with symbol %s does not exist", coinToSellSymbol))
 			}
 
 			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())

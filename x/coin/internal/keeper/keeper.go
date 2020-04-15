@@ -1,12 +1,13 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
 	"fmt"
+	"strings"
+
+	"bitbucket.org/decimalteam/go-node/config"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/tendermint/tendermint/libs/log"
-	"strings"
 
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -18,19 +19,17 @@ type Keeper struct {
 	storeKey      sdk.StoreKey
 	cdc           *codec.Codec
 	paramspace    types.ParamSubspace
-	codespace     sdk.CodespaceType
 	AccountKeeper auth.AccountKeeper
 	BankKeeper    bank.Keeper
 	Config        *config.Config
 }
 
 // NewKeeper creates a coin keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, codespace sdk.CodespaceType, accountKeeper auth.AccountKeeper, coinKeeper bank.Keeper, config *config.Config) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, accountKeeper auth.AccountKeeper, coinKeeper bank.Keeper, config *config.Config) Keeper {
 	keeper := Keeper{
 		storeKey:      key,
 		cdc:           cdc,
 		paramspace:    paramspace.WithKeyTable(types.ParamKeyTable()),
-		codespace:     codespace,
 		AccountKeeper: accountKeeper,
 		BankKeeper:    coinKeeper,
 		Config:        config,
@@ -90,7 +89,7 @@ func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int
 	if isNeg {
 		coins = coins.Sub(updCoin)
 	} else {
-		coins = coins.Add(updCoin)
+		coins = coins.Add(updCoin...)
 	}
 	// Update coin information
 	err := acc.SetCoins(coins)

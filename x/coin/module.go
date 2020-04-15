@@ -2,22 +2,23 @@ package coin
 
 import (
 	"encoding/json"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"bitbucket.org/decimalteam/go-node/x/coin/client/cli"
-	"bitbucket.org/decimalteam/go-node/x/coin/client/rest"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+
+	"bitbucket.org/decimalteam/go-node/x/coin/client/cli"
+	"bitbucket.org/decimalteam/go-node/x/coin/client/rest"
 )
 
+// Type check to ensure the interface is properly implemented
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
@@ -26,11 +27,9 @@ var (
 // AppModuleBasic defines the basic application module used by the coin module.
 type AppModuleBasic struct{}
 
-var _ module.AppModuleBasic = AppModuleBasic{}
-
 // Name returns the coin module's name.
 func (AppModuleBasic) Name() string {
-	return types.ModuleName
+	return ModuleName
 }
 
 // RegisterCodec registers the coin module's types for the given codec.

@@ -1,20 +1,25 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"math/big"
+	"strconv"
+
+	"golang.org/x/crypto/sha3"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/ethereum/go-ethereum/rlp"
-	"golang.org/x/crypto/sha3"
-	"math/big"
-	"strconv"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/config"
 )
 
 // TODO: Move to sdk.Int (now use big.Int, because NewSdkIntFromBigInt has limit for bits length)
@@ -68,12 +73,12 @@ func (check *CheckData) String() string {
 func (check *CheckData) PublicKey() (string, error) {
 
 	if check.V.BitLen() > 8 {
-		return "", sdk.NewError(DefaultCodespace, InvalidVRS, "Invalid V, R, S values")
+		return "", sdkerrors.New(DefaultCodespace, InvalidVRS, "Invalid V, R, S values")
 	}
 
 	v := byte(check.V.Uint64() - 27)
 	if !crypto.ValidateSignatureValues(v, check.R, check.S, true) {
-		return "", sdk.NewError(DefaultCodespace, InvalidVRS, "Invalid V, R, S values")
+		return "", sdkerrors.New(DefaultCodespace, InvalidVRS, "Invalid V, R, S values")
 	}
 
 	r := check.R.Bytes()
@@ -103,7 +108,7 @@ func (check *CheckData) PublicKey() (string, error) {
 	}
 
 	if len(pub) == 0 || pub[0] != 4 {
-		return "", sdk.NewError(DefaultCodespace, InvalidPublicKey, "Invalid public key")
+		return "", sdkerrors.New(DefaultCodespace, InvalidPublicKey, "Invalid public key")
 	}
 
 	return fmt.Sprintf("%s%s", config.DecimalPrefixAccAddr, hex.EncodeToString(pub)), nil

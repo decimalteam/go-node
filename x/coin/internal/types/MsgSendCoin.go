@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var _ sdk.Msg = &MsgSendCoin{}
@@ -35,13 +36,13 @@ func (msg MsgSendCoin) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgSendCoin) ValidateBasic() sdk.Error {
+func (msg MsgSendCoin) ValidateBasic() error {
 	return ValidateSendCoin(msg)
 }
 
-func ValidateSendCoin(msg MsgSendCoin) sdk.Error {
+func ValidateSendCoin(msg MsgSendCoin) error {
 	if msg.Amount.LTE(sdk.NewInt(0)) {
-		return sdk.NewError(DefaultCodespace, InvalidAmount, "Amount should be greater than 0")
+		return sdkerrors.New(DefaultCodespace, InvalidAmount, "Amount should be greater than 0")
 	}
 	return nil
 }

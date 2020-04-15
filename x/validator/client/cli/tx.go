@@ -1,20 +1,25 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
+
+	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
+
+	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/crypto"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
-	"github.com/spf13/viper"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -27,7 +32,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	validatorTxCmd.AddCommand(client.PostCommands(
+	validatorTxCmd.AddCommand(flags.PostCommands(
 		GetCmdDeclareCandidate(cdc),
 		GetDelegate(cdc),
 		GetSetOnline(cdc),
@@ -60,7 +65,7 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			pubKey, err := sdk.GetConsPubKeyBech32(args[0])
+			pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
 			if err != nil {
 				return err
 			}
@@ -127,18 +132,18 @@ func PrepareFlagsForTxCreateValidator(
 	details := viper.GetString(FlagDetails)
 	identity := viper.GetString(FlagIdentity)
 
-	viper.Set(client.FlagChainID, chainID)
-	viper.Set(client.FlagFrom, viper.GetString(client.FlagName))
+	viper.Set(flags.FlagChainID, chainID)
+	viper.Set(flags.FlagFrom, viper.GetString(flags.FlagName))
 	viper.Set(FlagNodeID, nodeID)
 	viper.Set(FlagIP, ip)
-	viper.Set(FlagPubKey, sdk.MustBech32ifyConsPub(valPubKey))
+	viper.Set(FlagPubKey, sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, valPubKey))
 	viper.Set(FlagMoniker, config.Moniker)
 	viper.Set(FlagWebsite, website)
 	viper.Set(FlagDetails, details)
 	viper.Set(FlagIdentity, identity)
 
 	if config.Moniker == "" {
-		viper.Set(FlagMoniker, viper.GetString(client.FlagName))
+		viper.Set(FlagMoniker, viper.GetString(flags.FlagName))
 	}
 	if viper.GetString(FlagAmount) == "" {
 		viper.Set(FlagAmount, defaultAmount)

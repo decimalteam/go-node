@@ -1,11 +1,14 @@
 package utils
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 // Check if coin exists
@@ -30,7 +33,7 @@ func GetCoin(cliCtx client.CLIContext, symbol string) (types.Coin, error) {
 
 // Calculate amountToSell and amountToBuy for BuyCoin TX
 // In CLI part amountToSell is maxAmountToSell
-func BuyCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err sdk.Error) {
+func BuyCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err sdkerrors.Error) {
 	var amountSellInBaseCoin sdk.Int
 	var amountBuyInBaseCoin sdk.Int
 	if coinToSell.IsBase() {
@@ -70,19 +73,19 @@ func BuyCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsB
 	}
 
 	if coinToBuy.Volume.Add(wantsBuy).GT(coinToBuy.LimitVolume) && !coinToBuy.IsBase() {
-		return sdk.Int{}, sdk.Int{}, sdk.NewError(types.DefaultCodespace, types.TxBreaksVolumeLimit, "Tx breaks LimitVolume rule")
+		return sdk.Int{}, sdk.Int{}, sdkerrors.New(types.DefaultCodespace, types.TxBreaksVolumeLimit, "Tx breaks LimitVolume rule")
 	}
 
 	coinToSellMinReserve := formulas.GetReserveLimitFromCRR(coinToSell.CRR)
 	if coinToSell.Reserve.Sub(amountSellInBaseCoin).LT(coinToSellMinReserve) && !coinToSell.IsBase() {
-		return sdk.Int{}, sdk.Int{}, sdk.NewError(types.DefaultCodespace, types.TxBreaksMinReserveLimit, "Tx breaks MinReserveLimit rule")
+		return sdk.Int{}, sdk.Int{}, sdkerrors.New(types.DefaultCodespace, types.TxBreaksMinReserveLimit, "Tx breaks MinReserveLimit rule")
 	}
 	return amountBuy, amountSell, nil
 }
 
 // Calculate amountToSell and amountToBuy for SellCoin TX
 // In CLI part amountToBuy is minAmountToBuy
-func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err sdk.Error) {
+func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err sdkerrors.Error) {
 	var amountSellInBase sdk.Int
 
 	if coinToSell.IsBase() {
@@ -98,17 +101,17 @@ func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wants
 	}
 
 	if coinToBuy.Volume.Add(amountBuy).GT(coinToBuy.LimitVolume) && !coinToBuy.IsBase() {
-		return sdk.Int{}, sdk.Int{}, sdk.NewError(types.DefaultCodespace, types.TxBreaksVolumeLimit, "Tx breaks LimitVolume rule")
+		return sdk.Int{}, sdk.Int{}, sdkerrors.New(types.DefaultCodespace, types.TxBreaksVolumeLimit, "Tx breaks LimitVolume rule")
 	}
 
 	coinToSellMinReserve := formulas.GetReserveLimitFromCRR(coinToSell.CRR)
 	if coinToSell.Reserve.Sub(amountSellInBase).LT(coinToSellMinReserve) && !coinToSell.IsBase() {
-		return sdk.Int{}, sdk.Int{}, sdk.NewError(types.DefaultCodespace, types.TxBreaksMinReserveLimit, "Tx breaks MinReserveLimit rule")
+		return sdk.Int{}, sdk.Int{}, sdkerrors.New(types.DefaultCodespace, types.TxBreaksMinReserveLimit, "Tx breaks MinReserveLimit rule")
 	}
 
 	// Limit minAmountToBuy in CLI
 	if amountBuy.LT(wantsBuy) {
-		return sdk.Int{}, sdk.Int{}, sdk.NewError(types.DefaultCodespace, types.AmountBuyIsTooSmall, "Amount you will receive less than minimum")
+		return sdk.Int{}, sdk.Int{}, sdkerrors.New(types.DefaultCodespace, types.AmountBuyIsTooSmall, "Amount you will receive less than minimum")
 	}
 
 	return amountBuy, wantsSell, nil

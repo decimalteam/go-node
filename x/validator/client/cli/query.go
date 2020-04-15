@@ -2,15 +2,18 @@ package cli
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/context"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/spf13/cobra"
 	"strings"
 
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -25,7 +28,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	validatorQueryCmd.AddCommand(
-		client.GetCommands(
+		flags.GetCommands(
 			GetCmdQueryValidators(queryRoute, cdc),
 			GetCmdQueryValidatorDelegations(queryRoute, cdc),
 			GetCmdQueryPool(queryRoute, cdc),

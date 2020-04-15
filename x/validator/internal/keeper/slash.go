@@ -1,12 +1,13 @@
 package keeper
 
 import (
+	"fmt"
+	"time"
+
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
-	"time"
 )
 
 // Slash a validator for an infraction committed at a known height
@@ -220,7 +221,7 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 			continue
 		}
 
-		burnedAmount = burnedAmount.Add(sdk.NewCoins(sdk.NewCoin(delegation.Coin.Denom, bondSlashAmount)))
+		burnedAmount = burnedAmount.Add(sdk.NewCoins(sdk.NewCoin(delegation.Coin.Denom, bondSlashAmount))...)
 		delegation.Coin.Amount = delegation.Coin.Amount.Sub(bondSlashAmount)
 		k.SetDelegation(ctx, delegation)
 

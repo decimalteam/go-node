@@ -1,24 +1,25 @@
 package genutil
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/server"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/privval"
 	"path/filepath"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/crypto"
+	tos "github.com/tendermint/tendermint/libs/os"
+	"github.com/tendermint/tendermint/p2p"
+	"github.com/tendermint/tendermint/privval"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+
+	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
 // SetGenTxsInAppGenesisState - sets the genesis transactions in the app genesis state
@@ -117,12 +118,12 @@ func InitializeNodeValidatorFiles(config *cfg.Config,
 	server.UpgradeOldPrivValFile(config)
 
 	pvKeyFile := config.PrivValidatorKeyFile()
-	if err := common.EnsureDir(filepath.Dir(pvKeyFile), 0777); err != nil {
+	if err := tos.EnsureDir(filepath.Dir(pvKeyFile), 0777); err != nil {
 		return nodeID, valPubKey, nil
 	}
 
 	pvStateFile := config.PrivValidatorStateFile()
-	if err := common.EnsureDir(filepath.Dir(pvStateFile), 0777); err != nil {
+	if err := tos.EnsureDir(filepath.Dir(pvStateFile), 0777); err != nil {
 		return nodeID, valPubKey, nil
 	}
 

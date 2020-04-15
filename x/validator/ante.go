@@ -1,22 +1,24 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	vtypes "bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/auth"
+	"strings"
+
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/multisig"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	vtypes "bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 var (

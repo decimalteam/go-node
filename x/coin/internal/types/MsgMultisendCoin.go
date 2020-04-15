@@ -37,7 +37,7 @@ func (msg MsgMultiSendCoin) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgMultiSendCoin) ValidateBasic() sdk.Error {
+func (msg MsgMultiSendCoin) ValidateBasic() error {
 	for i := range msg.Coins {
 		err := ValidateSendCoin(MsgSendCoin{
 			Sender:   msg.Sender,

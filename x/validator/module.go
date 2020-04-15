@@ -1,25 +1,29 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/validator/client/cli"
-	"bitbucket.org/decimalteam/go-node/x/validator/client/rest"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"encoding/json"
+
+	"github.com/gorilla/mux"
+	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/crypto"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"github.com/gorilla/mux"
-	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
-	abci "github.com/tendermint/tendermint/abci/types"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
+
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/validator/client/cli"
+	"bitbucket.org/decimalteam/go-node/x/validator/client/rest"
 )
 
+// Type check to ensure the interface is properly implemented
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
@@ -28,11 +32,9 @@ var (
 // AppModuleBasic defines the basic application module used by the validator module.
 type AppModuleBasic struct{}
 
-var _ module.AppModuleBasic = AppModuleBasic{}
-
 // Name returns the validator module's name.
 func (AppModuleBasic) Name() string {
-	return types.ModuleName
+	return ModuleName
 }
 
 // RegisterCodec registers the validator module's types for the given codec.

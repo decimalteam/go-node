@@ -1,16 +1,20 @@
 package genutil
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"fmt"
+
+	"github.com/pkg/errors"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+	tos "github.com/tendermint/tendermint/libs/os"
+	tmtypes "github.com/tendermint/tendermint/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/pkg/errors"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/common"
-	tmtypes "github.com/tendermint/tendermint/types"
+
+	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
 const ModuleName = "genutil"
@@ -75,7 +79,7 @@ func GenesisStateFromGenDoc(cdc *codec.Codec, genDoc tmtypes.GenesisDoc,
 func GenesisStateFromGenFile(cdc *codec.Codec, genFile string,
 ) (genesisState map[string]json.RawMessage, genDoc *tmtypes.GenesisDoc, err error) {
 
-	if !common.FileExists(genFile) {
+	if !tos.FileExists(genFile) {
 		return genesisState, genDoc,
 			fmt.Errorf("%s does not exist, run `init` first", genFile)
 	}

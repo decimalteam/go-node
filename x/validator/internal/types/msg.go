@@ -40,7 +40,7 @@ func (msg MsgDeclareCandidate) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgDeclareCandidate) ValidateBasic() sdk.Error {
+func (msg MsgDeclareCandidate) ValidateBasic() error {
 	if msg.ValidatorAddr.Empty() {
 		return ErrEmptyValidatorAddr(DefaultCodespace)
 	}
@@ -76,7 +76,7 @@ func (msg MsgDelegate) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgDelegate) ValidateBasic() sdk.Error {
+func (msg MsgDelegate) ValidateBasic() error {
 	if msg.ValidatorAddress.Empty() {
 		return ErrEmptyValidatorAddr(DefaultCodespace)
 	}
@@ -109,7 +109,7 @@ func (msg MsgSetOnline) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgSetOnline) ValidateBasic() sdk.Error {
+func (msg MsgSetOnline) ValidateBasic() error {
 	if msg.ValidatorAddress.Empty() {
 		return ErrEmptyValidatorAddr(DefaultCodespace)
 	}
@@ -139,7 +139,7 @@ func (msg MsgSetOffline) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgSetOffline) ValidateBasic() sdk.Error {
+func (msg MsgSetOffline) ValidateBasic() error {
 	if msg.ValidatorAddress.Empty() {
 		return ErrEmptyValidatorAddr(DefaultCodespace)
 	}
@@ -175,7 +175,7 @@ func (msg MsgUnbond) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgUnbond) ValidateBasic() sdk.Error {
+func (msg MsgUnbond) ValidateBasic() error {
 	if msg.ValidatorAddress.Empty() {
 		return ErrEmptyValidatorAddr(DefaultCodespace)
 	}
@@ -214,7 +214,7 @@ func (msg MsgEditCandidate) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgEditCandidate) ValidateBasic() sdk.Error {
+func (msg MsgEditCandidate) ValidateBasic() error {
 	if msg.PubKey == nil {
 		return ErrEmptyPubKey(DefaultCodespace)
 	}

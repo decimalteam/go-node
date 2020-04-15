@@ -1,12 +1,27 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
+
+	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
+
+	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/crypto"
+	tos "github.com/tendermint/tendermint/libs/os"
+	tmtypes "github.com/tendermint/tendermint/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	kbkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -15,18 +30,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
-	"github.com/spf13/viper"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/libs/common"
-	tmtypes "github.com/tendermint/tendermint/types"
-	"io"
-	"io/ioutil"
-	"log"
-	"os"
-	"path/filepath"
+
+	"bitbucket.org/decimalteam/go-node/x/genutil"
 )
 
 const (
@@ -61,7 +66,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config := ctx.Config
-			config.SetRoot(viper.GetString(client.FlagHome))
+			config.SetRoot(viper.GetString(flags.FlagHome))
 			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(ctx.Config)
 			if err != nil {
 				return err
@@ -73,7 +78,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 			}
 			// Read --pubkey, if empty take it from priv_validator.json
 			if valPubKeyString := viper.GetString(flagPubKey); valPubKeyString != "" {
-				valPubKey, err = sdk.GetConsPubKeyBech32(valPubKeyString)
+				valPubKey, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valPubKeyString)
 				if err != nil {
 					return err
 				}
@@ -98,14 +103,14 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 				return err
 			}
 
-			name := viper.GetString(client.FlagName)
+			name := viper.GetString(flags.FlagName)
 			key, err := kb.Get(name)
 			if err != nil {
 				return err
 			}
 
 			// Set flags for creating gentx
-			viper.Set(client.FlagHome, viper.GetString(flagClientHome))
+			viper.Set(flags.FlagHome, viper.GetString(flagClientHome))
 			smbh.PrepareFlagsForTxCreateValidator(config, nodeID, genDoc.ChainID, valPubKey)
 
 			// Fetch the amount of coins staked
@@ -123,7 +128,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := client.NewCLIContext().WithCodec(cdc)
 
-			viper.Set(client.FlagGenerateOnly, true)
+			viper.Set(flags.FlagGenerateOnly, true)
 
 			// create a 'create-validator' message
 			txBldr, msg, err := smbh.BuildCreateValidatorMsg(cliCtx, txBldr)
@@ -163,7 +168,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 			}
 
 			// Fetch output file name
-			outputDocument := viper.GetString(client.FlagOutputDocument)
+			outputDocument := viper.GetString(flags.FlagOutputDocument)
 			if outputDocument == "" {
 				outputDocument, err = makeOutputFilepath(config.RootDir, nodeID)
 				if err != nil {
@@ -181,20 +186,20 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 		},
 	}
 
-	cmd.Flags().String(client.FlagHome, defaultNodeHome, "node's home directory")
+	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "node's home directory")
 	cmd.Flags().String(flagClientHome, defaultCLIHome, "client's home directory")
-	cmd.Flags().String(client.FlagName, "", "name of private key with which to sign the gentx")
-	cmd.Flags().String(client.FlagOutputDocument, "",
+	cmd.Flags().String(flags.FlagName, "", "name of private key with which to sign the gentx")
+	cmd.Flags().String(flags.FlagOutputDocument, "",
 		"write the genesis transaction JSON document to the given file instead of the default location")
 	cmd.Flags().AddFlagSet(fsCreateValidator)
 
-	cmd.MarkFlagRequired(client.FlagName)
+	cmd.MarkFlagRequired(flags.FlagName)
 	return cmd
 }
 
 func makeOutputFilepath(rootDir, nodeID string) (string, error) {
 	writePath := filepath.Join(rootDir, "config", "gentx")
-	if err := common.EnsureDir(writePath, 0700); err != nil {
+	if err := tos.EnsureDir(writePath, 0700); err != nil {
 		return "", err
 	}
 	return filepath.Join(writePath, fmt.Sprintf("gentx-%v.json", nodeID)), nil

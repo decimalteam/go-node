@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var _ sdk.Msg = &MsgSellAllCoin{}
@@ -34,9 +35,9 @@ func (msg MsgSellAllCoin) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgSellAllCoin) ValidateBasic() sdk.Error {
+func (msg MsgSellAllCoin) ValidateBasic() error {
 	if msg.CoinToSell == msg.CoinToBuy {
-		return sdk.NewError(DefaultCodespace, SameCoins, "Cannot sell same coins")
+		return sdkerrors.New(DefaultCodespace, SameCoins, "Cannot sell same coins")
 	}
 	return nil
 }

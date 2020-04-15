@@ -3,15 +3,18 @@ package keys
 import (
 	"bufio"
 	"bytes"
+
 	//"crypto/ecdsa"
 	"errors"
 	"fmt"
+
 	//"github.com/ethereum/go-ethereum/common/hexutil"
 	//cryptoEth "github.com/ethereum/go-ethereum/crypto"
 	"sort"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
+
 	//"bitbucket.org/decimalteam/go-node/utils/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -20,6 +23,7 @@ import (
 
 	"bitbucket.org/decimalteam/go-node/utils/crypto/keys"
 	"github.com/cosmos/go-bip39"
+
 	//"github.com/miguelmota/go-ethereum-hdwallet"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/multisig"
@@ -172,11 +176,11 @@ func runAddCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	if viper.GetString(FlagPublicKey) != "" {
-		pk, err := sdk.GetAccPubKeyBech32(viper.GetString(FlagPublicKey))
+		pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, viper.GetString(FlagPublicKey))
 		if err != nil {
 			return err
 		}
-		_, err = kb.CreateOffline(name, pk)
+		_, err = kb.CreateOffline(name, pk, keys.Secp256k1)
 		if err != nil {
 			return err
 		}
@@ -288,7 +292,8 @@ func printCreate(cmd *cobra.Command, info keys.Info, showMnemonic bool, mnemonic
 	case OutputFormatJSON:
 		fmt.Printf("info: (%v) \n", info)
 		//TODO "printKeyInfo(info, keys.Bech32KeyOutput)"
-		out, err := keys.HEXKeyOutput(info)
+		// out, err := keys.HEXKeyOutput(info) // TODO
+		out, err := keys.Bech32KeyOutput(info)
 		if err != nil {
 			return err
 		}

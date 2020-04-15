@@ -1,7 +1,6 @@
 package genutil
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 
 	"github.com/gorilla/mux"
@@ -14,6 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+
+	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
 var (

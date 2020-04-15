@@ -2,15 +2,16 @@ package types
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // Local code type
-type CodeType = sdk.CodeType
+type CodeType = uint32
 
 const (
 	// Default validator codespace
-	DefaultCodespace sdk.CodespaceType = ModuleName
+	DefaultCodespace string = ModuleName
 
 	CodeEmptyValidatorAddr CodeType = 101
 	CodeInvalidValidator   CodeType = 102
@@ -25,59 +26,59 @@ const (
 	CodeCoinReserveIsNotSufficient CodeType = 501
 )
 
-func ErrEmptyPubKey(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeEmptyPubKey, `empty PubKey`)
+func ErrEmptyPubKey(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeEmptyPubKey, `empty PubKey`)
 }
 
-func ErrEmptyValidatorAddr(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeEmptyValidatorAddr, "empty validator address")
+func ErrEmptyValidatorAddr(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeEmptyValidatorAddr, "empty validator address")
 }
 
-func ErrInvalidStruct(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidStruct, "invalid struct")
+func ErrInvalidStruct(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidStruct, "invalid struct")
 }
 
-func ErrValidatorOwnerExists(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidValidator, "validator already exist for this operator address, must use new validator operator address")
+func ErrValidatorOwnerExists(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidValidator, "validator already exist for this operator address, must use new validator operator address")
 }
 
-func ErrNoValidatorFound(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidValidator, "validator does not exist for that address")
+func ErrNoValidatorFound(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidValidator, "validator does not exist for that address")
 }
 
-func ErrValidatorPubKeyExists(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidValidator, "validator already exist for this pubkey, must use new validator pubkey")
+func ErrValidatorPubKeyExists(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidValidator, "validator already exist for this pubkey, must use new validator pubkey")
 }
 
-func ErrInsufficientShares(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidDelegation, "insufficient delegation shares")
+func ErrInsufficientShares(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidDelegation, "insufficient delegation shares")
 }
 
-func ErrDelegatorShareExRateInvalid(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidDelegation,
+func ErrDelegatorShareExRateInvalid(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidDelegation,
 		"cannot delegate to validators with invalid (zero) ex-rate")
 }
 
-func ErrNoUnbondingDelegation(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidDelegation, "no unbonding delegation found")
+func ErrNoUnbondingDelegation(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidDelegation, "no unbonding delegation found")
 }
 
-func ErrBadDelegationAddr(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidInput, "unexpected address length for this (address, validator) pair")
+func ErrBadDelegationAddr(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidInput, "unexpected address length for this (address, validator) pair")
 }
 
-func ErrNoDelegatorForAddress(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidDelegation, "delegator does not contain this delegation")
+func ErrNoDelegatorForAddress(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidDelegation, "delegator does not contain this delegation")
 }
 
-func ErrNotEnoughDelegationShares(codespace sdk.CodespaceType, shares string) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidDelegation, fmt.Sprintf("not enough shares only have %v", shares))
+func ErrNotEnoughDelegationShares(codespace string, shares string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidDelegation, fmt.Sprintf("not enough shares only have %v", shares))
 }
 
-func ErrNilDelegatorAddr(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidInput, "delegator address is nil")
+func ErrNilDelegatorAddr(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidInput, "delegator address is nil")
 }
 
-func ErrCoinReserveIsNotSufficient(codespace sdk.CodespaceType, reserve string, amount string) sdk.Error {
-	return sdk.NewError(codespace, CodeCoinReserveIsNotSufficient, fmt.Sprintf("Coin reserve balance is not sufficient for transaction. Has: %s, required %s", reserve, amount))
+func ErrCoinReserveIsNotSufficient(codespace string, reserve string, amount string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeCoinReserveIsNotSufficient, fmt.Sprintf("Coin reserve balance is not sufficient for transaction. Has: %s, required %s", reserve, amount))
 }

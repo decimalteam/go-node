@@ -8,15 +8,16 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"bitbucket.org/decimalteam/go-node/x/multisig/client/cli"
-	"bitbucket.org/decimalteam/go-node/x/multisig/client/rest"
-	"bitbucket.org/decimalteam/go-node/x/multisig/internal/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+
+	"bitbucket.org/decimalteam/go-node/x/multisig/client/cli"
+	"bitbucket.org/decimalteam/go-node/x/multisig/client/rest"
 )
 
+// Type check to ensure the interface is properly implemented
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
@@ -25,11 +26,9 @@ var (
 // AppModuleBasic defines the basic application module used by the multisig module.
 type AppModuleBasic struct{}
 
-var _ module.AppModuleBasic = AppModuleBasic{}
-
 // Name returns the multisig module's name.
 func (AppModuleBasic) Name() string {
-	return types.ModuleName
+	return ModuleName
 }
 
 // RegisterCodec registers the multisig module's types for the given codec.

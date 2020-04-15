@@ -3,13 +3,15 @@ package multisig
 import (
 	"fmt"
 
-	"bitbucket.org/decimalteam/go-node/x/multisig/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/x/multisig/internal/types"
 )
 
 // NewHandler creates an sdk.Handler for all the multisig type messages
 func NewHandler(k Keeper) sdk.Handler {
-	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		// TODO: Define your msg cases
@@ -19,7 +21,7 @@ func NewHandler(k Keeper) sdk.Handler {
 		// 	return handleMsg<Action>(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
-			return sdk.ErrUnknownRequest(errMsg).Result()
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
 		}
 	}
 }

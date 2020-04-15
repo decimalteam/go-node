@@ -1,13 +1,16 @@
 package validator
 
 import (
-	vtypes "bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"log"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"log"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	vtypes "bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // InitGenesis sets the pool and parameters for the provided keeper.  For each

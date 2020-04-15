@@ -1,15 +1,17 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/check/internal/types"
 	"fmt"
+	"strconv"
+
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/spf13/cobra"
 
-	"strconv"
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/check/internal/types"
 )
 
 func GetCmdIssueCheck(queryRoute string, cdc *codec.Codec) *cobra.Command {

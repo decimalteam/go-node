@@ -1,19 +1,21 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewQuerier creates a new querier for check clients.
 func NewQuerier(k Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, sdk.Error) {
-		return nil, sdk.ErrUnknownRequest("unknown check query endpoint")
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown check query endpoint")
 	}
 }
 
 //
-//func queryParams(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
+//func queryParams(ctx sdk.Context, k Keeper) ([]byte, sdkerrors.Error) {
 //	params := k.GetParams(ctx)
 //
 //	res, err := codec.MarshalJSONIndent(types.ModuleCdc, params)

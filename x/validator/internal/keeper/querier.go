@@ -1,16 +1,20 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // NewQuerier creates a new querier for validator clients.
 func NewQuerier(k Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, sdk.Error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
 		case types.QueryParams:
 			return queryParams(ctx, k)
@@ -19,12 +23,12 @@ func NewQuerier(k Keeper) sdk.Querier {
 		case types.QueryPool:
 			return queryPool(ctx, k)
 		default:
-			return nil, sdk.ErrUnknownRequest("unknown validator query endpoint")
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown validator query endpoint")
 		}
 	}
 }
 
-func queryParams(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
+func queryParams(ctx sdk.Context, k Keeper) ([]byte, error) {
 	params := k.GetParams(ctx)
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, params)
@@ -35,7 +39,7 @@ func queryParams(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
 	return res, nil
 }
 
-func queryValidatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+func queryValidatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryValidatorParams
 
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
@@ -61,7 +65,7 @@ func queryValidatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper)
 
 func delegationsToDelegationResponses(
 	ctx sdk.Context, k Keeper, delegations types.Delegations,
-) (types.DelegationResponses, sdk.Error) {
+) (types.DelegationResponses, error) {
 
 	resp := make(types.DelegationResponses, len(delegations))
 	for i, del := range delegations {
@@ -76,7 +80,7 @@ func delegationsToDelegationResponses(
 	return resp, nil
 }
 
-func delegationToDelegationResponse(del types.Delegation) (types.DelegationResponse, sdk.Error) {
+func delegationToDelegationResponse(del types.Delegation) (types.DelegationResponse, error) {
 	return types.NewDelegationResp(
 		del.DelegatorAddress,
 		del.ValidatorAddress,
@@ -85,7 +89,7 @@ func delegationToDelegationResponse(del types.Delegation) (types.DelegationRespo
 	), nil
 }
 
-func queryPool(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
+func queryPool(ctx sdk.Context, k Keeper) ([]byte, error) {
 	bondedPool := k.GetBondedPool(ctx)
 	notBondedPool := k.GetNotBondedPool(ctx)
 	if bondedPool == nil || notBondedPool == nil {

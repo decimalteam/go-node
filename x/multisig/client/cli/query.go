@@ -2,11 +2,14 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 
-	"bitbucket.org/decimalteam/go-node/x/multisig/internal/types"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+
+	"bitbucket.org/decimalteam/go-node/x/multisig/internal/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -21,7 +24,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	multisigQueryCmd.AddCommand(
-		client.GetCommands(
+		flags.GetCommands(
 		// TODO: Add query Cmds
 		)...,
 	)

@@ -3,13 +3,13 @@ package check
 import (
 	"fmt"
 
-	"bitbucket.org/decimalteam/go-node/x/check/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewHandler creates an sdk.Handler for all the check type messages
 func NewHandler(k Keeper) sdk.Handler {
-	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		// TODO: Define your msg cases
@@ -18,14 +18,14 @@ func NewHandler(k Keeper) sdk.Handler {
 		// case MsgSet<Action>:
 		// 	return handleMsg<Action>(ctx, keeper, msg)
 		default:
-			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
-			return sdk.ErrUnknownRequest(errMsg).Result()
+			errMsg := fmt.Sprintf("unrecognized %s message type: %T", ModuleName, msg)
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
 		}
 	}
 }
 
 //// handde<Action> does x
-//func handleMsg<Action>(ctx sdk.Context, msg MsgType, k Keeper) sdk.Result {
+//func handleMsg<Action>(ctx sdk.Context, k Keeper, msg Msg<Action>) (*sdk.Result, error) {
 //
 //	err := k.<Action > (ctx, msg.ValidatorAddr)
 //	if err != nil {
@@ -36,10 +36,10 @@ func NewHandler(k Keeper) sdk.Handler {
 //	ctx.EventManager().EmitEvent(
 //		sdk.NewEvent(
 //			sdk.EventTypeMessage,
-//			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+//			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
 //			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddr.String()),
 //		),
 //	)
 //
-//	return sdk.Result{Events: ctx.EventManager().Events()}
+//	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 //}
