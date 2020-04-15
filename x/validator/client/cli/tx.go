@@ -17,7 +17,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
@@ -52,7 +51,7 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			valAddress := cliCtx.GetFromAddress()
 
@@ -101,8 +100,8 @@ var (
 	defaultCommissionRate = "0.1"
 )
 
-// Return the flagset, particular flags, and a description of defaults
-// this is anticipated to be used with the gen-tx
+// CreateValidatorMsgHelpers returns the flagset, particular flags and a description of defaults
+// this is anticipated to be used with the gen-tx.
 func CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string) {
 
 	fsCreateValidator := flag.NewFlagSet("", flag.ContinueOnError)
@@ -118,7 +117,7 @@ func CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, 
 	return fsCreateValidator, FlagNodeID, FlagPubKey, FlagAmount, defaultsDesc
 }
 
-// prepare flags in config
+// PrepareFlagsForTxCreateValidator prepare flags in config.
 func PrepareFlagsForTxCreateValidator(
 	config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey,
 ) {
@@ -169,7 +168,7 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 		return txBldr, nil, err
 	}
 
-	description := staking.Description{
+	description := types.Description{
 		Moniker:  viper.GetString(FlagMoniker),
 		Identity: viper.GetString(FlagIdentity),
 		Website:  viper.GetString(FlagWebsite),
@@ -184,7 +183,7 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 	}
 	commissionRates := types.Commission{Rate: commission}
 
-	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commissionRates, amount, types.Description(description), valAddr)
+	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commissionRates, amount, description, valAddr)
 
 	ip := viper.GetString(FlagIP)
 	nodeID := viper.GetString(FlagNodeID)
@@ -195,6 +194,7 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 	return txBldr, msg, nil
 }
 
+// GetDelegate .
 func GetDelegate(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Delegate coins",
@@ -202,7 +202,7 @@ func GetDelegate(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			delAddress := cliCtx.GetFromAddress()
 
@@ -222,6 +222,7 @@ func GetDelegate(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+// GetSetOnline .
 func GetSetOnline(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Set online validator",
@@ -229,7 +230,7 @@ func GetSetOnline(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			valAddress := cliCtx.GetFromAddress()
 
@@ -239,6 +240,7 @@ func GetSetOnline(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+// GetSetOffline .
 func GetSetOffline(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Set offline validator",
@@ -246,7 +248,7 @@ func GetSetOffline(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			valAddress := cliCtx.GetFromAddress()
 
@@ -256,6 +258,7 @@ func GetSetOffline(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+// GetUnbond .
 func GetUnbond(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Unbond delegation",
@@ -263,7 +266,7 @@ func GetUnbond(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			valAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
@@ -283,6 +286,7 @@ func GetUnbond(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+// GetEditCandidate .
 func GetEditCandidate(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Edit candidate",
@@ -290,7 +294,7 @@ func GetEditCandidate(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
 			if err != nil {

@@ -24,7 +24,7 @@ func GetCmdSellCoin(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			var coinToSellSymbol = args[0]
 			var amountToSell, _ = sdk.NewIntFromString(args[1])
