@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"strings"
 
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/spf13/cobra"
+
+	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 func GetCmdSellCoin(cdc *codec.Codec) *cobra.Command {
@@ -45,9 +48,9 @@ func GetCmdSellCoin(cdc *codec.Codec) *cobra.Command {
 			}
 			// Do basic validating
 			msg := types.NewMsgSellCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, amountSell, amountBuy)
-			err = msg.ValidateBasic()
-			if err != nil {
-				return err
+			validationErr := msg.ValidateBasic()
+			if validationErr != nil {
+				return validationErr
 			}
 
 			// Get account balance

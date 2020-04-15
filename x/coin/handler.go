@@ -37,7 +37,7 @@ func NewHandler(k Keeper) sdk.Handler {
 	}
 }
 
-func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) sdk.Result {
+func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*sdk.Result, error) {
 	var coin = types.Coin{
 		Title:       msg.Title,
 		CRR:         msg.ConstantReserveRatio,
@@ -63,56 +63,51 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) sdk
 		),
 	)
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) sdk.Result {
+func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Result, error) {
 	// TODO: Commission
 
 	coinToBuy, _ := k.GetCoin(ctx, msg.CoinToBuy)
 	if coinToBuy.Symbol != msg.CoinToBuy {
-		return sdk.Result{
-			Code:      types.CoinToBuyNotExists,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, errMsg)
 	}
 	// Check if coin to sell exists
 	coinToSell, _ := k.GetCoin(ctx, msg.CoinToSell)
 	if coinToSell.Symbol != msg.CoinToSell {
-		return sdk.Result{
-			Code:      types.CoinToSellNotExists,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToSellNotExists, errMsg)
 	}
 
 	amountBuy, amountSell, calcErr := cliUtils.BuyCoinCalculateAmounts(coinToBuy, coinToSell, msg.AmountToBuy, msg.AmountToSell)
 
 	if calcErr != nil {
-		return sdk.Result{Codespace: calcErr.Codespace(), Code: calcErr.Code()}
+		return nil, sdkerrors.New(calcErr.Codespace(), calcErr.ABCICode(), calcErr.Error())
 	}
 
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Buyer)
 	balance := acc.GetCoins()
 	if balance.AmountOf(strings.ToLower(msg.CoinToSell)).LT(amountSell) {
-		return sdk.Result{
-			Code:      types.InsufficientCoinToSell,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, errMsg)
 	}
 
 	err := k.UpdateBalance(ctx, msg.CoinToBuy, amountBuy, msg.Buyer)
 	if err != nil {
-		return sdk.Result{
-			Code:      types.UpdateBalanceError,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
 	err = k.UpdateBalance(ctx, msg.CoinToSell, amountSell.Neg(), msg.Buyer)
 	if err != nil {
-		return sdk.Result{
-			Code:      types.UpdateBalanceError,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
 	amountBuyInBaseCoin := formulas.CalculateSaleReturn(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountBuy)
 	amountSellInBaseCoin := formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountSell)
@@ -133,54 +128,49 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) sdk.Resul
 		),
 	)
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin) sdk.Result {
+func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin) (*sdk.Result, error) {
 	coinToBuy, _ := k.GetCoin(ctx, msg.CoinToBuy)
 	if coinToBuy.Symbol != msg.CoinToBuy {
-		return sdk.Result{
-			Code:      types.CoinToBuyNotExists,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, errMsg)
 	}
 	// Check if coin to sell exists
 	coinToSell, _ := k.GetCoin(ctx, msg.CoinToSell)
 	if coinToSell.Symbol != msg.CoinToSell {
-		return sdk.Result{
-			Code:      types.CoinToSellNotExists,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToSellNotExists, errMsg)
 	}
 
 	amountBuy, amountSell, calcErr := cliUtils.SellCoinCalculateAmounts(coinToBuy, coinToSell, msg.AmountToBuy, msg.AmountToSell)
 
 	if calcErr != nil {
-		return sdk.Result{Codespace: calcErr.Codespace(), Code: calcErr.Code()}
+		return nil, sdkerrors.New(calcErr.Codespace(), calcErr.ABCICode(), calcErr.Error())
 	}
 
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Seller)
 	balance := acc.GetCoins()
 	if balance.AmountOf(strings.ToLower(msg.CoinToSell)).LT(amountSell) {
-		return sdk.Result{
-			Code:      types.InsufficientCoinToSell,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, errMsg)
 	}
 
 	err := k.UpdateBalance(ctx, msg.CoinToBuy, amountBuy, msg.Seller)
 	if err != nil {
-		return sdk.Result{
-			Code:      types.UpdateBalanceError,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
 	err = k.UpdateBalance(ctx, msg.CoinToSell, amountSell.Neg(), msg.Seller)
 	if err != nil {
-		return sdk.Result{
-			Code:      types.UpdateBalanceError,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
 	amountBuyInBaseCoin := formulas.CalculateSaleReturn(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountBuy)
 	amountSellInBaseCoin := formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountSell)
@@ -201,10 +191,10 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin) sdk.Res
 		),
 	)
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) sdk.Result {
+func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
 	// TODO: commission
 	_ = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coin), msg.Amount)})
 	ctx.EventManager().EmitEvent(
@@ -218,11 +208,11 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) sdk.Res
 		),
 	)
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 // TODO: add it (don't know how to add it to cli)
-func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoin) sdk.Result {
+func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoin) (*sdk.Result, error) {
 	for i := range msg.Coins {
 		// TODO: Commission
 		_ = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Coins[i].Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coins[i].Coin), msg.Coins[i].Amount)})
@@ -237,24 +227,22 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 			),
 		)
 	}
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgSellAllCoin(ctx sdk.Context, k Keeper, msg types.MsgSellAllCoin) sdk.Result {
+func handleMsgSellAllCoin(ctx sdk.Context, k Keeper, msg types.MsgSellAllCoin) (*sdk.Result, error) {
 	coinToBuy, _ := k.GetCoin(ctx, msg.CoinToBuy)
 	if coinToBuy.Symbol != msg.CoinToBuy {
-		return sdk.Result{
-			Code:      types.CoinToBuyNotExists,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, errMsg)
 	}
 	// Check if coin to sell exists
 	coinToSell, _ := k.GetCoin(ctx, msg.CoinToSell)
 	if coinToSell.Symbol != msg.CoinToSell {
-		return sdk.Result{
-			Code:      types.CoinToSellNotExists,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToSellNotExists, errMsg)
 	}
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Seller)
 	balance := acc.GetCoins()
@@ -262,22 +250,20 @@ func handleMsgSellAllCoin(ctx sdk.Context, k Keeper, msg types.MsgSellAllCoin) s
 	amountBuy, amountSell, calcErr := cliUtils.SellCoinCalculateAmounts(coinToBuy, coinToSell, msg.AmountToBuy, balance.AmountOf(strings.ToLower(msg.CoinToSell)))
 
 	if calcErr != nil {
-		return sdk.Result{Codespace: calcErr.Codespace(), Code: calcErr.Code()}
+		return nil, sdkerrors.New(calcErr.Codespace(), calcErr.ABCICode(), calcErr.Error())
 	}
 
 	err := k.UpdateBalance(ctx, msg.CoinToBuy, amountBuy, msg.Seller)
 	if err != nil {
-		return sdk.Result{
-			Code:      types.UpdateBalanceError,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
 	err = k.UpdateBalance(ctx, msg.CoinToSell, amountSell.Neg(), msg.Seller)
 	if err != nil {
-		return sdk.Result{
-			Code:      types.UpdateBalanceError,
-			Codespace: types.DefaultCodespace,
-		}
+		// TODO: Add proper error message
+		errMsg := ""
+		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
 	amountBuyInBaseCoin := formulas.CalculateSaleReturn(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountBuy)
 	amountSellInBaseCoin := formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountSell)
@@ -298,5 +284,5 @@ func handleMsgSellAllCoin(ctx sdk.Context, k Keeper, msg types.MsgSellAllCoin) s
 		),
 	)
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

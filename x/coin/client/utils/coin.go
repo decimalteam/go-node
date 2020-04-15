@@ -33,7 +33,7 @@ func GetCoin(cliCtx client.CLIContext, symbol string) (types.Coin, error) {
 
 // Calculate amountToSell and amountToBuy for BuyCoin TX
 // In CLI part amountToSell is maxAmountToSell
-func BuyCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err sdkerrors.Error) {
+func BuyCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err *sdkerrors.Error) {
 	var amountSellInBaseCoin sdk.Int
 	var amountBuyInBaseCoin sdk.Int
 	if coinToSell.IsBase() {
@@ -85,7 +85,7 @@ func BuyCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsB
 
 // Calculate amountToSell and amountToBuy for SellCoin TX
 // In CLI part amountToBuy is minAmountToBuy
-func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err sdkerrors.Error) {
+func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err *sdkerrors.Error) {
 	var amountSellInBase sdk.Int
 
 	if coinToSell.IsBase() {
