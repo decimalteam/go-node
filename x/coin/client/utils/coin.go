@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client"
+	clientctx "github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -12,7 +12,7 @@ import (
 )
 
 // Check if coin exists
-func ExistsCoin(cliCtx client.CLIContext, symbol string) (bool, error) {
+func ExistsCoin(cliCtx clientctx.CLIContext, symbol string) (bool, error) {
 	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types.ModuleName, types.QueryGetCoin, symbol), nil)
 	if err == nil {
 		return res != nil, nil
@@ -22,7 +22,7 @@ func ExistsCoin(cliCtx client.CLIContext, symbol string) (bool, error) {
 }
 
 // Return coin instance from State
-func GetCoin(cliCtx client.CLIContext, symbol string) (types.Coin, error) {
+func GetCoin(cliCtx clientctx.CLIContext, symbol string) (types.Coin, error) {
 	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types.ModuleName, types.QueryGetCoin, symbol), nil)
 	coin := types.Coin{}
 	if err = cliCtx.Codec.UnmarshalJSON(res, &coin); err != nil {
