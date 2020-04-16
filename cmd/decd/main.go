@@ -3,6 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	"github.com/pkg/errors"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -19,12 +23,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 
 	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/keys"
-	genutil "bitbucket.org/decimalteam/go-node/x/genutil"
+	"bitbucket.org/decimalteam/go-node/x/genutil"
 	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 )
@@ -54,10 +57,10 @@ func main() {
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(ctx, cdc, genaccounts.AppModuleBasic{}, app.DefaultNodeHome),
+		genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome),
 		genutilcli.GenTxCmd(
 			ctx, cdc, app.ModuleBasics, validator.AppModuleBasic{},
-			genaccounts.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome,
+			auth.GenesisAccountIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
 		// AddGenesisAccountCmd allows users to add accounts to the genesis file
@@ -122,8 +125,8 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
 		Short: "Add genesis account to genesis.json",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(_ *cobra.Command, args []string) error {
-			config := ctx.Config
-			config.SetRoot(viper.GetString(cli.HomeFlag))
+			cfg := ctx.Config
+			cfg.SetRoot(viper.GetString(cli.HomeFlag))
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -152,31 +155,59 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
 				return err
 			}
 
-			genAcc := genaccounts.NewGenesisAccountRaw(addr, coins, vestingAmt, vestingStart, vestingEnd, "", "")
-			if err := genAcc.Validate(); err != nil {
-				return err
+			// create concrete account type based on input parameters
+			var genAccount authexported.GenesisAccount
+
+			baseAccount := auth.NewBaseAccount(addr, coins.Sort(), nil, 0, 0)
+			if !vestingAmt.IsZero() {
+				baseVestingAccount, err := authvesting.NewBaseVestingAccount(
+					baseAccount, vestingAmt.Sort(), vestingEnd,
+				)
+				if err != nil {
+					return err
+				}
+
+				switch {
+				case vestingStart != 0 && vestingEnd != 0:
+					genAccount = authvesting.NewContinuousVestingAccountRaw(baseVestingAccount, vestingStart)
+
+				case vestingEnd != 0:
+					genAccount = authvesting.NewDelayedVestingAccountRaw(baseVestingAccount)
+
+				default:
+					return errors.New("invalid vesting parameters; must supply start and end time or end time")
+				}
+			} else {
+				genAccount = baseAccount
+			}
+
+			if err := genAccount.Validate(); err != nil {
+				return fmt.Errorf("failed to validate new genesis account: %w", err)
 			}
 
 			// retrieve the app state
-			genFile := config.GenesisFile()
+			genFile := cfg.GenesisFile()
 			appState, genDoc, err := genutil.GenesisStateFromGenFile(cdc, genFile)
 			if err != nil {
 				return err
 			}
 
-			// add genesis account to the app state
-			var genesisAccounts genaccounts.GenesisAccounts
+			authGenState := auth.GetGenesisStateFromAppState(cdc, appState)
 
-			cdc.MustUnmarshalJSON(appState[genaccounts.ModuleName], &genesisAccounts)
-
-			if genesisAccounts.Contains(addr) {
-				return fmt.Errorf("cannot add account at existing address %v", addr)
+			if authGenState.Accounts.Contains(addr) {
+				return fmt.Errorf("cannot add account at existing address %s", addr)
 			}
 
-			genesisAccounts = append(genesisAccounts, genAcc)
+			// Add the new account to the set of genesis accounts and sanitize the
+			// accounts afterwards.
+			authGenState.Accounts = append(authGenState.Accounts, genAccount)
+			authGenState.Accounts = auth.SanitizeGenesisAccounts(authGenState.Accounts)
 
-			genesisStateBz := cdc.MustMarshalJSON(genaccounts.GenesisState(genesisAccounts))
-			appState[genaccounts.ModuleName] = genesisStateBz
+			authGenStateBz, err := cdc.MarshalJSON(authGenState)
+			if err != nil {
+				return fmt.Errorf("failed to marshal auth genesis state: %w", err)
+			}
+			appState[auth.ModuleName] = authGenStateBz
 
 			appStateJSON, err := cdc.MarshalJSON(appState)
 			if err != nil {
