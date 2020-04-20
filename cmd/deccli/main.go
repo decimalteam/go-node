@@ -5,9 +5,6 @@ import (
 	"os"
 	"path"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/keys"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -15,6 +12,8 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/lcd"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -3,11 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	"github.com/pkg/errors"
 	"io"
+
+	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -19,14 +17,18 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 
 	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/utils/keys"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
 	"bitbucket.org/decimalteam/go-node/x/validator"
@@ -55,7 +57,7 @@ func main() {
 		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}
 
-	rootCmd.AddCommand(
+	rootCmd.AddCommand(flags.PostCommands(
 		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome),
 		genutilcli.GenTxCmd(
@@ -65,7 +67,7 @@ func main() {
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
 		// AddGenesisAccountCmd allows users to add accounts to the genesis file
 		addGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome),
-	)
+	)...)
 
 	server.AddCommands(ctx, cdc, rootCmd, newApp, exportAppStateAndTMValidators)
 
