@@ -58,7 +58,11 @@ func CoinSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Check if enough balance
-		acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+		acc, err := cliUtils.GetAccount(cliCtx, addr)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 		balance := acc.GetCoins()
 		if balance.AmountOf(strings.ToLower(coin)).LT(amount) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "Not enough coin to send")
