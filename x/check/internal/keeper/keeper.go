@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
 	"fmt"
+
+	"bitbucket.org/decimalteam/go-node/x/coin"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -17,18 +18,16 @@ type Keeper struct {
 	storeKey      sdk.StoreKey
 	cdc           *codec.Codec
 	paramspace    types.ParamSubspace
-	codespace     sdk.CodespaceType
 	coinKeeper    coin.Keeper
 	accountKeeper auth.AccountKeeper
 }
 
 // NewKeeper creates a check keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, codespace sdk.CodespaceType, coinKeeper coin.Keeper, accKeeper auth.AccountKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, coinKeeper coin.Keeper, accKeeper auth.AccountKeeper) Keeper {
 	keeper := Keeper{
 		storeKey:      key,
 		cdc:           cdc,
 		paramspace:    paramspace.WithKeyTable(types.ParamKeyTable()),
-		codespace:     codespace,
 		coinKeeper:    coinKeeper,
 		accountKeeper: accKeeper,
 	}

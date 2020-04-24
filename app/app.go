@@ -1,23 +1,15 @@
 package app
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/check"
-	"bitbucket.org/decimalteam/go-node/x/genutil"
-	"bitbucket.org/decimalteam/go-node/x/validator"
-	//"bitbucket.org/decimalteam/go-node/x/check"
-	//"github.com/cosmos/cosmos-sdk/x/genutil"
-
 	"encoding/json"
 	"io"
 	"os"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
+	tos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	"bitbucket.org/decimalteam/go-node/x/coin"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,10 +17,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	//"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/check"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/genutil"
+	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
 const appName = "decimal"
@@ -42,7 +38,6 @@ var (
 
 	// NewBasicManager is in charge of setting up basic module elements
 	ModuleBasics = module.NewBasicManager(
-		genaccounts.AppModuleBasic{},
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
@@ -126,7 +121,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	}
 
 	// The ParamsKeeper handles parameter storage for the application
-	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey], params.DefaultCodespace)
+	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey])
 	// Set specific subspaces
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSupspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
@@ -148,7 +143,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.bankKeeper = bank.NewBaseKeeper(
 		app.accountKeeper,
 		bankSupspace,
-		bank.DefaultCodespace,
 		app.ModuleAccountAddrs(),
 	)
 
@@ -168,7 +162,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	//	tkeys[staking.TStoreKey],
 	//	app.supplyKeeper,
 	//	stakingSubspace,
-	//	staking.DefaultCodespace,
 	//)
 
 	//app.distrKeeper = distr.NewKeeper(
@@ -177,7 +170,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	//	distrSubspace,
 	//	&stakingKeeper,
 	//	app.supplyKeeper,
-	//	distr.DefaultCodespace,
 	//	auth.FeeCollectorName,
 	//	app.ModuleAccountAddrs(),
 	//)
@@ -187,7 +179,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	//	keys[slashing.StoreKey],
 	//	&stakingKeeper,
 	//	slashingSubspace,
-	//	slashing.DefaultCodespace,
 	//)
 
 	// register the staking hooks
@@ -202,7 +193,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.cdc,
 		keys[coin.StoreKey],
 		coinSubspace,
-		coin.DefaultCodespace,
 		app.accountKeeper,
 		app.bankKeeper,
 		config,
@@ -212,7 +202,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.cdc,
 		keys[check.StoreKey],
 		checkSubspace,
-		check.DefaultCodespace,
 		app.coinKeeper,
 		app.accountKeeper,
 	)
@@ -221,14 +210,12 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.cdc,
 		keys[validator.StoreKey],
 		validatorSubspace,
-		validator.DefaultCodespace,
 		app.coinKeeper,
 		app.supplyKeeper,
 		auth.FeeCollectorName,
 	)
 
 	app.mm = module.NewManager(
-		genaccounts.NewAppModule(app.accountKeeper),
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
@@ -248,7 +235,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// NOTE: The genutils moodule must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
-		genaccounts.ModuleName,
 		//distr.ModuleName,
 		//staking.ModuleName,
 		validator.ModuleName,
@@ -285,7 +271,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
 	if err != nil {
-		cmn.Exit(err.Error())
+		tos.Exit(err.Error())
 	}
 
 	return app

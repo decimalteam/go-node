@@ -1,16 +1,20 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"fmt"
+	"errors"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // NewQuerier creates a new querier for validator clients.
 func NewQuerier(k Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, sdk.Error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
 		case types.QueryParams:
 			return queryParams(ctx, k)
@@ -19,39 +23,39 @@ func NewQuerier(k Keeper) sdk.Querier {
 		case types.QueryPool:
 			return queryPool(ctx, k)
 		default:
-			return nil, sdk.ErrUnknownRequest("unknown validator query endpoint")
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown validator query endpoint")
 		}
 	}
 }
 
-func queryParams(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
+func queryParams(ctx sdk.Context, k Keeper) ([]byte, error) {
 	params := k.GetParams(ctx)
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, params)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("failed to marshal JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return res, nil
 }
 
-func queryValidatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+func queryValidatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryValidatorParams
 
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	delegations := k.GetValidatorDelegations(ctx, params.ValidatorAddr)
 	delegationResps, err := delegationsToDelegationResponses(ctx, k, delegations)
 	if err != nil {
-		return nil, sdk.ErrInternal(err.Error())
+		return nil, err
 	}
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, delegationResps)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("failed to marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return res, nil
@@ -61,7 +65,7 @@ func queryValidatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper)
 
 func delegationsToDelegationResponses(
 	ctx sdk.Context, k Keeper, delegations types.Delegations,
-) (types.DelegationResponses, sdk.Error) {
+) (types.DelegationResponses, error) {
 
 	resp := make(types.DelegationResponses, len(delegations))
 	for i, del := range delegations {
@@ -76,7 +80,7 @@ func delegationsToDelegationResponses(
 	return resp, nil
 }
 
-func delegationToDelegationResponse(del types.Delegation) (types.DelegationResponse, sdk.Error) {
+func delegationToDelegationResponse(del types.Delegation) (types.DelegationResponse, error) {
 	return types.NewDelegationResp(
 		del.DelegatorAddress,
 		del.ValidatorAddress,
@@ -85,11 +89,11 @@ func delegationToDelegationResponse(del types.Delegation) (types.DelegationRespo
 	), nil
 }
 
-func queryPool(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
+func queryPool(ctx sdk.Context, k Keeper) ([]byte, error) {
 	bondedPool := k.GetBondedPool(ctx)
 	notBondedPool := k.GetNotBondedPool(ctx)
 	if bondedPool == nil || notBondedPool == nil {
-		return nil, sdk.ErrInternal("pool accounts haven't been set")
+		return nil, errors.New("pool accounts haven't been set")
 	}
 
 	pool := types.NewPool(
@@ -99,7 +103,7 @@ func queryPool(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, pool)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return res, nil

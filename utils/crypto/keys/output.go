@@ -1,8 +1,6 @@
 package keys
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
-	"encoding/hex"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -34,13 +32,6 @@ type multisigPubKeyOutput struct {
 	Weight  uint   `json:"weight" yaml:"weight"`
 }
 
-func Encode(b []byte, prefix string) string {
-	enc := make([]byte, len(b)*2+len(prefix))
-	copy(enc, prefix)
-	hex.Encode(enc[len(prefix):], b)
-	return string(enc)
-}
-
 // Bech32KeysOutput returns a slice of KeyOutput objects, each with the "acc"
 // Bech32 prefixes, given a slice of Info objects. It returns an error if any
 // call to Bech32KeyOutput fails.
@@ -61,7 +52,7 @@ func Bech32KeysOutput(infos []Info) ([]KeyOutput, error) {
 func Bech32ConsKeyOutput(keyInfo Info) (KeyOutput, error) {
 	consAddr := sdk.ConsAddress(keyInfo.GetPubKey().Address().Bytes())
 
-	bechPubKey, err := sdk.Bech32ifyConsPub(keyInfo.GetPubKey())
+	bechPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, keyInfo.GetPubKey())
 	if err != nil {
 		return KeyOutput{}, err
 	}
@@ -73,7 +64,7 @@ func Bech32ConsKeyOutput(keyInfo Info) (KeyOutput, error) {
 func Bech32ValKeyOutput(keyInfo Info) (KeyOutput, error) {
 	valAddr := sdk.ValAddress(keyInfo.GetPubKey().Address().Bytes())
 
-	bechPubKey, err := sdk.Bech32ifyValPub(keyInfo.GetPubKey())
+	bechPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeValPub, keyInfo.GetPubKey())
 	if err != nil {
 		return KeyOutput{}, err
 	}
@@ -86,7 +77,7 @@ func Bech32ValKeyOutput(keyInfo Info) (KeyOutput, error) {
 // public keys will be added.
 func Bech32KeyOutput(keyInfo Info) (KeyOutput, error) {
 	accAddr := sdk.AccAddress(keyInfo.GetPubKey().Address().Bytes())
-	bechPubKey, err := sdk.Bech32ifyAccPub(keyInfo.GetPubKey())
+	bechPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, keyInfo.GetPubKey())
 	if err != nil {
 		return KeyOutput{}, err
 	}
@@ -99,7 +90,7 @@ func Bech32KeyOutput(keyInfo Info) (KeyOutput, error) {
 		for i, pk := range mInfo.PubKeys {
 			accAddr := sdk.AccAddress(pk.PubKey.Address().Bytes())
 
-			bechPubKey, err := sdk.Bech32ifyAccPub(pk.PubKey)
+			bechPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, pk.PubKey)
 			if err != nil {
 				return KeyOutput{}, err
 			}
@@ -110,13 +101,6 @@ func Bech32KeyOutput(keyInfo Info) (KeyOutput, error) {
 		ko.Threshold = mInfo.Threshold
 		ko.PubKeys = pubKeys
 	}
-
-	return ko, nil
-}
-
-func HEXKeyOutput(keyInfo Info) (KeyOutput, error) {
-	pubKeyBytes := keyInfo.GetPubKey().Bytes()
-	ko := NewKeyOutput(keyInfo.GetName(), keyInfo.GetType().String(), Encode(keyInfo.GetAddress(), config.DecimalPrefixAccAddr), Encode(pubKeyBytes, config.DecimalPrefixAccPub))
 
 	return ko, nil
 }

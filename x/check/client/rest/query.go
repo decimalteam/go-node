@@ -6,9 +6,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"bitbucket.org/decimalteam/go-node/x/check/internal/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/types/rest"
+
+	"bitbucket.org/decimalteam/go-node/x/check/internal/types"
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {

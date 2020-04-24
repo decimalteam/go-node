@@ -2,8 +2,10 @@ package types
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"regexp"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var _ sdk.Msg = &MsgCreateCoin{}
@@ -50,26 +52,26 @@ func (msg MsgCreateCoin) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgCreateCoin) ValidateBasic() sdk.Error {
+func (msg MsgCreateCoin) ValidateBasic() error {
 	// Check coin CRR validity
 	if msg.ConstantReserveRatio < 10 || msg.ConstantReserveRatio > 100 {
-		return sdk.NewError(DefaultCodespace, InvalidCRR, "Coin CRR must be between 10 and 100")
+		return sdkerrors.New(DefaultCodespace, InvalidCRR, "Coin CRR must be between 10 and 100")
 	}
 	// Check coin title maximum length
 	if len(msg.Title) > maxCoinNameBytes {
-		return sdk.NewError(DefaultCodespace, InvalidCoinTitle, fmt.Sprintf("Coin name is invalid. Allowed up to %d bytes.", maxCoinNameBytes))
+		return sdkerrors.New(DefaultCodespace, InvalidCoinTitle, fmt.Sprintf("Coin name is invalid. Allowed up to %d bytes.", maxCoinNameBytes))
 	}
 	// Check coin symbol for correct regexp
 	if match, _ := regexp.MatchString(allowedCoinSymbols, msg.Symbol); !match {
-		return sdk.NewError(DefaultCodespace, InvalidCoinSymbol, fmt.Sprintf("Invalid coin symbol. Should be %s", allowedCoinSymbols))
+		return sdkerrors.New(DefaultCodespace, InvalidCoinSymbol, fmt.Sprintf("Invalid coin symbol. Should be %s", allowedCoinSymbols))
 	}
 	// Check coin initial volume to be correct
 	if msg.InitialVolume.LT(minCoinSupply) || msg.InitialVolume.GT(maxCoinSupply) {
-		return sdk.NewError(DefaultCodespace, InvalidCoinInitVolume, fmt.Sprintf("Coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), msg.InitialVolume.String()))
+		return sdkerrors.New(DefaultCodespace, InvalidCoinInitVolume, fmt.Sprintf("Coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), msg.InitialVolume.String()))
 	}
 	// Check coin initial reserve to be correct
 	if msg.InitialReserve.LT(minCoinReserve) {
-		return sdk.NewError(DefaultCodespace, InvalidCoinInitReserve, fmt.Sprintf("Coin initial reserve should be greater than or equal to %s", minCoinReserve.String()))
+		return sdkerrors.New(DefaultCodespace, InvalidCoinInitReserve, fmt.Sprintf("Coin initial reserve should be greater than or equal to %s", minCoinReserve.String()))
 	}
 	return nil
 }

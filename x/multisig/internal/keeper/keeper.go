@@ -15,16 +15,14 @@ type Keeper struct {
 	storeKey   sdk.StoreKey
 	cdc        *codec.Codec
 	paramspace types.ParamSubspace
-	codespace  sdk.CodespaceType
 }
 
 // NewKeeper creates a multisig keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, codespace sdk.CodespaceType) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace) Keeper {
 	keeper := Keeper{
 		storeKey:   key,
 		cdc:        cdc,
 		paramspace: paramspace.WithKeyTable(types.ParamKeyTable()),
-		codespace:  codespace,
 	}
 	return keeper
 }

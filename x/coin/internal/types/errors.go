@@ -1,15 +1,11 @@
 package types
 
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
-
 // Local code type
-type CodeType = sdk.CodeType
+type CodeType = uint32
 
 const (
 	// Default coin codespace
-	DefaultCodespace sdk.CodespaceType = ModuleName
+	DefaultCodespace string = ModuleName
 	// Create coin
 	DecodeError             CodeType = 101
 	InvalidCRR              CodeType = 102

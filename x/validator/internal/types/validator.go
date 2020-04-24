@@ -2,13 +2,16 @@ package types
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strings"
+	"time"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"strings"
-	"time"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 type Validator struct {
@@ -34,7 +37,7 @@ type Stake struct {
 
 // String returns a human readable string representation of a validator.
 func (v Validator) String() string {
-	bechConsPubKey, err := sdk.Bech32ifyConsPub(v.PubKey)
+	bechConsPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +57,7 @@ func (v Validator) String() string {
 		v.UnbondingHeight, v.UnbondingCompletionTime, v.Commission)
 }
 
-func (v Validator) SharesFromTokens(tokens sdk.Int, valTokens sdk.Int, delTokens sdk.Dec) (sdk.Dec, sdk.Error) {
+func (v Validator) SharesFromTokens(tokens sdk.Int, valTokens sdk.Int, delTokens sdk.Dec) (sdk.Dec, *sdkerrors.Error) {
 	if v.Tokens.IsZero() {
 		return sdk.Dec{}, ErrInsufficientShares(DefaultCodespace)
 	}

@@ -1,15 +1,14 @@
 package coin
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
-func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.ValidatorUpdate {
-	var coin = types.Coin{
+func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorUpdate {
+	var coin = Coin{
 		Title:  k.Config.TitleBaseCoin,
 		Symbol: k.Config.SymbolBaseCoin,
 		Volume: k.Config.InitialVolumeBaseCoin,
@@ -17,7 +16,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 	k.SetCoin(ctx, coin)
 
 	//test
-	var testCoin = types.Coin{
+	var testCoin = Coin{
 		Title:   k.Config.TitleTestCoin,
 		Symbol:  k.Config.SymbolTestCoin,
 		Volume:  k.Config.InitialVolumeTestCoin,
@@ -30,7 +29,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data types.GenesisState) []abci.Vali
 }
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis
-func ExportGenesis(ctx sdk.Context, k Keeper) (data types.GenesisState) {
+func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
 
-	return types.NewGenesisState(k.Config.TitleTestCoin, k.Config.SymbolTestCoin, k.Config.InitialVolumeTestCoin)
+	return NewGenesisState(k.Config.TitleTestCoin, k.Config.SymbolTestCoin, k.Config.InitialVolumeTestCoin)
 }

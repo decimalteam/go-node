@@ -1,20 +1,24 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
+
+	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
+
+	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/crypto"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
-	"github.com/spf13/viper"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -27,7 +31,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	validatorTxCmd.AddCommand(client.PostCommands(
+	validatorTxCmd.AddCommand(flags.PostCommands(
 		GetCmdDeclareCandidate(cdc),
 		GetDelegate(cdc),
 		GetSetOnline(cdc),
@@ -47,7 +51,7 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			valAddress := cliCtx.GetFromAddress()
 
@@ -60,7 +64,7 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			pubKey, err := sdk.GetConsPubKeyBech32(args[0])
+			pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
 			if err != nil {
 				return err
 			}
@@ -96,8 +100,8 @@ var (
 	defaultCommissionRate = "0.1"
 )
 
-// Return the flagset, particular flags, and a description of defaults
-// this is anticipated to be used with the gen-tx
+// CreateValidatorMsgHelpers returns the flagset, particular flags and a description of defaults
+// this is anticipated to be used with the gen-tx.
 func CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string) {
 
 	fsCreateValidator := flag.NewFlagSet("", flag.ContinueOnError)
@@ -113,7 +117,7 @@ func CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, 
 	return fsCreateValidator, FlagNodeID, FlagPubKey, FlagAmount, defaultsDesc
 }
 
-// prepare flags in config
+// PrepareFlagsForTxCreateValidator prepare flags in config.
 func PrepareFlagsForTxCreateValidator(
 	config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey,
 ) {
@@ -127,18 +131,18 @@ func PrepareFlagsForTxCreateValidator(
 	details := viper.GetString(FlagDetails)
 	identity := viper.GetString(FlagIdentity)
 
-	viper.Set(client.FlagChainID, chainID)
-	viper.Set(client.FlagFrom, viper.GetString(client.FlagName))
+	viper.Set(flags.FlagChainID, chainID)
+	viper.Set(flags.FlagFrom, viper.GetString(flags.FlagName))
 	viper.Set(FlagNodeID, nodeID)
 	viper.Set(FlagIP, ip)
-	viper.Set(FlagPubKey, sdk.MustBech32ifyConsPub(valPubKey))
+	viper.Set(FlagPubKey, sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, valPubKey))
 	viper.Set(FlagMoniker, config.Moniker)
 	viper.Set(FlagWebsite, website)
 	viper.Set(FlagDetails, details)
 	viper.Set(FlagIdentity, identity)
 
 	if config.Moniker == "" {
-		viper.Set(FlagMoniker, viper.GetString(client.FlagName))
+		viper.Set(FlagMoniker, viper.GetString(flags.FlagName))
 	}
 	if viper.GetString(FlagAmount) == "" {
 		viper.Set(FlagAmount, defaultAmount)
@@ -159,12 +163,12 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 	valAddr := cliCtx.GetFromAddress()
 	pkStr := viper.GetString(FlagPubKey)
 
-	pk, err := sdk.GetConsPubKeyBech32(pkStr)
+	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
 
-	description := staking.Description{
+	description := types.Description{
 		Moniker:  viper.GetString(FlagMoniker),
 		Identity: viper.GetString(FlagIdentity),
 		Website:  viper.GetString(FlagWebsite),
@@ -179,7 +183,7 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 	}
 	commissionRates := types.Commission{Rate: commission}
 
-	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commissionRates, amount, types.Description(description), valAddr)
+	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commissionRates, amount, description, valAddr)
 
 	ip := viper.GetString(FlagIP)
 	nodeID := viper.GetString(FlagNodeID)
@@ -190,6 +194,7 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 	return txBldr, msg, nil
 }
 
+// GetDelegate .
 func GetDelegate(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Delegate coins",
@@ -197,7 +202,7 @@ func GetDelegate(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			delAddress := cliCtx.GetFromAddress()
 
@@ -217,6 +222,7 @@ func GetDelegate(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+// GetSetOnline .
 func GetSetOnline(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Set online validator",
@@ -224,7 +230,7 @@ func GetSetOnline(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			valAddress := cliCtx.GetFromAddress()
 
@@ -234,6 +240,7 @@ func GetSetOnline(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+// GetSetOffline .
 func GetSetOffline(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Set offline validator",
@@ -241,7 +248,7 @@ func GetSetOffline(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			valAddress := cliCtx.GetFromAddress()
 
@@ -251,6 +258,7 @@ func GetSetOffline(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+// GetUnbond .
 func GetUnbond(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Unbond delegation",
@@ -258,7 +266,7 @@ func GetUnbond(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			valAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
@@ -278,6 +286,7 @@ func GetUnbond(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+// GetEditCandidate .
 func GetEditCandidate(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Edit candidate",
@@ -285,9 +294,9 @@ func GetEditCandidate(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			pubKey, err := sdk.GetConsPubKeyBech32(args[0])
+			pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
 			if err != nil {
 				return err
 			}

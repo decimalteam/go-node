@@ -5,9 +5,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"bitbucket.org/decimalteam/go-node/x/check/internal/types"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+
+	"bitbucket.org/decimalteam/go-node/x/check/internal/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -20,7 +22,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	checkTxCmd.AddCommand(client.PostCommands(
+	checkTxCmd.AddCommand(flags.PostCommands(
 	// TODO: Add tx based commands
 	// GetCmd<Action>(cdc)
 	)...)

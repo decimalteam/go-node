@@ -1,10 +1,11 @@
 package genutil
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
 // ModuleCdc defines a generic sealed codec to be used throughout this module

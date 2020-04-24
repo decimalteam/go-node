@@ -1,16 +1,18 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
 	"container/list"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-	"github.com/tendermint/tendermint/libs/log"
 	"strings"
 
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 const aminoCacheSize = 500
@@ -20,7 +22,6 @@ type Keeper struct {
 	storeKey         sdk.StoreKey
 	cdc              *codec.Codec
 	paramSpace       types.ParamSubspace
-	codespace        sdk.CodespaceType
 	coinKeeper       coin.Keeper
 	supplyKeeper     supply.Keeper
 	hooks            types.ValidatorHooks
@@ -31,7 +32,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a validator keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, codespace sdk.CodespaceType, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, feeCollectorName string) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, feeCollectorName string) Keeper {
 
 	// ensure bonded and not bonded module accounts are set
 	if addr := supplyKeeper.GetModuleAddress(types.BondedPoolName); addr == nil {
@@ -46,7 +47,6 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspac
 		storeKey:           key,
 		cdc:                cdc,
 		paramSpace:         paramSpace.WithKeyTable(ParamKeyTable()),
-		codespace:          codespace,
 		coinKeeper:         coinKeeper,
 		supplyKeeper:       supplyKeeper,
 		validatorCache:     make(map[string]cachedValidator, aminoCacheSize),
@@ -61,8 +61,8 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) Codespace() sdk.CodespaceType {
-	return k.codespace
+func (k Keeper) Codespace() string {
+	return types.DefaultCodespace
 }
 
 // Get returns the pubkey from the adddress-pubkey relation

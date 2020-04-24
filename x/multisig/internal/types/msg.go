@@ -33,7 +33,7 @@ func (msg Msg<Action>) GetSignBytes() []byte {
 }
 
 ValidateBasic validity check for the AnteHandler
-func (msg Msg<Action>) ValidateBasic() sdk.Error {
+func (msg Msg<Action>) ValidateBasic() error {
 	if msg.ValidatorAddr.Empty() {
 		return ErrBadValidatorAddr(DefaultCodespace)
 	}

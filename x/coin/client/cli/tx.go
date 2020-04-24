@@ -1,11 +1,15 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
+
 	"github.com/spf13/cobra"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/codec"
+
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -18,7 +22,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	coinTxCmd.AddCommand(client.PostCommands(
+	coinTxCmd.AddCommand(flags.PostCommands(
 		GetCmdCreateCoin(cdc),
 		GetCmdBuyCoin(cdc),
 		GetCmdSellCoin(cdc),

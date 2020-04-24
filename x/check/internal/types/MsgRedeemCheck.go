@@ -30,7 +30,7 @@ func (msg MsgRedeemCheck) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgRedeemCheck) ValidateBasic() sdk.Error {
+func (msg MsgRedeemCheck) ValidateBasic() error {
 
 	return nil
 }

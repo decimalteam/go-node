@@ -57,11 +57,13 @@ func NewParams(unbondingTime time.Duration, maxValidators, maxEntries uint16,
 
 // Implements params.ParamSet
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
+	// TODO: Implement proper value validator function if necessary
+	blankValueValidatorFn := func(value interface{}) error { return nil }
 	return params.ParamSetPairs{
-		{KeyUnbondingTime, &p.UnbondingTime},
-		{KeyMaxValidators, &p.MaxValidators},
-		{KeyMaxEntries, &p.MaxEntries},
-		{KeyBondDenom, &p.BondDenom},
+		{Key: KeyUnbondingTime, Value: &p.UnbondingTime, ValidatorFn: blankValueValidatorFn},
+		{Key: KeyMaxValidators, Value: &p.MaxValidators, ValidatorFn: blankValueValidatorFn},
+		{Key: KeyMaxEntries, Value: &p.MaxEntries, ValidatorFn: blankValueValidatorFn},
+		{Key: KeyBondDenom, Value: &p.BondDenom, ValidatorFn: blankValueValidatorFn},
 	}
 }
 

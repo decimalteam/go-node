@@ -1,28 +1,33 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/genutil"
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+
+	"github.com/pkg/errors"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
+	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/libs/cli"
+	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/cli"
-	tmtypes "github.com/tendermint/tendermint/types"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"sort"
-	"strings"
+
+	"bitbucket.org/decimalteam/go-node/x/genutil"
+	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
 const flagGenTxDir = "gentx-dir"
@@ -37,7 +42,7 @@ func CollectGenTxsCmd(ctx *server.Context, cdc *codec.Codec,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			config := ctx.Config
 			config.SetRoot(viper.GetString(cli.HomeFlag))
-			name := viper.GetString(client.FlagName)
+			name := viper.GetString(flags.FlagName)
 			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(config)
 			if err != nil {
 				return err

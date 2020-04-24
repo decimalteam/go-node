@@ -1,16 +1,20 @@
 package cli
 
 import (
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
+	"strings"
+
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/spf13/cobra"
-	"strings"
+
+	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
@@ -20,7 +24,7 @@ func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			var coinToBuySymbol = args[0]
 			var coinToSellSymbol = args[2]
@@ -30,12 +34,12 @@ func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 			// Check if coin to buy exists
 			coinToBuy, _ := cliUtils.GetCoin(cliCtx, coinToBuySymbol)
 			if coinToBuy.Symbol != coinToBuySymbol {
-				return sdk.NewError(types.DefaultCodespace, types.CoinToBuyNotExists, fmt.Sprintf("Coin to buy with symbol %s does not exist", coinToBuySymbol))
+				return sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, fmt.Sprintf("Coin to buy with symbol %s does not exist", coinToBuySymbol))
 			}
 			// Check if coin to sell exists
 			coinToSell, _ := cliUtils.GetCoin(cliCtx, coinToSellSymbol)
 			if coinToSell.Symbol != coinToSellSymbol {
-				return sdk.NewError(types.DefaultCodespace, types.CoinToSellNotExists, fmt.Sprintf("Coin to sell with symbol %s does not exist", coinToSellSymbol))
+				return sdkerrors.New(types.DefaultCodespace, types.CoinToSellNotExists, fmt.Sprintf("Coin to sell with symbol %s does not exist", coinToSellSymbol))
 			}
 			// Calculate amounts and check limits
 			amountBuy, amountSell, calcErr := cliUtils.BuyCoinCalculateAmounts(coinToBuy, coinToSell, amountToBuy, maxAmountToSell)
@@ -53,7 +57,7 @@ func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
 			balance := acc.GetCoins()
 			if balance.AmountOf(strings.ToLower(coinToSellSymbol)).LT(amountSell) {
-				return sdk.NewError(types.DefaultCodespace, types.InsufficientCoinToSell, "Not enough coin to sell")
+				return sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, "Not enough coin to sell")
 			}
 
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})

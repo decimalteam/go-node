@@ -11,9 +11,9 @@ import (
 	"github.com/tendermint/tendermint/crypto/multisig"
 	"github.com/tendermint/tendermint/libs/cli"
 
-	"bitbucket.org/decimalteam/go-node/utils/crypto/keys"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto"
+	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -32,7 +32,8 @@ const (
 	defaultMultiSigKeyName = "multi"
 )
 
-func showKeysCmd() *cobra.Command {
+// ShowKeysCmd shows key information for a given key name.
+func ShowKeysCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show [name [name...]]",
 		Short: "Show key info for the given name",
@@ -56,15 +57,19 @@ consisting of all the keys provided by name and multisig threshold.`,
 func runShowCmd(cmd *cobra.Command, args []string) (err error) {
 	var info keys.Info
 
+	kb, err := keys.NewKeyring(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flags.FlagHome), cmd.InOrStdin())
+	if err != nil {
+		return err
+	}
 	if len(args) == 1 {
-		info, err = GetKeyInfo(args[0])
+		info, err = kb.Get(args[0])
 		if err != nil {
 			return err
 		}
 	} else {
 		pks := make([]tmcrypto.PubKey, len(args))
 		for i, keyName := range args {
-			info, err := GetKeyInfo(keyName)
+			info, err := kb.Get(keyName)
 			if err != nil {
 				return err
 			}
@@ -151,7 +156,7 @@ func validateMultisigThreshold(k, nKeys int) error {
 func getBechKeyOut(bechPrefix string) (bechKeyOutFn, error) {
 	switch bechPrefix {
 	case sdk.PrefixAccount:
-		return keys.HEXKeyOutput, nil
+		return keys.Bech32KeyOutput, nil
 	case sdk.PrefixValidator:
 		return keys.Bech32ValKeyOutput, nil
 	case sdk.PrefixConsensus:

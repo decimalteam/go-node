@@ -3,8 +3,10 @@ package keeper
 import (
 	"time"
 
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // return a specific delegation
@@ -455,7 +457,7 @@ func (k Keeper) DequeueAllMatureRedelegationQueue(ctx sdk.Context, currTime time
 // Perform a delegation, set/update everything necessary within the store.
 // tokenSrc indicates the bond status of the incoming funds.
 func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.Coin, tokenSrc types.BondStatus,
-	validator types.Validator, subtractAccount bool) (sdk.Dec, sdk.Error) {
+	validator types.Validator, subtractAccount bool) (sdk.Dec, error) {
 
 	newShares := sdk.ZeroDec()
 	// In some situations, the exchange rate becomes invalid, e.g. if
@@ -538,7 +540,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 // processed during the staking EndBlocker.
 func (k Keeper) Undelegate(
 	ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin,
-) (time.Time, sdk.Error) {
+) (time.Time, error) {
 
 	validator, foundErr := k.GetValidator(ctx, valAddr)
 	if foundErr != nil {
@@ -563,7 +565,7 @@ func (k Keeper) Undelegate(
 }
 
 // unbond a particular delegation and perform associated store operations
-func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, coin sdk.Coin) sdk.Error {
+func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, coin sdk.Coin) error {
 	// check if a delegation object exists in the store
 	delegation, found := k.GetDelegation(ctx, delAddr, valAddr)
 	if !found {
@@ -600,7 +602,7 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
 		err = k.RemoveValidator(ctx, validator.ValAddress)
 		if err != nil {
-			return sdk.NewError(k.Codespace(), 1, err.Error())
+			return sdkerrors.New(k.Codespace(), 1, err.Error())
 		}
 	}
 
@@ -610,7 +612,7 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 // CompleteUnbonding completes the unbonding of all mature entries in the
 // retrieved unbonding delegation object.
 func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
-	valAddr sdk.ValAddress) sdk.Error {
+	valAddr sdk.ValAddress) error {
 
 	ubd, found := k.GetUnbondingDelegation(ctx, delAddr, valAddr)
 	if !found {

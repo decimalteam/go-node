@@ -1,15 +1,15 @@
 package types
 
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
+// import (
+// 	sdk "github.com/cosmos/cosmos-sdk/types"
+// )
 
 // Local code type
-type CodeType = sdk.CodeType
+type CodeType = uint32
 
 const (
 	// Default check codespace
-	DefaultCodespace sdk.CodespaceType = ModuleName
+	DefaultCodespace string = ModuleName
 
 	InvalidVRS       CodeType = 101
 	InvalidPublicKey CodeType = 102
@@ -18,6 +18,6 @@ const (
 
 // TODO: Fill out some custom errors for the module
 // You can see how they are constructed below:
-// func ErrInvalid(codespace sdk.CodespaceType) sdk.Error {
-// 	return sdk.NewError(codespace, CodeInvalid, "custom error message")
-// }
+// var (
+//	ErrInvalid = sdkerrors.Register(ModuleName, 1, "custom error message")
+// )

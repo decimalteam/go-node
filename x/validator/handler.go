@@ -1,15 +1,18 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // NewHandler creates an sdk.Handler for all the validator type messages
 func NewHandler(keeper Keeper) sdk.Handler {
-	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		case types.MsgDeclareCandidate:
@@ -26,25 +29,25 @@ func NewHandler(keeper Keeper) sdk.Handler {
 			return handleMsgSetOffline(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
-			return sdk.ErrUnknownRequest(errMsg).Result()
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
 		}
 	}
 }
 
-func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCandidate) sdk.Result {
+func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCandidate) (*sdk.Result, error) {
 	// check to see if the pubkey or sender has been registered before
 	if _, err := k.GetValidator(ctx, msg.ValidatorAddr); err == nil {
-		return types.ErrValidatorOwnerExists(k.Codespace()).Result()
+		return nil, types.ErrValidatorOwnerExists(k.Codespace())
 	}
 
 	if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(msg.PubKey)); err == nil {
-		return types.ErrValidatorPubKeyExists(k.Codespace()).Result()
+		return nil, types.ErrValidatorPubKeyExists(k.Codespace())
 	}
 
 	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Commission, msg.RewardAddr)
 	err := k.SetValidator(ctx, val)
 	if err != nil {
-		return types.ErrInvalidStruct(k.Codespace()).Result()
+		return nil, types.ErrInvalidStruct(k.Codespace())
 	}
 	k.SetValidatorByConsAddr(ctx, val)
 	k.SetNewValidatorByPowerIndex(ctx, val)
@@ -53,7 +56,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 
 	_, err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
 	if err != nil {
-		return sdk.NewError(k.Codespace(), types.CodeInvalidDelegation, err.Error()).Result()
+		return nil, sdkerrors.New(k.Codespace(), types.CodeInvalidDelegation, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -64,18 +67,18 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		),
 	)
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) sdk.Result {
+func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.Result, error) {
 	val, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
-		return types.ErrNoValidatorFound(k.Codespace()).Result()
+		return nil, types.ErrNoValidatorFound(k.Codespace())
 	}
 
 	_, err = k.Delegate(ctx, msg.DelegatorAddress, msg.Amount, types.Unbonded, val, true)
 	if err != nil {
-		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
+		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -91,13 +94,13 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) sdk.Res
 		),
 	})
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) sdk.Result {
+func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Result, error) {
 	completionTime, err := k.Undelegate(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.Amount)
 	if err != nil {
-		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
+		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
 
 	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
@@ -115,13 +118,13 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) sdk.Result 
 		),
 	})
 
-	return sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}
+	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidate) sdk.Result {
+func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidate) (*sdk.Result, error) {
 	validator, err := k.GetValidatorByConsAddr(ctx, sdk.ConsAddress(msg.PubKey.Address()))
 	if err != nil {
-		return types.ErrNoValidatorFound(k.Codespace()).Result()
+		return nil, types.ErrNoValidatorFound(k.Codespace())
 	}
 
 	validator.ValAddress = msg.ValidatorAddress
@@ -130,7 +133,7 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 	k.SetValidatorByConsAddr(ctx, validator)
 	err = k.SetValidator(ctx, validator)
 	if err != nil {
-		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
+		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -141,18 +144,18 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 		),
 	})
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) sdk.Result {
+func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk.Result, error) {
 	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
-		return types.ErrNoValidatorFound(k.Codespace()).Result()
+		return nil, types.ErrNoValidatorFound(k.Codespace())
 	}
 
 	if validator.Online {
 		if !validator.Jailed {
-			return sdk.NewError(k.Codespace(), 1, "Validator already online").Result()
+			return nil, sdkerrors.New(k.Codespace(), 1, "Validator already online")
 		}
 	}
 
@@ -160,7 +163,7 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) sdk.R
 	validator.Jailed = false
 	err = k.SetValidator(ctx, validator)
 	if err != nil {
-		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
+		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
 	k.SetValidatorByPowerIndex(ctx, validator)
 
@@ -172,24 +175,24 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) sdk.R
 		),
 	})
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) sdk.Result {
+func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*sdk.Result, error) {
 	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
-		return types.ErrNoValidatorFound(k.Codespace()).Result()
+		return nil, types.ErrNoValidatorFound(k.Codespace())
 	}
 
 	if !validator.Online {
-		return sdk.NewError(k.Codespace(), 1, "Validator already offline").Result()
+		return nil, sdkerrors.New(k.Codespace(), 1, "Validator already offline")
 	}
 
 	validator.Online = false
 
 	err = k.SetValidator(ctx, validator)
 	if err != nil {
-		return sdk.NewError(k.Codespace(), 1, err.Error()).Result()
+		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 
@@ -201,5 +204,5 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) sdk
 		),
 	})
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // GetBondedPool returns the bonded tokens pool's module account
@@ -33,13 +34,13 @@ func (k Keeper) notBondedTokensToBonded(ctx sdk.Context, coins sdk.Coins) {
 }
 
 // burnBondedTokens removes coins from the bonded pool module account
-func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) sdk.Error {
+func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 	coinsBurn := sdk.NewCoins()
 	for _, coin := range coins {
 		if !coin.Amount.IsPositive() {
 			continue
 		}
-		coinsBurn.Add(sdk.NewCoins(coin))
+		coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
 	err := k.supplyKeeper.BurnCoins(ctx, types.BondedPoolName, coinsBurn)
 	if err != nil {
@@ -49,13 +50,13 @@ func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) sdk.Error {
 }
 
 // burnNotBondedTokens removes coins from the not bonded pool module account
-func (k Keeper) burnNotBondedTokens(ctx sdk.Context, coins sdk.Coins) sdk.Error {
+func (k Keeper) burnNotBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 	coinsBurn := sdk.NewCoins()
 	for _, coin := range coins {
 		if !coin.Amount.IsPositive() {
 			continue
 		}
-		coinsBurn.Add(sdk.NewCoins(coin))
+		coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
 	err := k.supplyKeeper.BurnCoins(ctx, types.NotBondedPoolName, coinsBurn)
 	if err != nil {

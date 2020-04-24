@@ -1,16 +1,20 @@
 package cli
 
 import (
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
+	"strings"
+
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/spf13/cobra"
-	"strings"
+
+	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
@@ -20,7 +24,7 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			coin := args[0]
 			amount, _ := sdk.NewIntFromString(args[1])
@@ -36,7 +40,7 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 			existsCoin, _ := cliUtils.ExistsCoin(cliCtx, coin)
 			print(err)
 			if !existsCoin {
-				return sdk.NewError(types.DefaultCodespace, types.CoinToBuyNotExists, fmt.Sprintf("Coin to sent with symbol %s does not exist", coin))
+				return sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, fmt.Sprintf("Coin to sent with symbol %s does not exist", coin))
 			}
 
 			// Check if enough balance
@@ -46,7 +50,7 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 			}
 			balance := acc.GetCoins()
 			if balance.AmountOf(strings.ToLower(coin)).LT(amount) {
-				return sdk.NewError(types.DefaultCodespace, types.InsufficientCoinToSell, "Not enough coin to send")
+				return sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, "Not enough coin to send")
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
