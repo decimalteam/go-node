@@ -44,8 +44,31 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) sdk
 		Volume:      msg.InitialVolume,
 	}
 	// TODO: take reserve from creator and give it initial volume
-	k.SetCoin(ctx, coin)
+	acc := k.AccountKeeper.GetAccount(ctx, msg.Creator)
+	balance := acc.GetCoins()
+	if balance.AmountOf(cliUtils.GetBaseCoin()).LT(msg.InitialReserve) {
+		return sdk.Result{
+			Code:      types.InsufficientCoinToSell,
+			Codespace: types.DefaultCodespace,
+		}
+	}
 
+	err := k.UpdateBalance(ctx, cliUtils.GetBaseCoin(), msg.InitialReserve, msg.Creator)
+	if err != nil {
+		return sdk.Result{
+			Code:      types.UpdateBalanceError,
+			Codespace: types.DefaultCodespace,
+		}
+	}
+
+	k.SetCoin(ctx, coin)
+	err = k.UpdateBalance(ctx, strings.ToLower(coin.Symbol), msg.InitialVolume, msg.Creator)
+	if err != nil {
+		return sdk.Result{
+			Code:      types.UpdateBalanceError,
+			Codespace: types.DefaultCodespace,
+		}
+	}
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -211,7 +234,7 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) sdk.Res
 			sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeSendCoin),
 			sdk.NewAttribute(types.AttributeCoin, msg.Coin),
 			sdk.NewAttribute(types.AttributeAmount, msg.Amount.String()),
-			sdk.NewAttribute(types.AttributeReceiver, string(msg.Receiver)),
+			sdk.NewAttribute(types.AttributeReceiver, msg.Receiver.String()),
 		),
 	)
 
@@ -230,7 +253,7 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 				sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeMultiSendCoin),
 				sdk.NewAttribute(types.AttributeCoin, msg.Coins[i].Coin),
 				sdk.NewAttribute(types.AttributeAmount, msg.Coins[i].Amount.String()),
-				sdk.NewAttribute(types.AttributeReceiver, string(msg.Coins[i].Receiver)),
+				sdk.NewAttribute(types.AttributeReceiver, msg.Coins[i].Receiver.String()),
 			),
 		)
 	}

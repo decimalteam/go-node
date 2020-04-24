@@ -11,14 +11,15 @@ const (
 	// Default coin codespace
 	DefaultCodespace sdk.CodespaceType = ModuleName
 	// Create coin
-	DecodeError            CodeType = 101
-	InvalidCRR             CodeType = 102
-	InvalidCoinSymbol      CodeType = 103
-	CoinAlreadyExists      CodeType = 104
-	InvalidCoinTitle       CodeType = 105
-	InvalidCoinInitVolume  CodeType = 106
-	InvalidCoinInitReserve CodeType = 107
-	CodeInvalid            CodeType = 108
+	DecodeError             CodeType = 101
+	InvalidCRR              CodeType = 102
+	InvalidCoinSymbol       CodeType = 103
+	CoinAlreadyExists       CodeType = 104
+	InvalidCoinTitle        CodeType = 105
+	InvalidCoinInitVolume   CodeType = 106
+	InvalidCoinInitReserve  CodeType = 107
+	CodeInvalid             CodeType = 108
+	InsufficientCoinReserve CodeType = 118
 
 	// Buy/Sell Coin
 	SameCoins               CodeType = 109

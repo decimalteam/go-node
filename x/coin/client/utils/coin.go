@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
@@ -112,4 +113,12 @@ func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wants
 	}
 
 	return amountBuy, wantsSell, nil
+}
+
+func GetBaseCoin() string {
+	if config.ChainID == "decimal-testnet" {
+		return config.SymbolTestBaseCoin
+	} else {
+		return config.SymbolBaseCoin
+	}
 }
