@@ -2,9 +2,11 @@ package validator
 
 import (
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	tmstrings "github.com/tendermint/tendermint/libs/strings"
+	tmtypes "github.com/tendermint/tendermint/types"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
@@ -42,6 +44,16 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 
 	if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(msg.PubKey)); err == nil {
 		return nil, types.ErrValidatorPubKeyExists(k.Codespace())
+	}
+
+	if ctx.ConsensusParams() != nil {
+		tmPubKey := tmtypes.TM2PB.PubKey(msg.PubKey)
+		if !tmstrings.StringInSlice(tmPubKey.Type, ctx.ConsensusParams().Validator.PubKeyTypes) {
+			return nil, sdkerrors.Wrapf(
+				types.ErrValidatorPubKeyTypeNotSupported(k.Codespace()),
+				"got: %s, valid: %s", tmPubKey.Type, ctx.ConsensusParams().Validator.PubKeyTypes,
+			)
+		}
 	}
 
 	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Commission, msg.RewardAddr)

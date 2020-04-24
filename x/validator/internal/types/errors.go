@@ -34,6 +34,10 @@ func ErrEmptyValidatorAddr(codespace string) *sdkerrors.Error {
 	return sdkerrors.New(codespace, CodeEmptyValidatorAddr, "empty validator address")
 }
 
+func ErrNilValidatorAddr(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidInput, "validator address is nil")
+}
+
 func ErrInvalidStruct(codespace string) *sdkerrors.Error {
 	return sdkerrors.New(codespace, CodeInvalidStruct, "invalid struct")
 }
@@ -63,6 +67,10 @@ func ErrNoUnbondingDelegation(codespace string) *sdkerrors.Error {
 	return sdkerrors.New(codespace, CodeInvalidDelegation, "no unbonding delegation found")
 }
 
+func ErrBadDelegationAmount(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidDelegation, "amount must be > 0")
+}
+
 func ErrBadDelegationAddr(codespace string) *sdkerrors.Error {
 	return sdkerrors.New(codespace, CodeInvalidInput, "unexpected address length for this (address, validator) pair")
 }
@@ -81,4 +89,20 @@ func ErrNilDelegatorAddr(codespace string) *sdkerrors.Error {
 
 func ErrCoinReserveIsNotSufficient(codespace string, reserve string, amount string) *sdkerrors.Error {
 	return sdkerrors.New(codespace, CodeCoinReserveIsNotSufficient, fmt.Sprintf("Coin reserve balance is not sufficient for transaction. Has: %s, required %s", reserve, amount))
+}
+
+func ErrNoDelegation(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidDelegation, "no delegation for this (address, validator) pair")
+}
+
+func ErrCommissionNegative(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidValidator, "commission must be positive")
+}
+
+func ErrCommissionHuge(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidValidator, "commission cannot be more than 100%")
+}
+
+func ErrValidatorPubKeyTypeNotSupported(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeInvalidInput, "validator pubkey type is not supported")
 }

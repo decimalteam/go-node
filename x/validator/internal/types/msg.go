@@ -8,7 +8,7 @@ import (
 var _ sdk.Msg = &MsgDeclareCandidate{}
 
 type MsgDeclareCandidate struct {
-	Commission    Commission     `json:"commission" yaml:"commission"`
+	Commission    sdk.Dec        `json:"commission" yaml:"commission"`
 	ValidatorAddr sdk.ValAddress `json:"validator_addr" yaml:"validator_addr"`
 	RewardAddr    sdk.AccAddress `json:"reward_addr" yaml:"reward_addr"`
 	PubKey        crypto.PubKey  `json:"pub_key" yaml:"pub_key"`
@@ -16,7 +16,7 @@ type MsgDeclareCandidate struct {
 	Description   Description    `json:"description"`
 }
 
-func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, commission Commission, stake sdk.Coin, description Description, rewardAddress sdk.AccAddress) MsgDeclareCandidate {
+func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, commission sdk.Dec, stake sdk.Coin, description Description, rewardAddress sdk.AccAddress) MsgDeclareCandidate {
 	return MsgDeclareCandidate{
 		Commission:    commission,
 		ValidatorAddr: validatorAddr,
@@ -40,10 +40,22 @@ func (msg MsgDeclareCandidate) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
+// quick validity check
 func (msg MsgDeclareCandidate) ValidateBasic() error {
+	// note that unmarshaling from bech32 ensures either empty or valid
 	if msg.ValidatorAddr.Empty() {
-		return ErrEmptyValidatorAddr(DefaultCodespace)
+		return ErrNilValidatorAddr(DefaultCodespace)
 	}
+	if msg.Stake.Amount.LTE(sdk.ZeroInt()) {
+		return ErrBadDelegationAmount(DefaultCodespace)
+	}
+	if msg.Commission.LT(sdk.ZeroDec()) {
+		return ErrCommissionNegative(DefaultCodespace)
+	}
+	if msg.Commission.GT(sdk.OneDec()) {
+		return ErrCommissionHuge(DefaultCodespace)
+	}
+
 	return nil
 }
 

@@ -86,8 +86,9 @@ func (d Delegation) String() string {
 	return fmt.Sprintf(`Delegation:
   Delegator: %s
   Validator: %s
-  Shares:    %s`, d.DelegatorAddress,
-		d.ValidatorAddress, d.Shares)
+  Shares:    %s
+  Coin:      %s%s`, d.DelegatorAddress,
+		d.ValidatorAddress, d.Shares, d.Coin.Amount, d.Coin.Denom)
 }
 
 // Delegations is a collection of delegations
@@ -352,8 +353,8 @@ type DelegationResponse struct {
 	Balance sdk.Coin `json:"balance" yaml:"balance"`
 }
 
-func NewDelegationResp(d sdk.AccAddress, v sdk.ValAddress, s sdk.Dec, b sdk.Coin) DelegationResponse {
-	return DelegationResponse{NewDelegation(d, v, s, b), b}
+func NewDelegationResp(d sdk.AccAddress, v sdk.ValAddress, b sdk.Coin) DelegationResponse {
+	return DelegationResponse{NewDelegation(d, v, sdk.ZeroDec(), b), b}
 }
 
 // String implements the Stringer interface for DelegationResponse.

@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -76,8 +75,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	rewards := types.GetRewardForBlock(uint64(height))
-	// TODO потому что регистрозависимое
-	denomCoin, err := coinKeeper.GetCoin(ctx, "tDCL")
+	denomCoin, err := k.GetCoin(ctx, k.BondDenom(ctx))
 	if err != nil {
 		panic(err)
 	}
@@ -86,7 +84,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	feeCollector := supplyKeeper.GetModuleAccount(ctx, k.FeeCollectorName)
 	feesCollectedInt := feeCollector.GetCoins()
 	for _, fee := range feesCollectedInt {
-		if fee.Denom == types.DefaultBondDenom {
+		if fee.Denom == k.BondDenom(ctx) {
 			rewards.Add(fee.Amount)
 		} else {
 			feeCoin, err := coinKeeper.GetCoin(ctx, fee.Denom)
@@ -113,6 +111,9 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	for _, val := range vals {
+		if k.TotalStake(ctx, val).IsZero() || !val.Online {
+			continue
+		}
 		r := rewards.Mul(k.TotalStake(ctx, val)).Quo(totalPower)
 		remainder.Sub(r)
 		val = val.AddAccumReward(r)

@@ -10,7 +10,7 @@ import (
 
 // Default parameter namespace
 const (
-	DefaultParamSpace = types.ModuleName
+	DefaultParamspace = types.ModuleName
 )
 
 // ParamTable for staking module

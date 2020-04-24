@@ -36,23 +36,22 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	// The persistent set is updated later in this function.
 	// (see LastValidatorPowerKey).
 	last := k.getLastValidatorsByAddr(ctx)
+	log.Println(k.GetAllValidatorsByPowerIndex(ctx))
 
 	// Iterate over validators, highest power to lowest.
 	iterator := sdk.KVStoreReversePrefixIterator(store, []byte{types.ValidatorsByPowerIndexKey})
 	defer iterator.Close()
 	for count := 0; iterator.Valid() && count < maxValidators; iterator.Next() {
-
 		// everything that is iterated in this loop is becoming or already a
 		// part of the bonded validator set
 
 		// fetch the validator
 		valAddr := sdk.ValAddress(iterator.Value())
+		log.Println(valAddr.Bytes())
 		validator, err := k.GetValidator(ctx, valAddr)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
-
-		log.Println(valAddr)
 
 		if validator.Jailed {
 			return nil, errors.New("ApplyAndReturnValidatorSetUpdates: should never retrieve a jailed validator from the power store")
@@ -60,7 +59,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// if we get to a zero-power validator (which we don't bond),
 		// there are no more possible bonded validators
-		if validator.PotentialConsensusPower(validator.Tokens) == 0 {
+		if validator.PotentialConsensusPower(k.TotalStake(ctx, validator)) == 0 {
 			break
 		}
 
@@ -69,7 +68,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		case validator.IsUnbonded():
 			if validator.Online {
 				validator, err = k.unbondedToBonded(ctx, validator)
-				log.Println(validator)
 				if err != nil {
 					return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 				}
@@ -303,12 +301,13 @@ func (k Keeper) jailValidator(ctx sdk.Context, validator types.Validator) error 
 		return fmt.Errorf("cannot jail already jailed validator, validator: %v\n", validator)
 	}
 
+	k.DeleteValidatorByPowerIndex(ctx, validator)
 	validator.Jailed = true
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
 		return err
 	}
-	k.DeleteValidatorByPowerIndex(ctx, validator)
+	log.Println(k.GetAllValidatorsByPowerIndex(ctx))
 	return nil
 }
 

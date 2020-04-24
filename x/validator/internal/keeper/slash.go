@@ -96,11 +96,11 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 	// Burn the slashed tokens from the pool account and decrease the total supply.
 
 	switch validator.GetStatus() {
-	case sdk.Bonded:
+	case types.Bonded:
 		if err := k.burnBondedTokens(ctx, amountSlashed); err != nil {
 			panic(err)
 		}
-	case sdk.Unbonding, sdk.Unbonded:
+	case types.Unbonding, types.Unbonded:
 		if err := k.burnNotBondedTokens(ctx, amountSlashed); err != nil {
 			panic(err)
 		}
@@ -192,7 +192,7 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 			panic(err)
 		}
 
-		if entry.Balance.Denom != DefaultParamSpace {
+		if entry.Balance.Denom != DefaultParamspace {
 			coin, err := k.GetCoin(ctx, entry.Balance.Denom)
 			if err != nil {
 				panic(err)
@@ -225,7 +225,7 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 		delegation.Coin.Amount = delegation.Coin.Amount.Sub(bondSlashAmount)
 		k.SetDelegation(ctx, delegation)
 
-		if delegation.Coin.Denom != DefaultParamSpace {
+		if delegation.Coin.Denom != DefaultParamspace {
 			coin, err := k.GetCoin(ctx, delegation.Coin.Denom)
 			if err != nil {
 				panic(err)

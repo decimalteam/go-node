@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 )
 
 // ParamSubspace defines the expected Subspace interfacace
@@ -11,6 +12,23 @@ type ParamSubspace interface {
 	Get(ctx sdk.Context, key []byte, ptr interface{})
 	GetParamSet(ctx sdk.Context, ps params.ParamSet)
 	SetParamSet(ctx sdk.Context, ps params.ParamSet)
+}
+
+// SupplyKeeper defines the expected supply Keeper (noalias)
+type SupplyKeeper interface {
+	GetSupply(ctx sdk.Context) supplyexported.SupplyI
+
+	GetModuleAddress(name string) sdk.AccAddress
+	GetModuleAccount(ctx sdk.Context, moduleName string) supplyexported.ModuleAccountI
+
+	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
+	SetModuleAccount(sdk.Context, supplyexported.ModuleAccountI)
+
+	SendCoinsFromModuleToModule(ctx sdk.Context, senderPool, recipientPool string, amt sdk.Coins) error
+	UndelegateCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	DelegateCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+
+	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 }
 
 //_______________________________________________________________________________

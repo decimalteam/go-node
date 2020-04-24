@@ -1,16 +1,12 @@
 package validator
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
-	"log"
-
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	vtypes "bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"log"
 )
 
 // InitGenesis sets the pool and parameters for the provided keeper.  For each
@@ -22,8 +18,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 	supplyKeeper types.SupplyKeeper, data GenesisState) []abci.ValidatorUpdate {
 
 	var updates []abci.ValidatorUpdate
-	bondedTokens := make(map[string]sdk.Int)
-	notBondedTokens := make(map[string]sdk.Int)
+	bondedTokens := sdk.NewCoins()
+	notBondedTokens := sdk.NewCoins()
 
 	// We need to pretend to be "n blocks before genesis", where "n" is the
 	// validator update delay, so that e.g. slashing periods are correctly
@@ -57,51 +53,53 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 			}
 		}
 
+		//switch validator.Status {
+		//case vtypes.Bonded:
+		//	bondedTokens[vtypes.DefaultBondDenom] = validator.Tokens
+		//case vtypes.Unbonding, vtypes.Unbonded:
+		//	notBondedTokens[vtypes.DefaultBondDenom] = validator.Tokens
+		//default:
+		//	log.Println("Init genesis error: invalid validator status")
+		//}
+	}
+
+	for _, delegation := range data.Delegations {
+		// Call the before-creation hook if not exported
+		if !data.Exported {
+			keeper.BeforeDelegationCreated(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+		}
+		keeper.SetDelegation(ctx, delegation)
+
+		// Call the after-modification hook if not exported
+		if !data.Exported {
+			keeper.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+		}
+
+		validator := types.Validator{}
+
+		for _, v := range data.Validators {
+			if v.ValAddress.Equals(delegation.ValidatorAddress) {
+				validator = v
+				break
+			}
+		}
+
 		switch validator.Status {
-		case vtypes.Bonded:
-			bondedTokens[vtypes.DefaultBondDenom] = validator.Tokens
-		case vtypes.Unbonding, vtypes.Unbonded:
-			notBondedTokens[vtypes.DefaultBondDenom] = validator.Tokens
+		case types.Bonded:
+			bondedTokens.Add(delegation.Coin)
+		case types.Unbonding, types.Unbonded:
+			notBondedTokens.Add(delegation.Coin)
 		default:
 			log.Println("Init genesis error: invalid validator status")
 		}
 	}
 
-	//for _, delegation := range data.Delegations {
-	//	// Call the before-creation hook if not exported
-	//	if !data.Exported {
-	//		keeper.BeforeDelegationCreated(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
-	//	}
-	//	keeper.SetDelegation(ctx, delegation)
-	//
-	//	// Call the after-modification hook if not exported
-	//	if !data.Exported {
-	//		keeper.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
-	//	}
-	//}
-	//
-	//for _, ubd := range data.UnbondingDelegations {
-	//	keeper.SetUnbondingDelegation(ctx, ubd)
-	//	for _, entry := range ubd.Entries {
-	//		keeper.InsertUBDQueue(ctx, ubd, entry.CompletionTime)
-	//		notBondedTokens = notBondedTokens.Add(entry.Balance)
-	//	}
-	//}
-	//
-	//for _, red := range data.Redelegations {
-	//	keeper.SetRedelegation(ctx, red)
-	//	for _, entry := range red.Entries {
-	//		keeper.InsertRedelegationQueue(ctx, red, entry.CompletionTime)
-	//	}
-	//}
-
-	bondedCoins := sdk.NewCoins()
-	for denom, amount := range bondedTokens {
-		bondedCoins = append(bondedCoins, sdk.NewCoin(denom, amount))
-	}
-	notBondedCoins := sdk.NewCoins()
-	for denom, amount := range notBondedTokens {
-		notBondedCoins = append(notBondedCoins, sdk.NewCoin(denom, amount))
+	for _, ubd := range data.UnbondingDelegations {
+		keeper.SetUnbondingDelegation(ctx, ubd)
+		for _, entry := range ubd.Entries {
+			keeper.InsertUBDQueue(ctx, ubd, entry.CompletionTime)
+			notBondedTokens = notBondedTokens.Add(entry.Balance)
+		}
 	}
 
 	// check if the unbonded and bonded pools accounts exists
@@ -113,7 +111,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
 	// add coins if not provided on genesis
 	if bondedPool.GetCoins().IsZero() {
-		if err := bondedPool.SetCoins(bondedCoins); err != nil {
+		if err := bondedPool.SetCoins(bondedTokens); err != nil {
 			panic(err)
 		}
 		supplyKeeper.SetModuleAccount(ctx, bondedPool)
@@ -125,7 +123,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 	}
 
 	if notBondedPool.GetCoins().IsZero() {
-		if err := notBondedPool.SetCoins(notBondedCoins); err != nil {
+		if err := notBondedPool.SetCoins(notBondedTokens); err != nil {
 			panic(err)
 		}
 		supplyKeeper.SetModuleAccount(ctx, notBondedPool)
@@ -159,7 +157,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 // ExportGenesis returns a GenesisState for a given context and keeper. The
 // GenesisState will contain the pool, params, validators, and bonds found in
 // the keeper.
-func ExportGenesis(ctx sdk.Context, keeper Keeper) vtypes.GenesisState {
+func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 	params := keeper.GetParams(ctx)
 	lastTotalPower := keeper.GetLastTotalPower(ctx)
 	validators := keeper.GetAllValidators(ctx)
@@ -174,13 +172,13 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) vtypes.GenesisState {
 	//	redelegations = append(redelegations, red)
 	//	return false
 	//})
-	var lastValidatorPowers []vtypes.LastValidatorPower
+	var lastValidatorPowers []types.LastValidatorPower
 	keeper.IterateLastValidatorPowers(ctx, func(addr sdk.ValAddress, power int64) (stop bool) {
-		lastValidatorPowers = append(lastValidatorPowers, vtypes.LastValidatorPower{Address: addr, Power: power})
+		lastValidatorPowers = append(lastValidatorPowers, types.LastValidatorPower{Address: addr, Power: power})
 		return false
 	})
 
-	return vtypes.GenesisState{
+	return types.GenesisState{
 		Params:              params,
 		LastTotalPower:      lastTotalPower,
 		LastValidatorPowers: lastValidatorPowers,
@@ -191,7 +189,7 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) vtypes.GenesisState {
 
 // WriteValidators returns a slice of bonded genesis validators.
 func WriteValidators(ctx sdk.Context, keeper Keeper) (vals []tmtypes.GenesisValidator) {
-	keeper.IterateLastValidators(ctx, func(_ int64, validator vtypes.Validator) (stop bool) {
+	keeper.IterateLastValidators(ctx, func(_ int64, validator types.Validator) (stop bool) {
 		vals = append(vals, tmtypes.GenesisValidator{
 			PubKey: validator.PubKey,
 			Power:  validator.ConsensusPower(keeper.TotalStake(ctx, validator)),
@@ -206,7 +204,7 @@ func WriteValidators(ctx sdk.Context, keeper Keeper) (vals []tmtypes.GenesisVali
 
 // ValidateGenesis validates the provided staking genesis state to ensure the
 // expected invariants holds. (i.e. params in correct bounds, no duplicate validators)
-func ValidateGenesis(data vtypes.GenesisState) error {
+func ValidateGenesis(data types.GenesisState) error {
 	err := validateGenesisStateValidators(data.Validators)
 	if err != nil {
 		return err
@@ -219,7 +217,7 @@ func ValidateGenesis(data vtypes.GenesisState) error {
 	return nil
 }
 
-func validateGenesisStateValidators(validators []vtypes.Validator) (err error) {
+func validateGenesisStateValidators(validators []types.Validator) (err error) {
 	addrMap := make(map[string]bool, len(validators))
 	for i := 0; i < len(validators); i++ {
 		val := validators[i]

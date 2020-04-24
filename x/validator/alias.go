@@ -11,7 +11,7 @@ const (
 	ModuleName        = types.ModuleName
 	RouterKey         = types.RouterKey
 	StoreKey          = types.StoreKey
-	DefaultParamSpace = keeper.DefaultParamSpace
+	DefaultParamSpace = keeper.DefaultParamspace
 	DefaultCodespace  = types.DefaultCodespace
 	QuerierRoute      = types.QuerierRoute
 	NotBondedPoolName = types.NotBondedPoolName
@@ -45,5 +45,6 @@ type (
 	Params       = types.Params
 
 	MsgDeclareCandidate = types.MsgDeclareCandidate
+	MsgDelegate         = types.MsgDelegate
 	UnbondingDelegation = types.UnbondingDelegation
 )

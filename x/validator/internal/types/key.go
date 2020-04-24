@@ -13,6 +13,9 @@ const (
 	// StoreKey to be used when creating the KVStore
 	StoreKey = ModuleName
 
+	// TStoreKey is the string transient store representation
+	TStoreKey = "transient_" + ModuleName
+
 	// RouterKey to be used for routing msgs
 	RouterKey = ModuleName
 
@@ -54,12 +57,12 @@ func GetValidatorByConsAddrKey(addr sdk.ConsAddress) []byte {
 func GetValidatorsByPowerIndexKey(validator Validator, power sdk.Int) []byte {
 	consensusPower := sdk.TokensToConsensusPower(power)
 	consensusPowerBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(consensusPowerBytes, uint64(consensusPower))
+	binary.BigEndian.PutUint64(consensusPowerBytes[:], uint64(consensusPower))
 
 	powerBytes := consensusPowerBytes
 	powerBytesLen := len(powerBytes) // 8
 
-	// key is of format prefix || powerBytes || addrBytes
+	// key is of format prefix || powerbytes || addrBytes
 	key := make([]byte, 1+powerBytesLen+sdk.AddrLen)
 
 	key[0] = ValidatorsByPowerIndexKey
@@ -261,4 +264,17 @@ func GetValidatorMissedBlockBitArrayKey(v sdk.ConsAddress, i int64) []byte {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, uint64(i))
 	return append(GetValidatorMissedBlockBitArrayPrefixKey(v), b...)
+}
+
+// parse the validators operator address from power rank key
+func ParseValidatorPowerRankKey(key []byte) (operAddr []byte) {
+	powerBytesLen := 8
+	if len(key) != 1+powerBytesLen+sdk.AddrLen {
+		panic("Invalid validator power rank key length")
+	}
+	operAddr = sdk.CopyBytes(key[powerBytesLen+1:])
+	for i, b := range operAddr {
+		operAddr[i] = ^b
+	}
+	return operAddr
 }

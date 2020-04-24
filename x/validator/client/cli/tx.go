@@ -80,7 +80,7 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 				rewardAddress = valAddress
 			}
 
-			msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddress), pubKey, types.Commission{Rate: commission}, stake, types.Description{}, rewardAddress)
+			msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddress), pubKey, commission, stake, types.Description{}, rewardAddress)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -181,9 +181,8 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 	if err != nil {
 		return txBldr, nil, err
 	}
-	commissionRates := types.Commission{Rate: commission}
 
-	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commissionRates, amount, description, valAddr)
+	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, types.Description(description), valAddr)
 
 	ip := viper.GetString(FlagIP)
 	nodeID := viper.GetString(FlagNodeID)

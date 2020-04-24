@@ -521,10 +521,17 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 		}
 	}
 
-	validator, newShares = k.AddValidatorTokensAndShares(ctx, validator, sdk.NewCoins(bondCoin))
-
 	// Update delegation
-	delegation.Shares = delegation.Shares.Add(newShares)
+	if !found {
+		delegation.Coin = bondCoin
+	} else {
+		if delegation.Coin.Denom == bondCoin.Denom {
+			delegation.Coin = delegation.Coin.Add(bondCoin)
+		} else {
+			delegation = types.NewDelegation(delAddr, validator.ValAddress, sdk.ZeroDec(), bondCoin)
+		}
+	}
+
 	k.SetDelegation(ctx, delegation)
 
 	// Call the after-modification hook
@@ -557,7 +564,7 @@ func (k Keeper) Undelegate(
 		k.bondedTokensToNotBonded(ctx, sdk.NewCoins(amount))
 	}
 
-	completionTime := ctx.BlockHeader().Time.Add(types.DefaultUnbondingTime)
+	completionTime := ctx.BlockHeader().Time.Add(k.UnBondingTime(ctx))
 	ubd := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, amount)
 	k.InsertUBDQueue(ctx, ubd, completionTime)
 
@@ -577,7 +584,7 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 
 	// ensure that we have enough shares to remove
 	if delegation.Coin.Amount.LT(coin.Amount) {
-		return types.ErrNotEnoughDelegationShares(k.Codespace(), delegation.Shares.String())
+		return types.ErrNotEnoughDelegationShares(k.Codespace(), delegation.Coin.Amount.String())
 	}
 
 	// get validator
@@ -598,7 +605,7 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 		k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 	}
 
-	if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
+	if k.TotalStake(ctx, validator).IsZero() && validator.IsUnbonded() {
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
 		err = k.RemoveValidator(ctx, validator.ValAddress)
 		if err != nil {
@@ -647,4 +654,86 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 	}
 
 	return nil
+}
+
+//_____________________________________________________________________________________
+
+// return all delegations for a delegator
+func (k Keeper) GetAllDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddress) []types.Delegation {
+	delegations := make([]types.Delegation, 0)
+
+	store := ctx.KVStore(k.storeKey)
+	delegatorPrefixKey := types.GetDelegationsKey(delegator)
+	iterator := sdk.KVStorePrefixIterator(store, delegatorPrefixKey) //smallest to largest
+	defer iterator.Close()
+
+	i := 0
+	for ; iterator.Valid(); iterator.Next() {
+		delegation := types.MustUnmarshalDelegation(k.cdc, iterator.Value())
+		delegations = append(delegations, delegation)
+		i++
+	}
+
+	return delegations
+}
+
+// Return all validators that a delegator is bonded to. If maxRetrieve is supplied, the respective amount will be returned.
+func (k Keeper) GetDelegatorValidators(ctx sdk.Context, delegatorAddr sdk.AccAddress,
+	maxRetrieve uint16) (validators []types.Validator) {
+	validators = make([]types.Validator, maxRetrieve)
+
+	store := ctx.KVStore(k.storeKey)
+	delegatorPrefixKey := types.GetDelegationsKey(delegatorAddr)
+	iterator := sdk.KVStorePrefixIterator(store, delegatorPrefixKey) // smallest to largest
+	defer iterator.Close()
+
+	i := 0
+	for ; iterator.Valid() && i < int(maxRetrieve); iterator.Next() {
+		delegation := types.MustUnmarshalDelegation(k.cdc, iterator.Value())
+
+		validator, err := k.GetValidator(ctx, delegation.ValidatorAddress)
+		if err != nil {
+			panic(types.ErrNoValidatorFound(types.DefaultCodespace))
+		}
+		validators[i] = validator
+		i++
+	}
+	return validators[:i] // trim
+}
+
+// return a validator that a delegator is bonded to
+func (k Keeper) GetDelegatorValidator(ctx sdk.Context, delegatorAddr sdk.AccAddress,
+	validatorAddr sdk.ValAddress) (types.Validator, error) {
+
+	var err error
+	validator := types.Validator{}
+
+	delegation, found := k.GetDelegation(ctx, delegatorAddr, validatorAddr)
+	if !found {
+		return validator, types.ErrNoDelegation(types.DefaultCodespace)
+	}
+
+	validator, err = k.GetValidator(ctx, delegation.ValidatorAddress)
+	if err != nil {
+		panic(types.ErrNoValidatorFound(types.DefaultCodespace))
+	}
+	return validator, nil
+}
+
+// return all unbonding-delegations for a delegator
+func (k Keeper) GetAllUnbondingDelegations(ctx sdk.Context, delegator sdk.AccAddress) []types.UnbondingDelegation {
+	unbondingDelegations := make([]types.UnbondingDelegation, 0)
+
+	store := ctx.KVStore(k.storeKey)
+	delegatorPrefixKey := types.GetUBDsKey(delegator)
+	iterator := sdk.KVStorePrefixIterator(store, delegatorPrefixKey) // smallest to largest
+	defer iterator.Close()
+
+	for i := 0; iterator.Valid(); iterator.Next() {
+		unbondingDelegation := types.MustUnmarshalUBD(k.cdc, iterator.Value())
+		unbondingDelegations = append(unbondingDelegations, unbondingDelegation)
+		i++
+	}
+
+	return unbondingDelegations
 }
