@@ -2,6 +2,7 @@ package coin
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -49,28 +50,19 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 	// TODO: take reserve from creator and give it initial volume
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Creator)
 	balance := acc.GetCoins()
-	if balance.AmountOf(cliUtils.GetBaseCoin()).LT(msg.InitialReserve) {
-		return sdk.Result{
-			Code:      types.InsufficientCoinToSell,
-			Codespace: types.DefaultCodespace,
-		}
+	if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(msg.InitialReserve) {
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, "")
 	}
 
-	err := k.UpdateBalance(ctx, cliUtils.GetBaseCoin(), msg.InitialReserve, msg.Creator)
+	err := k.UpdateBalance(ctx, strings.ToLower(cliUtils.GetBaseCoin()), msg.InitialReserve.Neg(), msg.Creator)
 	if err != nil {
-		return sdk.Result{
-			Code:      types.UpdateBalanceError,
-			Codespace: types.DefaultCodespace,
-		}
+		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, "")
 	}
 
 	k.SetCoin(ctx, coin)
 	err = k.UpdateBalance(ctx, strings.ToLower(coin.Symbol), msg.InitialVolume, msg.Creator)
 	if err != nil {
-		return sdk.Result{
-			Code:      types.UpdateBalanceError,
-			Codespace: types.DefaultCodespace,
-		}
+		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, "")
 	}
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -81,7 +73,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 			sdk.NewAttribute(types.AttributeTitle, msg.Title),
 			sdk.NewAttribute(types.AttributeInitVolume, msg.InitialVolume.String()),
 			sdk.NewAttribute(types.AttributeInitReserve, msg.InitialReserve.String()),
-			sdk.NewAttribute(types.AttributeCRR, string(msg.ConstantReserveRatio)),
+			sdk.NewAttribute(types.AttributeCRR, strconv.FormatUint(uint64(msg.ConstantReserveRatio), 10)),
 			sdk.NewAttribute(types.AttributeLimitVolume, msg.LimitVolume.String()),
 		),
 	)

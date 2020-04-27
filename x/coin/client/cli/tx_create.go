@@ -2,8 +2,8 @@ package cli
 
 import (
 	"fmt"
-	"math/big"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
@@ -40,10 +39,6 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 			var initVolume, _ = sdk.NewIntFromString(args[4])
 			var limitVolume, _ = sdk.NewIntFromString(args[5])
 			// TODO: take reserve from creator and give it initial volume
-			price := formulas.CalculateSaleReturn(initVolume, initReserve, uint(crr), sdk.NewIntWithDecimal(1, 18))
-			_price := big.NewFloat(0).SetInt(price.BigInt())
-			_price = _price.Quo(_price, big.NewFloat(1000000000000000000))
-			fmt.Printf("Цена: (%v) tCDL \n", _price)
 
 			msg := types.NewMsgCreateCoin(title, uint(crr), symbol, initVolume, initReserve, limitVolume, cliCtx.GetFromAddress())
 			err = msg.ValidateBasic()
@@ -52,8 +47,8 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 			}
 			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
 			balance := acc.GetCoins()
-			if balance.AmountOf(cliUtils.GetBaseCoin()).LT(initReserve) {
-				return sdk.NewError(types.DefaultCodespace, types.InsufficientCoinReserve, "Not enough coin to reserve")
+			if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(initReserve) {
+				return sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinReserve, "Not enough coin to reserve")
 			}
 			// Check if coin does not exist yet
 			coinExists, _ := cliUtils.ExistsCoin(cliCtx, symbol)
