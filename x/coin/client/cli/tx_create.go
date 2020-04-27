@@ -45,7 +45,10 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+			acc, err := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
 			balance := acc.GetCoins()
 			if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(initReserve) {
 				return sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinReserve, "Not enough coin to reserve")
