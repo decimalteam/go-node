@@ -33,18 +33,15 @@ type DVVTriplet struct {
 type Delegation struct {
 	DelegatorAddress sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"`
 	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
-	Shares           sdk.Dec        `json:"shares" yaml:"shares"`
 	Coin             sdk.Coin       `json:"coin" yaml:"coin"`
 }
 
 // NewDelegation creates a new delegation object
-func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-	shares sdk.Dec, coin sdk.Coin) Delegation {
+func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, coin sdk.Coin) Delegation {
 
 	return Delegation{
 		DelegatorAddress: delegatorAddr,
 		ValidatorAddress: validatorAddr,
-		Shares:           shares,
 		Coin:             coin,
 	}
 }
@@ -72,23 +69,20 @@ func UnmarshalDelegation(cdc *codec.Codec, value []byte) (delegation Delegation,
 // nolint
 func (d Delegation) Equal(d2 Delegation) bool {
 	return bytes.Equal(d.DelegatorAddress, d2.DelegatorAddress) &&
-		bytes.Equal(d.ValidatorAddress, d2.ValidatorAddress) &&
-		d.Shares.Equal(d2.Shares)
+		bytes.Equal(d.ValidatorAddress, d2.ValidatorAddress)
 }
 
 // nolint - for Delegation
 func (d Delegation) GetDelegatorAddr() sdk.AccAddress { return d.DelegatorAddress }
 func (d Delegation) GetValidatorAddr() sdk.ValAddress { return d.ValidatorAddress }
-func (d Delegation) GetShares() sdk.Dec               { return d.Shares }
 
 // String returns a human readable string representation of a Delegation.
 func (d Delegation) String() string {
 	return fmt.Sprintf(`Delegation:
   Delegator: %s
   Validator: %s
-  Shares:    %s
   Coin:      %s%s`, d.DelegatorAddress,
-		d.ValidatorAddress, d.Shares, d.Coin.Amount, d.Coin.Denom)
+		d.ValidatorAddress, d.Coin.Amount, d.Coin.Denom)
 }
 
 // Delegations is a collection of delegations
@@ -354,7 +348,7 @@ type DelegationResponse struct {
 }
 
 func NewDelegationResp(d sdk.AccAddress, v sdk.ValAddress, b sdk.Coin) DelegationResponse {
-	return DelegationResponse{NewDelegation(d, v, sdk.ZeroDec(), b), b}
+	return DelegationResponse{NewDelegation(d, v, b), b}
 }
 
 // String implements the Stringer interface for DelegationResponse.

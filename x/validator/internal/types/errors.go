@@ -24,6 +24,8 @@ const (
 	CodeEmptyPubKey CodeType = 401
 
 	CodeCoinReserveIsNotSufficient CodeType = 501
+
+	CodeErrInvalidHistoricalInfo CodeType = 601
 )
 
 func ErrEmptyPubKey(codespace string) *sdkerrors.Error {
@@ -105,4 +107,8 @@ func ErrCommissionHuge(codespace string) *sdkerrors.Error {
 
 func ErrValidatorPubKeyTypeNotSupported(codespace string) *sdkerrors.Error {
 	return sdkerrors.New(codespace, CodeInvalidInput, "validator pubkey type is not supported")
+}
+
+func ErrInvalidHistoricalInfo(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeErrInvalidHistoricalInfo, "invalid historical info")
 }

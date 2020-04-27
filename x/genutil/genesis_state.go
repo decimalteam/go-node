@@ -3,7 +3,6 @@ package genutil
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/pkg/errors"
 
 	abci "github.com/tendermint/tendermint/abci/types"

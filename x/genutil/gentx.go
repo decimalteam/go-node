@@ -3,6 +3,7 @@ package genutil
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"path/filepath"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -94,6 +95,7 @@ func DeliverGenTxs(ctx sdk.Context, cdc *codec.Codec, genTxs []json.RawMessage,
 	validatorKeeper validator.Keeper, deliverTx deliverTxfn) ([]abci.ValidatorUpdate, error) {
 
 	for _, genTx := range genTxs {
+		log.Println(string(genTx))
 		var tx authtypes.StdTx
 		cdc.MustUnmarshalJSON(genTx, &tx)
 		bz := cdc.MustMarshalBinaryLengthPrefixed(tx)

@@ -52,15 +52,6 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 				continue
 			}
 		}
-
-		//switch validator.Status {
-		//case vtypes.Bonded:
-		//	bondedTokens[vtypes.DefaultBondDenom] = validator.Tokens
-		//case vtypes.Unbonding, vtypes.Unbonded:
-		//	notBondedTokens[vtypes.DefaultBondDenom] = validator.Tokens
-		//default:
-		//	log.Println("Init genesis error: invalid validator status")
-		//}
 	}
 
 	for _, delegation := range data.Delegations {
@@ -161,17 +152,12 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 	params := keeper.GetParams(ctx)
 	lastTotalPower := keeper.GetLastTotalPower(ctx)
 	validators := keeper.GetAllValidators(ctx)
-	//delegations := keeper.GetAllDelegations(ctx)
-	//var unbondingDelegations []types.UnbondingDelegation
-	//keeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd types.UnbondingDelegation) (stop bool) {
-	//	unbondingDelegations = append(unbondingDelegations, ubd)
-	//	return false
-	//})
-	//var redelegations []types.Redelegation
-	//keeper.IterateRedelegations(ctx, func(_ int64, red types.Redelegation) (stop bool) {
-	//	redelegations = append(redelegations, red)
-	//	return false
-	//})
+	delegations := keeper.GetAllDelegations(ctx)
+	var unbondingDelegations []types.UnbondingDelegation
+	keeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd types.UnbondingDelegation) (stop bool) {
+		unbondingDelegations = append(unbondingDelegations, ubd)
+		return false
+	})
 	var lastValidatorPowers []types.LastValidatorPower
 	keeper.IterateLastValidatorPowers(ctx, func(addr sdk.ValAddress, power int64) (stop bool) {
 		lastValidatorPowers = append(lastValidatorPowers, types.LastValidatorPower{Address: addr, Power: power})
@@ -179,11 +165,13 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 	})
 
 	return types.GenesisState{
-		Params:              params,
-		LastTotalPower:      lastTotalPower,
-		LastValidatorPowers: lastValidatorPowers,
-		Validators:          validators,
-		Exported:            true,
+		Params:               params,
+		LastTotalPower:       lastTotalPower,
+		LastValidatorPowers:  lastValidatorPowers,
+		Validators:           validators,
+		Delegations:          delegations,
+		UnbondingDelegations: unbondingDelegations,
+		Exported:             true,
 	}
 }
 

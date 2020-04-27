@@ -21,10 +21,11 @@ type LastValidatorPower struct {
 	Power   int64
 }
 
-func NewGenesisState(params Params, validators []Validator) GenesisState {
+func NewGenesisState(params Params, validators []Validator, delegations Delegations) GenesisState {
 	return GenesisState{
-		Params:     params,
-		Validators: validators,
+		Params:      params,
+		Validators:  validators,
+		Delegations: delegations,
 	}
 }
 

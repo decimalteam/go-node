@@ -43,12 +43,20 @@ func (k Keeper) BondDenom(ctx sdk.Context) (res string) {
 	return
 }
 
+// HistoricalEntries = number of historical info entries
+// to persist in store
+func (k Keeper) HistoricalEntries(ctx sdk.Context) (res uint16) {
+	k.paramSpace.Get(ctx, types.KeyHistoricalEntries, &res)
+	return
+}
+
 // Get all parameteras as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
 		k.UnBondingTime(ctx),
 		k.MaxValidators(ctx),
 		k.MaxEntries(ctx),
+		k.HistoricalEntries(ctx),
 		k.BondDenom(ctx),
 	)
 }

@@ -36,7 +36,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	// The persistent set is updated later in this function.
 	// (see LastValidatorPowerKey).
 	last := k.getLastValidatorsByAddr(ctx)
-	log.Println(k.GetAllValidatorsByPowerIndex(ctx))
 
 	// Iterate over validators, highest power to lowest.
 	iterator := sdk.KVStoreReversePrefixIterator(store, []byte{types.ValidatorsByPowerIndexKey})

@@ -20,7 +20,7 @@ func TestSetValidator(t *testing.T) {
 
 	// test how the validator is set from a purely unbonbed pool
 	validator := types.NewValidator(valAddr, valPubKey, sdk.ZeroDec(), sdk.AccAddress(valAddr))
-	delegator := types.NewDelegation(addrDels[0], valAddr, sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), valTokens))
+	delegator := types.NewDelegation(addrDels[0], valAddr, sdk.NewCoin(keeper.BondDenom(ctx), valTokens))
 	keeper.SetDelegation(ctx, delegator)
 	require.Equal(t, types.Unbonded, validator.Status)
 	require.Equal(t, valTokens, keeper.TotalStake(ctx, validator))
@@ -77,7 +77,7 @@ func TestUpdateValidatorByPowerIndex(t *testing.T) {
 
 	// add a validator
 	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), sdk.AccAddress(addrVals[0]))
-	delegator := types.NewDelegation(addrDels[0], addrVals[0], sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), sdk.TokensFromConsensusPower(100)))
+	delegator := types.NewDelegation(addrDels[0], addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), sdk.TokensFromConsensusPower(100)))
 	keeper.SetDelegation(ctx, delegator)
 	require.Equal(t, types.Unbonded, validator.Status)
 	require.Equal(t, sdk.TokensFromConsensusPower(100), keeper.TotalStake(ctx, validator))
@@ -127,7 +127,7 @@ func TestUpdateBondedValidatorsDecreaseCliff(t *testing.T) {
 	for i := 0; i < len(validators); i++ {
 		val := types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i])
 		delTokens := sdk.TokensFromConsensusPower(int64((i + 1) * 10))
-		delegator := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
+		delegator := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
 		keeper.SetDelegation(ctx, delegator)
 
 		val = TestingUpdateValidator(keeper, ctx, val, true)
@@ -176,7 +176,7 @@ func TestSlashToZeroPowerRemoved(t *testing.T) {
 	require.NoError(t, err)
 	keeper.supplyKeeper.SetModuleAccount(ctx, bondedPool)
 
-	delegator := types.NewDelegation(addrDels[0], addrVals[0], sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), valTokens))
+	delegator := types.NewDelegation(addrDels[0], addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), valTokens))
 	keeper.SetDelegation(ctx, delegator)
 	require.Equal(t, types.Unbonded, validator.Status)
 	require.Equal(t, valTokens, keeper.TotalStake(ctx, validator))
@@ -206,7 +206,7 @@ func TestValidatorBasics(t *testing.T) {
 		validators[i].Status = types.Unbonded
 		tokens := sdk.TokensFromConsensusPower(power)
 
-		delegator := types.NewDelegation(sdk.AccAddress(addrVals[i]), addrVals[i], sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+		delegator := types.NewDelegation(sdk.AccAddress(addrVals[i]), addrVals[i], sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 		keeper.SetDelegation(ctx, delegator)
 	}
 	assert.Equal(t, sdk.TokensFromConsensusPower(9), keeper.TotalStake(ctx, validators[0]))
@@ -312,7 +312,7 @@ func TestGetValidatorSortingUnmixed(t *testing.T) {
 	for i, amt := range amts {
 		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i])
 		validators[i].Status = types.Bonded
-		delegator := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), amt))
+		delegator := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.NewCoin(keeper.BondDenom(ctx), amt))
 		keeper.SetDelegation(ctx, delegator)
 		TestingUpdateValidator(keeper, ctx, validators[i], true)
 	}
@@ -467,7 +467,7 @@ func TestGetValidatorsEdgeCases(t *testing.T) {
 	for i, power := range powers {
 		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i])
 		tokens := sdk.TokensFromConsensusPower(power)
-		delegator := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+		delegator := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 		keeper.SetDelegation(ctx, delegator)
 		notBondedPool := keeper.GetNotBondedPool(ctx)
 		require.NoError(t, notBondedPool.SetCoins(notBondedPool.GetCoins().Add(sdk.NewCoin(params.BondDenom, tokens))))
@@ -484,7 +484,7 @@ func TestGetValidatorsEdgeCases(t *testing.T) {
 	// delegate 500 tokens to validator 0
 	keeper.DeleteValidatorByPowerIndex(ctx, validators[0])
 	delTokens := sdk.TokensFromConsensusPower(500)
-	delegation := types.NewDelegation(Addrs[0], sdk.ValAddress(Addrs[0]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
+	delegation := types.NewDelegation(Addrs[0], sdk.ValAddress(Addrs[0]), sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
 	keeper.SetDelegation(ctx, delegation)
 	notBondedPool := keeper.GetNotBondedPool(ctx)
 	newTokens := sdk.NewCoins(sdk.NewCoin(params.BondDenom, delTokens))
@@ -516,7 +516,7 @@ func TestGetValidatorsEdgeCases(t *testing.T) {
 	validators[3], err = keeper.GetValidator(ctx, validators[3].ValAddress)
 	require.Nil(t, err)
 	keeper.DeleteValidatorByPowerIndex(ctx, validators[3])
-	delegation = types.NewDelegation(Addrs[3], sdk.ValAddress(Addrs[3]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), sdk.TokensFromConsensusPower(1)))
+	delegation = types.NewDelegation(Addrs[3], sdk.ValAddress(Addrs[3]), sdk.NewCoin(keeper.BondDenom(ctx), sdk.TokensFromConsensusPower(1)))
 	keeper.SetDelegation(ctx, delegation)
 
 	notBondedPool = keeper.GetNotBondedPool(ctx)
@@ -550,7 +550,7 @@ func TestGetValidatorsEdgeCases(t *testing.T) {
 
 	// validator 3 does not get spot back
 	keeper.DeleteValidatorByPowerIndex(ctx, validators[3])
-	delegation = types.NewDelegation(Addrs[3], sdk.ValAddress(Addrs[3]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), sdk.TokensFromConsensusPower(200)))
+	delegation = types.NewDelegation(Addrs[3], sdk.ValAddress(Addrs[3]), sdk.NewCoin(keeper.BondDenom(ctx), sdk.TokensFromConsensusPower(200)))
 	keeper.SetDelegation(ctx, delegation)
 
 	notBondedPool = keeper.GetNotBondedPool(ctx)
@@ -583,11 +583,11 @@ func TestValidatorBondHeight(t *testing.T) {
 	tokens0 := sdk.TokensFromConsensusPower(200)
 	tokens1 := sdk.TokensFromConsensusPower(100)
 	tokens2 := sdk.TokensFromConsensusPower(100)
-	delegation := types.NewDelegation(Addrs[0], sdk.ValAddress(Addrs[0]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens0))
+	delegation := types.NewDelegation(Addrs[0], sdk.ValAddress(Addrs[0]), sdk.NewCoin(keeper.BondDenom(ctx), tokens0))
 	keeper.SetDelegation(ctx, delegation)
-	delegation = types.NewDelegation(Addrs[1], sdk.ValAddress(Addrs[1]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens1))
+	delegation = types.NewDelegation(Addrs[1], sdk.ValAddress(Addrs[1]), sdk.NewCoin(keeper.BondDenom(ctx), tokens1))
 	keeper.SetDelegation(ctx, delegation)
-	delegation = types.NewDelegation(Addrs[2], sdk.ValAddress(Addrs[2]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens2))
+	delegation = types.NewDelegation(Addrs[2], sdk.ValAddress(Addrs[2]), sdk.NewCoin(keeper.BondDenom(ctx), tokens2))
 	keeper.SetDelegation(ctx, delegation)
 
 	validators[0] = TestingUpdateValidator(keeper, ctx, validators[0], true)
@@ -606,9 +606,9 @@ func TestValidatorBondHeight(t *testing.T) {
 	keeper.DeleteValidatorByPowerIndex(ctx, validators[1])
 	keeper.DeleteValidatorByPowerIndex(ctx, validators[2])
 	delTokens := sdk.TokensFromConsensusPower(50)
-	delegation = types.NewDelegation(Addrs[1], sdk.ValAddress(Addrs[1]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
+	delegation = types.NewDelegation(Addrs[1], sdk.ValAddress(Addrs[1]), sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
 	keeper.SetDelegation(ctx, delegation)
-	delegation = types.NewDelegation(Addrs[2], sdk.ValAddress(Addrs[2]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
+	delegation = types.NewDelegation(Addrs[2], sdk.ValAddress(Addrs[2]), sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
 	keeper.SetDelegation(ctx, delegation)
 	validators[2] = TestingUpdateValidator(keeper, ctx, validators[2], true)
 	resValidators = keeper.GetBondedValidatorsByPower(ctx)
@@ -631,7 +631,7 @@ func TestFullValidatorSetPowerChange(t *testing.T) {
 	for i, power := range powers {
 		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i])
 		tokens := sdk.TokensFromConsensusPower(power)
-		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 		keeper.SetDelegation(ctx, delegation)
 		TestingUpdateValidator(keeper, ctx, validators[i], true)
 	}
@@ -653,7 +653,7 @@ func TestFullValidatorSetPowerChange(t *testing.T) {
 	// test a swap in voting power
 
 	tokens := sdk.TokensFromConsensusPower(600)
-	delegation := types.NewDelegation(Addrs[0], sdk.ValAddress(Addrs[0]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+	delegation := types.NewDelegation(Addrs[0], sdk.ValAddress(Addrs[0]), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 	keeper.SetDelegation(ctx, delegation)
 	validators[0] = TestingUpdateValidator(keeper, ctx, validators[0], true)
 	resValidators = keeper.GetBondedValidatorsByPower(ctx)
@@ -673,7 +673,7 @@ func TestApplyAndReturnValidatorSetUpdatesAllNone(t *testing.T) {
 
 		validators[i] = types.NewValidator(valAddr, valPubKey, sdk.ZeroDec(), sdk.AccAddress(valAddr))
 		tokens := sdk.TokensFromConsensusPower(power)
-		delegation := types.NewDelegation(sdk.AccAddress(valAddr), valAddr, sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+		delegation := types.NewDelegation(sdk.AccAddress(valAddr), valAddr, sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 		keeper.SetDelegation(ctx, delegation)
 	}
 
@@ -705,7 +705,7 @@ func TestApplyAndReturnValidatorSetUpdatesIdentical(t *testing.T) {
 		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i])
 
 		tokens := sdk.TokensFromConsensusPower(power)
-		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 		keeper.SetDelegation(ctx, delegation)
 	}
 	validators[0] = TestingUpdateValidator(keeper, ctx, validators[0], false)
@@ -733,7 +733,7 @@ func TestApplyAndReturnValidatorSetUpdatesSingleValueChange(t *testing.T) {
 		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i])
 
 		tokens := sdk.TokensFromConsensusPower(power)
-		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 		keeper.SetDelegation(ctx, delegation)
 	}
 	validators[0] = TestingUpdateValidator(keeper, ctx, validators[0], false)
@@ -767,7 +767,7 @@ func TestApplyAndReturnValidatorSetUpdatesMultipleValueChange(t *testing.T) {
 		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i])
 
 		tokens := sdk.TokensFromConsensusPower(power)
-		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 		keeper.SetDelegation(ctx, delegation)
 	}
 	validators[0] = TestingUpdateValidator(keeper, ctx, validators[0], false)
@@ -780,9 +780,9 @@ func TestApplyAndReturnValidatorSetUpdatesMultipleValueChange(t *testing.T) {
 	//  tendermintUpdate set: {c1, c3} -> {c1', c3'}
 	delTokens1 := sdk.TokensFromConsensusPower(190)
 	delTokens2 := sdk.TokensFromConsensusPower(80)
-	delegation := types.NewDelegation(Addrs[0], sdk.ValAddress(Addrs[0]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), delTokens1))
+	delegation := types.NewDelegation(Addrs[0], sdk.ValAddress(Addrs[0]), sdk.NewCoin(keeper.BondDenom(ctx), delTokens1))
 	keeper.SetDelegation(ctx, delegation)
-	delegation = types.NewDelegation(Addrs[1], sdk.ValAddress(Addrs[1]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), delTokens2))
+	delegation = types.NewDelegation(Addrs[1], sdk.ValAddress(Addrs[1]), sdk.NewCoin(keeper.BondDenom(ctx), delTokens2))
 	keeper.SetDelegation(ctx, delegation)
 	validators[0] = TestingUpdateValidator(keeper, ctx, validators[0], false)
 	validators[1] = TestingUpdateValidator(keeper, ctx, validators[1], false)
@@ -803,7 +803,7 @@ func TestApplyAndReturnValidatorSetUpdatesInserted(t *testing.T) {
 		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i])
 
 		tokens := sdk.TokensFromConsensusPower(power)
-		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 		keeper.SetDelegation(ctx, delegation)
 	}
 
@@ -856,7 +856,7 @@ func TestApplyAndReturnValidatorSetUpdatesWithCliffValidator(t *testing.T) {
 		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i])
 
 		tokens := sdk.TokensFromConsensusPower(power)
-		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 		keeper.SetDelegation(ctx, delegation)
 	}
 	validators[0] = TestingUpdateValidator(keeper, ctx, validators[0], false)
@@ -902,7 +902,7 @@ func TestApplyAndReturnValidatorSetUpdatesPowerDecrease(t *testing.T) {
 		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i])
 
 		tokens := sdk.TokensFromConsensusPower(power)
-		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+		delegation := types.NewDelegation(Addrs[i], sdk.ValAddress(Addrs[i]), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 		keeper.SetDelegation(ctx, delegation)
 	}
 	validators[0] = TestingUpdateValidator(keeper, ctx, validators[0], false)
@@ -961,7 +961,7 @@ func TestApplyAndReturnValidatorSetUpdatesNewValidator(t *testing.T) {
 		validators[i] = types.NewValidator(valAddr, valPubKey, sdk.ZeroDec(), sdk.AccAddress(valAddr))
 
 		tokens := sdk.TokensFromConsensusPower(power)
-		delegation := types.NewDelegation(sdk.AccAddress(valAddr), valAddr, sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+		delegation := types.NewDelegation(sdk.AccAddress(valAddr), valAddr, sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 		keeper.SetDelegation(ctx, delegation)
 
 		keeper.SetValidator(ctx, validators[i])
@@ -1001,7 +1001,7 @@ func TestApplyAndReturnValidatorSetUpdatesNewValidator(t *testing.T) {
 	amt := sdk.NewInt(100)
 
 	validator := types.NewValidator(valAddr, valPubKey, sdk.ZeroDec(), sdk.AccAddress(valAddr))
-	delegation := types.NewDelegation(sdk.AccAddress(valAddr), valAddr, sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), amt))
+	delegation := types.NewDelegation(sdk.AccAddress(valAddr), valAddr, sdk.NewCoin(keeper.BondDenom(ctx), amt))
 	keeper.SetDelegation(ctx, delegation)
 
 	keeper.SetValidator(ctx, validator)
@@ -1020,7 +1020,7 @@ func TestApplyAndReturnValidatorSetUpdatesNewValidator(t *testing.T) {
 
 	validator = types.NewValidator(valAddr, valPubKey, sdk.ZeroDec(), sdk.AccAddress(valAddr))
 	tokens := sdk.TokensFromConsensusPower(500)
-	delegation = types.NewDelegation(sdk.AccAddress(valAddr), valAddr, sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+	delegation = types.NewDelegation(sdk.AccAddress(valAddr), valAddr, sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 	keeper.SetDelegation(ctx, delegation)
 	keeper.SetValidator(ctx, validator)
 	keeper.SetValidatorByPowerIndex(ctx, validator)
@@ -1054,7 +1054,7 @@ func TestApplyAndReturnValidatorSetUpdatesBondTransition(t *testing.T) {
 
 		validators[i] = types.NewValidator(valAddr, valPubKey, sdk.ZeroDec(), sdk.AccAddress(valAddr))
 		tokens := sdk.TokensFromConsensusPower(power)
-		delegation := types.NewDelegation(sdk.AccAddress(valAddr), valAddr, sdk.ZeroDec(), sdk.NewCoin(keeper.BondDenom(ctx), tokens))
+		delegation := types.NewDelegation(sdk.AccAddress(valAddr), valAddr, sdk.NewCoin(keeper.BondDenom(ctx), tokens))
 		keeper.SetDelegation(ctx, delegation)
 		keeper.SetValidator(ctx, validators[i])
 		keeper.SetValidatorByPowerIndex(ctx, validators[i])

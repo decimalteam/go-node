@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/binary"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strconv"
 	"time"
 )
 
@@ -38,6 +39,7 @@ const (
 	ValidatorSigningInfoKey          = 0x10
 	ValidatorMissedBlockBitArrayKey  = 0x11
 	AddrPubkeyRelationKey            = 0x12
+	HistoricalInfoKey                = 0x13
 )
 
 func GetValidatorKey(addr sdk.ValAddress) []byte {
@@ -277,4 +279,11 @@ func ParseValidatorPowerRankKey(key []byte) (operAddr []byte) {
 		operAddr[i] = ^b
 	}
 	return operAddr
+}
+
+//________________________________________________________________________________
+
+// GetHistoricalInfoKey gets the key for the historical info
+func GetHistoricalInfoKey(height int64) []byte {
+	return append([]byte{HistoricalInfoKey}, []byte(strconv.FormatInt(height, 10))...)
 }

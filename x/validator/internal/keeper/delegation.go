@@ -470,7 +470,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	// Get or create the delegation object
 	delegation, found := k.GetDelegation(ctx, delAddr, validator.ValAddress)
 	if !found {
-		delegation = types.NewDelegation(delAddr, validator.ValAddress, sdk.ZeroDec(), bondCoin)
+		delegation = types.NewDelegation(delAddr, validator.ValAddress, bondCoin)
 	}
 
 	// call the appropriate hook if present
@@ -528,7 +528,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 		if delegation.Coin.Denom == bondCoin.Denom {
 			delegation.Coin = delegation.Coin.Add(bondCoin)
 		} else {
-			delegation = types.NewDelegation(delAddr, validator.ValAddress, sdk.ZeroDec(), bondCoin)
+			delegation = types.NewDelegation(delAddr, validator.ValAddress, bondCoin)
 		}
 	}
 
