@@ -1,14 +1,14 @@
 package utils
 
 import (
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
 
 	clientctx "github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 // Check if coin exists
@@ -115,4 +115,12 @@ func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wants
 	}
 
 	return amountBuy, wantsSell, nil
+}
+
+func GetBaseCoin() string {
+	if config.ChainID == "decimal-testnet" {
+		return config.SymbolTestBaseCoin
+	} else {
+		return config.SymbolBaseCoin
+	}
 }

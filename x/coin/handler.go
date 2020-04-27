@@ -2,6 +2,7 @@ package coin
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -47,8 +48,22 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		Volume:      msg.InitialVolume,
 	}
 	// TODO: take reserve from creator and give it initial volume
-	k.SetCoin(ctx, coin)
+	acc := k.AccountKeeper.GetAccount(ctx, msg.Creator)
+	balance := acc.GetCoins()
+	if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(msg.InitialReserve) {
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, "")
+	}
 
+	err := k.UpdateBalance(ctx, strings.ToLower(cliUtils.GetBaseCoin()), msg.InitialReserve.Neg(), msg.Creator)
+	if err != nil {
+		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, "")
+	}
+
+	k.SetCoin(ctx, coin)
+	err = k.UpdateBalance(ctx, strings.ToLower(coin.Symbol), msg.InitialVolume, msg.Creator)
+	if err != nil {
+		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, "")
+	}
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -58,7 +73,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 			sdk.NewAttribute(types.AttributeTitle, msg.Title),
 			sdk.NewAttribute(types.AttributeInitVolume, msg.InitialVolume.String()),
 			sdk.NewAttribute(types.AttributeInitReserve, msg.InitialReserve.String()),
-			sdk.NewAttribute(types.AttributeCRR, string(msg.ConstantReserveRatio)),
+			sdk.NewAttribute(types.AttributeCRR, strconv.FormatUint(uint64(msg.ConstantReserveRatio), 10)),
 			sdk.NewAttribute(types.AttributeLimitVolume, msg.LimitVolume.String()),
 		),
 	)
@@ -204,7 +219,7 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.R
 			sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeSendCoin),
 			sdk.NewAttribute(types.AttributeCoin, msg.Coin),
 			sdk.NewAttribute(types.AttributeAmount, msg.Amount.String()),
-			sdk.NewAttribute(types.AttributeReceiver, string(msg.Receiver)),
+			sdk.NewAttribute(types.AttributeReceiver, msg.Receiver.String()),
 		),
 	)
 
@@ -223,7 +238,7 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 				sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeMultiSendCoin),
 				sdk.NewAttribute(types.AttributeCoin, msg.Coins[i].Coin),
 				sdk.NewAttribute(types.AttributeAmount, msg.Coins[i].Amount.String()),
-				sdk.NewAttribute(types.AttributeReceiver, string(msg.Coins[i].Receiver)),
+				sdk.NewAttribute(types.AttributeReceiver, msg.Coins[i].Receiver.String()),
 			),
 		)
 	}
