@@ -76,56 +76,56 @@ type bechValidator struct {
 }
 
 // MarshalJSON marshals the validator to JSON using Bech32
-//func (v Validator) MarshalJSON() ([]byte, error) {
-//	bechConsPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	return codec.Cdc.MarshalJSON(bechValidator{
-//		ValAddress:              v.ValAddress,
-//		RewardAddress:           v.RewardAddress,
-//		PubKey:                  bechConsPubKey,
-//		Jailed:                  v.Jailed,
-//		Status:                  v.Status,
-//		Tokens:                  v.Tokens,
-//		DelegatorShares:         v.DelegatorShares,
-//		Description:             v.Description,
-//		UnbondingHeight:         v.UnbondingHeight,
-//		UnbondingCompletionTime: v.UnbondingCompletionTime,
-//		Commission:              v.Commission,
-//		AccumRewards:            v.AccumRewards,
-//		Online:                  v.Online,
-//	})
-//}
+func (v Validator) MarshalJSON() ([]byte, error) {
+	bechConsPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return codec.Cdc.MarshalJSON(bechValidator{
+		ValAddress:              v.ValAddress,
+		PubKey:                  bechConsPubKey,
+		Jailed:                  v.Jailed,
+		Status:                  v.Status,
+		Tokens:                  v.Tokens,
+		DelegatorShares:         v.DelegatorShares,
+		Description:             v.Description,
+		UnbondingHeight:         v.UnbondingHeight,
+		UnbondingCompletionTime: v.UnbondingCompletionTime,
+		Commission:              v.Commission,
+		RewardAddress:           v.RewardAddress,
+		Online:                  v.Online,
+		AccumRewards:            v.AccumRewards,
+	})
+}
 
 // UnmarshalJSON unmarshals the validator from JSON using Bech32
-//func (v *Validator) UnmarshalJSON(data []byte) error {
-//	bv := &bechValidator{}
-//	if err := codec.Cdc.UnmarshalJSON(data, bv); err != nil {
-//		return err
-//	}
-//	consPubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, bv.PubKey)
-//	if err != nil {
-//		return err
-//	}
-//	*v = Validator{
-//		ValAddress:              bv.ValAddress,
-//		RewardAddress:           bv.RewardAddress,
-//		PubKey:                  consPubKey,
-//		Jailed:                  bv.Jailed,
-//		Tokens:                  bv.Tokens,
-//		Status:                  bv.Status,
-//		DelegatorShares:         bv.DelegatorShares,
-//		Description:             bv.Description,
-//		UnbondingHeight:         bv.UnbondingHeight,
-//		UnbondingCompletionTime: bv.UnbondingCompletionTime,
-//		Commission:              bv.Commission,
-//		AccumRewards:            bv.AccumRewards,
-//		Online:                  bv.Online,
-//	}
-//	return nil
-//}
+func (v *Validator) UnmarshalJSON(data []byte) error {
+	bv := &bechValidator{}
+	if err := codec.Cdc.UnmarshalJSON(data, bv); err != nil {
+		return err
+	}
+	consPubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, bv.PubKey)
+	if err != nil {
+		return err
+	}
+	*v = Validator{
+		ValAddress:              bv.ValAddress,
+		PubKey:                  consPubKey,
+		Jailed:                  bv.Jailed,
+		Tokens:                  bv.Tokens,
+		Status:                  bv.Status,
+		DelegatorShares:         bv.DelegatorShares,
+		Description:             bv.Description,
+		UnbondingHeight:         bv.UnbondingHeight,
+		UnbondingCompletionTime: bv.UnbondingCompletionTime,
+		Commission:              bv.Commission,
+		RewardAddress:           bv.RewardAddress,
+		Online:                  bv.Online,
+		AccumRewards:            bv.AccumRewards,
+	}
+	return nil
+}
 
 // custom marshal yaml function due to consensus pubkey
 func (v Validator) MarshalYAML() (interface{}, error) {

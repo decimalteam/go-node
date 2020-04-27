@@ -18,5 +18,7 @@ build/
 # lol macs
 .DS_Store/
 
+.gitignore
 .idea
 .idea/workspace.xml
+/.decimal/

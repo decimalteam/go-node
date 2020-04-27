@@ -36,6 +36,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryDelegatorValidators(ctx, req, k)
 		case types.QueryDelegatorValidator:
 			return queryDelegatorValidator(ctx, req, k)
+		case types.QueryHistoricalInfo:
+			return queryHistoricalInfo(ctx, req, k)
 		case types.QueryPool:
 			return queryPool(ctx, k)
 		case types.QueryParameters:
@@ -277,6 +279,27 @@ func queryUnbondingDelegation(ctx sdk.Context, req abci.RequestQuery, k Keeper) 
 	}
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, unbond)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return res, nil
+}
+
+func queryHistoricalInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryHistoricalInfoParams
+
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	hi, found := k.GetHistoricalInfo(ctx, params.Height)
+	if !found {
+		return nil, types.ErrNoHistoricalInfo(k.Codespace())
+	}
+
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, hi)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
