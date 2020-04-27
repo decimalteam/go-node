@@ -13,6 +13,9 @@ decd init mynode --chain-id decimal-testnet
 decd add-genesis-account $(deccli keys show val -a --keyring-backend test) 100000000000000000tdcl
 decd add-genesis-account dx1fyqf7gp0gzmpzwxfrah9veaxt8ysl68khxwfjm 1000000000000000000000000000tdcl
 decd add-genesis-account dx1dvwgj5hc3uqjemk22v9gq7um30v0l6wpcwnwnm 1000000000000000000000000000tdcl
+decd add-genesis-account dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd 1000000000000000000000000000tdcl
+decd add-genesis-account dx1cjkq662yycfy03euktm4p5rem0q53f9x89crap 1000000000000000000000000000tdcl
+decd add-genesis-account dx178h6nvsqg5vr2gq8xv8f9jlmkpg3mjvzktsmj2 1000000000000000000000000000tdcl
 
 # Add initial signed transactions to the genesis file
 decd gentx --name val --website decimalchain.com --keyring-backend test
