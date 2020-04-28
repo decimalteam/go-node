@@ -17,10 +17,10 @@ cd $HOME
 shopt -u extglob
 
 echo "Step 2. Downloading genesis."
-curl "$VALIDATOR_RPC/genesis" | jq ".result.genesis" > $HOME/.decimal/daemon/config/genesis.json
+curl "$VALIDATOR_RPC/genesis" | jq ".result.genesis" >$HOME/.decimal/daemon/config/genesis.json
 
 echo "Step 3. Fetching node id."
-curl "$VALIDATOR_RPC/status" | jq ".result.node_info.id" | awk '{gsub("\"", ""); print}' > $HOME/VALIDATOR_NODE_ID
+curl "$VALIDATOR_RPC/status" | jq ".result.node_info.id" | awk '{gsub("\"", ""); print}' >$HOME/VALIDATOR_NODE_ID
 echo "Got $(cat $HOME/VALIDATOR_NODE_ID) node id."
 ORIGINAL_STR='persistent_peers = "*"'
 REPLACE_STR='persistent_peers = "'$(cat $HOME/VALIDATOR_NODE_ID)@VALIDATOR_IP':26656"'

@@ -19,31 +19,31 @@ build: &build
 
 stop-pipe: &stop-pipe
   - pipe: atlassian/ssh-run:0.2.5
-      variables:
-        SSH_USER: $USER
-        SERVER: $HOST
-        SSH_KEY: $SSHKEY
-        COMMAND: 'sudo systemctl stop decd'
-        MODE: 'command'
+    variables:
+      SSH_USER: $USER
+      SERVER: $HOST
+      SSH_KEY: $SSHKEY
+      COMMAND: 'sudo systemctl stop decd'
+      MODE: 'command'
 
 deploy-pipe: &deploy-pipe
   - pipe: atlassian/sftp-deploy:0.5.4
-      variables:
-        USER: $USER
-        SSH_KEY: $SSHKEY
-        SERVER: $HOST
-        LOCAL_PATH: 'build/*'
-        REMOTE_PATH: '/home/$USER/decimal/'
-        DEBUG: 'true'
+    variables:
+      USER: $USER
+      SSH_KEY: $SSHKEY
+      SERVER: $HOST
+      LOCAL_PATH: 'build/*'
+      REMOTE_PATH: '/home/$USER/decimal/'
+      DEBUG: 'true'
 
 restart-pipe: &restart-pipe
   - pipe: atlassian/ssh-run:0.2.5
-      variables:
-        SSH_USER: $USER
-        SERVER: $HOST
-        SSH_KEY: $SSHKEY
-        COMMAND: 'sudo systemctl restart decd'
-        MODE: 'command'
+    variables:
+      SSH_USER: $USER
+      SERVER: $HOST
+      SSH_KEY: $SSHKEY
+      COMMAND: 'sudo systemctl restart decd'
+      MODE: 'command'
 
 deploy-script: &deploy-script
   script:
@@ -56,21 +56,21 @@ deploy-script: &deploy-script
 
 wipe-validator-pipe: &wipe-validator-pipe
   - pipe: atlassian/ssh-run:0.2.5
-      variables:
-        SSH_USER: $USER
-        SERVER: $HOST
-        SSH_KEY: $SSHKEY
-        COMMAND: './ci-scripts/init_blockchain.sh'
-        MODE: 'script'
+    variables:
+      SSH_USER: $USER
+      SERVER: $HOST
+      SSH_KEY: $SSHKEY
+      COMMAND: './ci-scripts/init_blockchain.sh'
+      MODE: 'script'
 
 update-configs-pipe: &update-configs-pipe
   - pipe: atlassian/ssh-run:0.2.5
-      variables:
-        SSH_USER: $USER
-        SERVER: $HOST
-        SSH_KEY: $SSHKEY
-        COMMAND: './ci-scripts/update_configs.sh'
-        MODE: 'script'
+    variables:
+      SSH_USER: $USER
+      SERVER: $HOST
+      SSH_KEY: $SSHKEY
+      COMMAND: './ci-scripts/update_configs.sh'
+      MODE: 'script'
 
 wipe-validator-script: &wipe-validator-script
   script:
