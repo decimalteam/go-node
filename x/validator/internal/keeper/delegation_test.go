@@ -41,7 +41,7 @@ func TestDelegation(t *testing.T) {
 	require.True(t, bond1to1.Equal(resBond))
 
 	// modify a records, save, and retrieve
-	bond1to1.Shares = sdk.NewDec(99)
+	bond1to1.Coin = sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(99))
 	keeper.SetDelegation(ctx, bond1to1)
 	resBond, found = keeper.GetDelegation(ctx, addrDels[0], addrVals[0])
 	require.True(t, found)
