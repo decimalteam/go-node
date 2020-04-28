@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -153,7 +154,7 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 
 	now := ctx.BlockHeader().Time
 	totalSlashAmount = sdk.ZeroInt()
-	burnedAmount := sdk.ZeroInt()
+	burnedAmount := sdk.NewCoins()
 
 	// perform slashing on all entries within the unbonding delegation
 	for i, entry := range unbondingDelegation.Entries {
@@ -184,23 +185,26 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 			continue
 		}
 
-		burnedAmount = burnedAmount.Add(unbondingSlashAmount)
+		burnedAmount = burnedAmount.Add(sdk.NewCoin(entry.Balance.Denom, unbondingSlashAmount))
 		entry.Balance.Amount = entry.Balance.Amount.Sub(unbondingSlashAmount)
 		unbondingDelegation.Entries[i] = entry
 		k.SetUnbondingDelegation(ctx, unbondingDelegation)
-		if err := k.burnNotBondedTokens(ctx, sdk.NewCoins(sdk.NewCoin(entry.Balance.Denom, burnedAmount))); err != nil {
-			panic(err)
-		}
 
-		if entry.Balance.Denom != DefaultParamspace {
+		if entry.Balance.Denom != k.BondDenom(ctx) {
 			coin, err := k.GetCoin(ctx, entry.Balance.Denom)
 			if err != nil {
 				panic(err)
 			}
-			ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, burnedAmount)
-			k.coinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(burnedAmount))
+			ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, unbondingSlashAmount)
+			k.coinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(unbondingSlashAmount))
 		}
 	}
+
+	if err := k.burnNotBondedTokens(ctx, burnedAmount); err != nil {
+		panic(err)
+	}
+
+	log.Println(burnedAmount)
 
 	return totalSlashAmount
 }
@@ -221,11 +225,11 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 			continue
 		}
 
-		burnedAmount = burnedAmount.Add(sdk.NewCoins(sdk.NewCoin(delegation.Coin.Denom, bondSlashAmount))...)
+		burnedAmount = burnedAmount.Add(sdk.NewCoin(delegation.Coin.Denom, bondSlashAmount))
 		delegation.Coin.Amount = delegation.Coin.Amount.Sub(bondSlashAmount)
 		k.SetDelegation(ctx, delegation)
 
-		if delegation.Coin.Denom != DefaultParamspace {
+		if delegation.Coin.Denom != k.BondDenom(ctx) {
 			coin, err := k.GetCoin(ctx, delegation.Coin.Denom)
 			if err != nil {
 				panic(err)
