@@ -23,7 +23,7 @@ echo "Step 3. Fetching node id."
 curl "$VALIDATOR_RPC/status" | jq ".result.node_info.id" | awk '{gsub("\"", ""); print}' >$HOME/VALIDATOR_NODE_ID
 echo "Got $(cat $HOME/VALIDATOR_NODE_ID) node id."
 ORIGINAL_STR='persistent_peers = "*"'
-REPLACE_STR='persistent_peers = "'$(cat $HOME/VALIDATOR_NODE_ID)@VALIDATOR_IP':26656"'
+REPLACE_STR='persistent_peers = "'$(cat $HOME/VALIDATOR_NODE_ID)@$VALIDATOR_IP':26656"'
 REPLACE_RULE='s/'$ORIGINAL_STR'/'$REPLACE_STR'/g'
 
 sed -i "$REPLACE_RULE" $HOME/.decimal/daemon/config/config.toml
