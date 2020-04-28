@@ -7,7 +7,7 @@
 deccli keys add val --keyring-backend test
 
 # Initialize new blockchain
-decd init mynode --chain-id decimal-testnet
+decd init $(hostname) --chain-id decimal-testnet
 
 # Add initial funds to the genesis file
 decd add-genesis-account $(deccli keys show val -a --keyring-backend test) 100000000000000000tdcl
