@@ -3,7 +3,7 @@
 VALIDATOR_IP="139.59.133.148"
 VALIDATOR_RPC="http://$VALIDATOR_IP/rpc"
 
-expoer PATH=$PATH:$HOME/decimal
+export PATH=$PATH:$HOME/decimal
 echo "Updating configs..."
 echo "Step 1. Clear current state."
 rm $HOME/.decimal -r
