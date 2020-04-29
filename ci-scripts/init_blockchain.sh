@@ -1,5 +1,6 @@
 #!/bin/bash
 export PATH=$PATH:$HOME/decimal
+rm -r ~/.decimal
 # WARNING: Do not use "test" keyring backend in a production!
 # It is used not to radically simplify testnet CI.
 
