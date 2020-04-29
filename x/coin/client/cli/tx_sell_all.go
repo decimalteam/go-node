@@ -19,9 +19,9 @@ import (
 
 func GetCmdSellAllCoin(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "sell_all [coinToSell] [coinToBuy]",
+		Use:   "sell_all [coinToSell] [coinToBuy] [minAmountToBuy]",
 		Short: "Sell all coin",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
