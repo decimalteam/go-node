@@ -90,7 +90,6 @@ update-configs-script: &update-configs-script
     - pipe3:
       <<: *restart-pipe
 
-
 pipelines:
   tags:
     'wipe/*':
