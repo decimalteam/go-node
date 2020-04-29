@@ -64,7 +64,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 	if err != nil {
 		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, "")
 	}
-	ctx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
@@ -76,7 +76,11 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 			sdk.NewAttribute(types.AttributeCRR, strconv.FormatUint(uint64(msg.ConstantReserveRatio), 10)),
 			sdk.NewAttribute(types.AttributeLimitVolume, msg.LimitVolume.String()),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Creator.String()),
+		),
+	})
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
@@ -129,7 +133,7 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 
 	k.UpdateCoin(ctx, coinToSell, coinToSell.Reserve.Sub(amountSellInBaseCoin), coinToSell.Volume.Sub(amountSell))
 	k.UpdateCoin(ctx, coinToBuy, coinToBuy.Reserve.Add(amountBuyInBaseCoin), coinToBuy.Volume.Add(amountBuy))
-	ctx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
@@ -141,7 +145,11 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 			sdk.NewAttribute(types.AttributeAmountToBuyInBaseCoin, amountBuyInBaseCoin.String()),
 			sdk.NewAttribute(types.AttributeAmountToSellInBaseCoin, amountSellInBaseCoin.String()),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Buyer.String()),
+		),
+	})
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
@@ -192,7 +200,7 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin) (*sdk.R
 	k.UpdateCoin(ctx, coinToSell, coinToSell.Reserve.Sub(amountBuyInBaseCoin), coinToSell.Volume.Sub(amountSell))
 	k.UpdateCoin(ctx, coinToBuy, coinToBuy.Reserve.Add(amountSellInBaseCoin), coinToBuy.Volume.Add(amountBuy))
 
-	ctx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
@@ -204,7 +212,11 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin) (*sdk.R
 			sdk.NewAttribute(types.AttributeAmountToBuyInBaseCoin, amountBuyInBaseCoin.String()),
 			sdk.NewAttribute(types.AttributeAmountToSellInBaseCoin, amountSellInBaseCoin.String()),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Seller.String()),
+		),
+	})
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
@@ -212,7 +224,7 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin) (*sdk.R
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
 	// TODO: commission
 	_ = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coin), msg.Amount)})
-	ctx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
@@ -221,7 +233,7 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.R
 			sdk.NewAttribute(types.AttributeAmount, msg.Amount.String()),
 			sdk.NewAttribute(types.AttributeReceiver, msg.Receiver.String()),
 		),
-	)
+	})
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
@@ -231,7 +243,7 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 	for i := range msg.Coins {
 		// TODO: Commission
 		_ = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Coins[i].Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coins[i].Coin), msg.Coins[i].Amount)})
-		ctx.EventManager().EmitEvent(
+		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
 				sdk.EventTypeMessage,
 				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
@@ -240,7 +252,11 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 				sdk.NewAttribute(types.AttributeAmount, msg.Coins[i].Amount.String()),
 				sdk.NewAttribute(types.AttributeReceiver, msg.Coins[i].Receiver.String()),
 			),
-		)
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+			),
+		})
 	}
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
@@ -285,7 +301,7 @@ func handleMsgSellAllCoin(ctx sdk.Context, k Keeper, msg types.MsgSellAllCoin) (
 	k.UpdateCoin(ctx, coinToSell, coinToSell.Reserve.Sub(amountBuyInBaseCoin), coinToSell.Volume.Sub(amountSell))
 	k.UpdateCoin(ctx, coinToBuy, coinToBuy.Reserve.Add(amountSellInBaseCoin), coinToBuy.Volume.Add(amountBuy))
 
-	ctx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
@@ -297,7 +313,11 @@ func handleMsgSellAllCoin(ctx sdk.Context, k Keeper, msg types.MsgSellAllCoin) (
 			sdk.NewAttribute(types.AttributeAmountToBuyInBaseCoin, amountBuyInBaseCoin.String()),
 			sdk.NewAttribute(types.AttributeAmountToSellInBaseCoin, amountSellInBaseCoin.String()),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Seller.String()),
+		),
+	})
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
