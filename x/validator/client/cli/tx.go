@@ -128,6 +128,7 @@ func PrepareFlagsForTxCreateValidator(
 	}
 
 	website := viper.GetString(FlagWebsite)
+	securityContact := viper.GetString(FlagSecurityContact)
 	details := viper.GetString(FlagDetails)
 	identity := viper.GetString(FlagIdentity)
 
@@ -138,6 +139,7 @@ func PrepareFlagsForTxCreateValidator(
 	viper.Set(FlagPubKey, sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, valPubKey))
 	viper.Set(FlagMoniker, config.Moniker)
 	viper.Set(FlagWebsite, website)
+	viper.Set(FlagSecurityContact, securityContact)
 	viper.Set(FlagDetails, details)
 	viper.Set(FlagIdentity, identity)
 
@@ -168,12 +170,13 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 		return txBldr, nil, err
 	}
 
-	description := types.Description{
-		Moniker:  viper.GetString(FlagMoniker),
-		Identity: viper.GetString(FlagIdentity),
-		Website:  viper.GetString(FlagWebsite),
-		Details:  viper.GetString(FlagDetails),
-	}
+	description := types.NewDescription(
+		viper.GetString(FlagMoniker),
+		viper.GetString(FlagIdentity),
+		viper.GetString(FlagWebsite),
+		viper.GetString(FlagSecurityContact),
+		viper.GetString(FlagDetails),
+	)
 
 	// get the initial validator commission parameters
 	rateStr := viper.GetString(FlagCommissionRate)
@@ -182,7 +185,7 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 		return txBldr, nil, err
 	}
 
-	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, types.Description(description), valAddr)
+	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, description, valAddr)
 
 	ip := viper.GetString(FlagIP)
 	nodeID := viper.GetString(FlagNodeID)

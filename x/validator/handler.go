@@ -56,7 +56,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		}
 	}
 
-	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Commission, msg.RewardAddr)
+	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Commission, msg.RewardAddr, msg.Description)
 	err := k.SetValidator(ctx, val)
 	if err != nil {
 		return nil, types.ErrInvalidStruct(k.Codespace())
@@ -71,13 +71,19 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		return nil, sdkerrors.New(k.Codespace(), types.CodeInvalidDelegation, err.Error())
 	}
 
-	ctx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeDeclareCandidate,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddr.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Stake.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyDenom, msg.Stake.Denom),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddr.String()),
+		),
+	})
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
@@ -98,6 +104,7 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 			types.EventTypeDelegate,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyDenom, msg.Amount.Denom),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -121,6 +128,7 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 			types.EventTypeUnbond,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyDenom, msg.Amount.Denom),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(
@@ -149,6 +157,10 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeEditCandidate,
+			sdk.NewAttribute(types.AttributeKeyRewardAddress, msg.RewardAddress.String()),
+		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
@@ -181,6 +193,10 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
+			types.EventTypeSetOnline,
+			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+		),
+		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddress.String()),
@@ -209,6 +225,10 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*s
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeSetOffline,
+			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),

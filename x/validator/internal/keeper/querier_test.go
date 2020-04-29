@@ -23,7 +23,7 @@ func TestNewQuerier(t *testing.T) {
 	amts := []sdk.Int{sdk.NewInt(9), sdk.NewInt(8)}
 	var validators [2]types.Validator
 	for i, amt := range amts {
-		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i])
+		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i], types.Description{})
 		del := types.NewDelegation(sdk.AccAddress(validators[i].ValAddress), validators[i].ValAddress, sdk.NewCoin(keeper.BondDenom(ctx), amt))
 		keeper.SetDelegation(ctx, del)
 		err := keeper.SetValidator(ctx, validators[i])
@@ -132,7 +132,7 @@ func TestQueryValidators(t *testing.T) {
 	status := []types.BondStatus{types.Bonded, types.Unbonded, types.Unbonding}
 	var validators [3]types.Validator
 	for i, amt := range amts {
-		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i])
+		validators[i] = types.NewValidator(sdk.ValAddress(Addrs[i]), PKs[i], sdk.ZeroDec(), Addrs[i], types.Description{})
 		del := types.NewDelegation(sdk.AccAddress(validators[i].ValAddress), validators[i].ValAddress, sdk.NewCoin(keeper.BondDenom(ctx), amt))
 		keeper.SetDelegation(ctx, del)
 		validators[i] = validators[i].UpdateStatus(status[i])
@@ -195,11 +195,11 @@ func TestQueryDelegation(t *testing.T) {
 	params := keeper.GetParams(ctx)
 
 	// Create Validators and Delegation
-	val1 := types.NewValidator(addrVal1, pk1, sdk.ZeroDec(), sdk.AccAddress(addrVal1))
+	val1 := types.NewValidator(addrVal1, pk1, sdk.ZeroDec(), sdk.AccAddress(addrVal1), types.Description{})
 	keeper.SetValidator(ctx, val1)
 	keeper.SetValidatorByPowerIndex(ctx, val1)
 
-	val2 := types.NewValidator(addrVal2, pk2, sdk.ZeroDec(), sdk.AccAddress(addrVal2))
+	val2 := types.NewValidator(addrVal2, pk2, sdk.ZeroDec(), sdk.AccAddress(addrVal2), types.Description{})
 	keeper.SetValidator(ctx, val2)
 	keeper.SetValidatorByPowerIndex(ctx, val2)
 
@@ -388,7 +388,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	ctx, _, keeper, _, _ := CreateTestInput(t, false, 10000)
 
 	// Create Validators and Delegation
-	val1 := types.NewValidator(addrVal1, pk1, sdk.ZeroDec(), sdk.AccAddress(addrVal1))
+	val1 := types.NewValidator(addrVal1, pk1, sdk.ZeroDec(), sdk.AccAddress(addrVal1), types.Description{})
 	err := keeper.SetValidator(ctx, val1)
 	require.NoError(t, err)
 
@@ -482,8 +482,8 @@ func TestQueryHistoricalInfo(t *testing.T) {
 	ctx, _, keeper, _, _ := CreateTestInput(t, false, 10000)
 
 	// Create Validators and Delegation
-	val1 := types.NewValidator(addrVal1, pk1, sdk.ZeroDec(), sdk.AccAddress(addrVal1))
-	val2 := types.NewValidator(addrVal2, pk2, sdk.ZeroDec(), sdk.AccAddress(addrVal2))
+	val1 := types.NewValidator(addrVal1, pk1, sdk.ZeroDec(), sdk.AccAddress(addrVal1), types.Description{})
+	val2 := types.NewValidator(addrVal2, pk2, sdk.ZeroDec(), sdk.AccAddress(addrVal2), types.Description{})
 	vals := []types.Validator{val1, val2}
 	err := keeper.SetValidator(ctx, val1)
 	require.NoError(t, err)

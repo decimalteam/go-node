@@ -11,20 +11,20 @@ import (
 )
 
 func TestValidatorTestEquivalent(t *testing.T) {
-	val1 := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1))
-	val2 := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1))
+	val1 := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1), Description{})
+	val2 := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1), Description{})
 
 	ok := val1.TestEquivalent(val2)
 	require.True(t, ok)
 
-	val2 = NewValidator(valAddr2, pk2, sdk.ZeroDec(), sdk.AccAddress(valAddr2))
+	val2 = NewValidator(valAddr2, pk2, sdk.ZeroDec(), sdk.AccAddress(valAddr2), Description{})
 
 	ok = val1.TestEquivalent(val2)
 	require.False(t, ok)
 }
 
 func TestABCIValidatorUpdate(t *testing.T) {
-	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1))
+	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1), Description{})
 
 	abciVal := validator.ABCIValidatorUpdate(sdk.ZeroInt())
 	require.Equal(t, tmtypes.TM2PB.PubKey(validator.PubKey), abciVal.PubKey)
@@ -32,7 +32,7 @@ func TestABCIValidatorUpdate(t *testing.T) {
 }
 
 func TestABCIValidatorUpdateZero(t *testing.T) {
-	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1))
+	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1), Description{})
 
 	abciVal := validator.ABCIValidatorUpdateZero()
 	require.Equal(t, tmtypes.TM2PB.PubKey(validator.PubKey), abciVal.PubKey)
@@ -40,7 +40,7 @@ func TestABCIValidatorUpdateZero(t *testing.T) {
 }
 
 func TestUpdateStatus(t *testing.T) {
-	validator := NewValidator(pk1.Address().Bytes(), pk1, sdk.ZeroDec(), pk1.Address().Bytes())
+	validator := NewValidator(pk1.Address().Bytes(), pk1, sdk.ZeroDec(), pk1.Address().Bytes(), Description{})
 	require.Equal(t, Unbonded, validator.Status)
 
 	// Unbonded to Bonded
@@ -57,7 +57,7 @@ func TestUpdateStatus(t *testing.T) {
 }
 
 func TestValidatorMarshalUnmarshalJSON(t *testing.T) {
-	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1))
+	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1), Description{})
 	js, err := codec.Cdc.MarshalJSON(validator)
 	require.NoError(t, err)
 	require.NotEmpty(t, js)

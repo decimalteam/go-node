@@ -76,7 +76,7 @@ func TestInitGenesisLargeValidatorSet(t *testing.T) {
 	validators := make([]types.Validator, size)
 
 	for i := range validators {
-		validators[i] = types.NewValidator(sdk.ValAddress(val.Addrs[i]), val.PKs[i], sdk.ZeroDec(), val.Addrs[i])
+		validators[i] = types.NewValidator(sdk.ValAddress(val.Addrs[i]), val.PKs[i], sdk.ZeroDec(), val.Addrs[i], types.Description{})
 
 		validators[i].Status = types.Bonded
 
@@ -101,7 +101,7 @@ func TestInitGenesisLargeValidatorSet(t *testing.T) {
 func TestValidateGenesis(t *testing.T) {
 	genValidators1 := make([]types.Validator, 1, 5)
 	pk := ed25519.GenPrivKey().PubKey()
-	genValidators1[0] = types.NewValidator(sdk.ValAddress(pk.Address()), pk, sdk.ZeroDec(), sdk.AccAddress(pk.Address()))
+	genValidators1[0] = types.NewValidator(sdk.ValAddress(pk.Address()), pk, sdk.ZeroDec(), sdk.AccAddress(pk.Address()), types.Description{})
 	genValidators1[0].Tokens = sdk.OneInt()
 	genValidators1[0].DelegatorShares = sdk.OneDec()
 

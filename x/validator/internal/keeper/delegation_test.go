@@ -17,7 +17,7 @@ func TestDelegation(t *testing.T) {
 	amts := []sdk.Int{sdk.NewInt(9), sdk.NewInt(8), sdk.NewInt(7)}
 	var validators [3]types.Validator
 	for i, amt := range amts {
-		validators[i] = types.NewValidator(addrVals[i], PKs[i], sdk.ZeroDec(), sdk.AccAddress(addrVals[i]))
+		validators[i] = types.NewValidator(addrVals[i], PKs[i], sdk.ZeroDec(), sdk.AccAddress(addrVals[i]), types.Description{})
 		delegation := types.NewDelegation(sdk.AccAddress(addrVals[i]), addrVals[i], sdk.NewCoin(keeper.BondDenom(ctx), amt))
 		keeper.SetDelegation(ctx, delegation)
 	}
@@ -177,7 +177,7 @@ func TestUnbondDelegation(t *testing.T) {
 
 	// create a validator and a delegator to that validator
 	// note this validator starts not-bonded
-	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), sdk.AccAddress(addrVals[0]))
+	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), sdk.AccAddress(addrVals[0]), types.Description{})
 
 	validator = TestingUpdateValidator(keeper, ctx, validator, true)
 
@@ -210,7 +210,7 @@ func TestUndelegateFromUnbondedValidator(t *testing.T) {
 	keeper.supplyKeeper.SetModuleAccount(ctx, notBondedPool)
 
 	// create a validator with a self-delegation
-	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), sdk.AccAddress(addrVals[0]))
+	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), sdk.AccAddress(addrVals[0]), types.Description{})
 
 	valTokens := sdk.TokensFromConsensusPower(10)
 	delegation := types.NewDelegation(sdk.AccAddress(addrVals[0]), addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), valTokens))
@@ -264,7 +264,7 @@ func TestUnbondingAllDelegationFromValidator(t *testing.T) {
 	keeper.supplyKeeper.SetModuleAccount(ctx, notBondedPool)
 
 	//create a validator with a self-delegation
-	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), sdk.AccAddress(addrVals[0]))
+	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), sdk.AccAddress(addrVals[0]), types.Description{})
 
 	valTokens := sdk.TokensFromConsensusPower(10)
 	val0AccAddr := sdk.AccAddress(addrVals[0].Bytes())

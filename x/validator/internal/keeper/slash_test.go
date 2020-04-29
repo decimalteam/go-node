@@ -22,7 +22,7 @@ func setupHelper(t *testing.T, power int64) (sdk.Context, Keeper, types.Params) 
 
 	// add numVals validators
 	for i := int64(0); i < numVals; i++ {
-		validator := types.NewValidator(addrVals[i], PKs[i], sdk.ZeroDec(), sdk.AccAddress(addrVals[i]))
+		validator := types.NewValidator(addrVals[i], PKs[i], sdk.ZeroDec(), sdk.AccAddress(addrVals[i]), types.Description{})
 		del := types.NewDelegation(sdk.AccAddress(validator.ValAddress), validator.ValAddress, sdk.NewCoin(keeper.BondDenom(ctx), amt))
 		keeper.SetDelegation(ctx, del)
 		validator = TestingUpdateValidator(keeper, ctx, validator, true)
