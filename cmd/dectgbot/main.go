@@ -68,14 +68,14 @@ func init() {
 	cdc.Seal()
 
 	// Prepare file containing last used sequence for the faucet addres
-	sequenceFileContent, err := ioutil.ReadFile(sequencePath)
+	data, err := ioutil.ReadFile(sequencePath)
 	if err != nil {
 		err = ioutil.WriteFile(sequencePath, []byte(strconv.FormatUint(sequence, 10)), os.ModePerm)
 		if err != nil {
 			log.Printf("ERROR: Cannot write to file %s: %v", sequencePath, err)
 		}
 	}
-	sequence, err = strconv.ParseUint(string(sequenceFileContent), 10, 64)
+	sequence, err = strconv.ParseUint(strings.Trim(string(data), " \n\r"), 10, 64)
 	if err != nil {
 		log.Printf("ERROR: Unable to parse sequence from file %s: %v", sequencePath, err)
 	}
