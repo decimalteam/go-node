@@ -114,8 +114,8 @@ func main() {
 	// Listen updates from the bot updater
 	for update := range updates {
 
-		// Ignore any non-message updates
-		if update.Message == nil {
+		// Ignore any non-message updates and /start messages
+		if update.Message == nil || update.Message.Text == "/start" {
 			continue
 		}
 
