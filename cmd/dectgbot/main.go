@@ -33,19 +33,21 @@ const RootPath = "$HOME/.decimal/cli"
 const RPCPrefix = "http://139.59.133.148/rpc"
 
 // Faucet settings.
-// TODO: Instead of using prepared account use pure private key for transactions signing.
 const (
-	FaucetChainID        = "decimal-testnet"
-	FaucetGas            = uint64(200000)
-	FaucetGasAdj         = float64(1.1)
-	FaucetKeyringBackend = keys.BackendTest
-	FaucetAccountNumber  = 5
-	FaucetAccountName    = "faucet"
-	FaucetAddress        = "dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd"
+	FaucetChainID         = "decimal-testnet"
+	FaucetGas             = uint64(200000)
+	FaucetGasAdj          = float64(1.1)
+	FaucetKeyringBackend  = keys.BackendTest
+	FaucetAccountNumber   = 5
+	FaucetAccountName     = "faucet"
+	FaucetAccountPassword = "12345678"
+	FaucetAddress         = "dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd"
+	FaucetMnemonic        = "repair furnace west loud peasant false six hockey poem tube now alien service phone hazard winter favorite away sand fuel describe version tragic vendor"
 )
 
 var _ sdk.Msg = &MsgSendCoin{}
 var cdc = codec.New()
+var keybase keys.Keybase
 var rootPath = os.ExpandEnv(RootPath)
 var sequencePath = fmt.Sprintf("%s/%s.sequence", rootPath, FaucetAddress)
 var sequence = uint64(0)
@@ -66,6 +68,14 @@ func init() {
 	cdc.RegisterConcrete(MsgSendCoin{}, "coin/SendCoin", nil)
 	codec.RegisterCrypto(cdc)
 	cdc.Seal()
+
+	// Initialize and prepare keybase
+	var err error
+	keybase, err = keys.NewKeyring(sdk.KeyringServiceName(), FaucetKeyringBackend, rootPath, nil)
+	if err != nil {
+		log.Fatalf("ERROR: Unable to initialize keybase: %v", err)
+	}
+	keybase.CreateAccount(FaucetAccountName, FaucetMnemonic, FaucetAccountPassword, FaucetAccountPassword, "44'/60'/0'/0/0", keys.Secp256k1)
 
 	// Prepare file containing last used sequence for the faucet addres
 	data, err := ioutil.ReadFile(sequencePath)
@@ -185,12 +195,7 @@ func sendCoins(address string, amount *big.Int) (response string, txHash string,
 		FaucetAccountNumber, sequence,
 		FaucetGas, FaucetGasAdj,
 		false, FaucetChainID, memo, nil, nil,
-	)
-	kb, err := keys.NewKeyring(sdk.KeyringServiceName(), FaucetKeyringBackend, rootPath, nil)
-	if err != nil {
-		return
-	}
-	txBldr = txBldr.WithKeybase(kb)
+	).WithKeybase(keybase)
 
 	sender, err := sdk.AccAddressFromBech32(FaucetAddress)
 	if err != nil {
@@ -207,7 +212,7 @@ func sendCoins(address string, amount *big.Int) (response string, txHash string,
 		Receiver: receiver,
 	}}
 
-	tx, err := txBldr.BuildAndSign(FaucetAccountName, "", msgs)
+	tx, err := txBldr.BuildAndSign(FaucetAccountName, FaucetAccountPassword, msgs)
 	if err != nil {
 		return
 	}
