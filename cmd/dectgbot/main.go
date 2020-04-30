@@ -43,6 +43,7 @@ const (
 	FaucetAccountPassword = "12345678"
 	FaucetAddress         = "dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd"
 	FaucetMnemonic        = "repair furnace west loud peasant false six hockey poem tube now alien service phone hazard winter favorite away sand fuel describe version tragic vendor"
+	FaucetBIP44Path       = "44'/60'/0'/0/0"
 )
 
 var _ sdk.Msg = &MsgSendCoin{}
@@ -57,7 +58,7 @@ func init() {
 	// Initialize cosmos-sdk configuration
 	cfg := sdk.GetConfig()
 	cfg.SetCoinType(60)
-	cfg.SetFullFundraiserPath("44'/60'/0'/0/0")
+	cfg.SetFullFundraiserPath(FaucetBIP44Path)
 	cfg.SetBech32PrefixForAccount(config.DecimalPrefixAccAddr, config.DecimalPrefixAccPub)
 	cfg.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
 	cfg.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
@@ -75,7 +76,7 @@ func init() {
 	if err != nil {
 		log.Fatalf("ERROR: Unable to initialize keybase: %v", err)
 	}
-	keybase.CreateAccount(FaucetAccountName, FaucetMnemonic, FaucetAccountPassword, FaucetAccountPassword, "44'/60'/0'/0/0", keys.Secp256k1)
+	keybase.CreateAccount(FaucetAccountName, FaucetMnemonic, "", FaucetAccountPassword, FaucetBIP44Path, keys.Secp256k1)
 
 	// Prepare file containing last used sequence for the faucet addres
 	data, err := ioutil.ReadFile(sequencePath)
@@ -165,7 +166,7 @@ func main() {
 		}
 
 		// Respond with the broadcast response
-		text := fmt.Sprintf("Response:\n```\n%s\n```\nTransaction: %s/tx?hash=0x%s", response, RPCPrefix, txHash)
+		text := fmt.Sprintf("Response:\n%s\nTransaction: %s/tx?hash=0x%s", response, RPCPrefix, txHash)
 		answerWithSuccess(bot, update.Message, text)
 	}
 }
@@ -188,7 +189,8 @@ func answerWithError(bot *tgbotapi.BotAPI, m *tgbotapi.Message, text string) {
 
 func sendCoins(address string, amount *big.Int) (response string, txHash string, err error) {
 
-	memo := "faucet transfer"
+	// memo := "faucet transfer"
+	memo := ""
 	txEncoder := auth.DefaultTxEncoder(cdc)
 	txBldr := auth.NewTxBuilder(
 		txEncoder,
@@ -253,13 +255,14 @@ func sendCoins(address string, amount *big.Int) (response string, txHash string,
 	resultTx, ok := result["result"].(map[string]interface{})
 	if ok {
 		txHash = resultTx["hash"].(string)
-	}
-
-	// Update sequence in the sequence file
-	sequence++
-	err = ioutil.WriteFile(sequencePath, []byte(strconv.FormatUint(sequence, 10)), os.ModePerm)
-	if err != nil {
-		log.Printf("ERROR: Cannot write to file %s: %v", sequencePath, err)
+		if resultTx["code"].(float64) == 0 {
+			// Update sequence in the sequence file
+			sequence++
+			err = ioutil.WriteFile(sequencePath, []byte(strconv.FormatUint(sequence, 10)), os.ModePerm)
+			if err != nil {
+				log.Printf("ERROR: Cannot write to file %s: %v", sequencePath, err)
+			}
+		}
 	}
 
 	return
