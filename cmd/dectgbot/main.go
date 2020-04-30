@@ -165,7 +165,7 @@ func main() {
 		}
 
 		// Respond with the broadcast response
-		text := fmt.Sprintf("Response:\n```%s```\nTransaction: %s/tx?hash=0x%s", response, RPCPrefix, txHash)
+		text := fmt.Sprintf("Response:\n```\n%s\n```\nTransaction: %s/tx?hash=0x%s", response, RPCPrefix, txHash)
 		answerWithSuccess(bot, update.Message, text)
 	}
 }
