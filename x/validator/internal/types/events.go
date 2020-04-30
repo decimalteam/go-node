@@ -14,6 +14,7 @@ const (
 	AttributeKeyDelegator      = "delegator"
 	AttributeKeyRewardAddress  = "reward_address"
 	AttributeKeyDenom          = "denom"
+	AttributeKeyPubKey         = "pub_key"
 	AttributeKeyCompletionTime = "completion_time"
 	AttributeValueCategory     = ModuleName
 )

@@ -22,3 +22,5 @@ build/
 .idea
 .idea/workspace.xml
 /.decimal/
+deccli
+send.exp

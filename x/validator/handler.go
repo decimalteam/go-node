@@ -77,6 +77,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddr.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Stake.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Stake.Denom),
+			sdk.NewAttribute(types.AttributeKeyPubKey, msg.PubKey.Address().String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

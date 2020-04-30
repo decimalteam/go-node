@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"log"
 	"time"
 )
 
@@ -126,7 +125,6 @@ func (k Keeper) GetAllValidatorsByPowerIndex(ctx sdk.Context) []types.Validator 
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		log.Println(iterator.Value())
 		validator, err := k.GetValidator(ctx, iterator.Value())
 		if err != nil {
 			panic(err)
