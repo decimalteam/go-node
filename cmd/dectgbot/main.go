@@ -115,6 +115,7 @@ func main() {
 		if len(strs) != 3 {
 			text := "Invalid faucet request: it should be in format \"address amount coin\""
 			answerWithError(bot, update.Message, text)
+			continue
 		}
 
 		// Validate address
@@ -122,6 +123,7 @@ func main() {
 		if !strings.HasPrefix(address, "dx") {
 			text := "Invalid address: it should be prefixed with \"dx\""
 			answerWithError(bot, update.Message, text)
+			continue
 		}
 
 		// Validate coin symbol
@@ -129,16 +131,19 @@ func main() {
 		if !ok {
 			text := "Invalid amount: it should be parseable to integer but it is not"
 			answerWithError(bot, update.Message, text)
+			continue
 		}
 		if amount.Sign() <= 0 {
 			text := "Invalid amount: it should be greater than 0"
 			answerWithError(bot, update.Message, text)
+			continue
 		}
 
 		// Validate amount to transfer
 		if coin := strings.ToLower(strs[2]); coin != "tdcl" {
 			text := "Invalid coin symbol: only \"tDCL\" is allowed now"
 			answerWithError(bot, update.Message, text)
+			continue
 		}
 
 		// Send coins by preparing, signing and broadcasting a transaction to the Decimal blockchain
@@ -146,6 +151,7 @@ func main() {
 		if err != nil {
 			text := fmt.Sprintf("Unable to broadcast a transaction:\n%v", err)
 			answerWithError(bot, update.Message, text)
+			continue
 		}
 
 		// Respond with the broadcast response
