@@ -81,7 +81,7 @@ wipe-validator-script: &wipe-validator-script
     - pipe3:
       <<: *restart-pipe
 
-update-config-script:
+update-configs-script: &update-configs-script
   script:
     - pipe1:
       <<: *stop-pipe
@@ -89,7 +89,6 @@ update-config-script:
       <<: *update-configs-pipe
     - pipe3:
       <<: *restart-pipe
-
 
 pipelines:
   tags:
@@ -102,11 +101,11 @@ pipelines:
           - step:
               name: Update configs on Host 02
               deployment: test02
-              <<: *deploy-script
+              <<: *update-configs-script
           - step:
               name: Update configs on Host 03
               deployment: test03
-              <<: *deploy-script
+              <<: *update-configs-script
 
   branches:
     develop:
