@@ -70,11 +70,17 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 			genDoc.ChainID = chainID
 			genDoc.Validators = nil
 			genDoc.AppState = appState
-			genDoc.ConsensusParams.Block.MaxBytes = 10000000
-			genDoc.ConsensusParams.Block.MaxGas = 100000
-			genDoc.ConsensusParams.Block.TimeIotaMs = 1000
-			genDoc.ConsensusParams.Evidence.MaxAgeNumBlocks = 1000
-			genDoc.ConsensusParams.Evidence.MaxAgeDuration = 86400000000000
+			genDoc.ConsensusParams = &types.ConsensusParams{
+				Block: types.BlockParams{
+					MaxBytes:   10000000,
+					MaxGas:     100000,
+					TimeIotaMs: 1000,
+				},
+				Evidence: types.EvidenceParams{
+					MaxAgeNumBlocks: 1000,
+					MaxAgeDuration:  86400000000000,
+				},
+			}
 			if err = genutil.ExportGenesisFile(genDoc, genFile); err != nil {
 				return err
 			}
