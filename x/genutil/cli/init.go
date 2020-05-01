@@ -80,6 +80,9 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 					MaxAgeNumBlocks: 1000,
 					MaxAgeDuration:  86400000000000,
 				},
+				Validator: types.ValidatorParams{
+					PubKeyTypes: []string{"ed25519"},
+				},
 			}
 			if err = genutil.ExportGenesisFile(genDoc, genFile); err != nil {
 				return err
