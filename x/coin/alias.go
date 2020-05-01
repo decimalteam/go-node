@@ -25,7 +25,7 @@ var (
 	NewGenesisState     = types.NewGenesisState
 	DefaultGenesisState = types.DefaultGenesisState
 	ValidateGenesis     = types.ValidateGenesis
-	// TODO: Fill out function aliases
+	NewMsgSendCoin      = types.NewMsgSendCoin
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
@@ -38,4 +38,5 @@ type (
 	GenesisState = types.GenesisState
 	Params       = types.Params
 	Coin         = types.Coin
+	MsgSendCoin  = types.MsgSendCoin
 )
