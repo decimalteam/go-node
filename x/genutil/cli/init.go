@@ -22,7 +22,7 @@ import (
 )
 
 // InitCmd returns a command that initializes all files needed for Tendermint
-// and the respective application.
+// and the respective application
 func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 	defaultNodeHome string) *cobra.Command { // nolint: golint
 	cmd := &cobra.Command{
