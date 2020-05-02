@@ -24,7 +24,7 @@ const (
 	RootPath            = "$HOME/.decimal/cli"
 	mnemonicEntropySize = 256
 
-	DefaultGas    = uint64(200000)
+	DefaultGas    = uint64(50000)
 	DefaultGasAdj = float64(1.1)
 
 	RPCPrefix = "http://localhost:26657"
@@ -34,7 +34,7 @@ type Account struct {
 	Address   sdk.AccAddress
 	AccNumber uint64
 	Name      string
-	Sequence  uint64
+	Sequence  *uint64
 	Password  string
 }
 
@@ -86,11 +86,12 @@ func (p *Provider) CreateAccount(name, password string) (Account, error) {
 	if err != nil {
 		return Account{}, err
 	}
+
 	return Account{
 		Address:   info.GetAddress(),
 		AccNumber: 6,
 		Name:      name,
-		Sequence:  0,
+		Sequence:  new(uint64),
 		Password:  password,
 	}, nil
 }
@@ -124,17 +125,25 @@ func main() {
 		Address:   mainAddr,
 		AccNumber: mainAccNumber,
 		Name:      "kir2",
-		Sequence:  mainSequence,
+		Sequence:  &mainSequence,
 		Password:  "12345678",
 	}
-
-	log.Println(provider.keybase.Get("kir2"))
 
 	err = provider.SendTransaction(mainAccount, accounts[0], 1000)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+
+	time.Sleep(time.Second * 5)
+
+	*accounts[0].Sequence, accounts[0].AccNumber, err = GetSequenceAndAccNumber(accounts[0].Address.String())
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	log.Println(accounts[0].Sequence, accounts[0].AccNumber)
 
 	for i := 0; i < len(accounts); i++ {
 		for j := 0; j < 1; j++ {
@@ -144,7 +153,7 @@ func main() {
 					if err != nil {
 						log.Println(err)
 					}
-					time.Sleep(time.Second)
+					time.Sleep(time.Millisecond * 10)
 				}
 			}(accounts[i])
 		}
@@ -158,7 +167,7 @@ func (p *Provider) SendTransaction(sender, receiver Account, amount int64) error
 	txEncoder := auth.DefaultTxEncoder(p.cdc)
 	txBldr := auth.NewTxBuilder(
 		txEncoder,
-		sender.AccNumber, atomic.LoadUint64(&sender.Sequence),
+		sender.AccNumber, atomic.LoadUint64(sender.Sequence),
 		DefaultGas, DefaultGasAdj,
 		false, ChainID, memo, nil, nil,
 	).WithKeybase(p.keybase)
@@ -189,7 +198,7 @@ func (p *Provider) SendTransaction(sender, receiver Account, amount int64) error
 	}
 	defer resp.Body.Close()
 
-	atomic.AddUint64(&sender.Sequence, 1)
+	atomic.AddUint64(sender.Sequence, 1)
 
 	// Read broadcast response
 	respBody, err := ioutil.ReadAll(resp.Body)
