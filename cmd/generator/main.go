@@ -5,6 +5,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"encoding/hex"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys"
@@ -61,7 +62,7 @@ func NewProvider() *Provider {
 	rootPath := os.ExpandEnv(RootPath)
 
 	// Initialize and prepare keybase
-	keybase, err := keys.NewKeyring(sdk.KeyringServiceName(), keys.BackendOS, rootPath, nil)
+	keybase, err := keys.NewKeyring(sdk.KeyringServiceName(), keys.BackendTest, rootPath, nil)
 	if err != nil {
 		log.Fatalf("ERROR: Unable to initialize keybase: %v", err)
 	}
@@ -97,6 +98,15 @@ func (p *Provider) CreateAccount(name, password string) (Account, error) {
 }
 
 func main() {
+	mainAddrRaw := flag.String("main-account", "", "Address of main account")
+
+	flag.Parse()
+
+	if *mainAddrRaw == "" {
+		fmt.Println("error: you must specify the address of the spammer account")
+		return
+	}
+
 	var err error
 
 	provider := NewProvider()
@@ -109,7 +119,7 @@ func main() {
 		return
 	}
 
-	mainAddr, err := sdk.AccAddressFromBech32("dx1exupylhl5zwd2ug8kj6hyr2562s4rcphh27y8u")
+	mainAddr, err := sdk.AccAddressFromBech32(*mainAddrRaw)
 	if err != nil {
 		log.Println(err)
 		return
@@ -124,7 +134,7 @@ func main() {
 	mainAccount := Account{
 		Address:   mainAddr,
 		AccNumber: mainAccNumber,
-		Name:      "kir2",
+		Name:      "spammer",
 		Sequence:  &mainSequence,
 		Password:  "12345678",
 	}
