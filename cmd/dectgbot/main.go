@@ -38,7 +38,7 @@ const (
 	FaucetGas             = uint64(200000)
 	FaucetGasAdj          = float64(1.1)
 	FaucetKeyringBackend  = keys.BackendTest
-	FaucetAccountNumber   = 5
+	FaucetAccountNumber   = 6
 	FaucetAccountName     = "faucet"
 	FaucetAccountPassword = "12345678"
 	FaucetAddress         = "dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd"
