@@ -1,5 +1,5 @@
 ---
-# tasks file for decimal-testnet
+# tasks file for decimal-update
 - name: Create binary dir with parent directories if it not exists
   file:
     path: '{{ decimal_bin }}'
