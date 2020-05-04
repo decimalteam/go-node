@@ -1,0 +1,24 @@
+---
+# tasks file for clear data and update binary files
+- name: Clear current blockchain state (remove data dir)
+  file:
+    path: '{{ decimal_data }}/daemon'
+    state: absent
+
+- name: Create binary dir with parent directories if it not exists
+  file:
+    path: '{{ decimal_bin }}'
+    state: directory
+    recurse: yes
+
+- name: Upload decd from artifacts
+  copy:
+    src: '{{ artifacts }}/decd'
+    dest: '{{ decimal_bin }}/decd'
+    mode: '{{ decimal_bin_mode }}'
+
+- name: Upload deccli from artifacts
+  copy:
+    src: '{{ artifacts }}/deccli'
+    dest: '{{ decimal_bin }}/deccli'
+    mode: '{{ decimal_bin_mode }}'

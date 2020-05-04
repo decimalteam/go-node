@@ -1,0 +1,20 @@
+---
+# tasks file for check & stop service & create it if not exist
+- name: Just force systemd to reread configs
+  systemd:
+    daemon_reload: yes
+  become: yes
+
+- name: Run service decd
+  service:
+    name: decd
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Run service deccli
+  service:
+    name: deccli
+    state: started
+    enabled: yes
+  become: yes

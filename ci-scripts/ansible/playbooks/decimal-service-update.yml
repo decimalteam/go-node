@@ -1,0 +1,12 @@
+---
+- name: Update Decimal decd/rest services (systemd)
+  gather_facts: False
+
+  roles:
+    - role: decimal-service
+      vars:
+        mode: stop
+
+    - role: decimal-service
+      vars:
+        mode: start

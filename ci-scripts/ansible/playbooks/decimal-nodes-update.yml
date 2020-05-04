@@ -1,0 +1,14 @@
+---
+- name: Update Decimal Node (only bin files)
+  gather_facts: False
+
+  roles:
+    - role: decimal-service
+      vars:
+        mode: stop
+
+    - role: decimal-update
+
+    - role: decimal-service
+      vars:
+        mode: start

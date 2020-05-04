@@ -1,0 +1,37 @@
+---
+# tasks file for check & stop service & create it if not exist
+- name: Check if decd Service Exists
+  stat: path={{ systemd_path }}/{{ service_name_decd }}
+  register: service_status_decd
+
+- name: Check if deccli Service Exists
+  stat: path={{ systemd_path }}/{{ service_name_deccli }}
+  register: service_status_deccli
+
+- name: Stop service decd, if started
+  service:
+    name: decd
+    state: stopped
+  when: service_status_decd.stat.exists
+  become: yes
+
+- name: Stop service deccli, if started
+  service:
+    name: deccli
+    state: stopped
+  when: service_status_deccli.stat.exists
+  become: yes
+
+- name: Register decd service
+  copy:
+    src: ./{{ service_name_decd }}
+    dest: '{{ systemd_path }}/{{ service_name_decd }}'
+  when: service_status_decd.stat.exists == False
+  become: yes
+
+- name: Register deccli service
+  copy:
+    src: ./{{ service_name_deccli }}
+    dest: '{{ systemd_path }}/{{ service_name_deccli }}'
+  when: service_status_deccli.stat.exists == False
+  become: yes

@@ -1,0 +1,16 @@
+---
+- name: Install Decimal Node with Full Init!
+  gather_facts: False
+
+  roles:
+    - role: decimal-service
+      vars:
+        mode: stop
+
+    - role: decimal-init
+      vars:
+        mode: '{{ mode }}' # external variable: mode = master|slave
+
+    - role: decimal-service
+      vars:
+        mode: start
