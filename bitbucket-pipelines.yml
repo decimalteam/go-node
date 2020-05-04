@@ -30,17 +30,14 @@ pipelines:
             - MESSAGE=`git log --format=%B -n 1 $BITBUCKET_COMMIT` # getting commit message
             - pip install ansible==2.9.7
             - cd ci-scripts/ansible
-
             # run update playbook
             - if [[ "$MESSAGE" == *[update]* ]]; then
               ansible-playbook -i '$MASTER_HOSTS, $SLAVE_HOSTS' -e 'ansible_user=$USERNAME artifacts=$BITBUCKET_CLONE_DIR/build' decimal-nodes-update.yml
               fi;
-
             # run reset playbook for MASTER HOSTS
             - if [[ "$MESSAGE" == *[reset]* ]]; then
               ansible-playbook -i '$MASTER_HOSTS' -e 'ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build' decimal-nodes-init.yml
               fi;
-
             # run reset playbook for SLAVE HOSTS
             - if [[ "$MESSAGE" == *[reset]* ]]; then
               ansible-playbook -i '$SLAVE_HOSTS' -e 'ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS' decimal-nodes-init.yml
