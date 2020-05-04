@@ -7,14 +7,14 @@
 
 - name: Run service decd
   service:
-    name: decd
+    name: '{{ service_name_decd }}'
     state: started
     enabled: yes
   become: yes
 
-- name: Run service deccli
+- name: Run service decd rest
   service:
-    name: deccli
+    name: '{{ service_name_rest }}'
     state: started
     enabled: yes
   become: yes
