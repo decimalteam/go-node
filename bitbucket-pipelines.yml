@@ -1,8 +1,9 @@
-image: golang:1.13
+image: golang:1.14
 
 pipelines:
-  default:
-    - step:
+  branches:
+    develop:
+      - step:
         name: Build
         script:
           - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
@@ -18,8 +19,6 @@ pipelines:
           - build/deccli
           - build/decd
 
-  branches:
-    develop:
       - step:
           name: Run deployment scripts if it is needed
           image: python:3.8.2
@@ -35,17 +34,17 @@ pipelines:
 
             # run update playbook
             - if [[ $MESSAGE == *\[update\]* ]]; then
-              ansible-playbook -i "$MASTER_HOSTS, $SLAVE_HOSTS" -e "ansible_user=$USERNAME artifacts=$BITBUCKET_CLONE_DIR" decimal-nodes-update.yml;
+              ansible-playbook -i "$MASTER_HOSTS, $SLAVE_HOSTS" -e "ansible_user=$USERNAME artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-update.yml;
               else echo 0; fi
 
             # run reset playbook for MASTER HOSTS
             - if [[ $MESSAGE == *\[reset\]* ]]; then
-              ansible-playbook -i "$MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR" decimal-nodes-init.yml;
+              ansible-playbook -i "$MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-init.yml;
               else echo 0; fi
 
             # run reset playbook for SLAVE HOSTS
             - if [[ $MESSAGE == *\reset\* ]]; then
-              ansible-playbook -i "$SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR src_genesis=$SRC_GENESIS" decimal-nodes-init.yml;
+              ansible-playbook -i "$SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS" decimal-nodes-init.yml;
               else echo 0; fi
 
 definitions:
