@@ -1,5 +1,7 @@
 ---
 # tasks file for decimal-service
+- debug: var=mode
+
 - name: Include a checks & stop service tasks
   include: service_stop.yml
   when: mode == 'stop'
