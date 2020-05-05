@@ -6,7 +6,7 @@
   roles:
     - role: decimal-service
       vars:
-        mode: stop
+        srv_mode: stop
 
     - role: decimal-init
       vars:
@@ -14,4 +14,4 @@
 
     - role: decimal-service
       vars:
-        mode: start
+        srv_mode: start

@@ -1,11 +1,11 @@
 ---
 # tasks file for decimal-service
-- debug: var=mode
+- debug: var=srv_mode
 
 - name: Include a checks & stop service tasks
   include: service_stop.yml
-  when: mode == 'stop'
+  when: srv_mode == 'stop'
 
 - name: Include a run service tasks
   include: service_start.yml
-  when: mode == 'start'
+  when: srv_mode == 'start'
