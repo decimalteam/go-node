@@ -26,6 +26,8 @@ var (
 	DefaultGenesisState = types.DefaultGenesisState
 	ValidateGenesis     = types.ValidateGenesis
 	NewMsgSendCoin      = types.NewMsgSendCoin
+	NewMsgBuyCoin       = types.NewMsgBuyCoin
+	NewMsgSellCoin      = types.NewMsgSellCoin
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
@@ -39,4 +41,6 @@ type (
 	Params       = types.Params
 	Coin         = types.Coin
 	MsgSendCoin  = types.MsgSendCoin
+	MsgBuyCoin   = types.MsgBuyCoin
+	MsgSellCoin  = types.MsgSellCoin
 )

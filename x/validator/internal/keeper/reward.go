@@ -49,6 +49,15 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 				continue
 			}
 			remainder.Sub(reward)
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeProposerReward,
+					sdk.NewAttribute(sdk.AttributeKeyAmount, reward.String()),
+					sdk.NewAttribute(types.AttributeKeyValidator, val.GetOperator().String()),
+					sdk.NewAttribute(types.AttributeKeyDelegator, del.DelegatorAddress.String()),
+				),
+			)
 		}
 		val.AccumRewards = sdk.ZeroInt()
 		err = k.SetValidator(ctx, val)

@@ -9,6 +9,7 @@ const (
 	EventTypeSetOnline         = "set_online"
 	EventTypeSetOffline        = "set_offline"
 	EventTypeCompleteUnbonding = "complete_unbonding"
+	EventTypeProposerReward    = "proposer_reward"
 
 	AttributeKeyValidator      = "validator"
 	AttributeKeyDelegator      = "delegator"

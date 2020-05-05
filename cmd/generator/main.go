@@ -56,6 +56,8 @@ func NewProvider() *Provider {
 	cdc := codec.New()
 	sdk.RegisterCodec(cdc)
 	cdc.RegisterConcrete(coin.MsgSendCoin{}, "coin/SendCoin", nil)
+	cdc.RegisterConcrete(coin.MsgBuyCoin{}, "coin/BuyCoin", nil)
+	cdc.RegisterConcrete(coin.MsgSellCoin{}, "coin/SellCoin", nil)
 	codec.RegisterCrypto(cdc)
 	cdc.Seal()
 
@@ -99,6 +101,7 @@ func (p *Provider) CreateAccount(name, password string) (Account, error) {
 
 func main() {
 	mainAddrRaw := flag.String("main-account", "", "Address of main account")
+	configPath := flag.String("config", "config.json", "Path to config")
 
 	flag.Parse()
 
@@ -107,7 +110,11 @@ func main() {
 		return
 	}
 
-	var err error
+	config, err := ImportConfig(*configPath)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	provider := NewProvider()
 
@@ -139,7 +146,7 @@ func main() {
 		Password:  "12345678",
 	}
 
-	err = provider.SendTransaction(mainAccount, accounts[0], 1000)
+	err = provider.SendCoin(mainAccount, accounts[0], 1000000)
 	if err != nil {
 		log.Println(err)
 		return
@@ -153,17 +160,25 @@ func main() {
 		return
 	}
 
-	log.Println(accounts[0].Sequence, accounts[0].AccNumber)
-
 	for i := 0; i < len(accounts); i++ {
 		for j := 0; j < 1; j++ {
 			go func(account Account) {
 				for {
-					err = provider.SendTransaction(account, account, 5)
+					err = provider.SendCoin(account, account, 5)
 					if err != nil {
 						log.Println(err)
 					}
-					time.Sleep(time.Millisecond * 10)
+					time.Sleep(config.TimeoutMs.Send)
+				}
+			}(accounts[i])
+
+			go func(account Account) {
+				for {
+					err = provider.BuyCoin("KIR", "tDCL", sdk.NewInt(1), sdk.NewInt(0), account)
+					if err != nil {
+						log.Println(err)
+					}
+					time.Sleep(config.TimeoutMs.Buy)
 				}
 			}(accounts[i])
 		}
@@ -172,7 +187,7 @@ func main() {
 	select {}
 }
 
-func (p *Provider) SendTransaction(sender, receiver Account, amount int64) error {
+func (p *Provider) SendCoin(sender, receiver Account, amount int64) error {
 	memo := "spam send"
 	txEncoder := auth.DefaultTxEncoder(p.cdc)
 	txBldr := auth.NewTxBuilder(
@@ -206,7 +221,12 @@ func (p *Provider) SendTransaction(sender, receiver Account, amount int64) error
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err = resp.Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
 	atomic.AddUint64(sender.Sequence, 1)
 
@@ -224,7 +244,12 @@ func GetSequenceAndAccNumber(address string) (uint64, uint64, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err = resp.Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 	decoder := json.NewDecoder(resp.Body)
 
 	var account struct {
@@ -241,4 +266,108 @@ func GetSequenceAndAccNumber(address string) (uint64, uint64, error) {
 	}
 
 	return account.Result.Value.Sequence, account.Result.Value.AccountNumber, nil
+}
+
+func (p *Provider) BuyCoin(coinToBuy, coinToSell string, amountToBuy, amountToSell sdk.Int, buyer Account) error {
+	memo := "spam send"
+	txEncoder := auth.DefaultTxEncoder(p.cdc)
+	txBldr := auth.NewTxBuilder(
+		txEncoder,
+		buyer.AccNumber, atomic.LoadUint64(buyer.Sequence),
+		DefaultGas, DefaultGasAdj,
+		false, ChainID, memo, nil, nil,
+	).WithKeybase(p.keybase)
+
+	msgs := []sdk.Msg{coin.NewMsgBuyCoin(buyer.Address, coinToBuy, coinToSell, amountToBuy, amountToSell)}
+
+	tx, err := txBldr.BuildAndSign(buyer.Name, buyer.Password, msgs)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Find the way to avoid this ugly hack!
+	{
+		hackPrefix, _ := hex.DecodeString("282816a9")
+		hackLength := (int(tx[1])<<8 + int(tx[0])) + 4
+		hackTx := []byte{byte(hackLength & 0xFF), byte(hackLength >> 8)}
+		hackTx = append(hackTx, hackPrefix...)
+		hackTx = append(hackTx, tx[2:]...)
+		tx = hackTx
+	}
+
+	// Broadcast signed transaction
+	broadcastURL := fmt.Sprintf("%s/broadcast_tx_sync?tx=0x%x", RPCPrefix, tx)
+	log.Printf("Broadcast request: %s", broadcastURL)
+	resp, err := http.Get(broadcastURL)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = resp.Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	atomic.AddUint64(buyer.Sequence, 1)
+
+	// Read broadcast response
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	log.Printf("Broadcast response: %s", string(respBody))
+	return nil
+}
+
+func (p *Provider) SellCoin(coinToBuy, coinToSell string, amountToBuy, amountToSell sdk.Int, buyer Account) error {
+	memo := "spam send"
+	txEncoder := auth.DefaultTxEncoder(p.cdc)
+	txBldr := auth.NewTxBuilder(
+		txEncoder,
+		buyer.AccNumber, atomic.LoadUint64(buyer.Sequence),
+		DefaultGas, DefaultGasAdj,
+		false, ChainID, memo, nil, nil,
+	).WithKeybase(p.keybase)
+
+	msgs := []sdk.Msg{coin.NewMsgSellCoin(buyer.Address, coinToBuy, coinToSell, amountToSell, amountToBuy)}
+
+	tx, err := txBldr.BuildAndSign(buyer.Name, buyer.Password, msgs)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Find the way to avoid this ugly hack!
+	{
+		hackPrefix, _ := hex.DecodeString("282816a9")
+		hackLength := (int(tx[1])<<8 + int(tx[0])) + 4
+		hackTx := []byte{byte(hackLength & 0xFF), byte(hackLength >> 8)}
+		hackTx = append(hackTx, hackPrefix...)
+		hackTx = append(hackTx, tx[2:]...)
+		tx = hackTx
+	}
+
+	// Broadcast signed transaction
+	broadcastURL := fmt.Sprintf("%s/broadcast_tx_sync?tx=0x%x", RPCPrefix, tx)
+	log.Printf("Broadcast request: %s", broadcastURL)
+	resp, err := http.Get(broadcastURL)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = resp.Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	atomic.AddUint64(buyer.Sequence, 1)
+
+	// Read broadcast response
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	log.Printf("Broadcast response: %s", string(respBody))
+	return nil
 }
