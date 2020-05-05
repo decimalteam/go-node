@@ -1,0 +1,5 @@
+---
+# defaults file for decimal-service
+systemd_path: '/etc/systemd/system/'
+service_name_decd: decd.service
+service_name_rest: decd-rest.service

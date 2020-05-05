@@ -1,0 +1,9 @@
+---
+# tasks file for decimal-service
+- name: Include a checks & stop service tasks
+  include: service_stop.yml
+  when: mode == 'stop'
+
+- name: Include a run service tasks
+  include: service_start.yml
+  when: mode == 'start'

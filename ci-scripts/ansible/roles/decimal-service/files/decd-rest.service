@@ -1,0 +1,16 @@
+[Unit]
+Description=Decimal Rest API daemon
+Documentation=https://help.decimalchain.com
+
+[Service]
+Type=idle
+User=centos
+ExecStart=/home/centos/decimal/deccli rest-server --chain-id decimal-testnet
+Restart=always
+RestartSec=30s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=DECCLI
+
+[Install]
+WantedBy=multi-user.target

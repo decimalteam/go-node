@@ -1,125 +1,52 @@
-image: golang:1.13
-
-build: &build
-  - step:
-      name: Build
-      script:
-        - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
-        - mkdir -pv "${PACKAGE_PATH}"
-        - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
-        - export GO111MODULE=on
-        - cd "${PACKAGE_PATH}"
-        - go get ./...
-        - make all
-        - mkdir ${BITBUCKET_CLONE_DIR}/build
-        - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
-      artifacts:
-        - build/deccli
-        - build/decd
-
-stop-pipe: &stop-pipe
-  - pipe: atlassian/ssh-run:0.2.5
-    variables:
-      SSH_USER: $USER
-      SERVER: $HOST
-      SSH_KEY: $SSHKEY
-      COMMAND: 'sudo systemctl stop decd'
-      MODE: 'command'
-
-deploy-pipe: &deploy-pipe
-  - pipe: atlassian/sftp-deploy:0.5.4
-    variables:
-      USER: $USER
-      SSH_KEY: $SSHKEY
-      SERVER: $HOST
-      LOCAL_PATH: 'build/*'
-      REMOTE_PATH: '/home/$USER/decimal/'
-      DEBUG: 'true'
-
-restart-pipe: &restart-pipe
-  - pipe: atlassian/ssh-run:0.2.5
-    variables:
-      SSH_USER: $USER
-      SERVER: $HOST
-      SSH_KEY: $SSHKEY
-      COMMAND: 'sudo systemctl restart decd'
-      MODE: 'command'
-
-deploy-script: &deploy-script
-  script:
-    - pipe1:
-      <<: *stop-pipe
-    - pipe2:
-      <<: *deploy-pipe
-    - pipe3:
-      <<: *restart-pipe
-
-wipe-validator-pipe: &wipe-validator-pipe
-  - pipe: atlassian/ssh-run:0.2.5
-    variables:
-      SSH_USER: $USER
-      SERVER: $HOST
-      SSH_KEY: $SSHKEY
-      COMMAND: './ci-scripts/init_blockchain.sh'
-      MODE: 'script'
-
-update-configs-pipe: &update-configs-pipe
-  - pipe: atlassian/ssh-run:0.2.5
-    variables:
-      SSH_USER: $USER
-      SERVER: $HOST
-      SSH_KEY: $SSHKEY
-      COMMAND: './ci-scripts/update_configs.sh'
-      MODE: 'script'
-
-wipe-validator-script: &wipe-validator-script
-  script:
-    - pipe1:
-      <<: *stop-pipe
-    - pipe2:
-      <<: *wipe-validator-pipe
-    - pipe3:
-      <<: *restart-pipe
-
-update-configs-script: &update-configs-script
-  script:
-    - pipe1:
-      <<: *stop-pipe
-    - pipe2:
-      <<: *update-configs-pipe
-    - pipe3:
-      <<: *restart-pipe
+image: golang:1.14
 
 pipelines:
-  tags:
-    'wipe/*':
-      - step:
-          name: Wiping validator
-          deployment: test01
-          <<: *wipe-validator-script
-      - parallel:
-          - step:
-              name: Update configs on Host 02
-              deployment: test02
-              <<: *update-configs-script
-          - step:
-              name: Update configs on Host 03
-              deployment: test03
-              <<: *update-configs-script
-
   branches:
     develop:
-      - <<: *build
       - step:
-          name: Deploy to validator node (Host 01)
-          deployment: test01
-          <<: *deploy-script
-      - parallel:
-          - step:
-              name: Deploy to Host 02
-              deployment: test02
-              <<: *deploy-script
-          - step:
-              name: Deploy to Host 03
-              deployment: test03
-              <<: *deploy-script
+          name: Build
+          script:
+            - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
+            - mkdir -pv "${PACKAGE_PATH}"
+            - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
+            - export GO111MODULE=on
+            - cd "${PACKAGE_PATH}"
+            - go get ./...
+            - make all
+            - mkdir ${BITBUCKET_CLONE_DIR}/build
+            - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
+          artifacts:
+            - build/deccli
+            - build/decd
+
+      - step:
+          name: Run deployment scripts if it is needed
+          image: python:3.8.2
+          deployment: testnet # or set to $BITBUCKET_BRANCH
+          caches:
+            - pip
+          script:
+            - MESSAGE=`git log --format=%B -n 1 $BITBUCKET_COMMIT` # getting commit message
+            - pip install ansible==2.9.7
+
+            - chmod 700 ci-scripts/ansible
+            - cd ci-scripts/ansible
+
+            # run update playbook
+            - if [[ $MESSAGE == *\[update\]* ]]; then
+              ansible-playbook -i "$MASTER_HOSTS, $SLAVE_HOSTS" -e "ansible_user=$USERNAME artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-update.yml;
+              else echo 0; fi
+
+            # run reset playbook for MASTER HOSTS
+            - if [[ $MESSAGE == *\[reset\]* ]]; then
+              ansible-playbook -i "$MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-init.yml;
+              else echo 0; fi
+
+            # run reset playbook for SLAVE HOSTS
+            - if [[ $MESSAGE == *\reset\* ]]; then
+              ansible-playbook -i "$SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS" decimal-nodes-init.yml;
+              else echo 0; fi
+
+definitions:
+  caches:
+    pip: ~/.cache/pip
