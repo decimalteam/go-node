@@ -55,6 +55,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			return nil, errors.New("ApplyAndReturnValidatorSetUpdates: should never retrieve a jailed validator from the power store")
 		}
 
+		log.Println(k.TotalStake(ctx, validator))
 		k.SetValidatorByPowerIndex(ctx, validator)
 
 		// if we get to a zero-power validator (which we don't bond),
