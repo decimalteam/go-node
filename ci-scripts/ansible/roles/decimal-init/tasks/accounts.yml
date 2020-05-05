@@ -2,8 +2,8 @@
 # tasks file for add initial funds to the genesis file
 - shell: '{{ decimal_bin }}/decd add-genesis-account {{ item }}'
   loop:
-    - '$(deccli keys show val -a --keyring-backend test) 100000000000000000tdcl'
-    - '$(deccli keys show spammer -a --keyring-backend test) 1000000000000000000000000000tdcl'
+    - '$({{ decimal_bin }}/deccli keys show val -a --keyring-backend test) 100000000000000000tdcl'
+    - '$({{ decimal_bin }}/deccli keys show spammer -a --keyring-backend test) 1000000000000000000000000000tdcl'
     - 'dx1fyqf7gp0gzmpzwxfrah9veaxt8ysl68khxwfjm 1000000000000000000000000000tdcl'
     - 'dx1dvwgj5hc3uqjemk22v9gq7um30v0l6wpcwnwnm 1000000000000000000000000000tdcl'
     - 'dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd 1000000000000000000000000000tdcl'
