@@ -22,7 +22,7 @@ pipelines:
       - step:
           name: Run deployment scripts if it is needed
           image: python:3.8.2
-          deployment: testnet # or set to $BITBUCKET_BRANCH
+          deployment: testnet
           caches:
             - pip
           script:
