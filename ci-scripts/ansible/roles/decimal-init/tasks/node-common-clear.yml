@@ -1,8 +1,8 @@
 ---
 # tasks file for clear data and update binary files
-- name: Clear current blockchain state (remove data dir)
+- name: Clear current blockchain state (remove keys and data dir)
   file:
-    path: '{{ decimal_data }}/daemon'
+    path: '{{ decimal_data }}'
     state: absent
 
 - name: Create binary dir with parent directories if it not exists
