@@ -1,0 +1,7 @@
+{
+  "timeout_ms": {
+    "send": "50ms",
+    "buy": "500ms",
+    "sell": "500ms"
+  }
+}

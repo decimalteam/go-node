@@ -244,7 +244,7 @@ func (k Keeper) UnbondAllMatureValidatorQueue(ctx sdk.Context) {
 			if err != nil {
 				continue
 			}
-			if val.DelegatorShares.IsZero() {
+			if val.Tokens.IsZero() {
 				err = k.RemoveValidator(ctx, val.ValAddress)
 			}
 		}

@@ -130,6 +130,7 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Amount.Denom),
+			sdk.NewAttribute(types.AttributeKeyDelegator, msg.DelegatorAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(
