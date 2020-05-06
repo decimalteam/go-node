@@ -30,7 +30,8 @@ definitions:
 pipelines:
   branches:
     develop:
-      - <<: *build
+      - step:
+          <<: *build
       - step:
           name: Deploy
           deployment: testnet
@@ -60,7 +61,8 @@ pipelines:
 
   custom: # Pipelines that are triggered manually
     update-hosts:
-      - <<: *build
+      - step:
+          <<: *build
       - step:
           name: Deploy
           deployment: testnet
@@ -77,7 +79,8 @@ pipelines:
             - ansible-playbook -i "$UPDATE_HOSTS" -e "ansible_user=$USERNAME artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-update.yml;
 
     reset-master-host:
-      - <<: *build
+      - step:
+          <<: *build
       - step:
           name: Deploy
           deployment: testnet
@@ -94,7 +97,8 @@ pipelines:
             - ansible-playbook -i "$RESET_MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-init.yml;
 
     reset-slave-host:
-      - <<: *build
+      - step:
+          <<: *build
       - step:
           name: Deploy
           deployment: testnet
