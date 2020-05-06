@@ -120,11 +120,11 @@ func main() {
 
 	accounts := make([]Account, 1)
 
-	//accounts[0], err = provider.CreateAccount("spam30", "12345678")
-	//if err != nil {
-	//	log.Println(err)
-	//	return
-	//}
+	accounts[0], err = provider.CreateAccount("spam30", "12345678")
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	mainAddr, err := sdk.AccAddressFromBech32(*mainAddrRaw)
 	if err != nil {
@@ -146,27 +146,30 @@ func main() {
 		Password:  "12345678",
 	}
 
-	//err = provider.SendCoin(mainAccount, accounts[0], 1000000)
-	//if err != nil {
-	//	log.Println(err)
-	//	return
-	//}
-	//
-	//time.Sleep(time.Second * 5)
-	//
-	//*accounts[0].Sequence, accounts[0].AccNumber, err = GetSequenceAndAccNumber(accounts[0].Address.String())
-	//if err != nil {
-	//	log.Println(err)
-	//	return
-	//}
+	err = provider.SendCoin(mainAccount, accounts[0], 1000000)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
-	accounts[0] = mainAccount
+	time.Sleep(time.Second * 5)
+
+	*accounts[0].Sequence, accounts[0].AccNumber, err = GetSequenceAndAccNumber(accounts[0].Address.String())
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	for i := 0; i < len(accounts); i++ {
 		for j := 0; j < 1; j++ {
 			go func(account Account) {
 				for {
-					err = provider.SendCoin(account, account, 5)
+					err = provider.SendCoin(account, mainAccount, 5)
+					if err != nil {
+						log.Println(err)
+					}
+					time.Sleep(cfg.TimeoutMs.Send)
+					err = provider.SendCoin(mainAccount, account, 5)
 					if err != nil {
 						log.Println(err)
 					}
@@ -174,25 +177,25 @@ func main() {
 				}
 			}(accounts[i])
 
-			go func(account Account) {
-				for {
-					err = provider.BuyCoin("TEST1", "TEST2", sdk.NewInt(1), sdk.NewInt(1), account)
-					if err != nil {
-						log.Println(err)
-					}
-					time.Sleep(cfg.TimeoutMs.Buy)
-				}
-			}(accounts[i])
-
-			go func(account Account) {
-				for {
-					err = provider.SellCoin("TEST1", "TEST2", sdk.NewInt(1), sdk.NewInt(1), account)
-					if err != nil {
-						log.Println(err)
-					}
-					time.Sleep(cfg.TimeoutMs.Sell)
-				}
-			}(accounts[i])
+			//go func(account Account) {
+			//	for {
+			//		err = provider.BuyCoin("TEST1", "TEST2", sdk.NewInt(1), sdk.NewInt(1), account)
+			//		if err != nil {
+			//			log.Println(err)
+			//		}
+			//		time.Sleep(cfg.TimeoutMs.Buy)
+			//	}
+			//}(accounts[i])
+			//
+			//go func(account Account) {
+			//	for {
+			//		err = provider.SellCoin("TEST1", "TEST2", sdk.NewInt(1), sdk.NewInt(1), account)
+			//		if err != nil {
+			//			log.Println(err)
+			//		}
+			//		time.Sleep(cfg.TimeoutMs.Sell)
+			//	}
+			//}(accounts[i])
 		}
 	}
 
