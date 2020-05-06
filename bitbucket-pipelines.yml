@@ -69,7 +69,6 @@ pipelines:
           caches:
             - pip
           script:
-            - MESSAGE=`git log --format=%B -n 1 $BITBUCKET_COMMIT` # getting commit message
             - pip install ansible==2.9.7
 
             - chmod 700 ci-scripts/ansible
@@ -78,7 +77,7 @@ pipelines:
             # run update playbook for UPDATE HOSTS
             - ansible-playbook -i "$UPDATE_HOSTS" -e "ansible_user=$USERNAME artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-update.yml;
 
-    reset-master-host:
+    reset-master-hosts:
       - step:
           <<: *build
       - step:
@@ -87,7 +86,6 @@ pipelines:
           caches:
             - pip
           script:
-            - MESSAGE=`git log --format=%B -n 1 $BITBUCKET_COMMIT` # getting commit message
             - pip install ansible==2.9.7
 
             - chmod 700 ci-scripts/ansible
@@ -96,7 +94,7 @@ pipelines:
             # run reset playbook for MASTER HOSTS
             - ansible-playbook -i "$RESET_MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-init.yml;
 
-    reset-slave-host:
+    reset-slave-hosts:
       - step:
           <<: *build
       - step:
@@ -105,7 +103,6 @@ pipelines:
           caches:
             - pip
           script:
-            - MESSAGE=`git log --format=%B -n 1 $BITBUCKET_COMMIT` # getting commit message
             - pip install ansible==2.9.7
 
             - chmod 700 ci-scripts/ansible
@@ -113,3 +110,18 @@ pipelines:
 
             # run reset playbook for SLAVE HOSTS
             - ansible-playbook -i "$RESET_SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS" decimal-nodes-init.yml;
+
+    update-services-on-hosts:
+      - step:
+          name: Deploy
+          deployment: testnet
+          caches:
+            - pip
+          script:
+            - pip install ansible==2.9.7
+
+            - chmod 700 ci-scripts/ansible
+            - cd ci-scripts/ansible
+
+            # run service update playbook for UPDATE HOSTS
+            - ansible-playbook -i "$UPDATE_HOSTS" -e "ansible_user=$USERNAME chain_id=$CHAIN_ID" decimal-service-update.yml;

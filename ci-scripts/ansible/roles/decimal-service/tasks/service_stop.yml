@@ -22,16 +22,14 @@
   when: service_status_rest.stat.exists
   become: yes
 
-- name: Register decd service
-  copy:
-    src: ./{{ service_name_decd }}
+- name: Register or update decd service
+  template:
+    src: ./{{ service_name_decd }}.j2
     dest: '{{ systemd_path }}/{{ service_name_decd }}'
-  when: service_status_decd.stat.exists == False
   become: yes
 
-- name: Register decd rest service
-  copy:
-    src: ./{{ service_name_rest }}
+- name: Register or update decd rest service
+  template:
+    src: ./{{ service_name_rest }}.j2
     dest: '{{ systemd_path }}/{{ service_name_rest }}'
-  when: service_status_rest.stat.exists == False
   become: yes
