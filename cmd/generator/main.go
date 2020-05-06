@@ -64,7 +64,7 @@ func NewProvider() *Provider {
 	rootPath := os.ExpandEnv(RootPath)
 
 	// Initialize and prepare keybase
-	keybase, err := keys.NewKeyring("keyring-test-Decimal", keys.BackendTest, rootPath, nil)
+	keybase, err := keys.NewKeyring("Decimal", keys.BackendTest, rootPath, nil)
 	if err != nil {
 		log.Fatalf("ERROR: Unable to initialize keybase: %v", err)
 	}
