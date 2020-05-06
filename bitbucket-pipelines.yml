@@ -1,38 +1,38 @@
 image: python:3.8.2
 
-build: &build
-  - step:
-    name: Build
-    image: golang:1.14
-    caches:
-      - go-src
-      - go-pkg
-    script:
-      - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
-      - mkdir -pv "${PACKAGE_PATH}"
-      - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
-      - export GO111MODULE=on
-      - cd "${PACKAGE_PATH}"
-      - go get ./...
-      - make all
-      - mkdir ${BITBUCKET_CLONE_DIR}/build
-      - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
-    artifacts:
-      - build/deccli
-      - build/decd
-
 definitions:
+  steps:
+    - step: &build
+        name: Build
+        image: golang:1.14
+        caches:
+          - go-src
+          - go-pkg
+        script:
+          - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
+          - mkdir -pv "${PACKAGE_PATH}"
+          - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
+          - export GO111MODULE=on
+          - cd "${PACKAGE_PATH}"
+          - go get ./...
+          - make all
+          - mkdir ${BITBUCKET_CLONE_DIR}/build
+          - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
+        artifacts:
+          - build/deccli
+          - build/decd
+
   caches:
     pip: ~/.cache/pip
     go-src: ~/go/src
-    go-pkg: ~/go/pkg      
+    go-pkg: ~/go/pkg
 
 pipelines:
   branches:
     develop:
       - <<: *build
       - step:
-          name: Deploy          
+          name: Deploy
           deployment: testnet
           caches:
             - pip
@@ -60,9 +60,9 @@ pipelines:
 
   custom: # Pipelines that are triggered manually
     update-hosts:
-      - <<: *build      
+      - <<: *build
       - step:
-          name: Deploy          
+          name: Deploy
           deployment: testnet
           caches:
             - pip
@@ -77,9 +77,9 @@ pipelines:
             - ansible-playbook -i "$UPDATE_HOSTS" -e "ansible_user=$USERNAME artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-update.yml;
 
     reset-master-host:
-      - <<: *build      
+      - <<: *build
       - step:
-          name: Deploy          
+          name: Deploy
           deployment: testnet
           caches:
             - pip
@@ -94,19 +94,18 @@ pipelines:
             - ansible-playbook -i "$RESET_MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-init.yml;
 
     reset-slave-host:
-      - <<: *build      
+      - <<: *build
       - step:
-          name: Deploy          
+          name: Deploy
           deployment: testnet
           caches:
             - pip
           script:
             - MESSAGE=`git log --format=%B -n 1 $BITBUCKET_COMMIT` # getting commit message
             - pip install ansible==2.9.7
-          
+
             - chmod 700 ci-scripts/ansible
             - cd ci-scripts/ansible
-          
+
             # run reset playbook for SLAVE HOSTS
             - ansible-playbook -i "$RESET_SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS" decimal-nodes-init.yml;
-       
