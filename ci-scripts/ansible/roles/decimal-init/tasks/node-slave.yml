@@ -16,7 +16,7 @@
   register: content
 
 - set_fact:
-  content: '{{ content.json.result.genesis }}'
+    content: '{{ content.json.result.genesis }}'
 
 - debug: var=content
 
@@ -31,10 +31,10 @@
   register: result
 
 - set_fact:
-  connection_string: '{{ result.stdout | from_json }}'
+    connection_string: '{{ result.stdout | from_json }}'
 
 - set_fact:
-  connection_string: '{{ connection_string.app_state.genutil.gentxs[0].value.memo }}'
+    connection_string: '{{ connection_string.app_state.genutil.gentxs[0].value.memo }}'
 
 - debug: var=connection_string
 

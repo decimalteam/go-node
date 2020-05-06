@@ -22,7 +22,7 @@ pipelines:
       - step:
           name: Run deployment scripts if it is needed
           image: python:3.8.2
-          deployment: testnet # or set to $BITBUCKET_BRANCH
+          deployment: testnet
           caches:
             - pip
           script:
@@ -43,7 +43,7 @@ pipelines:
               else echo 0; fi
 
             # run reset playbook for SLAVE HOSTS
-            - if [[ $MESSAGE == *\reset\* ]]; then
+            - if [[ $MESSAGE == *\[reset\]* ]]; then
               ansible-playbook -i "$SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS" decimal-nodes-init.yml;
               else echo 0; fi
 
