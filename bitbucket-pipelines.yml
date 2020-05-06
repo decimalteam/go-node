@@ -1,31 +1,31 @@
 image: python:3.8.2
 
-build: &build
-  - step:
-    name: Build
-    image: golang:1.14
-    caches:
-      - go_src
-      - go_pkg
-    script:
-      - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
-      - mkdir -pv "${PACKAGE_PATH}"
-      - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
-      - export GO111MODULE=on
-      - cd "${PACKAGE_PATH}"
-      - go get ./...
-      - make all
-      - mkdir ${BITBUCKET_CLONE_DIR}/build
-      - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
-    artifacts:
-      - build/deccli
-      - build/decd
+definitions: 
+  build: &build
+    - step:
+      name: Build
+      image: golang:1.14
+      caches:
+        - go-src
+        - go-pkg
+      script:
+        - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
+        - mkdir -pv "${PACKAGE_PATH}"
+        - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
+        - export GO111MODULE=on
+        - cd "${PACKAGE_PATH}"
+        - go get ./...
+        - make all
+        - mkdir ${BITBUCKET_CLONE_DIR}/build
+        - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
+      artifacts:
+        - build/deccli
+        - build/decd
 
-definitions:        
   caches:
     pip: ~/.cache/pip
-    go_src: ~/go/src
-    go_pkg: ~/go/pkg      
+    go-src: ~/go/src
+    go-pkg: ~/go/pkg      
 
 pipelines:
   branches:
