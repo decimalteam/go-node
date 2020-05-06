@@ -10,6 +10,7 @@ const (
 	EventTypeSetOffline        = "set_offline"
 	EventTypeCompleteUnbonding = "complete_unbonding"
 	EventTypeProposerReward    = "proposer_reward"
+	EventTypeSlash             = "slash"
 
 	AttributeKeyValidator      = "validator"
 	AttributeKeyDelegator      = "delegator"
@@ -17,5 +18,12 @@ const (
 	AttributeKeyDenom          = "denom"
 	AttributeKeyPubKey         = "pub_key"
 	AttributeKeyCompletionTime = "completion_time"
-	AttributeValueCategory     = ModuleName
+	AttributeKeyAddress        = "address"
+	AttributeKeyReason         = "reason"
+	AttributeKeyPower          = "power"
+
+	AttributeValueDoubleSign       = "double_sign"
+	AttributeValueMissingSignature = "missing_signature"
+
+	AttributeValueCategory = ModuleName
 )

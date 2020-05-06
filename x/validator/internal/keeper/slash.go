@@ -308,6 +308,13 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			logger.Info(fmt.Sprintf("Validator %s past min height of %d and below signed blocks threshold of %d",
 				consAddr, minHeight, types.MinSignedPerWindow))
 
+			ctx.EventManager().EmitEvent(sdk.NewEvent(
+				types.EventTypeSlash,
+				sdk.NewAttribute(types.AttributeKeyAddress, consAddr.String()),
+				sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", power)),
+				sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueMissingSignature),
+			))
+
 			// We need to retrieve the stake distribution which signed the block, so we subtract ValidatorUpdateDelay from the evidence height,
 			// and subtract an additional 1 since this is the LastCommit.
 			// Note that this *can* result in a negative "distributionHeight" up to -ValidatorUpdateDelay-1,
@@ -432,6 +439,13 @@ func (k Keeper) HandleDoubleSign(ctx sdk.Context, addr crypto.Address, infractio
 
 	// get the percentage slash penalty fraction
 	fraction := types.SlashFractionDoubleSign
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeSlash,
+		sdk.NewAttribute(types.AttributeKeyAddress, consAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", power)),
+		sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueDoubleSign),
+	))
 
 	// Slash validator
 	// `power` is the int64 power of the validator as provided to/by

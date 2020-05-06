@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"sort"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
@@ -307,7 +306,6 @@ func (k Keeper) jailValidator(ctx sdk.Context, validator types.Validator) error 
 	if err != nil {
 		return err
 	}
-	log.Println(k.GetAllValidatorsByPowerIndex(ctx))
 	return nil
 }
 
