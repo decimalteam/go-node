@@ -64,7 +64,7 @@ func NewProvider() *Provider {
 	rootPath := os.ExpandEnv(RootPath)
 
 	// Initialize and prepare keybase
-	keybase, err := keys.NewKeyring(sdk.KeyringServiceName(), keys.BackendTest, rootPath, nil)
+	keybase, err := keys.NewKeyring("keyring-test-Decimal", keys.BackendTest, rootPath, nil)
 	if err != nil {
 		log.Fatalf("ERROR: Unable to initialize keybase: %v", err)
 	}
@@ -148,7 +148,7 @@ func main() {
 
 	err = provider.SendCoin(mainAccount, accounts[0], 1000000)
 	if err != nil {
-		log.Println(err)
+		log.Println("Init send", err)
 		return
 	}
 
