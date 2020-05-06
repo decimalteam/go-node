@@ -100,7 +100,7 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
 
-	return &sdk.Result{Events: sdk.Events{
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeDelegate,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
@@ -112,7 +112,9 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
 		),
-	}}, nil
+	})
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Result, error) {
@@ -122,7 +124,8 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 	}
 
 	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
-	ctx.EventManager().EmitEvents(sdk.Events{
+
+	return &sdk.Result{Data: completionTimeBz, Events: sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUnbond,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
@@ -136,9 +139,7 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
 		),
-	})
-
-	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
+	}}, nil
 }
 
 func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidate) (*sdk.Result, error) {
