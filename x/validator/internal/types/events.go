@@ -21,6 +21,7 @@ const (
 	AttributeKeyAddress        = "address"
 	AttributeKeyReason         = "reason"
 	AttributeKeyPower          = "power"
+	AttributeKeySequence       = "sequence"
 
 	AttributeValueDoubleSign       = "double_sign"
 	AttributeValueMissingSignature = "missing_signature"

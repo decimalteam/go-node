@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -203,8 +202,6 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 	if err := k.burnNotBondedTokens(ctx, burnedAmount); err != nil {
 		panic(err)
 	}
-
-	log.Println(burnedAmount)
 
 	return totalSlashAmount
 }
