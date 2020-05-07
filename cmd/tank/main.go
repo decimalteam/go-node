@@ -168,37 +168,36 @@ func main() {
 			return
 		}
 		atomic.StoreUint64(accounts[i].Sequence, seq)
-		for j := 0; j < 1; j++ {
-			go func(accountNum int) {
-				for {
-					err = provider.SendCoin(accounts[i], accounts[(i+1)%len(accounts)], 5)
-					if err != nil {
-						log.Println(err)
-					}
-					time.Sleep(cfg.TimeoutMs.Send)
+		go func(accountNum int) {
+			for {
+				err = provider.SendCoin(accounts[accountNum], accounts[(accountNum+1)%len(accounts)], 5)
+				if err != nil {
+					log.Println(err)
 				}
-			}(i)
+				time.Sleep(cfg.TimeoutMs.Send)
+			}
+		}(i)
 
-			//go func(account Account) {
-			//	for {
-			//		err = provider.BuyCoin("TEST1", "TEST2", sdk.NewInt(1), sdk.NewInt(1), account)
-			//		if err != nil {
-			//			log.Println(err)
-			//		}
-			//		time.Sleep(cfg.TimeoutMs.Buy)
-			//	}
-			//}(accounts[i])
-			//
-			//go func(account Account) {
-			//	for {
-			//		err = provider.SellCoin("TEST1", "TEST2", sdk.NewInt(1), sdk.NewInt(1), account)
-			//		if err != nil {
-			//			log.Println(err)
-			//		}
-			//		time.Sleep(cfg.TimeoutMs.Sell)
-			//	}
-			//}(accounts[i])
-		}
+		//go func(account Account) {
+		//	for {
+		//		err = provider.BuyCoin("TEST1", "TEST2", sdk.NewInt(1), sdk.NewInt(1), account)
+		//		if err != nil {
+		//			log.Println(err)
+		//		}
+		//		time.Sleep(cfg.TimeoutMs.Buy)
+		//	}
+		//}(accounts[i])
+		//
+		//go func(account Account) {
+		//	for {
+		//		err = provider.SellCoin("TEST1", "TEST2", sdk.NewInt(1), sdk.NewInt(1), account)
+		//		if err != nil {
+		//			log.Println(err)
+		//		}
+		//		time.Sleep(cfg.TimeoutMs.Sell)
+		//	}
+		//}(accounts[i])
+
 	}
 
 	select {}
