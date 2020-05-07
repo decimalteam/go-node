@@ -189,10 +189,12 @@ Y - amoun of COIN want to spend (float)`
 	}
 
 	// Parse input message as set of strings
-	strs := strings.Split(m.Text, "\r")
+	strs := strings.Split(m.Text, "\n")
 	strsc := len(strs)
 	fmt.Println("###")
 	fmt.Println(m.Text)
+	fmt.Println("###")
+	fmt.Println([]byte(m.Text))
 	fmt.Println("###")
 	fmt.Println(strs)
 	fmt.Println("###")
