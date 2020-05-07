@@ -189,8 +189,11 @@ Y - amoun of COIN want to spend (float)`
 	}
 
 	// Parse input message as set of strings
-	strs := strings.Split(m.Text, "\n\r")
+	strs := strings.Split(m.Text, "\n")
 	strsc := len(strs)
+	fmt.Println("###")
+	fmt.Println(strs)
+	fmt.Println("###")
 	fmt.Println(strsc)
 	if strsc <= 1 {
 		text := fmt.Sprintf("Invalid trade calculation request: at least one coin should be specified. Usage:%s", coinSpecification)
