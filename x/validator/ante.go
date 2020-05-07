@@ -1,18 +1,18 @@
 package validator
 
 import (
-	"errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-	"strconv"
-
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	vtypes "bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+	"log"
+	"strconv"
 )
 
 // Ante
@@ -54,6 +54,7 @@ func (sed SequenceEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 		))
 	}
 
+	log.Println("next")
 	return next(ctx, tx, simulate)
 }
 
@@ -98,5 +99,6 @@ func (d FeeCoinUpdateDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 		}
 	}
 
+	log.Println("next")
 	return next(ctx, tx, simulate)
 }

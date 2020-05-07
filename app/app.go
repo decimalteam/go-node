@@ -256,7 +256,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.SetEndBlocker(app.EndBlocker)
 
 	// The AnteHandler handles signature verification and transaction pre-processing
-
 	app.SetAnteHandler(
 		validator.NewAnteHandler(
 			app.accountKeeper,
