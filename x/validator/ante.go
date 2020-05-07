@@ -54,7 +54,7 @@ func (sed SequenceEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 		))
 	}
 
-	log.Println("next")
+	log.Println("next SequenceEventDecorator")
 	return next(ctx, tx, simulate)
 }
 
@@ -99,6 +99,6 @@ func (d FeeCoinUpdateDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 		}
 	}
 
-	log.Println("next")
+	log.Println("next FeeCoinUpdateDecorator")
 	return next(ctx, tx, simulate)
 }
