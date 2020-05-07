@@ -118,9 +118,15 @@ func main() {
 
 	provider := NewProvider()
 
-	accounts := make([]Account, 1)
+	accounts := make([]Account, 2)
 
 	accounts[0], err = provider.CreateAccount("spam30", "12345678")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	accounts[1], err = provider.CreateAccount("spam40", "12345678")
 	if err != nil {
 		log.Println(err)
 		return
@@ -146,30 +152,29 @@ func main() {
 		Password:  "12345678",
 	}
 
-	err = provider.SendCoin(mainAccount, accounts[0], 1000000)
-	if err != nil {
-		log.Println("Init send", err)
-		return
-	}
-
-	time.Sleep(time.Second * 5)
-
-	*accounts[0].Sequence, accounts[0].AccNumber, err = GetSequenceAndAccNumber(accounts[0].Address.String())
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
 	for i := 0; i < len(accounts); i++ {
+		err = provider.SendCoin(mainAccount, accounts[i], 1000000)
+		if err != nil {
+			log.Println("Init send", err)
+			return
+		}
+
+		time.Sleep(time.Second * 5)
+
+		*accounts[i].Sequence, accounts[i].AccNumber, err = GetSequenceAndAccNumber(accounts[i].Address.String())
+		if err != nil {
+			log.Println(err)
+			return
+		}
 		for j := 0; j < 1; j++ {
 			go func(account Account) {
 				for {
-					err = provider.SendCoin(account, mainAccount, 5)
+					err = provider.SendCoin(accounts[0], accounts[1], 5)
 					if err != nil {
 						log.Println(err)
 					}
 					time.Sleep(cfg.TimeoutMs.Send)
-					err = provider.SendCoin(mainAccount, account, 5)
+					err = provider.SendCoin(accounts[1], accounts[0], 5)
 					if err != nil {
 						log.Println(err)
 					}
