@@ -46,7 +46,7 @@ pipelines:
 
             # run update playbook
             - if [[ $MESSAGE == *\[update\]* ]]; then
-              ansible-playbook -i "$MASTER_HOSTS, $SLAVE_HOSTS" -e "ansible_user=$USERNAME artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-update.yml;
+              ansible-playbook -i "$MASTER_HOSTS, $SLAVE_HOSTS" -e "ansible_user=$USERNAME chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-update.yml;
               else echo 0; fi
 
             # run reset playbook for MASTER HOSTS
@@ -75,7 +75,7 @@ pipelines:
             - cd ci-scripts/ansible
 
             # run update playbook for UPDATE HOSTS
-            - ansible-playbook -i "$UPDATE_HOSTS" -e "ansible_user=$USERNAME artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-update.yml;
+            - ansible-playbook -i "$UPDATE_HOSTS" -e "ansible_user=$USERNAME chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-update.yml;
 
     reset-master-hosts:
       - step:
