@@ -169,20 +169,15 @@ func main() {
 		}
 		atomic.StoreUint64(accounts[i].Sequence, seq)
 		for j := 0; j < 1; j++ {
-			go func(account Account) {
+			go func(accountNum int) {
 				for {
-					err = provider.SendCoin(accounts[0], accounts[1], 5)
-					if err != nil {
-						log.Println(err)
-					}
-					time.Sleep(cfg.TimeoutMs.Send)
-					err = provider.SendCoin(accounts[1], accounts[0], 5)
+					err = provider.SendCoin(accounts[i], accounts[(i+1)%len(accounts)], 5)
 					if err != nil {
 						log.Println(err)
 					}
 					time.Sleep(cfg.TimeoutMs.Send)
 				}
-			}(accounts[i])
+			}(i)
 
 			//go func(account Account) {
 			//	for {
