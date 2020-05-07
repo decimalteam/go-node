@@ -223,7 +223,10 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin) (*sdk.R
 
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
 	// TODO: commission
-	_ = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coin), msg.Amount)})
+	err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coin), msg.Amount)})
+	if err != nil {
+		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
+	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
