@@ -230,6 +230,11 @@ Y - amoun of COIN want to spend (float)`
 		coinStr := strings.TrimSpace(strs[i])
 		coinStrs := strings.Split(coinStr, " ")
 		coinStrsc := len(coinStrs)
+		fmt.Println(coinStrs)
+		for i := 0; i < len(coinStrs); i++ {
+			fmt.Println(coinStrs[i])
+		}
+		fmt.Println(coinStrsc)
 		if coinStrsc != 4 {
 			text := fmt.Sprintf("Invalid coin specification in trade calculation request. Usage:%s", coinSpecification)
 			answerWithError(m, text)
