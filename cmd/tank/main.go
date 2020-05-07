@@ -265,6 +265,7 @@ func (p *Provider) SendCoin(sender, receiver Account, amount int64) error {
 		return err
 	}
 	if broadcastResp.Result.Code != 0 {
+		log.Println("Sequence = ", atomic.LoadUint64(sender.Sequence))
 		log.Printf("Broadcast error: code: %d, log: %s", broadcastResp.Result.Code, broadcastResp.Result.Log)
 	} else {
 		log.Println("Broadcast hash: ", broadcastResp.Result.Hash)
