@@ -345,11 +345,11 @@ Y - amoun of COIN want to spend (float)`
 	} else {
 		if isBaseCoinB {
 			if require {
-				result := formulas.CalculateSaleReturn(s, r, crr, a)
+				result := formulas.CalculateSaleAmount(s, r, crr, a)
 				text := fmt.Sprintf("To receive %f %s you want to sell %f %s", amount, BaseCoin, floatFromInt(result), symbolA)
 				answerWithSuccess(m, text)
 			} else {
-				result := formulas.CalculateSaleAmount(s, r, crr, a)
+				result := formulas.CalculateSaleReturn(s, r, crr, a)
 				text := fmt.Sprintf("You will recieve %f %s by selling %f %s", floatFromInt(result), BaseCoin, amount, symbolA)
 				answerWithSuccess(m, text)
 			}
