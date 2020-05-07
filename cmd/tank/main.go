@@ -141,7 +141,7 @@ func main() {
 	mainAccount := Account{
 		Address:   mainAddr,
 		AccNumber: mainAccNumber,
-		Name:      "spammer",
+		Name:      "tank",
 		Sequence:  &mainSequence,
 		Password:  "12345678",
 	}
