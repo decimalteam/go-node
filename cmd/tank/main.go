@@ -25,7 +25,7 @@ const (
 	RootPath            = "$HOME/.decimal/cli"
 	mnemonicEntropySize = 256
 
-	DefaultGas    = uint64(50000)
+	DefaultGas    = uint64(200000)
 	DefaultGasAdj = float64(1.1)
 
 	RPCPrefix = "http://localhost:26657"
@@ -141,7 +141,7 @@ func main() {
 	mainAccount := Account{
 		Address:   mainAddr,
 		AccNumber: mainAccNumber,
-		Name:      "spammer",
+		Name:      "tank",
 		Sequence:  &mainSequence,
 		Password:  "12345678",
 	}
