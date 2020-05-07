@@ -328,17 +328,17 @@ Y - amoun of COIN want to spend (float)`
 	if buy {
 		if isBaseCoinB {
 			if require {
-				result := formulas.CalculatePurchaseAmount(s, r, crr, a)
+				result := formulas.CalculatePurchaseReturn(s, r, crr, a)
 				text := fmt.Sprintf("You will recieve %f %s by spending %f %s", floatFromInt(result), symbolA, amount, BaseCoin)
 				answerWithSuccess(m, text)
 			} else {
-				result := formulas.CalculatePurchaseReturn(s, r, crr, a)
+				result := formulas.CalculatePurchaseAmount(s, r, crr, a)
 				text := fmt.Sprintf("To buy %f %s you want to spend %f %s", amount, symbolA, floatFromInt(result), BaseCoin)
 				answerWithSuccess(m, text)
 			}
 		} else {
 			// TODO
-			text := "Trade calculation for custom coin is not yet supported!"
+			text := "Trade calculation for custom coin (exchanging) is not yet supported!"
 			answerWithError(m, text)
 			return
 		}
@@ -346,16 +346,16 @@ Y - amoun of COIN want to spend (float)`
 		if isBaseCoinB {
 			if require {
 				result := formulas.CalculateSaleReturn(s, r, crr, a)
-				text := fmt.Sprintf("To sell %f %s you want to spend %f %s", amount, symbolA, floatFromInt(result), BaseCoin)
+				text := fmt.Sprintf("To receive %f %s you want to sell %f %s", amount, BaseCoin, floatFromInt(result), symbolA)
 				answerWithSuccess(m, text)
 			} else {
 				result := formulas.CalculateSaleAmount(s, r, crr, a)
-				text := fmt.Sprintf("You will recieve %f %s by spending %f %s", floatFromInt(result), BaseCoin, amount, symbolA)
+				text := fmt.Sprintf("You will recieve %f %s by selling %f %s", floatFromInt(result), BaseCoin, amount, symbolA)
 				answerWithSuccess(m, text)
 			}
 		} else {
 			// TODO: Implement
-			text := "Trade calculation for custom coin is not yet supported!"
+			text := "Trade calculation for custom coin (exchanging) is not yet supported!"
 			answerWithError(m, text)
 			return
 		}
