@@ -191,14 +191,6 @@ Y - amoun of COIN want to spend (float)`
 	// Parse input message as set of strings
 	strs := strings.Split(m.Text, "\n")
 	strsc := len(strs)
-	fmt.Println("###")
-	fmt.Println(m.Text)
-	fmt.Println("###")
-	fmt.Println([]byte(m.Text))
-	fmt.Println("###")
-	fmt.Println(strs)
-	fmt.Println("###")
-	fmt.Println(strsc)
 	if strsc <= 1 {
 		text := fmt.Sprintf("Invalid trade calculation request: at least one coin should be specified. Usage:%s", coinSpecification)
 		answerWithError(m, text)
@@ -263,7 +255,7 @@ Y - amoun of COIN want to spend (float)`
 			answerWithError(m, text)
 			return
 		}
-		crr, err := strconv.ParseUint(strings.Trim(coinStrs[2][len("crr="):], " "), 10, 64)
+		crr, err := strconv.ParseUint(strings.Trim(coinStrs[3][len("crr="):], " "), 10, 64)
 		if err != nil {
 			text := fmt.Sprintf("Invalid coin specification in trade calculation request: CRR should be parseable to integer. Usage:%s", coinSpecification)
 			answerWithError(m, text)
