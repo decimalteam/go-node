@@ -207,6 +207,14 @@ func main() {
 	select {}
 }
 
+type BroadcastResponse struct {
+	Result struct {
+		Code int    `json:"code"`
+		Log  string `json:"log"`
+		Hash string `json:"hash"`
+	}
+}
+
 func (p *Provider) SendCoin(sender, receiver Account, amount int64) error {
 	memo := "spam send"
 	txEncoder := auth.DefaultTxEncoder(p.cdc)
@@ -236,7 +244,7 @@ func (p *Provider) SendCoin(sender, receiver Account, amount int64) error {
 
 	// Broadcast signed transaction
 	broadcastURL := fmt.Sprintf("%s/broadcast_tx_sync?tx=0x%x", RPCPrefix, tx)
-	log.Printf("Broadcast request: %s", broadcastURL)
+	//log.Printf("Broadcast request: %s", broadcastURL)
 	resp, err := http.Get(broadcastURL)
 	if err != nil {
 		return err
@@ -255,12 +263,24 @@ func (p *Provider) SendCoin(sender, receiver Account, amount int64) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Broadcast response: %s", string(respBody))
+	//log.Printf("Broadcast response: %s", string(respBody))
+
+	broadcastResp := BroadcastResponse{}
+	err = json.Unmarshal(respBody, &broadcastResp)
+	if err != nil {
+		return err
+	}
+	if broadcastResp.Result.Code != 0 {
+		log.Printf("Broadcast error: code: %d, log: %s", broadcastResp.Result.Code, broadcastResp.Result.Log)
+	} else {
+		log.Println("Broadcast hash: ", broadcastResp.Result.Hash)
+	}
+
 	return nil
 }
 
 func GetSequenceAndAccNumber(address string) (uint64, uint64, error) {
-	resp, err := http.Get("http://localhost:1317/auth/accounts/" + address)
+	resp, err := http.Get("http://139.59.133.148/rest/auth/accounts/" + address)
 	if err != nil {
 		return 0, 0, err
 	}
