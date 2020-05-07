@@ -161,11 +161,13 @@ func main() {
 
 		time.Sleep(time.Second * 5)
 
-		*accounts[i].Sequence, accounts[i].AccNumber, err = GetSequenceAndAccNumber(accounts[i].Address.String())
+		var seq uint64
+		seq, accounts[i].AccNumber, err = GetSequenceAndAccNumber(accounts[i].Address.String())
 		if err != nil {
 			log.Println(err)
 			return
 		}
+		atomic.StoreUint64(accounts[i].Sequence, seq)
 		for j := 0; j < 1; j++ {
 			go func(account Account) {
 				for {
