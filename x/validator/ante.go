@@ -18,9 +18,7 @@ import (
 // Ante
 func NewAnteHandler(ak keeper.AccountKeeper, vk Keeper, ck coin.Keeper, sk supply.Keeper, consumer ante.SignatureVerificationGasConsumer) sdk.AnteHandler {
 	return func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
-		return NewFeeCoinUpdateDecorator(vk, ck).AnteHandle(ctx, tx, simulate, func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) {
-			return NewSequenceEventDecorator(ak).AnteHandle(ctx, tx, simulate, auth.NewAnteHandler(ak, sk, consumer))
-		})
+		return NewSequenceEventDecorator(ak).AnteHandle(ctx, tx, simulate, auth.NewAnteHandler(ak, sk, consumer))
 	}
 }
 
