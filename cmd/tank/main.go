@@ -252,8 +252,6 @@ func (p *Provider) SendCoin(sender, receiver Account, amount int64) error {
 		}
 	}()
 
-	atomic.AddUint64(sender.Sequence, 1)
-
 	// Read broadcast response
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -270,6 +268,7 @@ func (p *Provider) SendCoin(sender, receiver Account, amount int64) error {
 		log.Printf("Broadcast error: code: %d, log: %s", broadcastResp.Result.Code, broadcastResp.Result.Log)
 	} else {
 		log.Println("Broadcast hash: ", broadcastResp.Result.Hash)
+		atomic.AddUint64(sender.Sequence, 1)
 	}
 
 	return nil
