@@ -119,7 +119,7 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	bot.Debug = true
+	// bot.Debug = true
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
@@ -191,6 +191,7 @@ Y - amoun of COIN want to spend (float)`
 	// Parse input message as set of strings
 	strs := strings.Split(m.Text, "\n\r")
 	strsc := len(strs)
+	fmt.Println(strsc)
 	if strsc <= 1 {
 		text := fmt.Sprintf("Invalid trade calculation request: at least one coin should be specified. Usage:%s", coinSpecification)
 		answerWithError(m, text)
