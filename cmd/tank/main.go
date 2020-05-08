@@ -33,7 +33,7 @@ const (
 	TankMnemonic        = "silver maximum item glass profit fragile require race decide sell gentle reflect success identify tray erosion gentle orchard wedding yard civil edge regret vote"
 	TankBIP44Path       = "44'/60'/0'/0/0"
 
-	DefaultGas    = uint64(200000)
+	DefaultGas    = uint64(2000000)
 	DefaultGasAdj = float64(1.1)
 
 	RPCPrefix = "http://localhost:26657"
