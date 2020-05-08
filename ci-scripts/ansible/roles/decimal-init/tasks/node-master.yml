@@ -3,20 +3,6 @@
 - name: Include tasks for clear data and update binary files
   include: node-common-clear.yml
 
-# WARNING: Do not use "test" keyring backend in a production!
-# It is used not to radically simplify testnet CI.
-- name: Create validator key pair
-  shell: '{{ decimal_bin }}/deccli keys add val --keyring-backend test'
-  register: key1
-
-- debug: var=key1
-
-- name: Create tank key pair
-  shell: '{{ decimal_bin }}/deccli keys add tank --keyring-backend test'
-  register: key2
-
-- debug: var=key2
-
 - name: Initialize private validator, p2p, genesis, and application configuration files
   shell: '{{ decimal_bin }}/decd init $(hostname) --chain-id={{ chain_id }}'
   register: initialization
@@ -37,23 +23,11 @@
     src: ./genesis.json.j2
     dest: '{{ decimal_data }}/daemon/config/genesis.json'
 
-- name: Include tasks file for add genesis accounts to to genesis.json
-  include: accounts.yml
-
-- name: Add initial signed transactions to the genesis file (Generate a genesis tx carrying a self delegation)
-  shell: '{{ decimal_bin }}/decd gentx --name val --website decimalchain.com --keyring-backend test'
-  register: initial_transaction
-
-- debug: var=initial_transaction
-
 - name: Sets chain-id in config.toml
   shell: '{{ decimal_bin }}/deccli config chain-id {{ chain_id }}'
 
 - name: Set trust mode for the node in config.toml
   shell: '{{ decimal_bin }}/deccli config trust-node true'
-
-- name: Collect genesis txs and output a genesis.json fil
-  shell: '{{ decimal_bin }}/decd collect-gentxs'
 
 - name: Include tasks with common (master & slave) final actions
   include: node-common-in-last.yml
