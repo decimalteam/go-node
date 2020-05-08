@@ -8,18 +8,18 @@
   stat: path={{ systemd_path }}/{{ service_name_rest }}
   register: service_status_rest
 
-- name: Stop service decd, if started
-  service:
-    name: '{{ service_name_decd }}'
-    state: stopped
-  when: service_status_decd.stat.exists
-  become: yes
-
 - name: Stop service decd rest, if started
   service:
     name: '{{ service_name_rest }}'
     state: stopped
   when: service_status_rest.stat.exists
+  become: yes
+
+- name: Stop service decd, if started
+  service:
+    name: '{{ service_name_decd }}'
+    state: stopped
+  when: service_status_decd.stat.exists
   become: yes
 
 - name: Register or update decd service
