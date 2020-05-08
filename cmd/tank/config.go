@@ -12,6 +12,7 @@ type Config struct {
 		Buy  time.Duration `json:"buy"`
 		Sell time.Duration `json:"sell"`
 	} `json:"timeout_ms"`
+	CountAccounts int `json:"count_accounts"`
 }
 
 func (c *Config) UnmarshalJSON(data []byte) (err error) {

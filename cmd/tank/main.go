@@ -126,7 +126,7 @@ func main() {
 
 	provider := NewProvider()
 
-	accounts := make([]Account, CountAccounts)
+	accounts := make([]Account, cfg.CountAccounts)
 
 	mainAddr, err := sdk.AccAddressFromBech32(TankAddress)
 	if err != nil {
@@ -162,7 +162,7 @@ func main() {
 		return
 	}
 
-	time.Sleep(time.Second * 6)
+	time.Sleep(time.Second * 10)
 
 	for i := range accounts {
 		_, accounts[i].AccNumber, err = GetSequenceAndAccNumber(accounts[i].Address.String())
