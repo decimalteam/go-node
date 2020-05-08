@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"sync/atomic"
 	"time"
 
@@ -36,6 +37,8 @@ const (
 	DefaultGasAdj = float64(1.1)
 
 	RPCPrefix = "http://localhost:26657"
+
+	CountAccounts = 200
 )
 
 type Account struct {
@@ -123,19 +126,7 @@ func main() {
 
 	provider := NewProvider()
 
-	accounts := make([]Account, 2)
-
-	accounts[0], err = provider.CreateAccount("tank30", "12345678")
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	accounts[1], err = provider.CreateAccount("tank40", "12345678")
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	accounts := make([]Account, CountAccounts)
 
 	mainAddr, err := sdk.AccAddressFromBech32(TankAddress)
 	if err != nil {
@@ -158,6 +149,11 @@ func main() {
 	}
 
 	for i := 0; i < len(accounts); i++ {
+		accounts[i], err = provider.CreateAccount("tank"+strconv.Itoa(i), "12345678")
+		if err != nil {
+			log.Println(err)
+			return
+		}
 		err = provider.SendCoin(mainAccount, accounts[i], 1000000)
 		if err != nil {
 			log.Println("Init send", err)
