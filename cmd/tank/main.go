@@ -1,29 +1,36 @@
 package main
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/coin"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/go-bip39"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"sync/atomic"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/keys"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/go-bip39"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/coin"
 )
 
 const (
 	ChainID             = "decimal-testnet"
 	RootPath            = "$HOME/.decimal/cli"
-	mnemonicEntropySize = 256
+	TankKeyringBackend  = keys.BackendTest
+	TankAccountName     = "tank"
+	TankAccountPassword = "12345678"
+	TankAddress         = "dx1esffyu0wxk6eez77fhzdxfgvjp4646hqm9sx6c"
+	TankMnemonic        = "silver maximum item glass profit fragile require race decide sell gentle reflect success identify tray erosion gentle orchard wedding yard civil edge regret vote"
+	TankBIP44Path       = "44'/60'/0'/0/0"
 
 	DefaultGas    = uint64(200000)
 	DefaultGasAdj = float64(1.1)
@@ -45,14 +52,17 @@ type Provider struct {
 }
 
 func NewProvider() *Provider {
+
+	// Initialize cosmos-sdk configuration
 	cfg := sdk.GetConfig()
 	cfg.SetCoinType(60)
-	cfg.SetFullFundraiserPath("44'/60'/0'/0/0")
+	cfg.SetFullFundraiserPath(TankBIP44Path)
 	cfg.SetBech32PrefixForAccount(config.DecimalPrefixAccAddr, config.DecimalPrefixAccPub)
 	cfg.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
 	cfg.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
 	cfg.Seal()
 
+	// Initialize cosmos-sdk codec
 	cdc := codec.New()
 	sdk.RegisterCodec(cdc)
 	cdc.RegisterConcrete(coin.MsgSendCoin{}, "coin/SendCoin", nil)
@@ -64,10 +74,11 @@ func NewProvider() *Provider {
 	rootPath := os.ExpandEnv(RootPath)
 
 	// Initialize and prepare keybase
-	keybase, err := keys.NewKeyring("Decimal", keys.BackendTest, rootPath, nil)
+	keybase, err := keys.NewKeyring(sdk.KeyringServiceName(), TankKeyringBackend, rootPath, nil)
 	if err != nil {
 		log.Fatalf("ERROR: Unable to initialize keybase: %v", err)
 	}
+	keybase.CreateAccount(TankAccountName, TankMnemonic, "", TankAccountPassword, TankBIP44Path, keys.Secp256k1)
 
 	return &Provider{
 		cdc:     cdc,
@@ -76,7 +87,7 @@ func NewProvider() *Provider {
 }
 
 func (p *Provider) CreateAccount(name, password string) (Account, error) {
-	entropySeed, err := bip39.NewEntropy(mnemonicEntropySize)
+	entropySeed, err := bip39.NewEntropy(256)
 	if err != nil {
 		return Account{}, err
 	}
@@ -85,7 +96,7 @@ func (p *Provider) CreateAccount(name, password string) (Account, error) {
 		return Account{}, err
 	}
 
-	info, err := p.keybase.CreateAccount(name, mnemonic, password, password, "44'/60'/0'/0/0", keys.Secp256k1)
+	info, err := p.keybase.CreateAccount(name, mnemonic, password, password, TankBIP44Path, keys.Secp256k1)
 	if err != nil {
 		return Account{}, err
 	}
@@ -100,15 +111,9 @@ func (p *Provider) CreateAccount(name, password string) (Account, error) {
 }
 
 func main() {
-	mainAddrRaw := flag.String("main-account", "", "Address of main account")
 	configPath := flag.String("cfg", "cfg.json", "Path to cfg")
 
 	flag.Parse()
-
-	if *mainAddrRaw == "" {
-		fmt.Println("error: you must specify the address of the spammer account")
-		return
-	}
 
 	cfg, err := ImportConfig(*configPath)
 	if err != nil {
@@ -120,19 +125,19 @@ func main() {
 
 	accounts := make([]Account, 2)
 
-	accounts[0], err = provider.CreateAccount("spam30", "12345678")
+	accounts[0], err = provider.CreateAccount("tank30", "12345678")
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	accounts[1], err = provider.CreateAccount("spam40", "12345678")
+	accounts[1], err = provider.CreateAccount("tank40", "12345678")
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	mainAddr, err := sdk.AccAddressFromBech32(*mainAddrRaw)
+	mainAddr, err := sdk.AccAddressFromBech32(TankAddress)
 	if err != nil {
 		log.Println(err)
 		return
@@ -147,9 +152,9 @@ func main() {
 	mainAccount := Account{
 		Address:   mainAddr,
 		AccNumber: mainAccNumber,
-		Name:      "tank",
+		Name:      TankAccountName,
 		Sequence:  &mainSequence,
-		Password:  "12345678",
+		Password:  TankAccountPassword,
 	}
 
 	for i := 0; i < len(accounts); i++ {
@@ -211,7 +216,7 @@ type BroadcastResponse struct {
 }
 
 func (p *Provider) SendCoin(sender, receiver Account, amount int64) error {
-	memo := "spam send"
+	memo := "tank send"
 	txEncoder := auth.DefaultTxEncoder(p.cdc)
 	txBldr := auth.NewTxBuilder(
 		txEncoder,
@@ -304,7 +309,7 @@ func GetSequenceAndAccNumber(address string) (uint64, uint64, error) {
 }
 
 func (p *Provider) BuyCoin(coinToBuy, coinToSell string, amountToBuy, amountToSell sdk.Int, buyer Account) error {
-	memo := "spam send"
+	memo := "tank send"
 	txEncoder := auth.DefaultTxEncoder(p.cdc)
 	txBldr := auth.NewTxBuilder(
 		txEncoder,
@@ -356,7 +361,7 @@ func (p *Provider) BuyCoin(coinToBuy, coinToSell string, amountToBuy, amountToSe
 }
 
 func (p *Provider) SellCoin(coinToBuy, coinToSell string, amountToBuy, amountToSell sdk.Int, buyer Account) error {
-	memo := "spam send"
+	memo := "tank send"
 	txEncoder := auth.DefaultTxEncoder(p.cdc)
 	txBldr := auth.NewTxBuilder(
 		txEncoder,
