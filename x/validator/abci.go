@@ -123,8 +123,6 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		}
 	}
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent("endBlock", sdk.NewAttribute("reward", "333")))
-
 	if height%120 == 0 {
 		err = k.PayRewards(ctx)
 		if err != nil {
