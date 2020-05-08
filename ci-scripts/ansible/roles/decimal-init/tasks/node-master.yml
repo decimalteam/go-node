@@ -11,8 +11,8 @@
 
 - debug: var=key1
 
-- name: Create spammer key pair
-  shell: '{{ decimal_bin }}/deccli keys add spammer --keyring-backend test'
+- name: Create tank key pair
+  shell: '{{ decimal_bin }}/deccli keys add tank --keyring-backend test'
   register: key2
 
 - debug: var=key2
