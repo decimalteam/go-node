@@ -148,26 +148,33 @@ func main() {
 		Password:  TankAccountPassword,
 	}
 
-	for i := 0; i < len(accounts); i++ {
+	for i := range accounts {
 		accounts[i], err = provider.CreateAccount("tank"+strconv.Itoa(i), "12345678")
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		err = provider.SendCoin(mainAccount, accounts[i], 1000000)
-		if err != nil {
-			log.Println("Init send", err)
-			return
-		}
+	}
 
-		time.Sleep(time.Second * 5)
+	err = provider.SendAll(mainAccount, accounts, 1000000)
+	if err != nil {
+		log.Println("Init send", err)
+		return
+	}
 
+	time.Sleep(time.Second * 6)
+
+	for i := range accounts {
 		_, accounts[i].AccNumber, err = GetSequenceAndAccNumber(accounts[i].Address.String())
 		if err != nil {
 			log.Println(err)
 			return
 		}
 		atomic.StoreUint64(accounts[i].Sequence, 0)
+	}
+
+	for i := range accounts {
+
 		go func(accountNum int) {
 			for {
 				err = provider.SendCoin(accounts[accountNum], accounts[(accountNum+1)%len(accounts)], 5)
@@ -405,5 +412,72 @@ func (p *Provider) SellCoin(coinToBuy, coinToSell string, amountToBuy, amountToS
 		return err
 	}
 	log.Printf("Broadcast response: %s", string(respBody))
+	return nil
+}
+
+func (p *Provider) SendAll(sender Account, accounts []Account, amount int64) error {
+	memo := "tank send"
+	txEncoder := auth.DefaultTxEncoder(p.cdc)
+	txBldr := auth.NewTxBuilder(
+		txEncoder,
+		sender.AccNumber, atomic.LoadUint64(sender.Sequence),
+		DefaultGas, DefaultGasAdj,
+		false, ChainID, memo, nil, nil,
+	).WithKeybase(p.keybase)
+
+	msgs := make([]sdk.Msg, len(accounts))
+	for i, account := range accounts {
+		msgs[i] = coin.NewMsgSendCoin(sender.Address, "tDCL", sdk.NewInt(amount), account.Address)
+	}
+
+	tx, err := txBldr.BuildAndSign(sender.Name, sender.Password, msgs)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Find the way to avoid this ugly hack!
+	{
+		hackPrefix, _ := hex.DecodeString("282816a9")
+		hackLength := (int(tx[1])<<8 + int(tx[0])) + 4
+		hackTx := []byte{byte(hackLength & 0xFF), byte(hackLength >> 8)}
+		hackTx = append(hackTx, hackPrefix...)
+		hackTx = append(hackTx, tx[2:]...)
+		tx = hackTx
+	}
+
+	// Broadcast signed transaction
+	broadcastURL := fmt.Sprintf("%s/broadcast_tx_sync?tx=0x%x", RPCPrefix, tx)
+	//log.Printf("Broadcast request: %s", broadcastURL)
+	resp, err := http.Get(broadcastURL)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = resp.Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	// Read broadcast response
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	//log.Printf("Broadcast response: %s", string(respBody))
+
+	broadcastResp := BroadcastResponse{}
+	err = json.Unmarshal(respBody, &broadcastResp)
+	if err != nil {
+		return err
+	}
+	if broadcastResp.Result.Code != 0 {
+		log.Println("Sequence = ", atomic.LoadUint64(sender.Sequence))
+		log.Printf("Broadcast error: code: %d, log: %s", broadcastResp.Result.Code, broadcastResp.Result.Log)
+	} else {
+		log.Println("Broadcast hash: ", broadcastResp.Result.Hash)
+		atomic.AddUint64(sender.Sequence, 1)
+	}
+
 	return nil
 }
