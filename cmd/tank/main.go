@@ -37,8 +37,6 @@ const (
 	DefaultGasAdj = float64(1.1)
 
 	RPCPrefix = "http://localhost:26657"
-
-	CountAccounts = 200
 )
 
 type Account struct {
@@ -125,6 +123,10 @@ func main() {
 	}
 
 	provider := NewProvider()
+
+	if cfg.CountAccounts == 0 {
+		cfg.CountAccounts = 20
+	}
 
 	accounts := make([]Account, cfg.CountAccounts)
 
