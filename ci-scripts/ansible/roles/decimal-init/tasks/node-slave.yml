@@ -26,24 +26,5 @@
     dest: '{{ decimal_data }}/daemon/config/genesis.json'
     mode: '0750'
 
-- name: Extract connection string from genesis
-  shell: 'cat {{ decimal_data }}/daemon/config/genesis.json'
-  register: result
-
-- set_fact:
-    connection_string: '{{ result.stdout | from_json }}'
-
-- set_fact:
-    connection_string: '{{ connection_string.app_state.genutil.gentxs[0].value.memo }}'
-
-- debug: var=connection_string
-
-- name: Set persistent peers
-  ini_file:
-    path: '{{ decimal_data }}/daemon/config/config.toml'
-    section: 'p2p'
-    option: 'persistent_peers'
-    value: '"{{ connection_string }}"'
-
 - name: Include tasks with common (master & slave) final actions
   include: node-common-in-last.yml

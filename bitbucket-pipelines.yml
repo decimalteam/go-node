@@ -51,12 +51,12 @@ pipelines:
 
             # run reset playbook for MASTER HOSTS
             - if [[ $MESSAGE == *\[reset\]* ]]; then
-              ansible-playbook -i "$MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-init.yml;
+              ansible-playbook -i "$MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
               else echo 0; fi
 
             # run reset playbook for SLAVE HOSTS
             - if [[ $MESSAGE == *\[reset\]* ]]; then
-              ansible-playbook -i "$SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS" decimal-nodes-init.yml;
+              ansible-playbook -i "$SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
               else echo 0; fi
 
   custom: # Pipelines that are triggered manually
@@ -92,7 +92,7 @@ pipelines:
             - cd ci-scripts/ansible
 
             # run reset playbook for MASTER HOSTS
-            - ansible-playbook -i "$RESET_MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-init.yml;
+            - ansible-playbook -i "$RESET_MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
 
     reset-slave-hosts:
       - step:
@@ -109,7 +109,7 @@ pipelines:
             - cd ci-scripts/ansible
 
             # run reset playbook for SLAVE HOSTS
-            - ansible-playbook -i "$RESET_SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS" decimal-nodes-init.yml;
+            - ansible-playbook -i "$RESET_SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
 
     update-services-on-hosts:
       - step:

@@ -23,6 +23,20 @@
 
 - debug: var=initialization
 
+- name: Copy Node Key
+  shell: 'cp -b -f {{ decimal_keys }}/node_key.json {{ decimal_data }}/daemon/config/node_key.json'
+
+- name: Copy Validator Key
+  shell: 'cp -b -f {{ decimal_keys }}/priv_validator_key.json {{ decimal_data }}/daemon/config/priv_validator_key.json'
+
+- name: Copy Private Validator State file
+  shell: 'cp -b -f {{ decimal_keys }}/priv_validator_state.json {{ decimal_data }}/daemon/data/priv_validator_state.json'
+
+- name: Generate genesis.json file from template
+  template:
+    src: ./genesis.json.j2
+    dest: '{{ decimal_data }}/daemon/config/genesis.json'
+
 - name: Include tasks file for add genesis accounts to to genesis.json
   include: accounts.yml
 
