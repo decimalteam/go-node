@@ -248,7 +248,7 @@ func (p *Provider) SendCoin(sender, receiver Account, amount int64) error {
 	}
 
 	// Broadcast signed transaction
-	broadcastURL := fmt.Sprintf("%s/broadcast_tx_sync?tx=0x%x", RPCPrefix, tx)
+	broadcastURL := fmt.Sprintf("%s/broadcast_tx_async?tx=0x%x", RPCPrefix, tx)
 	//log.Printf("Broadcast request: %s", broadcastURL)
 	resp, err := http.Get(broadcastURL)
 	if err != nil {

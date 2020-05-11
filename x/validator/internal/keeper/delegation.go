@@ -564,7 +564,7 @@ func (k Keeper) Undelegate(
 		k.bondedTokensToNotBonded(ctx, sdk.NewCoins(amount))
 	}
 
-	completionTime := ctx.BlockHeader().Time.Add(k.UnBondingTime(ctx))
+	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
 	ubd := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, amount)
 	k.InsertUBDQueue(ctx, ubd, completionTime)
 

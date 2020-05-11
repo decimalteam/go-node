@@ -1,7 +1,8 @@
 {
   "timeout_ms": {
-    "send": "50ms",
+    "send": "6s",
     "buy": "500ms",
     "sell": "500ms"
-  }
+  },
+  "count_accounts": 200
 }

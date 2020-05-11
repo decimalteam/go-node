@@ -28,6 +28,8 @@ const (
 	CodeErrInvalidHistoricalInfo CodeType = 601
 
 	CodeErrNoHistoricalInfo CodeType = 701
+
+	CodeDelegatorStakeIsTooLow CodeType = 801
 )
 
 func ErrEmptyPubKey(codespace string) *sdkerrors.Error {
@@ -65,6 +67,10 @@ func ErrInsufficientShares(codespace string) *sdkerrors.Error {
 func ErrDelegatorShareExRateInvalid(codespace string) *sdkerrors.Error {
 	return sdkerrors.New(codespace, CodeInvalidDelegation,
 		"cannot delegate to validators with invalid (zero) ex-rate")
+}
+
+func ErrDelegatorStakeIsTooLow(codespace string) *sdkerrors.Error {
+	return sdkerrors.New(codespace, CodeDelegatorStakeIsTooLow, "Stake is too low")
 }
 
 func ErrNoUnbondingDelegation(codespace string) *sdkerrors.Error {

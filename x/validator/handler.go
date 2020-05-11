@@ -95,6 +95,10 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, types.ErrNoValidatorFound(k.Codespace())
 	}
 
+	if !k.IsDelegatorStakeSufficient(ctx, val, msg.DelegatorAddress, msg.Amount) {
+		return nil, types.ErrDelegatorStakeIsTooLow(k.Codespace())
+	}
+
 	_, err = k.Delegate(ctx, msg.DelegatorAddress, msg.Amount, types.Unbonded, val, true)
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
