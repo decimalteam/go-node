@@ -92,14 +92,6 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 	return command
 }
 
-//__________________________________________________________
-
-var (
-	defaultTokens         = sdk.TokensFromConsensusPower(100)
-	defaultAmount         = defaultTokens.String() + types.DefaultBondDenom
-	defaultCommissionRate = "0.1"
-)
-
 // CreateValidatorMsgHelpers returns the flagset, particular flags and a description of defaults
 // this is anticipated to be used with the gen-tx.
 func CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string) {
@@ -118,9 +110,7 @@ func CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, 
 }
 
 // PrepareFlagsForTxCreateValidator prepare flags in config.
-func PrepareFlagsForTxCreateValidator(
-	config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey,
-) {
+func PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey) {
 
 	ip := viper.GetString(FlagIP)
 	if ip == "" {
@@ -147,10 +137,10 @@ func PrepareFlagsForTxCreateValidator(
 		viper.Set(FlagMoniker, viper.GetString(flags.FlagName))
 	}
 	if viper.GetString(FlagAmount) == "" {
-		viper.Set(FlagAmount, defaultAmount)
+		viper.Set(FlagAmount, sdk.TokensFromConsensusPower(100).String()+types.DefaultBondDenom)
 	}
 	if viper.GetString(FlagCommissionRate) == "" {
-		viper.Set(FlagCommissionRate, defaultCommissionRate)
+		viper.Set(FlagCommissionRate, "0.1")
 	}
 }
 

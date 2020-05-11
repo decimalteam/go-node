@@ -70,7 +70,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 				if err != nil {
 					return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 				}
-				amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, k.TotalStake(ctx, validator)))...)
+				amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), k.TotalStake(ctx, validator)))...)
 			}
 		case validator.IsBonded():
 			// no state change
@@ -117,7 +117,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
 
-		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, k.TotalStake(ctx, validator)))...)
+		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), k.TotalStake(ctx, validator)))...)
 
 		validator = validator.UpdateStatus(types.Unbonded)
 		err = k.SetValidator(ctx, validator)
