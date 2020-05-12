@@ -13,8 +13,8 @@ var _ sdk.Msg = &MsgCreateCoin{}
 type MsgCreateCoin struct {
 	Creator              sdk.AccAddress `json:"creator" yaml:"creator"`
 	Title                string         `json:"title" yaml:"title"`                                   // Full coin title (Bitcoin)
-	ConstantReserveRatio uint           `json:"constant_reserve_ratio" yaml:"constant_reserve_ratio"` // between 10 and 100
 	Symbol               string         `json:"symbol" yaml:"symbol"`                                 // Short coin title (BTC)
+	ConstantReserveRatio uint           `json:"constant_reserve_ratio" yaml:"constant_reserve_ratio"` // between 10 and 100
 	InitialVolume        sdk.Int        `json:"initial_volume" yaml:"initial_volume"`
 	InitialReserve       sdk.Int        `json:"initial_reserve" yaml:"initial_reserve"`
 	LimitVolume          sdk.Int        `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
@@ -32,7 +32,7 @@ func NewMsgCreateCoin(title string, crr uint, symbol string, initVolume sdk.Int,
 	}
 }
 
-const CreateCoinConst = "CreateCoin"
+const createCoinConst = "CreateCoin"
 const maxCoinNameBytes = 64
 const allowedCoinSymbols = "^[A-Z0-9]{3,10}$"
 
@@ -42,7 +42,7 @@ var maxCoinSupply, _ = sdk.NewIntFromString("10000000000000000000000000000000000
 var minCoinReserve = sdk.NewInt(10)
 
 func (msg MsgCreateCoin) Route() string { return RouterKey }
-func (msg MsgCreateCoin) Type() string  { return CreateCoinConst }
+func (msg MsgCreateCoin) Type() string  { return createCoinConst }
 func (msg MsgCreateCoin) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Creator}
 }
@@ -53,15 +53,15 @@ func (msg MsgCreateCoin) GetSignBytes() []byte {
 }
 
 func (msg MsgCreateCoin) ValidateBasic() error {
-	// Check coin CRR validity
+	// Validate coin CRR
 	if msg.ConstantReserveRatio < 10 || msg.ConstantReserveRatio > 100 {
 		return sdkerrors.New(DefaultCodespace, InvalidCRR, "Coin CRR must be between 10 and 100")
 	}
-	// Check coin title maximum length
+	// Validate coin title
 	if len(msg.Title) > maxCoinNameBytes {
 		return sdkerrors.New(DefaultCodespace, InvalidCoinTitle, fmt.Sprintf("Coin name is invalid. Allowed up to %d bytes.", maxCoinNameBytes))
 	}
-	// Check coin symbol for correct regexp
+	// Validate coin symbol
 	if match, _ := regexp.MatchString(allowedCoinSymbols, msg.Symbol); !match {
 		return sdkerrors.New(DefaultCodespace, InvalidCoinSymbol, fmt.Sprintf("Invalid coin symbol. Should be %s", allowedCoinSymbols))
 	}

@@ -5,6 +5,7 @@ const (
 	EventTypeCreateCoin    = "CreateCoin"
 	EventTypeBuyCoin       = "BuyCoin"
 	EventTypeSellCoin      = "SellCoin"
+	EventTypeSellAllCoin   = "SellAllCoin"
 	EventTypeSendCoin      = "SendCoin"
 	EventTypeMultiSendCoin = "MultiSendCoin"
 	// Create Coin
@@ -16,12 +17,11 @@ const (
 	AttributeLimitVolume = "limitVolume"
 
 	// Buy/Sell Coin
-	AttributeCoinToBuy              = "coinToBuy"
-	AttributeCoinToSell             = "coinToSell"
-	AttributeAmountToBuy            = "amountToBuy"
-	AttributeAmountToSell           = "amountToSell"
-	AttributeAmountToSellInBaseCoin = "amountToSellInBaseCoin"
-	AttributeAmountToBuyInBaseCoin  = "amountToBuyInBaseCoin"
+	AttributeCoinToBuy        = "coinToBuy"
+	AttributeCoinToSell       = "coinToSell"
+	AttributeAmountToBuy      = "amountToBuy"
+	AttributeAmountToSell     = "amountToSell"
+	AttributeAmountInBaseCoin = "amountInBaseCoin"
 
 	// Send/MultiSend Coin
 	AttributeCoin     = "coin"
