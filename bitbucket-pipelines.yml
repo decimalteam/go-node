@@ -56,7 +56,7 @@ pipelines:
 
             # run reset playbook for EXPLORER HOSTS
             - if [[ $MESSAGE == *\[reset\]* ]]; then
-              ansible-playbook -i "$EXPLORER_HOSTS" -e "ansible_user=$USERNAME ansible_python_interpreter=/usr/local/bin/python" decimal-explorer-init.yml;
+              ansible-playbook -i "$EXPLORER_HOSTS" -e "ansible_user=$USERNAME ansible_python_interpreter=/usr/bin/python3" decimal-explorer-init.yml;
               else echo 0; fi
 
             # run reset playbook for SLAVE HOSTS
