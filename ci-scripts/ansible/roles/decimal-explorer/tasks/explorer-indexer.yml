@@ -1,0 +1,22 @@
+---
+# tasks file for decimal explorer indexer
+- name: Check if Explorer Indexer Service Exists
+  stat: path={{ systemd_path }}/{{ service_name_indexer }}
+  register: service_status_indexer
+
+- name: Stop service Explorer Indexer, if started
+  service:
+    name: '{{ service_name_indexer }}'
+    state: stopped
+  when: ansible_hostname.find('explorer-indexer') != -1
+  become: yes
+  notify: run service Explorer Indexer
+
+- name: Drop schema "graphile_worker" with cascade
+  postgresql_schema:
+    db: orderer
+    name: graphile_worker
+    state: absent
+    cascade_drop: yes
+  become: yes
+  become_user: postgres

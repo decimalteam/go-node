@@ -5,11 +5,6 @@
   when: ansible_hostname.find('explorer-node') != -1
   register: service_status_worker
 
-- name: Check if Explorer Indexer Service Exists
-  stat: path={{ systemd_path }}/{{ service_name_indexer }}
-  when: ansible_hostname.find('explorer-indexer') != -1
-  register: service_status_indexer
-
 - name: Check if deccli Service Exists
   stat: path={{ systemd_path }}/{{ service_name_rest }}
   register: service_status_rest
@@ -25,14 +20,6 @@
   when: ansible_hostname.find('explorer-node') != -1
   become: yes
   notify: run service Explorer Indexer Worker
-
-- name: Stop service Explorer Indexer, if started
-  service:
-    name: '{{ service_name_indexer }}'
-    state: stopped
-  when: ansible_hostname.find('explorer-indexer') != -1
-  become: yes
-  notify: run service Explorer Indexer
 
 - name: Stop service decd rest, if started
   service:

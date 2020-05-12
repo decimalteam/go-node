@@ -1,0 +1,7 @@
+---
+- name: Reset Database data!
+  hosts: all
+  gather_facts: True
+
+  roles:
+    - role: decimal-explorer

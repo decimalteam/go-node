@@ -18,3 +18,11 @@
     state: started
     enabled: yes
   become: yes
+
+- name: Run service Explorer Indexer Worker
+  service:
+    name: '{{ service_name_worker }}'
+    state: started
+    enabled: yes
+  when: ansible_hostname.find('explorer-node') != -1
+  become: yes
