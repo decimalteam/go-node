@@ -2,21 +2,23 @@ package rest
 
 import (
 	//"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"fmt"
+	"net/http"
+
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"net/http"
 	//"strings"
 )
 
 type CoinSellAllReq struct {
-	BaseReq    rest.BaseReq `json:"base_req" yaml:"base_req"`
-	CoinToSell string       `json:"coin_to_sell" yaml:"coin_to_sell"`
-	CoinToBuy  string       `json:"coin_to_buy" yaml:"coin_to_buy"`
+	BaseReq     rest.BaseReq `json:"base_req" yaml:"base_req"`
+	CoinToSell  string       `json:"coin_to_sell" yaml:"coin_to_sell"`
+	CoinToBuy   string       `json:"coin_to_buy" yaml:"coin_to_buy"`
+	AmountToBuy sdk.Int      `json:"amount_to_buy" yaml:"amount_to_buy"`
 }
 
 func CoinSellAllRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -37,6 +39,7 @@ func CoinSellAllRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		//}
 		var coinToSellSymbol = req.CoinToSell
 		var coinToBuySymbol = req.CoinToBuy
+		var amountToBuy = req.AmountToBuy
 
 		// Check if coin to buy exists
 		coinToBuy, _ := cliUtils.GetCoin(cliCtx, coinToBuySymbol)
@@ -61,7 +64,7 @@ func CoinSellAllRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		//	return err
 		//}
 		// Do basic validating
-		msg := types.NewMsgSellAllCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol)
+		msg := types.NewMsgSellAllCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, amountToBuy)
 		//err = msg.ValidateBasic()
 		//if err != nil {
 		//	return err

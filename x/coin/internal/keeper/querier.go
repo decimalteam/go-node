@@ -24,18 +24,11 @@ func NewQuerier(k Keeper) sdk.Querier {
 	}
 }
 
-func RemovePrefixFromHash(key []byte, prefix []byte) (hash []byte) {
-	hash = key[len(prefix):]
-	return hash
-}
-
 func listCoins(ctx sdk.Context, k Keeper) ([]byte, error) {
+
 	var coinList types.QueryResCoins
-
-	iterator := k.GetCoinsIterator(ctx)
-
-	for ; iterator.Valid(); iterator.Next() {
-		coinHash := RemovePrefixFromHash(iterator.Key(), []byte(types.CoinPrefix))
+	for it := k.GetCoinsIterator(ctx); it.Valid(); it.Next() {
+		coinHash := it.Key()[len(types.CoinPrefix):]
 		coinList = append(coinList, string(coinHash))
 	}
 
@@ -49,6 +42,7 @@ func listCoins(ctx sdk.Context, k Keeper) ([]byte, error) {
 
 func getCoin(ctx sdk.Context, path []string, k Keeper) (res []byte, sdkError error) {
 	coinHash := path[0]
+
 	coin, err := k.GetCoin(ctx, coinHash)
 	if err != nil {
 		return nil, sdkerrors.New(types.DefaultCodespace, types.CodeInvalid, err.Error())

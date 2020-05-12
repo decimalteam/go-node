@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -41,24 +40,20 @@ func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 			if coinToSell.Symbol != coinToSellSymbol {
 				return sdkerrors.New(types.DefaultCodespace, types.CoinToSellNotExists, fmt.Sprintf("Coin to sell with symbol %s does not exist", coinToSellSymbol))
 			}
-			// Calculate amounts and check limits
-			amountBuy, amountSell, calcErr := cliUtils.BuyCoinCalculateAmounts(coinToBuy, coinToSell, amountToBuy, maxAmountToSell)
-			if calcErr != nil {
-				return calcErr
-			}
+			// TODO: Calculate amounts and check limits
 			// Do basic validating
-			msg := types.NewMsgBuyCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, amountBuy, amountSell)
+			msg := types.NewMsgBuyCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, amountToBuy, maxAmountToSell)
 			err := msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
 
-			// Get account balance
-			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
-			balance := acc.GetCoins()
-			if balance.AmountOf(strings.ToLower(coinToSellSymbol)).LT(amountSell) {
-				return sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, "Not enough coin to sell")
-			}
+			// TODO: Check account balance
+			// acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+			// balance := acc.GetCoins()
+			// if balance.AmountOf(strings.ToLower(coinToSellSymbol)).LT(maxAmountToSell) {
+			// 	return sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, "Not enough coin to sell")
+			// }
 
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},

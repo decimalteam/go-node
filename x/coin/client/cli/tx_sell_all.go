@@ -41,16 +41,16 @@ func GetCmdSellAllCoin(cdc *codec.Codec) *cobra.Command {
 				return sdkerrors.New(types.DefaultCodespace, types.CoinToSellNotExists, fmt.Sprintf("Coin to sell with symbol %s does not exist", coinToSellSymbol))
 			}
 
+			// Get account balance
 			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
 			balance := acc.GetCoins()
-			amountToSell := balance.AmountOf(strings.ToLower(coinToSellSymbol))
-
-			_, _, err := cliUtils.SellCoinCalculateAmounts(coinToBuy, coinToSell, minAmountToBuy, amountToSell)
-			if err != nil {
-				return err
+			if balance.AmountOf(strings.ToLower(coinToSellSymbol)).Sign() <= 0 {
+				return sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, "No coins to sell")
 			}
+
+			// TODO: Calculate amounts and check limits
 			// Do basic validating
-			msg := types.NewMsgSellAllCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol)
+			msg := types.NewMsgSellAllCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, minAmountToBuy)
 			validationErr := msg.ValidateBasic()
 			if validationErr != nil {
 				return validationErr

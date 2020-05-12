@@ -16,16 +16,16 @@ const (
 	InvalidCoinInitReserve  CodeType = 107
 	CodeInvalid             CodeType = 108
 	InsufficientCoinReserve CodeType = 118
-
 	// Buy/Sell Coin
-	SameCoins               CodeType = 109
-	CoinToBuyNotExists      CodeType = 110
-	CoinToSellNotExists     CodeType = 111
-	InsufficientCoinToSell  CodeType = 112
-	TxBreaksVolumeLimit     CodeType = 113
-	TxBreaksMinReserveLimit CodeType = 114
-	UpdateBalanceError      CodeType = 115
-	AmountBuyIsTooSmall     CodeType = 116
+	SameCoins                 CodeType = 109
+	CoinToBuyNotExists        CodeType = 110
+	CoinToSellNotExists       CodeType = 111
+	InsufficientCoinToSell    CodeType = 112
+	TxBreaksVolumeLimit       CodeType = 113
+	TxBreaksMinReserveLimit   CodeType = 114
+	MaximumValueToSellReached CodeType = 115
+	MinimumValueToBuyReached  CodeType = 116
+	UpdateBalanceError        CodeType = 117
 	// Send Coin
-	InvalidAmount CodeType = 117
+	InvalidAmount CodeType = 118
 )

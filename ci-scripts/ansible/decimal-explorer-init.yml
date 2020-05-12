@@ -1,5 +1,5 @@
 ---
-- name: Reset Database data!
+- name: Reset Explorer data!
   hosts: all
   gather_facts: True
 
