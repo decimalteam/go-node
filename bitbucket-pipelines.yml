@@ -40,6 +40,7 @@ pipelines:
           script:
             - MESSAGE=`git log --format=%B -n 1 $BITBUCKET_COMMIT` # getting commit message
             - pip install ansible==2.9.7
+            - pip install psycopg2
 
             - chmod 700 ci-scripts/ansible
             - cd ci-scripts/ansible
