@@ -17,24 +17,24 @@
   become: yes
   become_user: postgres
 
-- name: REVOKE ALL ON SCHEMA public FROM public;
+- name: REVOKE ALL ON SCHEMA public FROM public
   postgresql_privs:
     db: explorer
     state: absent
     privs: ALL
-    objs: ALL_IN_SCHEMA
-    schema: public
+    type: schema
+    objs: public
     role: public
   become: yes
   become_user: postgres
 
-- name: GRANT ALL ON SCHEMA public TO explorer;
+- name: GRANT ALL ON SCHEMA public TO explorer
   postgresql_privs:
     db: explorer
     state: present
     privs: ALL
-    objs: ALL_IN_SCHEMA
-    schema: public
+    type: schema
+    objs: public
     role: explorer
   become: yes
   become_user: postgres
