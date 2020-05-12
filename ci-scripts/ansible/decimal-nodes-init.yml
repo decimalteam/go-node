@@ -10,7 +10,7 @@
 
     - role: decimal-init
       vars:
-        mode: '{{ mode }}' # external variable: mode = master|slave
+        mode: '{{ mode }}' # external variable: mode = master | slave
 
     - role: decimal-service
       vars:
