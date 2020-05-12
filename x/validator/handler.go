@@ -15,7 +15,7 @@ import (
 // NewHandler creates an sdk.Handler for all the validator type messages
 func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		ctx = ctx.WithEventManager(sdk.NewEventManager())
+		//ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		case types.MsgDeclareCandidate:
 			return handleMsgDeclareCandidate(ctx, keeper, msg)
