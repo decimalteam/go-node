@@ -11,6 +11,7 @@ const (
 	EventTypeCompleteUnbonding = "complete_unbonding"
 	EventTypeProposerReward    = "proposer_reward"
 	EventTypeSlash             = "slash"
+	EventTypeEmission          = "emission"
 
 	AttributeKeyValidator      = "validator"
 	AttributeKeyDelegator      = "delegator"

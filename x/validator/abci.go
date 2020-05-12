@@ -75,6 +75,12 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	rewards := types.GetRewardForBlock(uint64(height))
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeEmission,
+			sdk.NewAttribute(sdk.AttributeKeyAmount, rewards.String()),
+		),
+	)
 	denomCoin, err := k.GetCoin(ctx, k.BondDenom(ctx))
 	if err != nil {
 		panic(err)

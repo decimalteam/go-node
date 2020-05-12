@@ -19,6 +19,8 @@ const (
 	DefaultBondDenom  = types.DefaultBondDenom
 
 	ValidatorsKey = types.ValidatorsKey
+
+	AttributeKeySequence = types.AttributeKeySequence
 )
 
 var (
