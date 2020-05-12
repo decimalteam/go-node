@@ -1,0 +1,4 @@
+---
+# defaults file for decimal-explorer
+service_name_worker: worker.service
+service_name_indexer: indexer.service
