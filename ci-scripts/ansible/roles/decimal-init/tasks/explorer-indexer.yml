@@ -1,0 +1,10 @@
+---
+# tasks file for decimal explorer indexer
+- name: Drop schema "graphile_worker" with cascade
+  postgresql_schema:
+    db: orderer
+    name: graphile_worker
+    state: absent
+    cascade_drop: yes
+  become: yes
+  become_user: postgres

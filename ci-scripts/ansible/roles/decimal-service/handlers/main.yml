@@ -3,3 +3,17 @@
   systemd:
     daemon_reload: yes
   become: yes
+
+- name: run service Explorer Indexer
+  service:
+    name: '{{ service_name_indexer }}'
+    state: started
+    enabled: yes
+  become: yes
+
+- name: run service Explorer Indexer Worker
+  service:
+    name: '{{ service_name_worker }}'
+    state: started
+    enabled: yes
+  become: yes
