@@ -39,7 +39,7 @@ pipelines:
             - pip
           script:
             - MESSAGE=`git log --format=%B -n 1 $BITBUCKET_COMMIT` # getting commit message
-            - pip3 install ansible==2.9.8 psycopg2
+            - pip3 install ansible==2.9.8
 
             - chmod 700 ci-scripts/ansible
             - cd ci-scripts/ansible
@@ -56,7 +56,7 @@ pipelines:
 
             # run reset playbook for EXPLORER HOSTS
             - if [[ $MESSAGE == *\[reset\]* ]]; then
-              ansible-playbook -i "$EXPLORER_HOSTS" -e "ansible_user=$USERNAME ansible_python_interpreter=/usr/bin/python3" decimal-explorer-init.yml;
+              ansible-playbook -i "$EXPLORER_HOSTS" -e "ansible_user=$USERNAME" decimal-explorer-init.yml;
               else echo 0; fi
 
             # run reset playbook for SLAVE HOSTS
