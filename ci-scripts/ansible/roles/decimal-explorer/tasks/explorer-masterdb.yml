@@ -25,6 +25,8 @@
     objs: ALL_IN_SCHEMA
     schema: public
     role: public
+  become: yes
+  become_user: postgres
 
 - name: GRANT ALL ON SCHEMA public TO explorer;
   postgresql_privs:
@@ -34,3 +36,5 @@
     objs: ALL_IN_SCHEMA
     schema: public
     role: explorer
+  become: yes
+  become_user: postgres
