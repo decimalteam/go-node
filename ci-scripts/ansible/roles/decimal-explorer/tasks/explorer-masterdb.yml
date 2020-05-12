@@ -8,3 +8,27 @@
     cascade_drop: yes
   become: yes
   become_user: postgres
+
+- name: Create schema "public"
+  postgresql_schema:
+    db: explorer
+    name: public
+    state: present
+  become: yes
+  become_user: postgres
+
+- name: REVOKE ALL ON SCHEMA public FROM public;
+  postgresql_privs:
+    state: absent
+    privs: ALL
+    objs: ALL_IN_SCHEMA
+    schema: public
+    role: public
+
+- name: GRANT ALL ON SCHEMA public TO explorer;
+  postgresql_privs:
+    state: present
+    privs: ALL
+    objs: ALL_IN_SCHEMA
+    schema: public
+    role: explorer
