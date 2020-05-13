@@ -423,7 +423,6 @@ func (p *Provider) SellCoin(coinToBuy, coinToSell string, amountToBuy, amountToS
 
 	// Broadcast signed transaction
 	broadcastURL := fmt.Sprintf("%s/broadcast_tx_sync?tx=0x%x", RPCPrefix, tx)
-	log.Printf("Broadcast request: %s", broadcastURL)
 	resp, err := http.Get(broadcastURL)
 	if err != nil {
 		return err
