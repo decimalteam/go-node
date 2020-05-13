@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"log"
 	"time"
 )
 
@@ -126,7 +125,6 @@ func (k Keeper) GetAllValidatorsByPowerIndex(ctx sdk.Context) []types.Validator 
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		log.Println(iterator.Value())
 		validator, err := k.GetValidator(ctx, iterator.Value())
 		if err != nil {
 			panic(err)
@@ -246,7 +244,7 @@ func (k Keeper) UnbondAllMatureValidatorQueue(ctx sdk.Context) {
 			if err != nil {
 				continue
 			}
-			if val.DelegatorShares.IsZero() {
+			if val.Tokens.IsZero() {
 				err = k.RemoveValidator(ctx, val.ValAddress)
 			}
 		}
@@ -454,4 +452,43 @@ func (k Keeper) GetValidators(ctx sdk.Context, maxRetrieve uint16) (validators [
 		i++
 	}
 	return validators[:i] // trim if the array length < maxRetrieve
+}
+
+func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Validator, delAddr sdk.AccAddress, stake sdk.Coin) bool {
+	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+	if uint16(len(delegations)) < k.MaxDelegations(ctx) {
+		return true
+	}
+
+	stakeValue := sdk.ZeroInt()
+	if stake.Denom != k.BondDenom(ctx) {
+		coin, err := k.GetCoin(ctx, stake.Denom)
+		if err != nil {
+			panic(err)
+		}
+
+		stakeValue = formulas.CalculateSaleAmount(coin.Volume, coin.Reserve, coin.CRR, stake.Amount)
+	} else {
+		stakeValue = stake.Amount
+	}
+
+	for _, delegation := range delegations {
+		delegationStakeValue := sdk.ZeroInt()
+		if delegation.Coin.Denom != k.BondDenom(ctx) {
+			coin, err := k.GetCoin(ctx, stake.Denom)
+			if err != nil {
+				panic(err)
+			}
+
+			delegationStakeValue = formulas.CalculateSaleAmount(coin.Volume, coin.Reserve, coin.CRR, delegation.Coin.Amount)
+		} else {
+			delegationStakeValue = delegation.Coin.Amount
+		}
+
+		if delegationStakeValue.LT(stakeValue) || (delAddr.Equals(delegation.DelegatorAddress) && stake.Denom == delegation.Coin.Denom) {
+			return true
+		}
+	}
+
+	return false
 }

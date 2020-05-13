@@ -15,7 +15,7 @@ import (
 // NewHandler creates an sdk.Handler for all the validator type messages
 func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		ctx = ctx.WithEventManager(sdk.NewEventManager())
+		//ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		case types.MsgDeclareCandidate:
 			return handleMsgDeclareCandidate(ctx, keeper, msg)
@@ -77,11 +77,12 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddr.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Stake.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Stake.Denom),
+			sdk.NewAttribute(types.AttributeKeyPubKey, msg.PubKey.Address().String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddr.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(msg.ValidatorAddr).String()),
 		),
 	})
 
@@ -92,6 +93,10 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 	val, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
 		return nil, types.ErrNoValidatorFound(k.Codespace())
+	}
+
+	if !k.IsDelegatorStakeSufficient(ctx, val, msg.DelegatorAddress, msg.Amount) {
+		return nil, types.ErrDelegatorStakeIsTooLow(k.Codespace())
 	}
 
 	_, err = k.Delegate(ctx, msg.DelegatorAddress, msg.Amount, types.Unbonded, val, true)
@@ -123,12 +128,14 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 	}
 
 	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
-	ctx.EventManager().EmitEvents(sdk.Events{
+
+	return &sdk.Result{Data: completionTimeBz, Events: sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUnbond,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Amount.Denom),
+			sdk.NewAttribute(types.AttributeKeyDelegator, msg.DelegatorAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(
@@ -136,9 +143,7 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
 		),
-	})
-
-	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
+	}}, nil
 }
 
 func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidate) (*sdk.Result, error) {
@@ -164,7 +169,7 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddress.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(validator.ValAddress).String()),
 		),
 	})
 
@@ -199,7 +204,7 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddress.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(msg.ValidatorAddress).String()),
 		),
 	})
 
@@ -232,7 +237,7 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*s
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.ValidatorAddress.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(msg.ValidatorAddress).String()),
 		),
 	})
 

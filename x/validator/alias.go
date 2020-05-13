@@ -19,6 +19,8 @@ const (
 	DefaultBondDenom  = types.DefaultBondDenom
 
 	ValidatorsKey = types.ValidatorsKey
+
+	AttributeKeySequence = types.AttributeKeySequence
 )
 
 var (
@@ -26,16 +28,10 @@ var (
 	NewKeeper           = keeper.NewKeeper
 	NewQuerier          = keeper.NewQuerier
 	RegisterCodec       = types.RegisterCodec
-	NewGenesisState     = types.NewGenesisState
 	DefaultGenesisState = types.DefaultGenesisState
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
-	// TODO: Fill out variable aliases
-
-	ErrValidatorOwnerExists  = types.ErrValidatorOwnerExists
-	ErrValidatorPubKeyExists = types.ErrValidatorPubKeyExists
-	ErrInvalidStruct         = types.ErrInvalidStruct
 )
 
 type (

@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -33,7 +32,7 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 	}
 
 	// Amount of slashing = slash slashFactor * power at time of infraction
-	amount := sdk.TokensFromConsensusPower(power)
+	amount := types.TokensFromConsensusPower(power)
 	slashAmountDec := amount.ToDec().Mul(slashFactor)
 	slashAmount := slashAmountDec.TruncateInt()
 
@@ -204,8 +203,6 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 		panic(err)
 	}
 
-	log.Println(burnedAmount)
-
 	return totalSlashAmount
 }
 
@@ -307,6 +304,13 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			// Downtime confirmed: slash and jail the validator
 			logger.Info(fmt.Sprintf("Validator %s past min height of %d and below signed blocks threshold of %d",
 				consAddr, minHeight, types.MinSignedPerWindow))
+
+			ctx.EventManager().EmitEvent(sdk.NewEvent(
+				types.EventTypeSlash,
+				sdk.NewAttribute(types.AttributeKeyAddress, consAddr.String()),
+				sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", power)),
+				sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueMissingSignature),
+			))
 
 			// We need to retrieve the stake distribution which signed the block, so we subtract ValidatorUpdateDelay from the evidence height,
 			// and subtract an additional 1 since this is the LastCommit.
@@ -432,6 +436,13 @@ func (k Keeper) HandleDoubleSign(ctx sdk.Context, addr crypto.Address, infractio
 
 	// get the percentage slash penalty fraction
 	fraction := types.SlashFractionDoubleSign
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeSlash,
+		sdk.NewAttribute(types.AttributeKeyAddress, consAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", power)),
+		sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueDoubleSign),
+	))
 
 	// Slash validator
 	// `power` is the int64 power of the validator as provided to/by

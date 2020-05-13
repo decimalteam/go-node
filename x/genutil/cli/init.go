@@ -22,7 +22,7 @@ import (
 )
 
 // InitCmd returns a command that initializes all files needed for Tendermint
-// and the respective application.
+// and the respective application
 func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 	defaultNodeHome string) *cobra.Command { // nolint: golint
 	cmd := &cobra.Command{
@@ -70,6 +70,18 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 			genDoc.ChainID = chainID
 			genDoc.Validators = nil
 			genDoc.AppState = appState
+			genDoc.ConsensusParams = &types.ConsensusParams{
+				Block: types.BlockParams{
+					MaxBytes:   10000000,
+					MaxGas:     -1,
+					TimeIotaMs: 1000,
+				},
+				Evidence: types.EvidenceParams{
+					MaxAgeNumBlocks: 100000,
+					MaxAgeDuration:  86400000000000,
+				},
+				Validator: types.DefaultValidatorParams(),
+			}
 			if err = genutil.ExportGenesisFile(genDoc, genFile); err != nil {
 				return err
 			}

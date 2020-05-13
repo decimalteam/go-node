@@ -13,9 +13,18 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 			continue
 		}
 		rewards := val.AccumRewards
+		accumRewards := rewards
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeProposerReward,
+				sdk.NewAttribute("accum_rewards", accumRewards.String()),
+				sdk.NewAttribute("accum_rewards_validator", val.GetOperator().String()),
+			),
+		)
 
 		rewardsVal := rewards.ToDec().Mul(val.Commission).TruncateInt()
-		err := k.coinKeeper.UpdateBalance(ctx, types.DefaultBondDenom, rewardsVal, sdk.AccAddress(val.ValAddress))
+		err := k.coinKeeper.UpdateBalance(ctx, k.BondDenom(ctx), rewardsVal, sdk.AccAddress(val.ValAddress))
 		if err != nil {
 			return err
 		}
@@ -26,7 +35,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
 		for _, del := range delegations {
 			reward := sdk.NewIntFromBigInt(rewards.BigInt())
-			if del.Coin.Denom != types.DefaultBondDenom {
+			if del.Coin.Denom != k.BondDenom(ctx) {
 				coinDel, err := k.GetCoin(ctx, del.Coin.Denom)
 				if err != nil {
 					return err
@@ -44,11 +53,20 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 				}
 			}
 
-			err := k.coinKeeper.UpdateBalance(ctx, types.DefaultBondDenom, reward, del.DelegatorAddress)
+			err := k.coinKeeper.UpdateBalance(ctx, k.BondDenom(ctx), reward, del.DelegatorAddress)
 			if err != nil {
 				continue
 			}
 			remainder.Sub(reward)
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeProposerReward,
+					sdk.NewAttribute(sdk.AttributeKeyAmount, reward.String()),
+					sdk.NewAttribute(types.AttributeKeyValidator, val.GetOperator().String()),
+					sdk.NewAttribute(types.AttributeKeyDelegator, del.DelegatorAddress.String()),
+				),
+			)
 		}
 		val.AccumRewards = sdk.ZeroInt()
 		err = k.SetValidator(ctx, val)

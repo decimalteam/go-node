@@ -1,0 +1,391 @@
+{
+  "genesis_time": "2020-05-08T08:07:35.6878073Z",
+  "chain_id": "{{ chain_id }}",
+  "consensus_params": {
+    "block": {
+      "max_bytes": "10000000",
+      "max_gas": "-1",
+      "time_iota_ms": "1000"
+    },
+    "evidence": {
+      "max_age_num_blocks": "100000",
+      "max_age_duration": "86400000000000"
+    },
+    "validator": {
+      "pub_key_types": ["ed25519"]
+    }
+  },
+  "app_hash": "",
+  "app_state": {
+    "validator": {
+      "params": {
+        "unbonding_time": "2592000000000000",
+        "max_validators": 256,
+        "max_entries": 7,
+        "bond_denom": "tdcl",
+        "historical_entries": 0,
+        "max_delegations": 1000
+      },
+      "last_total_power": "0",
+      "last_validator_powers": null,
+      "validators": null,
+      "delegations": null,
+      "unbonding_delegations": null,
+      "exported": false
+    },
+    "genutil": {
+      "gentxs": [
+        {
+          "type": "cosmos-sdk/StdTx",
+          "value": {
+            "msg": [
+              {
+                "type": "validator/declare_candidate",
+                "value": {
+                  "commission": "0.100000000000000000",
+                  "validator_addr": "dxvaloper16rr3cvdgj8jsywhx8lfteunn9uz0xg2czw6gx5",
+                  "reward_addr": "dx16rr3cvdgj8jsywhx8lfteunn9uz0xg2c7ua9nl",
+                  "pub_key": {
+                    "type": "tendermint/PubKeyEd25519",
+                    "value": "5ik+wVUdwbf8/yLy9qTKtHje005sylP8g4a2FkLFNu0="
+                  },
+                  "value": {
+                    "denom": "tdcl",
+                    "amount": "100000000"
+                  },
+                  "description": {
+                    "moniker": "test-node-fra1-01",
+                    "identity": "",
+                    "website": "decimalchain.com",
+                    "security_contact": "",
+                    "details": "Declaring validator on test-node-fra1-01"
+                  }
+                }
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas": "200000"
+            },
+            "signatures": [
+              {
+                "pub_key": {
+                  "type": "tendermint/PubKeySecp256k1",
+                  "value": "Ann34HTQiiPi/Ht/2eSaDWVwoov2ycuYjpL2eMMpNQl0"
+                },
+                "signature": "TzvZ3j8RrEnewkDyXwtRx4J2VNG2aNVm4agy87/5fmM6VDMUwutL1IDgDDKlQGT3qd8rwXT2Nh9Hl/H8HBqNnQ=="
+              }
+            ],
+            "memo": "bf7a6b366e3c451a3c12b3a6c01af7230fb92fc7@139.59.133.148:26656"
+          }
+        },
+        {
+          "type": "cosmos-sdk/StdTx",
+          "value": {
+            "msg": [
+              {
+                "type": "validator/declare_candidate",
+                "value": {
+                  "commission": "0.100000000000000000",
+                  "validator_addr": "dxvaloper1ajytg8jg8ypx0rj9p792x32fuxyezga4dq2uk0",
+                  "reward_addr": "dx1ajytg8jg8ypx0rj9p792x32fuxyezga43jd3ry",
+                  "pub_key": {
+                    "type": "tendermint/PubKeyEd25519",
+                    "value": "peUQ+o/bMwO4O71I4miSsLyoBCNVtit74s5aTP+8d3c="
+                  },
+                  "value": {
+                    "denom": "tdcl",
+                    "amount": "100000000"
+                  },
+                  "description": {
+                    "moniker": "test-node-fra1-02",
+                    "identity": "",
+                    "website": "decimalchain.com",
+                    "security_contact": "",
+                    "details": "Declaring validator on test-node-fra1-02"
+                  }
+                }
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas": "200000"
+            },
+            "signatures": [
+              {
+                "pub_key": {
+                  "type": "tendermint/PubKeySecp256k1",
+                  "value": "A+0Sm90CYEkcknXu/cvYx9eKpau17Yyd54mzDdtSG9bZ"
+                },
+                "signature": "5bKM3aQvc2kdzySVccfGerzkMvetah47qAU3kJzpi9NurGhdwkjkaylZK3CuvaOvvW4/EegGuG/wCq4DXMHgrg=="
+              }
+            ],
+            "memo": "c0b9b6c9a0f95e3d2f4aed890806739fc77faefd@64.225.110.228:26656"
+          }
+        },
+        {
+          "type": "cosmos-sdk/StdTx",
+          "value": {
+            "msg": [
+              {
+                "type": "validator/declare_candidate",
+                "value": {
+                  "commission": "0.100000000000000000",
+                  "validator_addr": "dxvaloper1azre0dtclv5y05ufynkhswzh0cwh4ktzr0huw2",
+                  "reward_addr": "dx1azre0dtclv5y05ufynkhswzh0cwh4ktzlas3mp",
+                  "pub_key": {
+                    "type": "tendermint/PubKeyEd25519",
+                    "value": "k7+6GxAOns0lDlloIGlVJK8phsMW1PLiiT9kI42sBpE="
+                  },
+                  "value": {
+                    "denom": "tdcl",
+                    "amount": "100000000"
+                  },
+                  "description": {
+                    "moniker": "test-node-nyc3-01",
+                    "identity": "",
+                    "website": "decimalchain.com",
+                    "security_contact": "",
+                    "details": "Declaring validator on test-node-nyc3-01"
+                  }
+                }
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas": "200000"
+            },
+            "signatures": [
+              {
+                "pub_key": {
+                  "type": "tendermint/PubKeySecp256k1",
+                  "value": "Ax72b3e3Tz8Wx7Iq9FXaM1sbTit+1AujjKHRsTafhrtE"
+                },
+                "signature": "dLiI/XxJNw0URNQc1rWAM890zwd2EmtQ6dprPASRGqxF0LL/ENNE3+CMV/3ufbiT2IH4yQGJbUUN4QnajIvG5w=="
+              }
+            ],
+            "memo": "76b81a4b817b39d63a3afe1f3a294f2a8f5c55b0@64.225.56.107:26656"
+          }
+        },
+        {
+          "type": "cosmos-sdk/StdTx",
+          "value": {
+            "msg": [
+              {
+                "type": "validator/declare_candidate",
+                "value": {
+                  "commission": "0.100000000000000000",
+                  "validator_addr": "dxvaloper1j3j2mwxnvlmsu2tkwm4z5390vq8v337w3gskap",
+                  "reward_addr": "dx1j3j2mwxnvlmsu2tkwm4z5390vq8v337wd6hmg2",
+                  "pub_key": {
+                    "type": "tendermint/PubKeyEd25519",
+                    "value": "9GGfD38mErkvsSNkwctzUcY3ZIYiKqWJI6fw7XzHF/w="
+                  },
+                  "value": {
+                    "denom": "tdcl",
+                    "amount": "100000000"
+                  },
+                  "description": {
+                    "moniker": "test-node-sgp1-01",
+                    "identity": "",
+                    "website": "decimalchain.com",
+                    "security_contact": "",
+                    "details": "Declaring validator on test-node-sgp1-01"
+                  }
+                }
+              }
+            ],
+            "fee": {
+              "amount": [],
+              "gas": "200000"
+            },
+            "signatures": [
+              {
+                "pub_key": {
+                  "type": "tendermint/PubKeySecp256k1",
+                  "value": "AtKn3ANbRqsIg8zpF0/03t9kvEuUtd7ZS9VnPu/8zF5z"
+                },
+                "signature": "jgua38c+VqCP7jmiZHV0pMEEag6pbmdAtlGUc8tvKYwF00es+sNHEZu4j4t5H1YTID8z+t0LgijL0R5+/UP6KA=="
+              }
+            ],
+            "memo": "29e566c41d51be90fa53340ba4edccefbebe8cb2@139.59.192.48:26656"
+          }
+        }
+      ]
+    },
+    "auth": {
+      "params": {
+        "max_memo_characters": "256",
+        "tx_sig_limit": "7",
+        "tx_size_cost_per_byte": "10",
+        "sig_verify_cost_ed25519": "590",
+        "sig_verify_cost_secp256k1": "1000"
+      },
+      "accounts": [
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "dx16rr3cvdgj8jsywhx8lfteunn9uz0xg2c7ua9nl",
+            "coins": [
+              {
+                "denom": "tdcl",
+                "amount": "1000000000000000000"
+              }
+            ],
+            "public_key": "",
+            "account_number": 0,
+            "sequence": 0
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "dx1ajytg8jg8ypx0rj9p792x32fuxyezga43jd3ry",
+            "coins": [
+              {
+                "denom": "tdcl",
+                "amount": "1000000000000000000"
+              }
+            ],
+            "public_key": "",
+            "account_number": 0,
+            "sequence": 0
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "dx1azre0dtclv5y05ufynkhswzh0cwh4ktzlas3mp",
+            "coins": [
+              {
+                "denom": "tdcl",
+                "amount": "1000000000000000000"
+              }
+            ],
+            "public_key": "",
+            "account_number": 0,
+            "sequence": 0
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "dx1j3j2mwxnvlmsu2tkwm4z5390vq8v337wd6hmg2",
+            "coins": [
+              {
+                "denom": "tdcl",
+                "amount": "1000000000000000000"
+              }
+            ],
+            "public_key": "",
+            "account_number": 0,
+            "sequence": 0
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd",
+            "coins": [
+              {
+                "denom": "tdcl",
+                "amount": "1000000000000000000000000000"
+              }
+            ],
+            "public_key": "",
+            "account_number": 0,
+            "sequence": 0
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "dx1esffyu0wxk6eez77fhzdxfgvjp4646hqm9sx6c",
+            "coins": [
+              {
+                "denom": "tdcl",
+                "amount": "1000000000000000000000000000"
+              }
+            ],
+            "public_key": "",
+            "account_number": 0,
+            "sequence": 0
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "dx1fyqf7gp0gzmpzwxfrah9veaxt8ysl68khxwfjm",
+            "coins": [
+              {
+                "denom": "tdcl",
+                "amount": "1000000000000000000000000000"
+              }
+            ],
+            "public_key": "",
+            "account_number": 0,
+            "sequence": 0
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "dx1dvwgj5hc3uqjemk22v9gq7um30v0l6wpcwnwnm",
+            "coins": [
+              {
+                "denom": "tdcl",
+                "amount": "1000000000000000000000000000"
+              }
+            ],
+            "public_key": "",
+            "account_number": 0,
+            "sequence": 0
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "dx1cjkq662yycfy03euktm4p5rem0q53f9x89crap",
+            "coins": [
+              {
+                "denom": "tdcl",
+                "amount": "1000000000000000000000000000"
+              }
+            ],
+            "public_key": "",
+            "account_number": 0,
+            "sequence": 0
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "dx178h6nvsqg5vr2gq8xv8f9jlmkpg3mjvzktsmj2",
+            "coins": [
+              {
+                "denom": "tdcl",
+                "amount": "1000000000000000000000000000"
+              }
+            ],
+            "public_key": "",
+            "account_number": 0,
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    "bank": {
+      "send_enabled": true
+    },
+    "params": null,
+    "supply": {
+      "supply": []
+    },
+    "coin": {
+      "title": "Decimal coin",
+      "symbol": "DCL",
+      "initial_volume": "100000000000000000000000"
+    },
+    "check": {}
+  }
+}

@@ -1,0 +1,21 @@
+---
+# tasks file for clear data and update binary files
+- name: Set persistent peers
+  ini_file:
+    path: '{{ decimal_data }}/daemon/config/config.toml'
+    section: 'p2p'
+    option: 'persistent_peers'
+    value: '"{{ persistent_peers }}"'
+
+- name: Enable prometheus metrics
+  ini_file:
+    path: '{{ decimal_data }}/daemon/config/config.toml'
+    section: 'instrumentation'
+    option: 'prometheus'
+    value: 'true'
+
+- name: Set right for group for read data by zabbix
+  file:
+    path: '{{ decimal_data }}'
+    mode: '0750'
+    recurse: yes

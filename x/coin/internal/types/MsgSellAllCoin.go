@@ -14,11 +14,12 @@ type MsgSellAllCoin struct {
 	AmountToBuy sdk.Int        `json:"amount_to_buy" yaml:"amount_to_buy"`
 }
 
-func NewMsgSellAllCoin(seller sdk.AccAddress, coinToBuy string, coinToSell string) MsgSellAllCoin {
+func NewMsgSellAllCoin(seller sdk.AccAddress, coinToBuy string, coinToSell string, amountToBuy sdk.Int) MsgSellAllCoin {
 	return MsgSellAllCoin{
-		Seller:     seller,
-		CoinToBuy:  coinToBuy,
-		CoinToSell: coinToSell,
+		Seller:      seller,
+		CoinToBuy:   coinToBuy,
+		CoinToSell:  coinToSell,
+		AmountToBuy: amountToBuy,
 	}
 }
 

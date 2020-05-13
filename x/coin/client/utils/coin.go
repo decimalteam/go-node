@@ -1,10 +1,11 @@
 package utils
 
 import (
+	"fmt"
+
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-	"fmt"
 
 	clientctx "github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -37,35 +38,44 @@ func BuyCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsB
 	var amountSellInBaseCoin sdk.Int
 	var amountBuyInBaseCoin sdk.Int
 	if coinToSell.IsBase() {
+		fmt.Printf("####### [BuyCoinCalculateAmounts] Coin to sell is base\n")
 		amountBuyInBaseCoin = formulas.CalculatePurchaseAmount(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, wantsBuy)
-		if amountBuyInBaseCoin.LT(wantsSell) {
+		if amountBuyInBaseCoin.LTE(wantsSell) {
+			fmt.Printf("####### [BuyCoinCalculateAmounts] Coin to buy in base coin is less than limit: %s <= %s\n", amountBuyInBaseCoin, wantsSell)
 			amountBuy = wantsBuy
 			amountSell = amountBuyInBaseCoin
 			amountSellInBaseCoin = amountSell
 		} else {
+			fmt.Printf("####### [BuyCoinCalculateAmounts] Amount to buy in base coin is greater than limit: %s > %s\n", amountBuyInBaseCoin, wantsSell)
 			amountBuy = formulas.CalculatePurchaseReturn(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, wantsSell)
 			amountSell = wantsSell
 			amountSellInBaseCoin = amountSell
 		}
 	} else if coinToBuy.IsBase() {
+		fmt.Printf("####### [BuyCoinCalculateAmounts] Coin to buy is base\n")
 		amountSell = formulas.CalculateSaleAmount(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, wantsBuy)
 		if amountSell.LTE(wantsSell) {
+			fmt.Printf("####### [BuyCoinCalculateAmounts] Amount to sell is less than limit: %s <= %s\n", amountSell, wantsSell)
 			amountBuy = formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountSell)
 			amountBuyInBaseCoin = amountBuy
 			amountSellInBaseCoin = amountBuy
 		} else {
+			fmt.Printf("####### [BuyCoinCalculateAmounts] Amount to sell is greater than limit: %s > %s\n", amountSell, wantsSell)
 			amountBuy = formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, wantsSell)
 			amountBuyInBaseCoin = amountBuy
 			amountSellInBaseCoin = amountBuy
 		}
 	} else {
+		fmt.Printf("####### [BuyCoinCalculateAmounts] Coins to buy and sell are both custom\n")
 		amountBuyInBaseCoin := formulas.CalculatePurchaseAmount(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, wantsBuy)
 		amountSellRequired := formulas.CalculateSaleAmount(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountBuyInBaseCoin)
 
 		if amountSellRequired.GT(wantsSell) {
+			fmt.Printf("####### [BuyCoinCalculateAmounts] Amount to sell required is greater than limit: %s <= %s\n", amountSellRequired, wantsSell)
 			amountSell = wantsSell
 			amountSellInBaseCoin = formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountSell)
 		} else {
+			fmt.Printf("####### [BuyCoinCalculateAmounts] Amount to sell required is less than limit: %s <= %s\n", amountSellRequired, wantsSell)
 			amountSell = amountSellRequired
 			amountSellInBaseCoin = amountBuyInBaseCoin
 		}
@@ -111,7 +121,7 @@ func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wants
 
 	// Limit minAmountToBuy in CLI
 	if amountBuy.LT(wantsBuy) {
-		return sdk.Int{}, sdk.Int{}, sdkerrors.New(types.DefaultCodespace, types.AmountBuyIsTooSmall, "Amount you will receive less than minimum")
+		return sdk.Int{}, sdk.Int{}, sdkerrors.New(types.DefaultCodespace, types.MinimumValueToBuyReached, "Amount you will receive less than minimum")
 	}
 
 	return amountBuy, wantsSell, nil

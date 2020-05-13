@@ -82,11 +82,10 @@ func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int
 	acc := k.AccountKeeper.GetAccount(ctx, address)
 	// Get account coins information
 	coins := acc.GetCoins()
-	isNeg := amount.IsNegative()
 	updAmount := Abs(amount)
 	updCoin := sdk.Coins{sdk.NewCoin(strings.ToLower(coinSymbol), updAmount)}
 	// Updating coin information
-	if isNeg {
+	if amount.IsNegative() {
 		coins = coins.Sub(updCoin)
 	} else {
 		coins = coins.Add(updCoin...)

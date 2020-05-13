@@ -1,0 +1,28 @@
+---
+# tasks file for check & stop service & create it if not exist
+- name: Just force systemd to reread configs
+  systemd:
+    daemon_reload: yes
+  become: yes
+
+- name: Run service decd
+  service:
+    name: '{{ service_name_decd }}'
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Run service decd rest
+  service:
+    name: '{{ service_name_rest }}'
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Run service Explorer Indexer Worker
+  service:
+    name: '{{ service_name_worker }}'
+    state: started
+    enabled: yes
+  when: ansible_hostname.find('explorer-node') != -1
+  become: yes

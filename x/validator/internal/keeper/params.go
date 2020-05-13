@@ -18,8 +18,8 @@ func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable().RegisterParamSet(&types.Params{})
 }
 
-// UnBondingTime
-func (k Keeper) UnBondingTime(ctx sdk.Context) (res time.Duration) {
+// UnbondingTime
+func (k Keeper) UnbondingTime(ctx sdk.Context) (res time.Duration) {
 	k.paramSpace.Get(ctx, types.KeyUnbondingTime, &res)
 	return
 }
@@ -50,14 +50,21 @@ func (k Keeper) HistoricalEntries(ctx sdk.Context) (res uint16) {
 	return
 }
 
+// MaxDelegations = maximum number of delegations per validator
+func (k Keeper) MaxDelegations(ctx sdk.Context) (res uint16) {
+	k.paramSpace.Get(ctx, types.KeyMaxDelegations, &res)
+	return
+}
+
 // Get all parameteras as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
-		k.UnBondingTime(ctx),
+		k.UnbondingTime(ctx),
 		k.MaxValidators(ctx),
 		k.MaxEntries(ctx),
 		k.HistoricalEntries(ctx),
 		k.BondDenom(ctx),
+		k.MaxDelegations(ctx),
 	)
 }
 

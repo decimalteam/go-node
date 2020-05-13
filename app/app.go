@@ -259,8 +259,9 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.SetAnteHandler(
 		validator.NewAnteHandler(
 			app.accountKeeper,
-			app.supplyKeeper,
+			app.validatorKeeper,
 			app.coinKeeper,
+			app.supplyKeeper,
 			auth.DefaultSigVerificationGasConsumer,
 		),
 	)

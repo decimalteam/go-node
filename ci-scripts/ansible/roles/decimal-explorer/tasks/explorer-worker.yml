@@ -1,0 +1,11 @@
+---
+# tasks file for decimal explorer indexer
+- name: Check if Explorer Indexer Worker Service Exists
+  stat: path={{ systemd_path }}/{{ service_name_worker }}
+  register: service_status_worker
+
+- name: Stop service Explorer Indexer Worker, if started
+  service:
+    name: '{{ service_name_worker }}'
+    state: stopped
+  become: yes

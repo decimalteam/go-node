@@ -637,7 +637,7 @@ func TestUnbondingFromUnbondingValidator(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	ctx = ctx.WithBlockTime(ctx.BlockHeader().Time.Add(keeper.UnBondingTime(ctx)))
+	ctx = ctx.WithBlockTime(ctx.BlockHeader().Time.Add(keeper.UnbondingTime(ctx)))
 
 	// Run the EndBlocker
 	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)

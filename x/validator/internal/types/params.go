@@ -29,6 +29,8 @@ const (
 	DefaultHistoricalEntries uint16 = 0
 
 	DefaultBondDenom string = "tdcl"
+
+	DefaultMaxDelegations uint16 = 1000
 )
 
 // nolint - Keys for parameter access
@@ -38,6 +40,7 @@ var (
 	KeyMaxEntries        = []byte("KeyMaxEntries")
 	KeyBondDenom         = []byte("BondDenom")
 	KeyHistoricalEntries = []byte("HistoricalEntries")
+	KeyMaxDelegations    = []byte("MaxDelegations")
 )
 
 var _ params.ParamSet = (*Params)(nil)
@@ -50,11 +53,12 @@ type Params struct {
 	// note: we need to be a bit careful about potential overflow here, since this is user-determined
 	BondDenom         string `json:"bond_denom" yaml:"bond_denom"`                 // bondable coin denomination
 	HistoricalEntries uint16 `json:"historical_entries" yaml:"historical_entries"` // number of historical entries to persist
+	MaxDelegations    uint16 `json:"max_delegations" yaml:"max_delegations"`
 }
 
 // NewParams creates a new Params instance
 func NewParams(unbondingTime time.Duration, maxValidators, maxEntries, historicalEntries uint16,
-	bondDenom string) Params {
+	bondDenom string, maxDelegations uint16) Params {
 
 	return Params{
 		UnbondingTime:     unbondingTime,
@@ -62,6 +66,7 @@ func NewParams(unbondingTime time.Duration, maxValidators, maxEntries, historica
 		MaxEntries:        maxEntries,
 		BondDenom:         bondDenom,
 		HistoricalEntries: historicalEntries,
+		MaxDelegations:    maxDelegations,
 	}
 }
 
@@ -73,6 +78,7 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 		params.NewParamSetPair(KeyMaxEntries, &p.MaxEntries, validateMaxEntries),
 		params.NewParamSetPair(KeyHistoricalEntries, &p.HistoricalEntries, validateHistoricalEntries),
 		params.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
+		params.NewParamSetPair(KeyMaxDelegations, &p.MaxDelegations, validateMaxDelegations),
 	}
 }
 
@@ -86,7 +92,7 @@ func (p Params) Equal(p2 Params) bool {
 
 // DefaultParams returns a default set of parameters.
 func DefaultParams() Params {
-	return NewParams(DefaultUnbondingTime, DefaultMaxValidators, DefaultMaxEntries, DefaultHistoricalEntries, DefaultBondDenom)
+	return NewParams(DefaultUnbondingTime, DefaultMaxValidators, DefaultMaxEntries, DefaultHistoricalEntries, DefaultBondDenom, DefaultMaxDelegations)
 }
 
 // String returns a human readable string representation of the parameters.
@@ -96,8 +102,9 @@ func (p Params) String() string {
   Max Validators:     %d
   Max Entries:        %d
   Historical Entries: %d
-  Bonded Coin Denom:  %s`, p.UnbondingTime,
-		p.MaxValidators, p.MaxEntries, p.HistoricalEntries, p.BondDenom)
+  Bonded Coin Denom:  %s
+  Max Delegations:    %d`, p.UnbondingTime,
+		p.MaxValidators, p.MaxEntries, p.HistoricalEntries, p.BondDenom, p.MaxDelegations)
 }
 
 // unmarshal the current staking params value from store key or panic
@@ -130,6 +137,12 @@ func (p Params) Validate() error {
 		return err
 	}
 	if err := validateBondDenom(p.BondDenom); err != nil {
+		return err
+	}
+	if err := validateHistoricalEntries(p.HistoricalEntries); err != nil {
+		return err
+	}
+	if err := validateMaxDelegations(p.MaxDelegations); err != nil {
 		return err
 	}
 
@@ -195,6 +208,19 @@ func validateBondDenom(i interface{}) error {
 	}
 	if err := sdk.ValidateDenom(v); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func validateMaxDelegations(i interface{}) error {
+	v, ok := i.(uint16)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v == 0 {
+		return fmt.Errorf("max delegations must be positive: %d", v)
 	}
 
 	return nil

@@ -396,7 +396,7 @@ func (v Validator) ConsensusPower(power sdk.Int) int64 {
 
 // potential consensus-engine power
 func (v Validator) PotentialConsensusPower(power sdk.Int) int64 {
-	return sdk.TokensToConsensusPower(power)
+	return TokensToConsensusPower(power)
 }
 
 // ABCIValidatorUpdate returns an abci.ValidatorUpdate from a staking validator type

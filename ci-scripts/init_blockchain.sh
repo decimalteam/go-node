@@ -6,12 +6,14 @@ rm -r ~/.decimal
 
 # Create validator key pair
 deccli keys add val --keyring-backend test
+deccli keys add spammer --keyring-backend test
 
 # Initialize new blockchain
 decd init $(hostname) --chain-id decimal-testnet
 
 # Add initial funds to the genesis file
 decd add-genesis-account $(deccli keys show val -a --keyring-backend test) 100000000000000000tdcl
+decd add-genesis-account $(deccli keys show spammer -a --keyring-backend test) 1000000000000000000000000000tdcl
 decd add-genesis-account dx1fyqf7gp0gzmpzwxfrah9veaxt8ysl68khxwfjm 1000000000000000000000000000tdcl
 decd add-genesis-account dx1dvwgj5hc3uqjemk22v9gq7um30v0l6wpcwnwnm 1000000000000000000000000000tdcl
 decd add-genesis-account dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd 1000000000000000000000000000tdcl

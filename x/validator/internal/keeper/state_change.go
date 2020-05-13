@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"sort"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
@@ -46,7 +45,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// fetch the validator
 		valAddr := sdk.ValAddress(iterator.Value())
-		log.Println(valAddr.Bytes())
 		validator, err := k.GetValidator(ctx, valAddr)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
@@ -55,6 +53,8 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		if validator.Jailed {
 			return nil, errors.New("ApplyAndReturnValidatorSetUpdates: should never retrieve a jailed validator from the power store")
 		}
+
+		k.SetValidatorByPowerIndex(ctx, validator)
 
 		// if we get to a zero-power validator (which we don't bond),
 		// there are no more possible bonded validators
@@ -70,7 +70,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 				if err != nil {
 					return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 				}
-				amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, k.TotalStake(ctx, validator)))...)
+				amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), k.TotalStake(ctx, validator)))...)
 			}
 		case validator.IsBonded():
 			// no state change
@@ -117,7 +117,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
 
-		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, k.TotalStake(ctx, validator)))...)
+		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), k.TotalStake(ctx, validator)))...)
 
 		validator = validator.UpdateStatus(types.Unbonded)
 		err = k.SetValidator(ctx, validator)
@@ -306,7 +306,6 @@ func (k Keeper) jailValidator(ctx sdk.Context, validator types.Validator) error 
 	if err != nil {
 		return err
 	}
-	log.Println(k.GetAllValidatorsByPowerIndex(ctx))
 	return nil
 }
 
