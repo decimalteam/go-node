@@ -52,7 +52,7 @@ var (
 	)
 	// account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName: {supply.Burner},
+		auth.FeeCollectorName: {supply.Burner, supply.Minter},
 		//distr.ModuleName:            nil,
 		validator.BondedPoolName:    {supply.Burner, supply.Staking},
 		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
