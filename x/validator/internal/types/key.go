@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/binary"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"math/big"
 	"strconv"
 	"time"
 )
@@ -52,17 +53,45 @@ func GetValidatorByConsAddrKey(addr sdk.ConsAddress) []byte {
 	return append([]byte{ValidatorsByConsAddrKey}, addr.Bytes()...)
 }
 
+// TokensToConsensusPower - convert input tokens to potential consensus-engine power
+//func TokensToConsensusPower(tokens sdk.Int) (uint64, uint64) {
+//	tokens = tokens.Quo(sdk.PowerReduction)
+//	consensusPowerHigh := big.NewInt(0).Set(tokens.BigInt()).Rsh(tokens.BigInt(), 64).Uint64()
+//	consensusPowerLow := big.NewInt(0).Set(tokens.BigInt()).And(tokens.BigInt(), big.NewInt(0).SetUint64(math.MaxUint64)).Uint64()
+//	return consensusPowerHigh, consensusPowerLow
+//}
+
+// TokensFromConsensusPower - convert input power to tokens
+//func TokensFromConsensusPower(powerHigh uint64, powerLow uint64) sdk.Int {
+//	consensusPower := sdk.NewIntFromBigInt(big.NewInt(0).Lsh(big.NewInt(0).SetUint64(powerHigh), 64))
+//	consensusPower = consensusPower.Add(sdk.NewIntFromUint64(powerLow))
+//	return consensusPower.Mul(sdk.PowerReduction)
+//}
+
+// PowerReduction is the amount of staking tokens required for 1 unit of consensus-engine power
+var PowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(8), nil))
+
+// TokensToConsensusPower - convert input tokens to potential consensus-engine power
+func TokensToConsensusPower(tokens sdk.Int) int64 {
+	return (tokens.Quo(PowerReduction)).Int64()
+}
+
+// TokensFromConsensusPower - convert input power to tokens
+func TokensFromConsensusPower(power int64) sdk.Int {
+	return sdk.NewInt(power).Mul(PowerReduction)
+}
+
 // get the validator by power index.
 // Power index is the key used in the power-store, and represents the relative
 // power ranking of the validator.
 // VALUE: validator operator address ([]byte)
 func GetValidatorsByPowerIndexKey(validator Validator, power sdk.Int) []byte {
-	consensusPower := sdk.TokensToConsensusPower(power)
-	consensusPowerBytes := make([]byte, 8)
+	consensusPower := TokensToConsensusPower(power)
+	consensusPowerBytes := make([]byte, 16)
 	binary.BigEndian.PutUint64(consensusPowerBytes[:], uint64(consensusPower))
 
 	powerBytes := consensusPowerBytes
-	powerBytesLen := len(powerBytes) // 8
+	powerBytesLen := len(powerBytes) // 16
 
 	// key is of format prefix || powerbytes || addrBytes
 	key := make([]byte, 1+powerBytesLen+sdk.AddrLen)

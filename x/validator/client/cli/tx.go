@@ -137,7 +137,7 @@ func PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string
 		viper.Set(FlagMoniker, viper.GetString(flags.FlagName))
 	}
 	if viper.GetString(FlagAmount) == "" {
-		viper.Set(FlagAmount, sdk.TokensFromConsensusPower(100).String()+types.DefaultBondDenom)
+		viper.Set(FlagAmount, types.TokensFromConsensusPower(100).String()+types.DefaultBondDenom)
 	}
 	if viper.GetString(FlagCommissionRate) == "" {
 		viper.Set(FlagCommissionRate, "0.1")
