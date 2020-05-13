@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"log"
 )
@@ -22,7 +23,7 @@ func GetRewardForBlock(blockHeight uint64) sdk.Int {
 
 	if blockHeight/5184000 == 0 {
 		reward = reward.Add(sdk.NewInt(int64(blockHeight / 432000)).Mul(rewardIncrease))
-		return reward
+		return helpers.BipToPip(reward)
 	}
 
 	reward = reward.Add(sdk.NewInt(11).Mul(rewardIncrease))
@@ -37,5 +38,5 @@ func GetRewardForBlock(blockHeight uint64) sdk.Int {
 		reward = reward.Add(sdk.NewInt(int64((blockHeight-i*5184000)/432000%12) + 1).Mul(rewardIncrease))
 	}
 
-	return reward
+	return helpers.BipToPip(reward)
 }

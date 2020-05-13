@@ -91,19 +91,19 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	feesCollectedInt := feeCollector.GetCoins()
 	for _, fee := range feesCollectedInt {
 		if fee.Denom == k.BondDenom(ctx) {
-			rewards.Add(fee.Amount)
+			rewards = rewards.Add(fee.Amount)
 		} else {
 			feeCoin, err := coinKeeper.GetCoin(ctx, fee.Denom)
 			if err != nil {
 				panic(err)
 			}
 			feeInBaseCoin := formulas.CalculateSaleReturn(feeCoin.Volume, feeCoin.Reserve, feeCoin.CRR, fee.Amount)
-			rewards.Add(feeInBaseCoin)
+			rewards = rewards.Add(feeInBaseCoin)
 		}
-		err = supplyKeeper.BurnCoins(ctx, k.FeeCollectorName, feesCollectedInt)
-		if err != nil {
-			panic(err)
-		}
+	}
+	err = supplyKeeper.BurnCoins(ctx, k.FeeCollectorName, feesCollectedInt)
+	if err != nil {
+		panic(err)
 	}
 
 	remainder := sdk.NewIntFromBigInt(rewards.BigInt())
@@ -121,12 +121,17 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 			continue
 		}
 		r := rewards.Mul(k.TotalStake(ctx, val)).Quo(totalPower)
-		remainder.Sub(r)
+		remainder = remainder.Sub(r)
 		val = val.AddAccumReward(r)
 		err = k.SetValidator(ctx, val)
 		if err != nil {
 			panic(err)
 		}
+	}
+
+	err = supplyKeeper.MintCoins(ctx, k.FeeCollectorName, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), remainder)))
+	if err != nil {
+		panic(err)
 	}
 
 	if height%120 == 0 {

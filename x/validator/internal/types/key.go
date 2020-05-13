@@ -69,7 +69,7 @@ func GetValidatorByConsAddrKey(addr sdk.ConsAddress) []byte {
 //}
 
 // PowerReduction is the amount of staking tokens required for 1 unit of consensus-engine power
-var PowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(8), nil))
+var PowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(12), nil))
 
 // TokensToConsensusPower - convert input tokens to potential consensus-engine power
 func TokensToConsensusPower(tokens sdk.Int) int64 {
