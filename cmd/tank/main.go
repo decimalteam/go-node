@@ -176,7 +176,6 @@ func main() {
 	}
 
 	for i := range accounts {
-
 		go func(accountNum int) {
 			for {
 				err = provider.SendCoin(accounts[accountNum], accounts[(accountNum+1)%len(accounts)], 5)
@@ -187,25 +186,35 @@ func main() {
 			}
 		}(i)
 
-		//go func(account Account) {
-		//	for {
-		//		err = provider.BuyCoin("TEST1", "TEST2", sdk.NewInt(1), sdk.NewInt(1), account)
-		//		if err != nil {
-		//			log.Println(err)
-		//		}
-		//		time.Sleep(cfg.TimeoutMs.Buy)
-		//	}
-		//}(accounts[i])
-		//
-		//go func(account Account) {
-		//	for {
-		//		err = provider.SellCoin("TEST1", "TEST2", sdk.NewInt(1), sdk.NewInt(1), account)
-		//		if err != nil {
-		//			log.Println(err)
-		//		}
-		//		time.Sleep(cfg.TimeoutMs.Sell)
-		//	}
-		//}(accounts[i])
+		go func(account Account) {
+			count := 0
+			for {
+				count++
+				if count%2 == 0 {
+					err = provider.BuyCoin("TEST1", "tDCL", sdk.NewInt(1000000000000000000), sdk.NewInt(2001000000000000000), account)
+					if err != nil {
+						log.Println(err)
+					}
+					count++
+				}
+				time.Sleep(cfg.TimeoutMs.Buy)
+			}
+		}(accounts[i])
+
+		go func(account Account) {
+			count := 0
+			for {
+				count++
+				if count%2 == 0 {
+					continue
+				}
+				err = provider.SellCoin("tDCL", "TEST1", sdk.NewInt(2001000000000000000), sdk.NewInt(1000000000000000000), account)
+				if err != nil {
+					log.Println(err)
+				}
+				time.Sleep(cfg.TimeoutMs.Sell)
+			}
+		}(accounts[i])
 
 	}
 
