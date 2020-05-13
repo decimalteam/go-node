@@ -1,7 +1,7 @@
 ---
 - name: Update Decimal Node (only bin files)
   hosts: all
-  gather_facts: False
+  gather_facts: True
 
   roles:
     - role: decimal-service
