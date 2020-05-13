@@ -158,7 +158,7 @@ func main() {
 		}
 	}
 
-	err = provider.SendAll(mainAccount, accounts, 1000000)
+	err = provider.SendAll(mainAccount, accounts, 1000000000000000000000)
 	if err != nil {
 		log.Println("Init send", err)
 		return
@@ -191,7 +191,7 @@ func main() {
 			for {
 				count++
 				if count%2 == 0 {
-					err = provider.BuyCoin("TEST1", "tDCL", sdk.NewInt(1000000000000000000), sdk.NewInt(2001000000000000000), account)
+					err = provider.BuyCoin("TEST2", "tDCL", sdk.NewInt(1000000000000000000), sdk.NewInt(2001000000000000000), account)
 					if err != nil {
 						log.Println(err)
 					}
@@ -208,7 +208,7 @@ func main() {
 				if count%2 == 0 {
 					continue
 				}
-				err = provider.SellCoin("tDCL", "TEST1", sdk.NewInt(2001000000000000000), sdk.NewInt(1000000000000000000), account)
+				err = provider.SellCoin("tDCL", "TEST2", sdk.NewInt(2001000000000000000), sdk.NewInt(1000000000000000000), account)
 				if err != nil {
 					log.Println(err)
 				}
