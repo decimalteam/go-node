@@ -159,7 +159,13 @@ func main() {
 		}
 	}
 
-	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1)))
+	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1)), "tDCL")
+	if err != nil {
+		log.Println("Init send", err)
+		return
+	}
+
+	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1000)), "TEST2")
 	if err != nil {
 		log.Println("Init send", err)
 		return
@@ -427,7 +433,7 @@ func (p *Provider) SellCoin(coinToBuy, coinToSell string, amountToBuy, amountToS
 	return nil
 }
 
-func (p *Provider) SendAll(sender Account, accounts []Account, amount sdk.Int) error {
+func (p *Provider) SendAll(sender Account, accounts []Account, amount sdk.Int, token string) error {
 	memo := "tank send"
 	txEncoder := auth.DefaultTxEncoder(p.cdc)
 	txBldr := auth.NewTxBuilder(
@@ -439,7 +445,7 @@ func (p *Provider) SendAll(sender Account, accounts []Account, amount sdk.Int) e
 
 	msgs := make([]sdk.Msg, len(accounts))
 	for i, account := range accounts {
-		msgs[i] = coin.NewMsgSendCoin(sender.Address, "tDCL", amount, account.Address)
+		msgs[i] = coin.NewMsgSendCoin(sender.Address, token, amount, account.Address)
 	}
 
 	tx, err := txBldr.BuildAndSign(sender.Name, sender.Password, msgs)
