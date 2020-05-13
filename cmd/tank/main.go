@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
@@ -158,7 +159,7 @@ func main() {
 		}
 	}
 
-	err = provider.SendAll(mainAccount, accounts, 1000000000000000000000)
+	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1)))
 	if err != nil {
 		log.Println("Init send", err)
 		return
@@ -178,7 +179,7 @@ func main() {
 	for i := range accounts {
 		go func(accountNum int) {
 			for {
-				err = provider.SendCoin(accounts[accountNum], accounts[(accountNum+1)%len(accounts)], 5)
+				err = provider.SendCoin(accounts[accountNum], accounts[(accountNum+1)%len(accounts)], sdk.NewInt(5))
 				if err != nil {
 					log.Println(err)
 				}
@@ -229,7 +230,7 @@ type BroadcastResponse struct {
 	}
 }
 
-func (p *Provider) SendCoin(sender, receiver Account, amount int64) error {
+func (p *Provider) SendCoin(sender, receiver Account, amount sdk.Int) error {
 	memo := "tank send"
 	txEncoder := auth.DefaultTxEncoder(p.cdc)
 	txBldr := auth.NewTxBuilder(
@@ -239,7 +240,7 @@ func (p *Provider) SendCoin(sender, receiver Account, amount int64) error {
 		false, ChainID, memo, nil, nil,
 	).WithKeybase(p.keybase)
 
-	msgs := []sdk.Msg{coin.NewMsgSendCoin(sender.Address, "tDCL", sdk.NewInt(amount), receiver.Address)}
+	msgs := []sdk.Msg{coin.NewMsgSendCoin(sender.Address, "tDCL", amount, receiver.Address)}
 
 	tx, err := txBldr.BuildAndSign(sender.Name, sender.Password, msgs)
 	if err != nil {
@@ -426,7 +427,7 @@ func (p *Provider) SellCoin(coinToBuy, coinToSell string, amountToBuy, amountToS
 	return nil
 }
 
-func (p *Provider) SendAll(sender Account, accounts []Account, amount int64) error {
+func (p *Provider) SendAll(sender Account, accounts []Account, amount sdk.Int) error {
 	memo := "tank send"
 	txEncoder := auth.DefaultTxEncoder(p.cdc)
 	txBldr := auth.NewTxBuilder(
@@ -438,7 +439,7 @@ func (p *Provider) SendAll(sender Account, accounts []Account, amount int64) err
 
 	msgs := make([]sdk.Msg, len(accounts))
 	for i, account := range accounts {
-		msgs[i] = coin.NewMsgSendCoin(sender.Address, "tDCL", sdk.NewInt(amount), account.Address)
+		msgs[i] = coin.NewMsgSendCoin(sender.Address, "tDCL", amount, account.Address)
 	}
 
 	tx, err := txBldr.BuildAndSign(sender.Name, sender.Password, msgs)
