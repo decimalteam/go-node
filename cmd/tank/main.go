@@ -165,6 +165,8 @@ func main() {
 		return
 	}
 
+	time.Sleep(time.Second * 10)
+
 	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1000)), "TEST2")
 	if err != nil {
 		log.Println("Init send", err)
