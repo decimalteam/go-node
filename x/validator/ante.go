@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"log"
 	"strconv"
 )
 
@@ -52,8 +51,6 @@ func (sed SequenceEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 		))
 		ctx.WithValue(vtypes.AttributeKeySequence, strconv.FormatUint(acc.GetSequence(), 10))
 	}
-
-	log.Println("next SequenceEventDecorator")
 	return next(ctx, tx, simulate)
 }
 
@@ -97,7 +94,5 @@ func (d FeeCoinUpdateDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 			d.ck.UpdateCoin(ctx, feeCoin, feeCoin.Reserve.Sub(fee.Amount), feeCoin.Volume.Sub(commission))
 		}
 	}
-
-	log.Println("next FeeCoinUpdateDecorator")
 	return next(ctx, tx, simulate)
 }

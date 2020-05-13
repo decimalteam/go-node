@@ -360,7 +360,6 @@ func (p *Provider) BuyCoin(coinToBuy, coinToSell string, amountToBuy, amountToSe
 
 	// Broadcast signed transaction
 	broadcastURL := fmt.Sprintf("%s/broadcast_tx_sync?tx=0x%x", RPCPrefix, tx)
-	log.Printf("Broadcast request: %s", broadcastURL)
 	resp, err := http.Get(broadcastURL)
 	if err != nil {
 		return err
@@ -379,7 +378,19 @@ func (p *Provider) BuyCoin(coinToBuy, coinToSell string, amountToBuy, amountToSe
 	if err != nil {
 		return err
 	}
-	log.Printf("Broadcast response: %s", string(respBody))
+
+	broadcastResp := BroadcastResponse{}
+	err = json.Unmarshal(respBody, &broadcastResp)
+	if err != nil {
+		return err
+	}
+	if broadcastResp.Result.Code != 0 {
+		log.Println("Sequence = ", atomic.LoadUint64(buyer.Sequence))
+		log.Printf("Broadcast error: code: %d, log: %s", broadcastResp.Result.Code, broadcastResp.Result.Log)
+	} else {
+		log.Println("Broadcast hash: ", broadcastResp.Result.Hash)
+		atomic.AddUint64(buyer.Sequence, 1)
+	}
 	return nil
 }
 
@@ -431,7 +442,19 @@ func (p *Provider) SellCoin(coinToBuy, coinToSell string, amountToBuy, amountToS
 	if err != nil {
 		return err
 	}
-	log.Printf("Broadcast response: %s", string(respBody))
+
+	broadcastResp := BroadcastResponse{}
+	err = json.Unmarshal(respBody, &broadcastResp)
+	if err != nil {
+		return err
+	}
+	if broadcastResp.Result.Code != 0 {
+		log.Println("Sequence = ", atomic.LoadUint64(buyer.Sequence))
+		log.Printf("Broadcast error: code: %d, log: %s", broadcastResp.Result.Code, broadcastResp.Result.Log)
+	} else {
+		log.Println("Broadcast hash: ", broadcastResp.Result.Hash)
+		atomic.AddUint64(buyer.Sequence, 1)
+	}
 	return nil
 }
 
