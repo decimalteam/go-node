@@ -199,7 +199,7 @@ func main() {
 		}(i, (i+1)%(len(accounts)/2))
 	}
 
-	for i := range accounts[len(accounts)/2:] {
+	for _, account := range accounts[len(accounts)/2:] {
 		go func(account Account) {
 			for {
 				log.Println("Buy ", account.Address.String())
@@ -214,7 +214,7 @@ func main() {
 				}
 				time.Sleep(cfg.TimeoutMs.Sell)
 			}
-		}(accounts[i])
+		}(account)
 	}
 
 	select {}
