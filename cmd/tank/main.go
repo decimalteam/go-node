@@ -169,7 +169,7 @@ func main() {
 
 	time.Sleep(time.Second * 10)
 
-	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1)), "TEST3")
+	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1)), "TEST4")
 	if err != nil {
 		log.Println("Init send", err)
 		return
@@ -203,12 +203,12 @@ func main() {
 		go func(account Account) {
 			for {
 				log.Println("Buy ", account.Address.String())
-				err = provider.BuyCoin("TEST3", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(2001000000000000), account)
+				err = provider.BuyCoin("TEST4", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(2000000010000000), account)
 				if err != nil {
 					log.Println(err)
 				}
 				time.Sleep(cfg.TimeoutMs.Buy)
-				err = provider.SellCoin("tDCL", "TEST3", sdk.NewInt(2001000000000000), sdk.NewInt(1000000000000000), account)
+				err = provider.SellCoin("tDCL", "TEST4", sdk.NewInt(2000000010000000), sdk.NewInt(1000000000000000), account)
 				if err != nil {
 					log.Println(err)
 				}
