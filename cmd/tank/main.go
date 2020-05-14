@@ -189,7 +189,7 @@ func main() {
 	for i := range accounts[:len(accounts)/2] {
 		go func(accountNum int, accountNumNext int) {
 			for {
-				log.Println("Send ", accounts[accountNum])
+				log.Println("Send ", accounts[accountNum].Address.String())
 				err = provider.SendCoin(accounts[accountNum], accounts[accountNumNext], sdk.NewInt(rand.Int63n(99)+1).Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(13), nil))))
 				if err != nil {
 					log.Println(err)
@@ -202,6 +202,7 @@ func main() {
 	for i := range accounts[len(accounts)/2:] {
 		go func(account Account) {
 			for {
+				log.Println("Send ", account.Address.String())
 				err = provider.BuyCoin("TEST3", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(2001000000000000), account)
 				if err != nil {
 					log.Println(err)
