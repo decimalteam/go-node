@@ -32,7 +32,7 @@ func NewSequenceEventDecorator(ak keeper.AccountKeeper) SequenceEventDecorator {
 }
 
 func (sed SequenceEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	// no need to increment sequence on CheckTx or RecheckTx
+	// no need on CheckTx or RecheckTx
 	if ctx.IsCheckTx() && !simulate {
 		return next(ctx, tx, simulate)
 	}

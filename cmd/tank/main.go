@@ -197,36 +197,35 @@ func main() {
 			}
 		}(i)
 
-		//go func(account Account) {
-		//	count := 0
-		//	for {
-		//		count++
-		//		if count%2 == 0 {
-		//			err = provider.BuyCoin("TEST3", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(2001000000000000), account)
-		//			if err != nil {
-		//				log.Println(err)
-		//			}
-		//			count++
-		//		}
-		//		time.Sleep(cfg.TimeoutMs.Buy)
-		//	}
-		//}(accounts[i])
-		//
-		//go func(account Account) {
-		//	count := 0
-		//	for {
-		//		count++
-		//		if count%2 == 0 {
-		//			continue
-		//		}
-		//		err = provider.SellCoin("tDCL", "TEST3", sdk.NewInt(2001000000000000), sdk.NewInt(1000000000000000), account)
-		//		if err != nil {
-		//			log.Println(err)
-		//		}
-		//		time.Sleep(cfg.TimeoutMs.Sell)
-		//	}
-		//}(accounts[i])
+		go func(account Account) {
+			count := 0
+			for {
+				count++
+				if count%2 == 0 {
+					err = provider.BuyCoin("TEST3", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(2001000000000000), account)
+					if err != nil {
+						log.Println(err)
+					}
+					count++
+				}
+				time.Sleep(cfg.TimeoutMs.Buy)
+			}
+		}(accounts[i])
 
+		go func(account Account) {
+			count := 0
+			for {
+				count++
+				if count%2 == 0 {
+					continue
+				}
+				err = provider.SellCoin("tDCL", "TEST3", sdk.NewInt(2001000000000000), sdk.NewInt(1000000000000000), account)
+				if err != nil {
+					log.Println(err)
+				}
+				time.Sleep(cfg.TimeoutMs.Sell)
+			}
+		}(accounts[i])
 	}
 
 	select {}
