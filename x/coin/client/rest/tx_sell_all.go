@@ -1,17 +1,17 @@
 package rest
 
 import (
-	//"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"fmt"
 	"net/http"
 
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	//"strings"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth/client/utils"
+	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 type CoinSellAllReq struct {
@@ -32,7 +32,7 @@ func CoinSellAllRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		baseReq := req.BaseReq
 
-		//addr, err := sdk.AccAddressFromBech32(baseReq.From)
+		//addr, err := decsdk.AccAddressFromPrefixedHex(baseReq.From)
 		//if err != nil {
 		//	rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		//	return
@@ -64,7 +64,7 @@ func CoinSellAllRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		//	return err
 		//}
 		// Do basic validating
-		msg := types.NewMsgSellAllCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, amountToBuy)
+		msg := types.NewMsgSellAllCoin(decsdk.AccAddress(cliCtx.GetFromAddress()), coinToBuySymbol, coinToSellSymbol, amountToBuy)
 		//err = msg.ValidateBasic()
 		//if err != nil {
 		//	return err

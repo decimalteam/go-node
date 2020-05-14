@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
@@ -19,10 +18,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/go-bip39"
 
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 )
 
@@ -43,7 +44,7 @@ const (
 )
 
 type Account struct {
-	Address   sdk.AccAddress
+	Address   decsdk.AccAddress
 	AccNumber uint64
 	Name      string
 	Sequence  *uint64
@@ -106,7 +107,7 @@ func (p *Provider) CreateAccount(name, password string) (Account, error) {
 	}
 
 	return Account{
-		Address:   info.GetAddress(),
+		Address:   decsdk.AccAddress(info.GetAddress()),
 		AccNumber: 6,
 		Name:      name,
 		Sequence:  new(uint64),
@@ -133,7 +134,7 @@ func main() {
 
 	accounts := make([]Account, cfg.CountAccounts)
 
-	mainAddr, err := sdk.AccAddressFromBech32(TankAddress)
+	mainAddr, err := decsdk.AccAddressFromPrefixedHex(TankAddress)
 	if err != nil {
 		log.Println(err)
 		return
@@ -161,7 +162,7 @@ func main() {
 		}
 	}
 
-	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1)), "tDCL")
+	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1)), "tDEL")
 	if err != nil {
 		log.Println("Init send", err)
 		return
@@ -201,12 +202,12 @@ func main() {
 	for i := range accounts[:len(accounts)/2] {
 		go func(account Account) {
 			for {
-				err = provider.BuyCoin("TEST3", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(2001000000000000), account)
+				err = provider.BuyCoin("TEST3", "tDEL", sdk.NewInt(1000000000000000), sdk.NewInt(2001000000000000), account)
 				if err != nil {
 					log.Println(err)
 				}
 				time.Sleep(cfg.TimeoutMs.Buy)
-				err = provider.SellCoin("tDCL", "TEST3", sdk.NewInt(2001000000000000), sdk.NewInt(1000000000000000), account)
+				err = provider.SellCoin("tDEL", "TEST3", sdk.NewInt(2001000000000000), sdk.NewInt(1000000000000000), account)
 				if err != nil {
 					log.Println(err)
 				}
@@ -236,7 +237,7 @@ func (p *Provider) SendCoin(sender, receiver Account, amount sdk.Int) error {
 		false, ChainID, memo, nil, nil,
 	).WithKeybase(p.keybase)
 
-	msgs := []sdk.Msg{coin.NewMsgSendCoin(sender.Address, "tDCL", amount, receiver.Address)}
+	msgs := []sdk.Msg{coin.NewMsgSendCoin(sender.Address, "tDEL", amount, receiver.Address)}
 
 	tx, err := txBldr.BuildAndSign(sender.Name, sender.Password, msgs)
 	if err != nil {

@@ -3,6 +3,7 @@ package genutil
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/pkg/errors"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -11,8 +12,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
+	authtypes "bitbucket.org/decimalteam/go-node/x/auth/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 

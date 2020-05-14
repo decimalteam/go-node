@@ -10,9 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -60,7 +60,7 @@ $ %s query validator validator dxvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			addr, err := sdk.ValAddressFromBech32(args[0])
+			addr, err := decsdk.ValAddressFromPrefixedHex(args[0])
 			if err != nil {
 				return err
 			}
@@ -138,7 +138,7 @@ $ %s query validator unbonding-delegations-from cosmosvaloper1gghjut3ccd8ay0zduz
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			valAddr, err := sdk.ValAddressFromBech32(args[0])
+			valAddr, err := decsdk.ValAddressFromPrefixedHex(args[0])
 			if err != nil {
 				return err
 			}
@@ -179,12 +179,12 @@ $ %s query validator delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p co
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			delAddr, err := sdk.AccAddressFromBech32(args[0])
+			delAddr, err := decsdk.AccAddressFromPrefixedHex(args[0])
 			if err != nil {
 				return err
 			}
 
-			valAddr, err := sdk.ValAddressFromBech32(args[1])
+			valAddr, err := decsdk.ValAddressFromPrefixedHex(args[1])
 			if err != nil {
 				return err
 			}
@@ -229,7 +229,7 @@ $ %s query validator delegations cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			delAddr, err := sdk.AccAddressFromBech32(args[0])
+			delAddr, err := decsdk.AccAddressFromPrefixedHex(args[0])
 			if err != nil {
 				return err
 			}
@@ -274,7 +274,7 @@ $ %s query validator delegations-to cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			valAddr, err := sdk.ValAddressFromBech32(args[0])
+			valAddr, err := decsdk.ValAddressFromPrefixedHex(args[0])
 			if err != nil {
 				return err
 			}
@@ -319,12 +319,12 @@ $ %s query validator unbonding-delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9l
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			valAddr, err := sdk.ValAddressFromBech32(args[1])
+			valAddr, err := decsdk.ValAddressFromPrefixedHex(args[1])
 			if err != nil {
 				return err
 			}
 
-			delAddr, err := sdk.AccAddressFromBech32(args[0])
+			delAddr, err := decsdk.AccAddressFromPrefixedHex(args[0])
 			if err != nil {
 				return err
 			}
@@ -364,7 +364,7 @@ $ %s query validator unbonding-delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9l
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			delegatorAddr, err := sdk.AccAddressFromBech32(args[0])
+			delegatorAddr, err := decsdk.AccAddressFromPrefixedHex(args[0])
 			if err != nil {
 				return err
 			}

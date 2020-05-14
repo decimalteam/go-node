@@ -1,12 +1,8 @@
 package keeper // noalias
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"bytes"
 	"encoding/hex"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -23,10 +19,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth"
+	authexported "bitbucket.org/decimalteam/go-node/x/auth/exported"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // dummy addresses used for testing
@@ -35,16 +37,16 @@ var (
 	Addrs = createTestAddrs(500)
 	PKs   = createTestPubKeys(500)
 
-	addrDels = []sdk.AccAddress{
+	addrDels = []decsdk.AccAddress{
 		Addrs[0],
 		Addrs[1],
 	}
-	addrVals = []sdk.ValAddress{
-		sdk.ValAddress(Addrs[2]),
-		sdk.ValAddress(Addrs[3]),
-		sdk.ValAddress(Addrs[4]),
-		sdk.ValAddress(Addrs[5]),
-		sdk.ValAddress(Addrs[6]),
+	addrVals = []decsdk.ValAddress{
+		decsdk.ValAddress(Addrs[2]),
+		decsdk.ValAddress(Addrs[3]),
+		decsdk.ValAddress(Addrs[4]),
+		decsdk.ValAddress(Addrs[5]),
+		decsdk.ValAddress(Addrs[6]),
 	}
 )
 
@@ -173,7 +175,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 	// fill all the addresses with some coins, set the loose pool tokens simultaneously
 	for _, addr := range Addrs {
-		_, err := bk.AddCoins(ctx, addr, initCoins)
+		_, err := bk.AddCoins(ctx, sdk.AccAddress(addr), initCoins)
 		if err != nil {
 			panic(err)
 		}
@@ -194,9 +196,9 @@ func NewPubKey(pk string) (res crypto.PubKey) {
 }
 
 // for incode address generation
-func TestAddr(addr string, bech string) sdk.AccAddress {
+func TestAddr(addr string, bech string) decsdk.AccAddress {
 
-	res, err := sdk.AccAddressFromHex(addr)
+	res, err := decsdk.AccAddressFromHex(addr)
 	if err != nil {
 		panic(err)
 	}
@@ -205,7 +207,7 @@ func TestAddr(addr string, bech string) sdk.AccAddress {
 		panic("Bech encoding doesn't match reference")
 	}
 
-	bechres, err := sdk.AccAddressFromBech32(bech)
+	bechres, err := decsdk.AccAddressFromPrefixedHex(bech)
 	if err != nil {
 		panic(err)
 	}
@@ -217,17 +219,17 @@ func TestAddr(addr string, bech string) sdk.AccAddress {
 }
 
 // nolint: unparam
-func createTestAddrs(numAddrs int) []sdk.AccAddress {
-	var addresses []sdk.AccAddress
+func createTestAddrs(numAddrs int) []decsdk.AccAddress {
+	var addresses []decsdk.AccAddress
 	var buffer bytes.Buffer
 
 	// start at 100 so we can make up to 999 test addresses with valid test addresses
 	for i := 100; i < (numAddrs + 100); i++ {
 		numString := strconv.Itoa(i)
-		buffer.WriteString("A58856F0FD53BF058B4909A21AEC019107BA6") //base address string
+		buffer.WriteString("a58856f0fd53bf058b4909a21aec019107ba6") //base address string
 
 		buffer.WriteString(numString) //adding on final two digits to make addresses unique
-		res, _ := sdk.AccAddressFromHex(buffer.String())
+		res, _ := decsdk.AccAddressFromHex(buffer.String())
 		bech := res.String()
 		addresses = append(addresses, TestAddr(buffer.String(), bech))
 		buffer.Reset()
@@ -243,7 +245,7 @@ func createTestPubKeys(numPubKeys int) []crypto.PubKey {
 	//start at 10 to avoid changing 1 to 01, 2 to 02, etc
 	for i := 100; i < (numPubKeys + 100); i++ {
 		numString := strconv.Itoa(i)
-		buffer.WriteString("0B485CFC0EECC619440448436F8FC9DF40566F2369E72400281454CB552AF") //base pubkey string
+		buffer.WriteString("0b485cfc0eecc619440448436f8fc9df40566f2369e72400281454cb552af") //base pubkey string
 		buffer.WriteString(numString)                                                       //adding on final two digits to make pubkeys unique
 		publicKeys = append(publicKeys, NewPubKey(buffer.String()))
 		buffer.Reset()

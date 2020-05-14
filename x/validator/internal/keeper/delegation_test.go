@@ -1,12 +1,15 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // tests GetDelegation, GetDelegatorDelegations, SetDelegation, RemoveDelegation, GetDelegatorDelegations
@@ -17,8 +20,8 @@ func TestDelegation(t *testing.T) {
 	amts := []sdk.Int{sdk.NewInt(9), sdk.NewInt(8), sdk.NewInt(7)}
 	var validators [3]types.Validator
 	for i, amt := range amts {
-		validators[i] = types.NewValidator(addrVals[i], PKs[i], sdk.ZeroDec(), sdk.AccAddress(addrVals[i]), types.Description{})
-		delegation := types.NewDelegation(sdk.AccAddress(addrVals[i]), addrVals[i], sdk.NewCoin(keeper.BondDenom(ctx), amt))
+		validators[i] = types.NewValidator(addrVals[i], PKs[i], sdk.ZeroDec(), decsdk.AccAddress(addrVals[i]), types.Description{})
+		delegation := types.NewDelegation(decsdk.AccAddress(addrVals[i]), addrVals[i], sdk.NewCoin(keeper.BondDenom(ctx), amt))
 		keeper.SetDelegation(ctx, delegation)
 	}
 
@@ -177,7 +180,7 @@ func TestUnbondDelegation(t *testing.T) {
 
 	// create a validator and a delegator to that validator
 	// note this validator starts not-bonded
-	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), sdk.AccAddress(addrVals[0]), types.Description{})
+	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), decsdk.AccAddress(addrVals[0]), types.Description{})
 
 	validator = TestingUpdateValidator(keeper, ctx, validator, true)
 
@@ -210,10 +213,10 @@ func TestUndelegateFromUnbondedValidator(t *testing.T) {
 	keeper.supplyKeeper.SetModuleAccount(ctx, notBondedPool)
 
 	// create a validator with a self-delegation
-	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), sdk.AccAddress(addrVals[0]), types.Description{})
+	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), decsdk.AccAddress(addrVals[0]), types.Description{})
 
 	valTokens := sdk.TokensFromConsensusPower(10)
-	delegation := types.NewDelegation(sdk.AccAddress(addrVals[0]), addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), valTokens))
+	delegation := types.NewDelegation(decsdk.AccAddress(addrVals[0]), addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), valTokens))
 	keeper.SetDelegation(ctx, delegation)
 	validator = TestingUpdateValidator(keeper, ctx, validator, true)
 	require.True(t, validator.IsBonded())
@@ -264,10 +267,10 @@ func TestUnbondingAllDelegationFromValidator(t *testing.T) {
 	keeper.supplyKeeper.SetModuleAccount(ctx, notBondedPool)
 
 	//create a validator with a self-delegation
-	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), sdk.AccAddress(addrVals[0]), types.Description{})
+	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), decsdk.AccAddress(addrVals[0]), types.Description{})
 
 	valTokens := sdk.TokensFromConsensusPower(10)
-	val0AccAddr := sdk.AccAddress(addrVals[0].Bytes())
+	val0AccAddr := decsdk.AccAddress(addrVals[0].Bytes())
 
 	selfDelegation := types.NewDelegation(val0AccAddr, addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), valTokens))
 	keeper.SetDelegation(ctx, selfDelegation)

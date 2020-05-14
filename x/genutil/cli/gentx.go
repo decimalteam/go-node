@@ -26,10 +26,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth"
+	"bitbucket.org/decimalteam/go-node/x/auth/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 )
 
@@ -77,7 +78,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 			}
 			// Read --pubkey, if empty take it from priv_validator.json
 			if valPubKeyString := viper.GetString(flagPubKey); valPubKeyString != "" {
-				valPubKey, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valPubKeyString)
+				valPubKey, err = decsdk.GetPubKeyFromPrefixedHex(decsdk.Bech32PubKeyTypeConsPub, valPubKeyString)
 				if err != nil {
 					return err
 				}
@@ -119,7 +120,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 				return err
 			}
 
-			err = genutil.ValidateAccountInGenesis(genesisState, genAccIterator, key.GetAddress(), coin, cdc)
+			err = genutil.ValidateAccountInGenesis(genesisState, genAccIterator, decsdk.AccAddress(key.GetAddress()), coin, cdc)
 			if err != nil {
 				return err
 			}

@@ -10,9 +10,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth"
+	"bitbucket.org/decimalteam/go-node/x/auth/client/utils"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
@@ -50,7 +51,7 @@ func GetCmdSellAllCoin(cdc *codec.Codec) *cobra.Command {
 
 			// TODO: Calculate amounts and check limits
 			// Do basic validating
-			msg := types.NewMsgSellAllCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, minAmountToBuy)
+			msg := types.NewMsgSellAllCoin(decsdk.AccAddress(cliCtx.GetFromAddress()), coinToBuySymbol, coinToSellSymbol, minAmountToBuy)
 			validationErr := msg.ValidateBasic()
 			if validationErr != nil {
 				return validationErr

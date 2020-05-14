@@ -3,17 +3,21 @@ package types
 import (
 	"bytes"
 	"fmt"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"gopkg.in/yaml.v2"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"gopkg.in/yaml.v2"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
 )
 
 // nolint
@@ -26,29 +30,29 @@ const (
 )
 
 type Validator struct {
-	ValAddress              sdk.ValAddress `json:"val_address" yaml:"val_address"`
-	PubKey                  crypto.PubKey  `json:"pub_key" yaml:"pub_key"`
-	Tokens                  sdk.Int        `json:"stake_coins" yaml:"stake_coins"`
-	DelegatorShares         sdk.Dec        `json:"delegator_shares" yaml:"delegator_shares"`
-	Status                  BondStatus     `json:"status" yaml:"status"`
-	Commission              sdk.Dec        `json:"commission" yaml:"commission"`
-	Jailed                  bool           `json:"jailed" yaml:"jailed"`
-	UnbondingCompletionTime time.Time      `json:"unbonding_completion_time" yaml:"unbonding_completion_time"`
-	UnbondingHeight         int64          `json:"unbonding_height" yaml:"unbonding_height"`
-	Description             Description    `json:"description" yaml:"description"`
-	AccumRewards            sdk.Int        `json:"accum_rewards" yaml:"accum_rewards"`
-	RewardAddress           sdk.AccAddress `json:"reward_address" yaml:"reward_address"`
-	Online                  bool           `json:"online" yaml:"online"`
+	ValAddress              decsdk.ValAddress `json:"val_address" yaml:"val_address"`
+	PubKey                  crypto.PubKey     `json:"pub_key" yaml:"pub_key"`
+	Tokens                  sdk.Int           `json:"stake_coins" yaml:"stake_coins"`
+	DelegatorShares         sdk.Dec           `json:"delegator_shares" yaml:"delegator_shares"`
+	Status                  BondStatus        `json:"status" yaml:"status"`
+	Commission              sdk.Dec           `json:"commission" yaml:"commission"`
+	Jailed                  bool              `json:"jailed" yaml:"jailed"`
+	UnbondingCompletionTime time.Time         `json:"unbonding_completion_time" yaml:"unbonding_completion_time"`
+	UnbondingHeight         int64             `json:"unbonding_height" yaml:"unbonding_height"`
+	Description             Description       `json:"description" yaml:"description"`
+	AccumRewards            sdk.Int           `json:"accum_rewards" yaml:"accum_rewards"`
+	RewardAddress           decsdk.AccAddress `json:"reward_address" yaml:"reward_address"`
+	Online                  bool              `json:"online" yaml:"online"`
 }
 
 type Stake struct {
-	Delegator sdk.AccAddress `json:"delegator"`
-	Coin      sdk.Coin       `json:"coin"`
+	Delegator decsdk.AccAddress `json:"delegator"`
+	Coin      sdk.Coin          `json:"coin"`
 }
 
 // String returns a human readable string representation of a validator.
 func (v Validator) String() string {
-	bechConsPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
+	bechConsPubKey, err := decsdk.HexifyPubKey(decsdk.Bech32PubKeyTypeConsPub, v.PubKey)
 	if err != nil {
 		panic(err)
 	}
@@ -68,26 +72,26 @@ func (v Validator) String() string {
 		v.UnbondingHeight, v.UnbondingCompletionTime, v.Commission)
 }
 
-// this is a helper struct used for JSON de- and encoding only
+// this is a helper struct used for JSON de- and encoding only.
 type bechValidator struct {
-	ValAddress              sdk.ValAddress `json:"val_address" yaml:"val_address"`
-	PubKey                  string         `json:"pub_key" yaml:"pub_key"`
-	Tokens                  sdk.Int        `json:"stake_coins" yaml:"stake_coins"`
-	DelegatorShares         sdk.Dec        `json:"delegator_shares" yaml:"delegator_shares"`
-	Status                  BondStatus     `json:"status" yaml:"status"`
-	Commission              sdk.Dec        `json:"commission" yaml:"commission"`
-	Jailed                  bool           `json:"jailed" yaml:"jailed"`
-	UnbondingCompletionTime time.Time      `json:"unbonding_completion_time" yaml:"unbonding_completion_time"`
-	UnbondingHeight         int64          `json:"unbonding_height" yaml:"unbonding_height"`
-	Description             Description    `json:"description" yaml:"description"`
-	AccumRewards            sdk.Int        `json:"accum_rewards" yaml:"accum_rewards"`
-	RewardAddress           sdk.AccAddress `json:"reward_address" yaml:"reward_address"`
-	Online                  bool           `json:"online" yaml:"online"`
+	ValAddress              decsdk.ValAddress `json:"val_address" yaml:"val_address"`
+	PubKey                  string            `json:"pub_key" yaml:"pub_key"`
+	Tokens                  sdk.Int           `json:"stake_coins" yaml:"stake_coins"`
+	DelegatorShares         sdk.Dec           `json:"delegator_shares" yaml:"delegator_shares"`
+	Status                  BondStatus        `json:"status" yaml:"status"`
+	Commission              sdk.Dec           `json:"commission" yaml:"commission"`
+	Jailed                  bool              `json:"jailed" yaml:"jailed"`
+	UnbondingCompletionTime time.Time         `json:"unbonding_completion_time" yaml:"unbonding_completion_time"`
+	UnbondingHeight         int64             `json:"unbonding_height" yaml:"unbonding_height"`
+	Description             Description       `json:"description" yaml:"description"`
+	AccumRewards            sdk.Int           `json:"accum_rewards" yaml:"accum_rewards"`
+	RewardAddress           decsdk.AccAddress `json:"reward_address" yaml:"reward_address"`
+	Online                  bool              `json:"online" yaml:"online"`
 }
 
-// MarshalJSON marshals the validator to JSON using Bech32
+// MarshalJSON marshals the validator to JSON using prefixed hex format.
 func (v Validator) MarshalJSON() ([]byte, error) {
-	bechConsPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
+	bechConsPubKey, err := decsdk.HexifyPubKey(decsdk.Bech32PubKeyTypeConsPub, v.PubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +119,7 @@ func (v *Validator) UnmarshalJSON(data []byte) error {
 	if err := codec.Cdc.UnmarshalJSON(data, bv); err != nil {
 		return err
 	}
-	consPubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, bv.PubKey)
+	consPubKey, err := decsdk.GetPubKeyFromPrefixedHex(decsdk.Bech32PubKeyTypeConsPub, bv.PubKey)
 	if err != nil {
 		return err
 	}
@@ -140,8 +144,8 @@ func (v *Validator) UnmarshalJSON(data []byte) error {
 // custom marshal yaml function due to consensus pubkey
 func (v Validator) MarshalYAML() (interface{}, error) {
 	bs, err := yaml.Marshal(struct {
-		ValAddress              sdk.ValAddress
-		RewardAddress           sdk.AccAddress
+		ValAddress              decsdk.ValAddress
+		RewardAddress           decsdk.AccAddress
 		PubKey                  string
 		Jailed                  bool
 		Status                  BondStatus
@@ -156,7 +160,7 @@ func (v Validator) MarshalYAML() (interface{}, error) {
 	}{
 		ValAddress:              v.ValAddress,
 		RewardAddress:           v.RewardAddress,
-		PubKey:                  sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey),
+		PubKey:                  decsdk.MustHexifyPubKey(decsdk.Bech32PubKeyTypeConsPub, v.PubKey),
 		Jailed:                  v.Jailed,
 		Status:                  v.Status,
 		Tokens:                  v.Tokens,
@@ -183,16 +187,16 @@ func (v Validator) SharesFromTokens(tokens sdk.Int, valTokens sdk.Int, delTokens
 	return delTokens.MulInt(tokens).QuoInt(valTokens), nil
 }
 
-func (v Validator) IsJailed() bool               { return v.Jailed }
-func (v Validator) GetMoniker() string           { return v.Description.Moniker }
-func (v Validator) GetStatus() BondStatus        { return v.Status }
-func (v Validator) GetOperator() sdk.ValAddress  { return v.ValAddress }
-func (v Validator) GetConsPubKey() crypto.PubKey { return v.PubKey }
-func (v Validator) GetConsAddr() sdk.ConsAddress { return sdk.ConsAddress(v.PubKey.Address()) }
-func (v Validator) GetTokens() sdk.Int           { return v.Tokens }
-func (v Validator) GetBondedTokens() sdk.Int     { return v.BondedTokens() }
-func (v Validator) GetCommission() sdk.Dec       { return v.Commission }
-func (v Validator) GetDelegatorShares() sdk.Dec  { return v.DelegatorShares }
+func (v Validator) IsJailed() bool                  { return v.Jailed }
+func (v Validator) GetMoniker() string              { return v.Description.Moniker }
+func (v Validator) GetStatus() BondStatus           { return v.Status }
+func (v Validator) GetOperator() decsdk.ValAddress  { return v.ValAddress }
+func (v Validator) GetConsPubKey() crypto.PubKey    { return v.PubKey }
+func (v Validator) GetConsAddr() decsdk.ConsAddress { return decsdk.ConsAddress(v.PubKey.Address()) }
+func (v Validator) GetTokens() sdk.Int              { return v.Tokens }
+func (v Validator) GetBondedTokens() sdk.Int        { return v.BondedTokens() }
+func (v Validator) GetCommission() sdk.Dec          { return v.Commission }
+func (v Validator) GetDelegatorShares() sdk.Dec     { return v.DelegatorShares }
 
 type Validators []Validator
 
@@ -331,7 +335,7 @@ func (b BondStatus) String() string {
 	}
 }
 
-func NewValidator(valAddress sdk.ValAddress, pubKey crypto.PubKey, commission sdk.Dec, rewardAddress sdk.AccAddress, description Description) Validator {
+func NewValidator(valAddress decsdk.ValAddress, pubKey crypto.PubKey, commission sdk.Dec, rewardAddress decsdk.AccAddress, description Description) Validator {
 	return Validator{
 		ValAddress:              valAddress,
 		PubKey:                  pubKey,

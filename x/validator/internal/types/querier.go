@@ -1,6 +1,8 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+)
 
 // query endpoints supported by the validator Querier
 const (
@@ -27,10 +29,10 @@ const (
 // - 'custom/validator/delegatorRedelegations'
 // - 'custom/validator/delegatorValidators'
 type QueryDelegatorParams struct {
-	DelegatorAddr sdk.AccAddress
+	DelegatorAddr decsdk.AccAddress
 }
 
-func NewQueryDelegatorParams(delegatorAddr sdk.AccAddress) QueryDelegatorParams {
+func NewQueryDelegatorParams(delegatorAddr decsdk.AccAddress) QueryDelegatorParams {
 	return QueryDelegatorParams{
 		DelegatorAddr: delegatorAddr,
 	}
@@ -42,10 +44,10 @@ func NewQueryDelegatorParams(delegatorAddr sdk.AccAddress) QueryDelegatorParams 
 // - 'custom/validator/validatorUnbondingDelegations'
 // - 'custom/validator/validatorRedelegations'
 type QueryValidatorParams struct {
-	ValidatorAddr sdk.ValAddress
+	ValidatorAddr decsdk.ValAddress
 }
 
-func NewQueryValidatorParams(validatorAddr sdk.ValAddress) QueryValidatorParams {
+func NewQueryValidatorParams(validatorAddr decsdk.ValAddress) QueryValidatorParams {
 	return QueryValidatorParams{
 		ValidatorAddr: validatorAddr,
 	}
@@ -56,11 +58,11 @@ func NewQueryValidatorParams(validatorAddr sdk.ValAddress) QueryValidatorParams 
 // - 'custom/validator/unbondingDelegation'
 // - 'custom/validator/delegatorValidator'
 type QueryBondsParams struct {
-	DelegatorAddr sdk.AccAddress
-	ValidatorAddr sdk.ValAddress
+	DelegatorAddr decsdk.AccAddress
+	ValidatorAddr decsdk.ValAddress
 }
 
-func NewQueryBondsParams(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress) QueryBondsParams {
+func NewQueryBondsParams(delegatorAddr decsdk.AccAddress, validatorAddr decsdk.ValAddress) QueryBondsParams {
 	return QueryBondsParams{
 		DelegatorAddr: delegatorAddr,
 		ValidatorAddr: validatorAddr,
@@ -70,13 +72,13 @@ func NewQueryBondsParams(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddr
 // defines the params for the following queries:
 // - 'custom/validator/redelegation'
 type QueryRedelegationParams struct {
-	DelegatorAddr    sdk.AccAddress
-	SrcValidatorAddr sdk.ValAddress
-	DstValidatorAddr sdk.ValAddress
+	DelegatorAddr    decsdk.AccAddress
+	SrcValidatorAddr decsdk.ValAddress
+	DstValidatorAddr decsdk.ValAddress
 }
 
-func NewQueryRedelegationParams(delegatorAddr sdk.AccAddress,
-	srcValidatorAddr, dstValidatorAddr sdk.ValAddress) QueryRedelegationParams {
+func NewQueryRedelegationParams(delegatorAddr decsdk.AccAddress,
+	srcValidatorAddr, dstValidatorAddr decsdk.ValAddress) QueryRedelegationParams {
 
 	return QueryRedelegationParams{
 		DelegatorAddr:    delegatorAddr,

@@ -106,8 +106,8 @@ func (k Keeper) SetLastTotalPower(ctx sdk.Context, power sdk.Int) error {
 }
 
 func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (coin.Coin, error) {
-	if symbol == "tdcl" {
-		symbol = "tDCL"
+	if symbol == "tdel" {
+		symbol = "tDEL"
 	} else {
 		symbol = strings.ToUpper(symbol)
 	}

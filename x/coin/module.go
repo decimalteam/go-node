@@ -12,8 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 
+	"bitbucket.org/decimalteam/go-node/x/auth"
 	"bitbucket.org/decimalteam/go-node/x/coin/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/coin/client/rest"
 )

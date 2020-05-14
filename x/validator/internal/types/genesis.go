@@ -2,6 +2,8 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
 )
 
 // GenesisState - all staking state that must be provided at genesis
@@ -17,7 +19,7 @@ type GenesisState struct {
 
 // Last validator power, needed for validator set update logic
 type LastValidatorPower struct {
-	Address sdk.ValAddress
+	Address decsdk.ValAddress
 	Power   int64
 }
 

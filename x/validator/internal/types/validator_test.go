@@ -3,28 +3,32 @@ package types
 import (
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
 )
 
 func TestValidatorTestEquivalent(t *testing.T) {
-	val1 := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1), Description{})
-	val2 := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1), Description{})
+	val1 := NewValidator(valAddr1, pk1, sdk.ZeroDec(), decsdk.AccAddress(valAddr1), Description{})
+	val2 := NewValidator(valAddr1, pk1, sdk.ZeroDec(), decsdk.AccAddress(valAddr1), Description{})
 
 	ok := val1.TestEquivalent(val2)
 	require.True(t, ok)
 
-	val2 = NewValidator(valAddr2, pk2, sdk.ZeroDec(), sdk.AccAddress(valAddr2), Description{})
+	val2 = NewValidator(valAddr2, pk2, sdk.ZeroDec(), decsdk.AccAddress(valAddr2), Description{})
 
 	ok = val1.TestEquivalent(val2)
 	require.False(t, ok)
 }
 
 func TestABCIValidatorUpdate(t *testing.T) {
-	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1), Description{})
+	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), decsdk.AccAddress(valAddr1), Description{})
 
 	abciVal := validator.ABCIValidatorUpdate(sdk.ZeroInt())
 	require.Equal(t, tmtypes.TM2PB.PubKey(validator.PubKey), abciVal.PubKey)
@@ -32,7 +36,7 @@ func TestABCIValidatorUpdate(t *testing.T) {
 }
 
 func TestABCIValidatorUpdateZero(t *testing.T) {
-	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1), Description{})
+	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), decsdk.AccAddress(valAddr1), Description{})
 
 	abciVal := validator.ABCIValidatorUpdateZero()
 	require.Equal(t, tmtypes.TM2PB.PubKey(validator.PubKey), abciVal.PubKey)
@@ -57,7 +61,7 @@ func TestUpdateStatus(t *testing.T) {
 }
 
 func TestValidatorMarshalUnmarshalJSON(t *testing.T) {
-	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1), Description{})
+	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), decsdk.AccAddress(valAddr1), Description{})
 	js, err := codec.Cdc.MarshalJSON(validator)
 	require.NoError(t, err)
 	require.NotEmpty(t, js)
@@ -69,8 +73,8 @@ func TestValidatorMarshalUnmarshalJSON(t *testing.T) {
 }
 
 //func TestValidatorMarshalYAML(t *testing.T) {
-//	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1))
-//	bechifiedPub, err := sdk.Bech32ifyPubKey(Bech32PrefixConsPub, validator.PubKey)
+//	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), decsdk.AccAddress(valAddr1))
+//	bechifiedPub, err := decsdk.HexifyPubKey(decsdk.Bech32PrefixConsPub, validator.PubKey)
 //	require.NoError(t, err)
 //	bs, err := yaml.Marshal(validator)
 //	require.NoError(t, err)

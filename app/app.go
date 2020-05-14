@@ -15,13 +15,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/check"
+	"bitbucket.org/decimalteam/go-node/x/auth"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bitbucket.org/decimalteam/go-node/x/validator"
@@ -30,36 +29,31 @@ import (
 const appName = "decimal"
 
 var (
-	// default home directories for the application CLI
+	// DefaultCLIHome is the default home directory for the application CLI.
 	DefaultCLIHome = os.ExpandEnv("$HOME/.decimal/cli")
 
-	// DefaultNodeHome sets the folder where the applcation data and configuration will be stored
+	// DefaultNodeHome is the default home directory containing the application configuration and data.
 	DefaultNodeHome = os.ExpandEnv("$HOME/.decimal/daemon")
 
-	// NewBasicManager is in charge of setting up basic module elements
+	// ModuleBasics is the collection of AppModuleBasic objects of all application modules.
 	ModuleBasics = module.NewBasicManager(
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
-		//staking.AppModuleBasic{},
-		//distr.AppModuleBasic{},
 		params.AppModuleBasic{},
-		//slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		coin.AppModuleBasic{},
-		check.AppModuleBasic{},
 		validator.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName: {supply.Burner, supply.Minter},
-		//distr.ModuleName:            nil,
+		auth.FeeCollectorName:       {supply.Burner, supply.Minter},
 		validator.BondedPoolName:    {supply.Burner, supply.Staking},
 		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
 	}
 )
 
-// MakeCodec generates the necessary codecs for Amino
+// MakeCodec registers the necessary codecs for Amino codec.
 func MakeCodec() *codec.Codec {
 	var cdc = codec.New()
 	ModuleBasics.RegisterCodec(cdc)
@@ -77,22 +71,18 @@ type newApp struct {
 	tkeys map[string]*sdk.TransientStoreKey
 
 	// Keepers
-	accountKeeper auth.AccountKeeper
-	bankKeeper    bank.Keeper
-	//stakingKeeper   staking.Keeper
-	//slashingKeeper  slashing.Keeper
-	//distrKeeper     distr.Keeper
+	accountKeeper   auth.AccountKeeper
+	bankKeeper      bank.Keeper
 	supplyKeeper    supply.Keeper
 	paramsKeeper    params.Keeper
 	coinKeeper      coin.Keeper
 	validatorKeeper validator.Keeper
-	checkKeeper     check.Keeper
 
 	// Module Manager
 	mm *module.Manager
 }
 
-// Newgo-nodeApp is a constructor function for go-nodeApp
+// NewInitApp creates and configures new application.
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
 
@@ -105,8 +95,14 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	bApp.SetAppVersion(version.Version)
 
 	// TODO: Add the keys that module requires
-	keys := sdk.NewKVStoreKeys(bam.MainStoreKey, auth.StoreKey, /*staking.StoreKey,*/
-		supply.StoreKey /*, distr.StoreKey*/ /*slashing.StoreKey,*/, params.StoreKey, coin.StoreKey, validator.StoreKey)
+	keys := sdk.NewKVStoreKeys(
+		bam.MainStoreKey,
+		auth.StoreKey,
+		supply.StoreKey,
+		params.StoreKey,
+		coin.StoreKey,
+		validator.StoreKey,
+	)
 
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -122,15 +118,13 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// The ParamsKeeper handles parameter storage for the application
 	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey])
+
 	// Set specific subspaces
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSupspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
-	//stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
-	//distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
-	//slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	coinSubspace := app.paramsKeeper.Subspace(coin.DefaultParamspace)
-	checkSubspace := app.paramsKeeper.Subspace(check.DefaultParamspace)
 	validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
+
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(
 		app.cdc,
@@ -155,40 +149,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		maccPerms,
 	)
 
-	// The staking keeper
-	//stakingKeeper := staking.NewKeeper(
-	//	app.cdc,
-	//	keys[staking.StoreKey],
-	//	tkeys[staking.TStoreKey],
-	//	app.supplyKeeper,
-	//	stakingSubspace,
-	//)
-
-	//app.distrKeeper = distr.NewKeeper(
-	//	app.cdc,
-	//	keys[distr.StoreKey],
-	//	distrSubspace,
-	//	&stakingKeeper,
-	//	app.supplyKeeper,
-	//	auth.FeeCollectorName,
-	//	app.ModuleAccountAddrs(),
-	//)
-
-	//app.slashingKeeper = slashing.NewKeeper(
-	//	app.cdc,
-	//	keys[slashing.StoreKey],
-	//	&stakingKeeper,
-	//	slashingSubspace,
-	//)
-
-	// register the staking hooks
-	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	//app.stakingKeeper = *stakingKeeper.SetHooks(
-	//	staking.NewMultiStakingHooks(
-	//		app.distrKeeper.Hooks(),
-	//		app.slashingKeeper.Hooks()),
-	//)
-
 	app.coinKeeper = coin.NewKeeper(
 		app.cdc,
 		keys[coin.StoreKey],
@@ -196,14 +156,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.accountKeeper,
 		app.bankKeeper,
 		config,
-	)
-
-	app.checkKeeper = check.NewKeeper(
-		app.cdc,
-		keys[check.StoreKey],
-		checkSubspace,
-		app.coinKeeper,
-		app.accountKeeper,
 	)
 
 	app.validatorKeeper = validator.NewKeeper(
@@ -220,12 +172,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		//distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
-		check.NewAppModule(app.checkKeeper, app.coinKeeper, app.accountKeeper),
-		//slashing.NewAppModule(app.slashingKeeper, app.validatorKeeper),
-		//staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
 	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
@@ -235,15 +183,11 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// NOTE: The genutils moodule must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
-		//distr.ModuleName,
-		//staking.ModuleName,
 		validator.ModuleName,
 		auth.ModuleName,
 		bank.ModuleName,
-		//slashing.ModuleName,
 		coin.ModuleName,
 		supply.ModuleName,
-		check.ModuleName,
 		genutil.ModuleName,
 	)
 

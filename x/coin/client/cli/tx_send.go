@@ -10,9 +10,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth"
+	"bitbucket.org/decimalteam/go-node/x/auth/client/utils"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
@@ -28,9 +29,9 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 
 			coin := args[0]
 			amount, _ := sdk.NewIntFromString(args[1])
-			receiver, err := sdk.AccAddressFromBech32(args[2])
+			receiver, err := decsdk.AccAddressFromPrefixedHex(args[2])
 			print(err)
-			msg := types.NewMsgSendCoin(cliCtx.GetFromAddress(), coin, amount, receiver)
+			msg := types.NewMsgSendCoin(decsdk.AccAddress(cliCtx.GetFromAddress()), coin, amount, receiver)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

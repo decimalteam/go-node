@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"strings"
 
-	"bitbucket.org/decimalteam/go-node/config"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 // Keeper of the coin store
@@ -77,9 +79,9 @@ func Abs(x sdk.Int) sdk.Int {
 }
 
 // Updating balances
-func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int, address sdk.AccAddress) error {
+func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int, address decsdk.AccAddress) error {
 	// Get account instance
-	acc := k.AccountKeeper.GetAccount(ctx, address)
+	acc := k.AccountKeeper.GetAccount(ctx, sdk.AccAddress(address))
 	// Get account coins information
 	coins := acc.GetCoins()
 	updAmount := Abs(amount)

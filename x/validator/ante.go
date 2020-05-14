@@ -1,17 +1,19 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	vtypes "bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"errors"
+	"strconv"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"strconv"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/x/auth"
+	"bitbucket.org/decimalteam/go-node/x/auth/ante"
+	"bitbucket.org/decimalteam/go-node/x/auth/keeper"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	vtypes "bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // Ante

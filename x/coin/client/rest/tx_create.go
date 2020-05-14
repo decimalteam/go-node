@@ -1,15 +1,18 @@
 package rest
 
 import (
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"net/http"
-	"strconv"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth/client/utils"
+	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 type CoinCreateReq struct {
@@ -33,7 +36,7 @@ func CoinCreateRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		baseReq := req.BaseReq
 
-		addr, err := sdk.AccAddressFromBech32(baseReq.From)
+		addr, err := decsdk.AccAddressFromPrefixedHex(baseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -49,7 +52,7 @@ func CoinCreateRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		var initVolume, _ = sdk.NewIntFromString(req.LimitVolume)
 		var limitVolume, _ = sdk.NewIntFromString(req.LimitVolume)
 
-		msg := types.NewMsgCreateCoin(title, uint(crr), symbol, initVolume, initReserve, limitVolume, addr)
+		msg := types.NewMsgCreateCoin(title, uint(crr), symbol, initVolume, initReserve, limitVolume, decsdk.AccAddress(addr))
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

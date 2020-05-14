@@ -18,10 +18,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth"
 )
 
 // Token is Telegram Bot token received from @BotFather.
@@ -34,10 +35,10 @@ const RootPath = "$HOME/.decimal/cli"
 const RPCPrefix = "http://139.59.133.148/rpc"
 
 // BaseCoin is base coin in original case.
-const BaseCoin = "tDCL"
+const BaseCoin = "tDEL"
 
 // BaseCoinLower is base coin in lower case.
-const BaseCoinLower = "tdcl"
+const BaseCoinLower = "tdel"
 
 // Faucet settings.
 const (
@@ -161,7 +162,7 @@ func handleTradeCalculationRequest(m *tgbotapi.Message) (handled bool) {
 > [COIN] supply=S reserve=R crr=CRR
 where:
 S - amount of COIN supplied at the moment (float)
-R - amount of total tDCL reserved for the COIN at the moment (float)
+R - amount of total tDEL reserved for the COIN at the moment (float)
 CRR - amount of persentages from 10 to 100 (integer)`
 
 	tradeCalculationRequests := `
@@ -445,11 +446,11 @@ func sendCoins(address string, amount *big.Int) (response string, txHash string,
 		false, FaucetChainID, memo, nil, nil,
 	).WithKeybase(keybase)
 
-	sender, err := sdk.AccAddressFromBech32(FaucetAddress)
+	sender, err := decsdk.AccAddressFromPrefixedHex(FaucetAddress)
 	if err != nil {
 		return
 	}
-	receiver, err := sdk.AccAddressFromBech32(address)
+	receiver, err := decsdk.AccAddressFromPrefixedHex(address)
 	if err != nil {
 		return
 	}
@@ -519,13 +520,13 @@ func sendCoins(address string, amount *big.Int) (response string, txHash string,
 ////////////////////////////////////////////////////////////////
 
 type MsgSendCoin struct {
-	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`
-	Coin     string         `json:"coin" yaml:"coin"`
-	Amount   sdk.Int        `json:"amount" yaml:"amount"`
-	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
+	Sender   decsdk.AccAddress `json:"sender" yaml:"sender"`
+	Coin     string            `json:"coin" yaml:"coin"`
+	Amount   sdk.Int           `json:"amount" yaml:"amount"`
+	Receiver decsdk.AccAddress `json:"receiver" yaml:"receiver"`
 }
 
-func NewMsgSendCoin(sender sdk.AccAddress, coin string, amount sdk.Int, receiver sdk.AccAddress) MsgSendCoin {
+func NewMsgSendCoin(sender decsdk.AccAddress, coin string, amount sdk.Int, receiver decsdk.AccAddress) MsgSendCoin {
 	return MsgSendCoin{
 		Sender:   sender,
 		Coin:     coin,
@@ -537,7 +538,7 @@ func NewMsgSendCoin(sender sdk.AccAddress, coin string, amount sdk.Int, receiver
 func (msg MsgSendCoin) Route() string { return "coin" }
 func (msg MsgSendCoin) Type() string  { return "SendCoin" }
 func (msg MsgSendCoin) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	return []sdk.AccAddress{sdk.AccAddress(msg.Sender)}
 }
 
 func (msg MsgSendCoin) GetSignBytes() []byte {

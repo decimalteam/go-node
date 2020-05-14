@@ -1,15 +1,18 @@
 package rest
 
 import (
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"net/http"
-	"strings"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth/client/utils"
+	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 type CoinSendReq struct {
@@ -30,19 +33,19 @@ func CoinSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		baseReq := req.BaseReq
 
-		addr, err := sdk.AccAddressFromBech32(baseReq.From)
+		addr, err := decsdk.AccAddressFromPrefixedHex(baseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 		coin := req.Coin
 		amount, _ := sdk.NewIntFromString(req.Amount)
-		receiver, err := sdk.AccAddressFromBech32(req.Receiver)
+		receiver, err := decsdk.AccAddressFromPrefixedHex(req.Receiver)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgSendCoin(addr, coin, amount, receiver)
+		msg := types.NewMsgSendCoin(decsdk.AccAddress(addr), coin, amount, decsdk.AccAddress(receiver))
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -58,7 +61,7 @@ func CoinSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Check if enough balance
-		acc, err := cliUtils.GetAccount(cliCtx, addr)
+		acc, err := cliUtils.GetAccount(cliCtx, sdk.AccAddress(addr))
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

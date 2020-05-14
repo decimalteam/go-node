@@ -6,11 +6,13 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // contains checks if the a given query contains one of the tx types
@@ -41,13 +43,13 @@ func queryBonds(cliCtx context.CLIContext, endpoint string) http.HandlerFunc {
 		bech32delegator := vars["delegatorAddr"]
 		bech32validator := vars["validatorAddr"]
 
-		delegatorAddr, err := sdk.AccAddressFromBech32(bech32delegator)
+		delegatorAddr, err := decsdk.AccAddressFromPrefixedHex(bech32delegator)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		validatorAddr, err := sdk.ValAddressFromBech32(bech32validator)
+		validatorAddr, err := decsdk.ValAddressFromPrefixedHex(bech32validator)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -82,7 +84,7 @@ func queryDelegator(cliCtx context.CLIContext, endpoint string) http.HandlerFunc
 		vars := mux.Vars(r)
 		bech32delegator := vars["delegatorAddr"]
 
-		delegatorAddr, err := sdk.AccAddressFromBech32(bech32delegator)
+		delegatorAddr, err := decsdk.AccAddressFromPrefixedHex(bech32delegator)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -117,7 +119,7 @@ func queryValidator(cliCtx context.CLIContext, endpoint string) http.HandlerFunc
 		vars := mux.Vars(r)
 		bech32validatorAddr := vars["validatorAddr"]
 
-		validatorAddr, err := sdk.ValAddressFromBech32(bech32validatorAddr)
+		validatorAddr, err := decsdk.ValAddressFromPrefixedHex(bech32validatorAddr)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

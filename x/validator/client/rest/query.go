@@ -2,15 +2,17 @@ package rest
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"net/http"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/client/context"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/rest"
+
 	"github.com/gorilla/mux"
 
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/types/rest"
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
@@ -111,7 +113,7 @@ func delegatorTxsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		vars := mux.Vars(r)
 		delegatorAddr := vars["delegatorAddr"]
 
-		_, err := sdk.AccAddressFromBech32(delegatorAddr)
+		_, err := decsdk.AccAddressFromPrefixedHex(delegatorAddr)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

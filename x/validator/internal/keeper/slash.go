@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // Slash a validator for an infraction committed at a known height
@@ -24,7 +27,7 @@ import (
 // CONTRACT:
 //    Infraction was committed at the current height or at a past height,
 //    not at a height in the future
-func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeight int64, power int64, slashFactor sdk.Dec) {
+func (k Keeper) Slash(ctx sdk.Context, consAddr decsdk.ConsAddress, infractionHeight int64, power int64, slashFactor sdk.Dec) {
 	logger := k.Logger(ctx)
 
 	if slashFactor.IsNegative() {
@@ -117,7 +120,7 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 }
 
 // jail a validator
-func (k Keeper) Jail(ctx sdk.Context, consAddr sdk.ConsAddress) {
+func (k Keeper) Jail(ctx sdk.Context, consAddr decsdk.ConsAddress) {
 	validator, err := k.GetValidatorByConsAddr(ctx, consAddr)
 	if err != nil {
 		panic(err)
@@ -129,7 +132,7 @@ func (k Keeper) Jail(ctx sdk.Context, consAddr sdk.ConsAddress) {
 }
 
 // unjail a validator
-func (k Keeper) Unjail(ctx sdk.Context, consAddr sdk.ConsAddress) {
+func (k Keeper) Unjail(ctx sdk.Context, consAddr decsdk.ConsAddress) {
 	validator, err := k.GetValidatorByConsAddr(ctx, consAddr)
 	if err != nil {
 		panic(err)
@@ -246,7 +249,7 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
 	height := ctx.BlockHeight()
-	consAddr := sdk.ConsAddress(addr)
+	consAddr := decsdk.ConsAddress(addr)
 	pubkey, err := k.getPubkey(ctx, addr)
 	if err != nil {
 		panic(fmt.Sprintf("Validator consensus-address %s not found", consAddr))
@@ -339,7 +342,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 }
 
 // Stored by *validator* address (not operator address)
-func (k Keeper) getValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress) (info types.ValidatorSigningInfo, found bool) {
+func (k Keeper) getValidatorSigningInfo(ctx sdk.Context, address decsdk.ConsAddress) (info types.ValidatorSigningInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetValidatorSigningInfoKey(address))
 	if bz == nil {
@@ -352,14 +355,14 @@ func (k Keeper) getValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress
 }
 
 // Stored by *validator* address (not operator address)
-func (k Keeper) setValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress, info types.ValidatorSigningInfo) {
+func (k Keeper) setValidatorSigningInfo(ctx sdk.Context, address decsdk.ConsAddress, info types.ValidatorSigningInfo) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(info)
 	store.Set(types.GetValidatorSigningInfoKey(address), bz)
 }
 
 // Stored by *validator* address (not operator address)
-func (k Keeper) clearValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress) {
+func (k Keeper) clearValidatorMissedBlockBitArray(ctx sdk.Context, address decsdk.ConsAddress) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.GetValidatorMissedBlockBitArrayPrefixKey(address))
 	defer iter.Close()
@@ -369,7 +372,7 @@ func (k Keeper) clearValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.C
 }
 
 // Stored by *validator* address (not operator address)
-func (k Keeper) getValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress, index int64) (missed bool) {
+func (k Keeper) getValidatorMissedBlockBitArray(ctx sdk.Context, address decsdk.ConsAddress, index int64) (missed bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetValidatorMissedBlockBitArrayKey(address, index))
 	if bz == nil {
@@ -382,7 +385,7 @@ func (k Keeper) getValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.Con
 }
 
 // Stored by *validator* address (not operator address)
-func (k Keeper) setValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress, index int64, missed bool) {
+func (k Keeper) setValidatorMissedBlockBitArray(ctx sdk.Context, address decsdk.ConsAddress, index int64, missed bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(missed)
 	store.Set(types.GetValidatorMissedBlockBitArrayKey(address, index), bz)
@@ -398,7 +401,7 @@ func (k Keeper) HandleDoubleSign(ctx sdk.Context, addr crypto.Address, infractio
 	age := t.Sub(timestamp)
 
 	// fetch the validator public key
-	consAddr := sdk.ConsAddress(addr)
+	consAddr := decsdk.ConsAddress(addr)
 	validator, err := k.GetValidatorByConsAddr(ctx, consAddr)
 	if err != nil {
 		panic(fmt.Sprintf("Validator %s not found", consAddr))
@@ -421,12 +424,12 @@ func (k Keeper) HandleDoubleSign(ctx sdk.Context, addr crypto.Address, infractio
 
 	// validator is already tombstoned
 	if signInfo.Tombstoned {
-		logger.Info(fmt.Sprintf("Ignored double sign from %s at height %d, validator already tombstoned", sdk.ConsAddress(pubkey.Address()), infractionHeight))
+		logger.Info(fmt.Sprintf("Ignored double sign from %s at height %d, validator already tombstoned", decsdk.ConsAddress(pubkey.Address()), infractionHeight))
 		return
 	}
 
 	// double sign confirmed
-	logger.Info(fmt.Sprintf("Confirmed double sign from %s at height %d, age of %d", sdk.ConsAddress(pubkey.Address()), infractionHeight, age))
+	logger.Info(fmt.Sprintf("Confirmed double sign from %s at height %d, age of %d", decsdk.ConsAddress(pubkey.Address()), infractionHeight, age))
 
 	// We need to retrieve the stake distribution which signed the block, so we subtract ValidatorUpdateDelay from the evidence height.
 	// Note that this *can* result in a negative "distributionHeight", up to -ValidatorUpdateDelay,
@@ -469,7 +472,7 @@ func (k Keeper) getPubkey(ctx sdk.Context, address crypto.Address) (crypto.PubKe
 	var pubkey crypto.PubKey
 	err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(types.GetAddrPubkeyRelationKey(address)), &pubkey)
 	if err != nil {
-		return nil, fmt.Errorf("address %s not found", sdk.ConsAddress(address))
+		return nil, fmt.Errorf("address %s not found", decsdk.ConsAddress(address))
 	}
 	return pubkey, nil
 }

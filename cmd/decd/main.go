@@ -23,12 +23,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 
 	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/config"
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth"
+	authexported "bitbucket.org/decimalteam/go-node/x/auth/exported"
+	authvesting "bitbucket.org/decimalteam/go-node/x/auth/vesting"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
 	"bitbucket.org/decimalteam/go-node/x/validator"
@@ -130,7 +131,7 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
 			cfg := ctx.Config
 			cfg.SetRoot(viper.GetString(cli.HomeFlag))
 
-			addr, err := sdk.AccAddressFromBech32(args[0])
+			addr, err := decsdk.AccAddressFromPrefixedHex(args[0])
 			if err != nil {
 				kb, err := keys.NewKeyBaseFromDir(viper.GetString(flagClientHome))
 				if err != nil {
@@ -142,7 +143,7 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
 					return err
 				}
 
-				addr = info.GetAddress()
+				addr = decsdk.AccAddress(info.GetAddress())
 			}
 
 			coins, err := sdk.ParseCoins(args[1])
@@ -160,7 +161,7 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
 			// create concrete account type based on input parameters
 			var genAccount authexported.GenesisAccount
 
-			baseAccount := auth.NewBaseAccount(addr, coins.Sort(), nil, 0, 0)
+			baseAccount := auth.NewBaseAccount(sdk.AccAddress(addr), coins.Sort(), nil, 0, 0)
 			if !vestingAmt.IsZero() {
 				baseVestingAccount, err := authvesting.NewBaseVestingAccount(
 					baseAccount, vestingAmt.Sort(), vestingEnd,

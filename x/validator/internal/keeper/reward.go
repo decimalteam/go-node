@@ -1,9 +1,11 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 func (k Keeper) PayRewards(ctx sdk.Context) error {
@@ -24,7 +26,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		)
 
 		rewardsVal := rewards.ToDec().Mul(val.Commission).TruncateInt()
-		err := k.coinKeeper.UpdateBalance(ctx, k.BondDenom(ctx), rewardsVal, sdk.AccAddress(val.ValAddress))
+		err := k.coinKeeper.UpdateBalance(ctx, k.BondDenom(ctx), rewardsVal, decsdk.AccAddress(val.ValAddress))
 		if err != nil {
 			return err
 		}

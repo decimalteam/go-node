@@ -1,12 +1,16 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"log"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"log"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // InitGenesis sets the pool and parameters for the provided keeper.  For each
@@ -159,7 +163,7 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 		return false
 	})
 	var lastValidatorPowers []types.LastValidatorPower
-	keeper.IterateLastValidatorPowers(ctx, func(addr sdk.ValAddress, power int64) (stop bool) {
+	keeper.IterateLastValidatorPowers(ctx, func(addr decsdk.ValAddress, power int64) (stop bool) {
 		lastValidatorPowers = append(lastValidatorPowers, types.LastValidatorPower{Address: addr, Power: power})
 		return false
 	})

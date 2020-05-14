@@ -3,18 +3,20 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
 )
 
 var _ sdk.Msg = &MsgSendCoin{}
 
 type MsgSendCoin struct {
-	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`
-	Coin     string         `json:"coin" yaml:"coin"`
-	Amount   sdk.Int        `json:"amount" yaml:"amount"`
-	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
+	Sender   decsdk.AccAddress `json:"sender" yaml:"sender"`
+	Coin     string            `json:"coin" yaml:"coin"`
+	Amount   sdk.Int           `json:"amount" yaml:"amount"`
+	Receiver decsdk.AccAddress `json:"receiver" yaml:"receiver"`
 }
 
-func NewMsgSendCoin(sender sdk.AccAddress, coin string, amount sdk.Int, receiver sdk.AccAddress) MsgSendCoin {
+func NewMsgSendCoin(sender decsdk.AccAddress, coin string, amount sdk.Int, receiver decsdk.AccAddress) MsgSendCoin {
 	return MsgSendCoin{
 		Sender:   sender,
 		Coin:     coin,
@@ -28,7 +30,7 @@ const SendCoinConst = "SendCoin"
 func (msg MsgSendCoin) Route() string { return RouterKey }
 func (msg MsgSendCoin) Type() string  { return SendCoinConst }
 func (msg MsgSendCoin) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	return []sdk.AccAddress{sdk.AccAddress(msg.Sender)}
 }
 
 func (msg MsgSendCoin) GetSignBytes() []byte {

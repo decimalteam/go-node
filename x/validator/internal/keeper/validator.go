@@ -1,13 +1,16 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"bytes"
 	"errors"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // Cache the amino decoding of validators, as it can be the case that repeated slashing calls
@@ -27,7 +30,7 @@ func newCachedValidator(val types.Validator, marshalled string) cachedValidator 
 }
 
 // get a single validator
-func (k Keeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (types.Validator, error) {
+func (k Keeper) GetValidator(ctx sdk.Context, addr decsdk.ValAddress) (types.Validator, error) {
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.GetValidatorKey(addr))
 	if value == nil {
@@ -84,12 +87,12 @@ func (k Keeper) SetValidator(ctx sdk.Context, validator types.Validator) error {
 // validator index
 func (k Keeper) SetValidatorByConsAddr(ctx sdk.Context, validator types.Validator) {
 	store := ctx.KVStore(k.storeKey)
-	consAddr := sdk.GetConsAddress(validator.PubKey)
+	consAddr := decsdk.GetConsAddress(validator.PubKey)
 	store.Set(types.GetValidatorByConsAddrKey(consAddr), validator.ValAddress)
 }
 
 // get a single validator by consensus address
-func (k Keeper) GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (types.Validator, error) {
+func (k Keeper) GetValidatorByConsAddr(ctx sdk.Context, consAddr decsdk.ConsAddress) (types.Validator, error) {
 	store := ctx.KVStore(k.storeKey)
 	valAddr := store.Get(types.GetValidatorByConsAddrKey(consAddr))
 	if valAddr == nil {
@@ -156,17 +159,17 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 
 // gets a specific validator queue timeSlice. A timeSlice is a slice of ValAddresses corresponding to unbonding validators
 // that expire at a certain time.
-func (k Keeper) GetValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []sdk.ValAddress {
-	var valAddr []sdk.ValAddress
+func (k Keeper) GetValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Time) []decsdk.ValAddress {
+	var valAddr []decsdk.ValAddress
 	err := k.Get(ctx, types.GetValidatorQueueTimeKey(timestamp), &valAddr)
 	if valAddr == nil || err != nil {
-		return []sdk.ValAddress{}
+		return []decsdk.ValAddress{}
 	}
 	return valAddr
 }
 
 // Sets a specific validator queue timeSlice.
-func (k Keeper) SetValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []sdk.ValAddress) error {
+func (k Keeper) SetValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []decsdk.ValAddress) error {
 	return k.set(ctx, types.GetValidatorQueueTimeKey(timestamp), keys)
 }
 
@@ -178,9 +181,9 @@ func (k Keeper) DeleteValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Ti
 // Insert an validator address to the appropriate timeslice in the validator queue
 func (k Keeper) InsertValidatorQueue(ctx sdk.Context, val types.Validator) error {
 	timeSlice := k.GetValidatorQueueTimeSlice(ctx, val.UnbondingCompletionTime)
-	var keys []sdk.ValAddress
+	var keys []decsdk.ValAddress
 	if len(timeSlice) == 0 {
-		keys = []sdk.ValAddress{val.ValAddress}
+		keys = []decsdk.ValAddress{val.ValAddress}
 	} else {
 		keys = append(timeSlice, val.ValAddress)
 	}
@@ -190,7 +193,7 @@ func (k Keeper) InsertValidatorQueue(ctx sdk.Context, val types.Validator) error
 // Delete a validator address from the validator queue
 func (k Keeper) DeleteValidatorQueue(ctx sdk.Context, val types.Validator) error {
 	timeSlice := k.GetValidatorQueueTimeSlice(ctx, val.UnbondingCompletionTime)
-	var newTimeSlice []sdk.ValAddress
+	var newTimeSlice []decsdk.ValAddress
 	for _, addr := range timeSlice {
 		if !bytes.Equal(addr, val.ValAddress) {
 			newTimeSlice = append(newTimeSlice, addr)
@@ -211,13 +214,13 @@ func (k Keeper) ValidatorQueueIterator(ctx sdk.Context, endTime time.Time) sdk.I
 }
 
 // Returns a concatenated list of all the timeslices before currTime, and deletes the timeslices from the queue
-func (k Keeper) GetAllMatureValidatorQueue(ctx sdk.Context) (matureValsAddrs []sdk.ValAddress) {
+func (k Keeper) GetAllMatureValidatorQueue(ctx sdk.Context) (matureValsAddrs []decsdk.ValAddress) {
 	// gets an iterator for all timeslices from time 0 until the current Blockheader time
 	validatorTimesliceIterator := k.ValidatorQueueIterator(ctx, ctx.BlockHeader().Time)
 	defer validatorTimesliceIterator.Close()
 
 	for ; validatorTimesliceIterator.Valid(); validatorTimesliceIterator.Next() {
-		var timeslice []sdk.ValAddress
+		var timeslice []decsdk.ValAddress
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
 		matureValsAddrs = append(matureValsAddrs, timeslice...)
 	}
@@ -231,7 +234,7 @@ func (k Keeper) UnbondAllMatureValidatorQueue(ctx sdk.Context) {
 	defer validatorTimesliceIterator.Close()
 
 	for ; validatorTimesliceIterator.Valid(); validatorTimesliceIterator.Next() {
-		var timeslice []sdk.ValAddress
+		var timeslice []decsdk.ValAddress
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
 
 		for _, valAddr := range timeslice {
@@ -253,7 +256,7 @@ func (k Keeper) UnbondAllMatureValidatorQueue(ctx sdk.Context) {
 	}
 }
 
-func (k Keeper) RemoveValidator(ctx sdk.Context, address sdk.ValAddress) error {
+func (k Keeper) RemoveValidator(ctx sdk.Context, address decsdk.ValAddress) error {
 	// first retrieve the old validator record
 	validator, err := k.GetValidator(ctx, address)
 	if err != nil {
@@ -269,7 +272,7 @@ func (k Keeper) RemoveValidator(ctx sdk.Context, address sdk.ValAddress) error {
 
 	// delete the old validator record
 	k.delete(ctx, types.GetValidatorKey(address))
-	k.delete(ctx, types.GetValidatorByConsAddrKey(sdk.ConsAddress(validator.PubKey.Address())))
+	k.delete(ctx, types.GetValidatorByConsAddrKey(decsdk.ConsAddress(validator.PubKey.Address())))
 	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, validator.Tokens))
 	return nil
 }
@@ -278,12 +281,12 @@ func (k Keeper) RemoveValidator(ctx sdk.Context, address sdk.ValAddress) error {
 // Last Validator Index
 
 // Set the last validator power.
-func (k Keeper) SetLastValidatorPower(ctx sdk.Context, operator sdk.ValAddress, power int64) error {
+func (k Keeper) SetLastValidatorPower(ctx sdk.Context, operator decsdk.ValAddress, power int64) error {
 	return k.set(ctx, types.GetLastValidatorPowerKey(operator), power)
 }
 
 // Delete the last validator power.
-func (k Keeper) DeleteLastValidatorPower(ctx sdk.Context, operator sdk.ValAddress) {
+func (k Keeper) DeleteLastValidatorPower(ctx sdk.Context, operator decsdk.ValAddress) {
 	k.delete(ctx, types.GetLastValidatorPowerKey(operator))
 }
 
@@ -293,12 +296,12 @@ func (k Keeper) DeleteValidatorByPowerIndex(ctx sdk.Context, validator types.Val
 }
 
 // Iterate over last validator powers.
-func (k Keeper) IterateLastValidatorPowers(ctx sdk.Context, handler func(operator sdk.ValAddress, power int64) (stop bool)) {
+func (k Keeper) IterateLastValidatorPowers(ctx sdk.Context, handler func(operator decsdk.ValAddress, power int64) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, []byte{types.LastValidatorPowerKey})
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
-		addr := sdk.ValAddress(iter.Key()[1:])
+		addr := decsdk.ValAddress(iter.Key()[1:])
 		var power int64
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &power)
 		if handler(addr, power) {
@@ -335,7 +338,7 @@ func (k Keeper) LastValidatorsIterator(ctx sdk.Context) (iterator sdk.Iterator) 
 }
 
 // Delegation get the delegation interface for a particular set of delegator and validator addresses
-func (k Keeper) Delegation(ctx sdk.Context, addrDel sdk.AccAddress, addrVal sdk.ValAddress) types.Delegation {
+func (k Keeper) Delegation(ctx sdk.Context, addrDel decsdk.AccAddress, addrVal decsdk.ValAddress) types.Delegation {
 	bond, ok := k.GetDelegation(ctx, addrDel, addrVal)
 	if !ok {
 		return types.Delegation{}
@@ -454,7 +457,7 @@ func (k Keeper) GetValidators(ctx sdk.Context, maxRetrieve uint16) (validators [
 	return validators[:i] // trim if the array length < maxRetrieve
 }
 
-func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Validator, delAddr sdk.AccAddress, stake sdk.Coin) bool {
+func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Validator, delAddr decsdk.AccAddress, stake sdk.Coin) bool {
 	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
 	if uint16(len(delegations)) < k.MaxDelegations(ctx) {
 		return true

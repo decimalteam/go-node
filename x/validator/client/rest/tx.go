@@ -1,15 +1,18 @@
 package rest
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"bytes"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/gorilla/mux"
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/rest"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
@@ -26,18 +29,18 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 type (
 	// DelegateRequest defines the properties of a delegation request's body.
 	DelegateRequest struct {
-		BaseReq          rest.BaseReq   `json:"base_req" yaml:"base_req"`
-		DelegatorAddress sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"` // in bech32
-		ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"` // in bech32
-		Amount           sdk.Coin       `json:"amount" yaml:"amount"`
+		BaseReq          rest.BaseReq      `json:"base_req" yaml:"base_req"`
+		DelegatorAddress decsdk.AccAddress `json:"delegator_address" yaml:"delegator_address"` // in bech32
+		ValidatorAddress decsdk.ValAddress `json:"validator_address" yaml:"validator_address"` // in bech32
+		Amount           sdk.Coin          `json:"amount" yaml:"amount"`
 	}
 
 	// UndelegateRequest defines the properties of a undelegate request's body.
 	UndelegateRequest struct {
-		BaseReq          rest.BaseReq   `json:"base_req" yaml:"base_req"`
-		DelegatorAddress sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"` // in bech32
-		ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"` // in bech32
-		Amount           sdk.Coin       `json:"amount" yaml:"amount"`
+		BaseReq          rest.BaseReq      `json:"base_req" yaml:"base_req"`
+		DelegatorAddress decsdk.AccAddress `json:"delegator_address" yaml:"delegator_address"` // in bech32
+		ValidatorAddress decsdk.ValAddress `json:"validator_address" yaml:"validator_address"` // in bech32
+		Amount           sdk.Coin          `json:"amount" yaml:"amount"`
 	}
 )
 
@@ -54,13 +57,13 @@ func postDelegationsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgDelegate(sdk.ValAddress(req.DelegatorAddress), sdk.AccAddress(req.ValidatorAddress), req.Amount)
+		msg := types.NewMsgDelegate(decsdk.ValAddress(req.DelegatorAddress), decsdk.AccAddress(req.ValidatorAddress), req.Amount)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		fromAddr, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		fromAddr, err := decsdk.AccAddressFromPrefixedHex(req.BaseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -88,13 +91,13 @@ func postUnbondingDelegationsHandlerFn(cliCtx context.CLIContext) http.HandlerFu
 			return
 		}
 
-		msg := types.NewMsgUnbond(sdk.ValAddress(req.DelegatorAddress), sdk.AccAddress(req.ValidatorAddress), req.Amount)
+		msg := types.NewMsgUnbond(decsdk.ValAddress(req.DelegatorAddress), decsdk.AccAddress(req.ValidatorAddress), req.Amount)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		fromAddr, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		fromAddr, err := decsdk.AccAddressFromPrefixedHex(req.BaseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

@@ -2,22 +2,24 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
 )
 
 var _ sdk.Msg = &MsgMultiSendCoin{}
 
 type SendCoin struct {
-	Coin     string         `json:"coin" yaml:"coin"`
-	Amount   sdk.Int        `json:"amount" yaml:"amount"`
-	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
+	Coin     string            `json:"coin" yaml:"coin"`
+	Amount   sdk.Int           `json:"amount" yaml:"amount"`
+	Receiver decsdk.AccAddress `json:"receiver" yaml:"receiver"`
 }
 
 type MsgMultiSendCoin struct {
-	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
-	Coins  []SendCoin     `json:"send_coin"`
+	Sender decsdk.AccAddress `json:"sender" yaml:"sender"`
+	Coins  []SendCoin        `json:"send_coin"`
 }
 
-func NewMsgMultiSendCoin(sender sdk.AccAddress, coins []SendCoin) MsgMultiSendCoin {
+func NewMsgMultiSendCoin(sender decsdk.AccAddress, coins []SendCoin) MsgMultiSendCoin {
 	return MsgMultiSendCoin{
 		Sender: sender,
 		Coins:  coins,
@@ -29,7 +31,7 @@ const MultiSendCoinConst = "MultiSendCoin"
 func (msg MsgMultiSendCoin) Route() string { return RouterKey }
 func (msg MsgMultiSendCoin) Type() string  { return MultiSendCoinConst }
 func (msg MsgMultiSendCoin) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	return []sdk.AccAddress{sdk.AccAddress(msg.Sender)}
 }
 
 func (msg MsgMultiSendCoin) GetSignBytes() []byte {

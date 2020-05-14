@@ -70,7 +70,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		Volume:      msg.InitialVolume,
 	}
 	// TODO: take reserve from creator and give it initial volume
-	acc := k.AccountKeeper.GetAccount(ctx, msg.Creator)
+	acc := k.AccountKeeper.GetAccount(ctx, sdk.AccAddress(msg.Creator))
 	balance := acc.GetCoins()
 	if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(msg.InitialReserve) {
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, "")
@@ -113,7 +113,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
 	// TODO: commission
-	err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coin), msg.Amount)})
+	err := k.BankKeeper.SendCoins(ctx, sdk.AccAddress(msg.Sender), sdk.AccAddress(msg.Receiver), sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coin), msg.Amount)})
 	if err != nil {
 		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
 	}
@@ -134,7 +134,7 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.R
 func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoin) (*sdk.Result, error) {
 	for i := range msg.Coins {
 		// TODO: Commission
-		_ = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Coins[i].Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coins[i].Coin), msg.Coins[i].Amount)})
+		_ = k.BankKeeper.SendCoins(ctx, sdk.AccAddress(msg.Sender), sdk.AccAddress(msg.Coins[i].Receiver), sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coins[i].Coin), msg.Coins[i].Amount)})
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
 				sdk.EventTypeMessage,
@@ -160,7 +160,7 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Result, error) {
 
 	// Retrieve buyer account and it's balance of selling coins
-	account := k.AccountKeeper.GetAccount(ctx, msg.Buyer)
+	account := k.AccountKeeper.GetAccount(ctx, sdk.AccAddress(msg.Buyer))
 	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell))
 
 	// Retrieve the coin requested to buy
@@ -307,7 +307,7 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll bool) (*sdk.Result, error) {
 
 	// Retrieve seller account and it's balance of selling coins
-	account := k.AccountKeeper.GetAccount(ctx, msg.Seller)
+	account := k.AccountKeeper.GetAccount(ctx, sdk.AccAddress(msg.Seller))
 	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell))
 
 	// Fill amount to sell in case of MsgSellAll

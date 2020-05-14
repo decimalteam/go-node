@@ -15,9 +15,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
+	authtypes "bitbucket.org/decimalteam/go-node/x/auth/types"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/validator/client/rest"

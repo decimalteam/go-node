@@ -1,16 +1,19 @@
 package rest
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"net/http"
-	"strings"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth/client/utils"
+	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 type CoinSellReq struct {
@@ -31,7 +34,7 @@ func CoinSellRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		baseReq := req.BaseReq
 
-		addr, err := sdk.AccAddressFromBech32(baseReq.From)
+		addr, err := decsdk.AccAddressFromPrefixedHex(baseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -58,7 +61,7 @@ func CoinSellRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		valueSell := formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountToSell)
 
 		// Do basic validating
-		msg := types.NewMsgSellCoin(addr, coinToBuySymbol, coinToSellSymbol, valueSell, amountToSell)
+		msg := types.NewMsgSellCoin(decsdk.AccAddress(addr), coinToBuySymbol, coinToSellSymbol, valueSell, amountToSell)
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -66,7 +69,7 @@ func CoinSellRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Get account balance
-		acc, _ := cliUtils.GetAccount(cliCtx, addr)
+		acc, _ := cliUtils.GetAccount(cliCtx, sdk.AccAddress(addr))
 		balance := acc.GetCoins()
 		if balance.AmountOf(strings.ToLower(coinToSellSymbol)).LT(amountToSell) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "Not enough coin to sell")

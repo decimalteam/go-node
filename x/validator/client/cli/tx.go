@@ -15,9 +15,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/auth"
+	"bitbucket.org/decimalteam/go-node/x/auth/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -53,7 +54,7 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			valAddress := cliCtx.GetFromAddress()
+			valAddress := decsdk.AccAddress(cliCtx.GetFromAddress())
 
 			stake, err := sdk.ParseCoin(args[1])
 			if err != nil {
@@ -64,15 +65,15 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
+			pubKey, err := decsdk.GetPubKeyFromPrefixedHex(decsdk.Bech32PubKeyTypeConsPub, args[0])
 			if err != nil {
 				return err
 			}
 
 			rewardAddressStr := viper.GetString(FlagRewardAddress)
-			rewardAddress := sdk.AccAddress{}
+			rewardAddress := decsdk.AccAddress{}
 			if rewardAddressStr != "" {
-				rewardAddress, err = sdk.AccAddressFromBech32(rewardAddressStr)
+				rewardAddress, err = decsdk.AccAddressFromPrefixedHex(rewardAddressStr)
 				if err != nil {
 					return err
 				}
@@ -80,7 +81,7 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 				rewardAddress = valAddress
 			}
 
-			msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddress), pubKey, commission, stake, types.Description{}, rewardAddress)
+			msg := types.NewMsgDeclareCandidate(decsdk.ValAddress(valAddress), pubKey, commission, stake, types.Description{}, rewardAddress)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -126,7 +127,7 @@ func PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string
 	viper.Set(flags.FlagFrom, viper.GetString(flags.FlagName))
 	viper.Set(FlagNodeID, nodeID)
 	viper.Set(FlagIP, ip)
-	viper.Set(FlagPubKey, sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, valPubKey))
+	viper.Set(FlagPubKey, decsdk.MustHexifyPubKey(decsdk.Bech32PubKeyTypeConsPub, valPubKey))
 	viper.Set(FlagMoniker, config.Moniker)
 	viper.Set(FlagWebsite, website)
 	viper.Set(FlagSecurityContact, securityContact)
@@ -155,7 +156,7 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 	valAddr := cliCtx.GetFromAddress()
 	pkStr := viper.GetString(FlagPubKey)
 
-	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
+	pk, err := decsdk.GetPubKeyFromPrefixedHex(decsdk.Bech32PubKeyTypeConsPub, pkStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
@@ -175,7 +176,7 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 		return txBldr, nil, err
 	}
 
-	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, description, valAddr)
+	msg := types.NewMsgDeclareCandidate(decsdk.ValAddress(valAddr), pk, commission, amount, description, decsdk.AccAddress(valAddr))
 
 	ip := viper.GetString(FlagIP)
 	nodeID := viper.GetString(FlagNodeID)
@@ -196,14 +197,14 @@ func GetDelegate(cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			delAddress := cliCtx.GetFromAddress()
+			delAddress := decsdk.AccAddress(cliCtx.GetFromAddress())
 
 			coin, err := sdk.ParseCoin(args[1])
 			if err != nil {
 				return err
 			}
 
-			valAddress, err := sdk.ValAddressFromBech32(args[0])
+			valAddress, err := decsdk.ValAddressFromPrefixedHex(args[0])
 			if err != nil {
 				return err
 			}
@@ -226,7 +227,7 @@ func GetSetOnline(cdc *codec.Codec) *cobra.Command {
 
 			valAddress := cliCtx.GetFromAddress()
 
-			msg := types.NewMsgSetOnline(sdk.ValAddress(valAddress))
+			msg := types.NewMsgSetOnline(decsdk.ValAddress(valAddress))
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -244,7 +245,7 @@ func GetSetOffline(cdc *codec.Codec) *cobra.Command {
 
 			valAddress := cliCtx.GetFromAddress()
 
-			msg := types.NewMsgSetOffline(sdk.ValAddress(valAddress))
+			msg := types.NewMsgSetOffline(decsdk.ValAddress(valAddress))
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -260,12 +261,12 @@ func GetUnbond(cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			valAddress, err := sdk.ValAddressFromBech32(args[0])
+			valAddress, err := decsdk.ValAddressFromPrefixedHex(args[0])
 			if err != nil {
 				return err
 			}
 
-			delAddress := cliCtx.GetFromAddress()
+			delAddress := decsdk.AccAddress(cliCtx.GetFromAddress())
 
 			coin, err := sdk.ParseCoin(args[1])
 			if err != nil {
@@ -288,17 +289,17 @@ func GetEditCandidate(cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
+			pubKey, err := decsdk.GetPubKeyFromPrefixedHex(decsdk.Bech32PubKeyTypeConsPub, args[0])
 			if err != nil {
 				return err
 			}
 
-			valAddress, err := sdk.ValAddressFromBech32(args[1])
+			valAddress, err := decsdk.ValAddressFromPrefixedHex(args[1])
 			if err != nil {
 				return err
 			}
 
-			rewardAddress, err := sdk.AccAddressFromBech32(args[2])
+			rewardAddress, err := decsdk.AccAddressFromPrefixedHex(args[2])
 			if err != nil {
 				return err
 			}

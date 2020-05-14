@@ -6,21 +6,23 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
 )
 
 var _ sdk.Msg = &MsgCreateCoin{}
 
 type MsgCreateCoin struct {
-	Creator              sdk.AccAddress `json:"creator" yaml:"creator"`
-	Title                string         `json:"title" yaml:"title"`                                   // Full coin title (Bitcoin)
-	Symbol               string         `json:"symbol" yaml:"symbol"`                                 // Short coin title (BTC)
-	ConstantReserveRatio uint           `json:"constant_reserve_ratio" yaml:"constant_reserve_ratio"` // between 10 and 100
-	InitialVolume        sdk.Int        `json:"initial_volume" yaml:"initial_volume"`
-	InitialReserve       sdk.Int        `json:"initial_reserve" yaml:"initial_reserve"`
-	LimitVolume          sdk.Int        `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
+	Creator              decsdk.AccAddress `json:"creator" yaml:"creator"`
+	Title                string            `json:"title" yaml:"title"`                                   // Full coin title (Bitcoin)
+	Symbol               string            `json:"symbol" yaml:"symbol"`                                 // Short coin title (BTC)
+	ConstantReserveRatio uint              `json:"constant_reserve_ratio" yaml:"constant_reserve_ratio"` // between 10 and 100
+	InitialVolume        sdk.Int           `json:"initial_volume" yaml:"initial_volume"`
+	InitialReserve       sdk.Int           `json:"initial_reserve" yaml:"initial_reserve"`
+	LimitVolume          sdk.Int           `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
 }
 
-func NewMsgCreateCoin(title string, crr uint, symbol string, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int, creator sdk.AccAddress) MsgCreateCoin {
+func NewMsgCreateCoin(title string, crr uint, symbol string, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int, creator decsdk.AccAddress) MsgCreateCoin {
 	return MsgCreateCoin{
 		Creator:              creator,
 		Title:                title,
@@ -44,7 +46,7 @@ var minCoinReserve = sdk.NewInt(10)
 func (msg MsgCreateCoin) Route() string { return RouterKey }
 func (msg MsgCreateCoin) Type() string  { return createCoinConst }
 func (msg MsgCreateCoin) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Creator}
+	return []sdk.AccAddress{sdk.AccAddress(msg.Creator)}
 }
 
 func (msg MsgCreateCoin) GetSignBytes() []byte {

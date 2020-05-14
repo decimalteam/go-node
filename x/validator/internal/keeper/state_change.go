@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"sort"
 
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // Apply and return accumulated updates to the bonded validator set. Also,
@@ -44,7 +46,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		// part of the bonded validator set
 
 		// fetch the validator
-		valAddr := sdk.ValAddress(iterator.Value())
+		valAddr := decsdk.ValAddress(iterator.Value())
 		validator, err := k.GetValidator(ctx, valAddr)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)

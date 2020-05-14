@@ -4,6 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
 )
 
 // ParamSubspace defines the expected Subspace interfacace
@@ -40,16 +42,16 @@ type SupplyKeeper interface {
 
 // StakingHooks event hooks for staking validator object (noalias)
 type ValidatorHooks interface {
-	AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress)                           // Must be called when a validator is created
-	BeforeValidatorModified(ctx sdk.Context, valAddr sdk.ValAddress)                         // Must be called when a validator's state changes
-	AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) // Must be called when a validator is deleted
+	AfterValidatorCreated(ctx sdk.Context, valAddr decsdk.ValAddress)                              // Must be called when a validator is created
+	BeforeValidatorModified(ctx sdk.Context, valAddr decsdk.ValAddress)                            // Must be called when a validator's state changes
+	AfterValidatorRemoved(ctx sdk.Context, consAddr decsdk.ConsAddress, valAddr decsdk.ValAddress) // Must be called when a validator is deleted
 
-	AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress)         // Must be called when a validator is bonded
-	AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) // Must be called when a validator begins unbonding
+	AfterValidatorBonded(ctx sdk.Context, consAddr decsdk.ConsAddress, valAddr decsdk.ValAddress)         // Must be called when a validator is bonded
+	AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr decsdk.ConsAddress, valAddr decsdk.ValAddress) // Must be called when a validator begins unbonding
 
-	BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)        // Must be called when a delegation is created
-	BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) // Must be called when a delegation's shares are modified
-	BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)        // Must be called when a delegation is removed
-	AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress)
-	BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdk.Dec)
+	BeforeDelegationCreated(ctx sdk.Context, delAddr decsdk.AccAddress, valAddr decsdk.ValAddress)        // Must be called when a delegation is created
+	BeforeDelegationSharesModified(ctx sdk.Context, delAddr decsdk.AccAddress, valAddr decsdk.ValAddress) // Must be called when a delegation's shares are modified
+	BeforeDelegationRemoved(ctx sdk.Context, delAddr decsdk.AccAddress, valAddr decsdk.ValAddress)        // Must be called when a delegation is removed
+	AfterDelegationModified(ctx sdk.Context, delAddr decsdk.AccAddress, valAddr decsdk.ValAddress)
+	BeforeValidatorSlashed(ctx sdk.Context, valAddr decsdk.ValAddress, fraction sdk.Dec)
 }

@@ -2,10 +2,13 @@ package types
 
 import (
 	"encoding/binary"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
 	"strconv"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
 )
 
 const (
@@ -43,13 +46,13 @@ const (
 	HistoricalInfoKey                = 0x13
 )
 
-func GetValidatorKey(addr sdk.ValAddress) []byte {
+func GetValidatorKey(addr decsdk.ValAddress) []byte {
 	return append([]byte{ValidatorsKey}, addr.Bytes()...)
 }
 
 // gets the key for the validator with pubkey
 // VALUE: validator operator address ([]byte)
-func GetValidatorByConsAddrKey(addr sdk.ConsAddress) []byte {
+func GetValidatorByConsAddrKey(addr decsdk.ConsAddress) []byte {
 	return append([]byte{ValidatorsByConsAddrKey}, addr.Bytes()...)
 }
 
@@ -114,7 +117,7 @@ func GetValidatorQueueTimeKey(timestamp time.Time) []byte {
 }
 
 // get the bonded validator index key for an operator address
-func GetLastValidatorPowerKey(valAddress sdk.ValAddress) []byte {
+func GetLastValidatorPowerKey(valAddress decsdk.ValAddress) []byte {
 	return append([]byte{LastValidatorPowerKey}, valAddress...)
 }
 
@@ -127,12 +130,12 @@ func AddressFromLastValidatorPowerKey(key []byte) []byte {
 
 // gets the key for delegator bond with validator
 // VALUE: staking/Delegation
-func GetDelegationKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
+func GetDelegationKey(delAddr decsdk.AccAddress, valAddr decsdk.ValAddress) []byte {
 	return append(GetDelegationsKey(delAddr), valAddr.Bytes()...)
 }
 
 // gets the prefix for a delegator for all validators
-func GetDelegationsKey(delAddr sdk.AccAddress) []byte {
+func GetDelegationsKey(delAddr decsdk.AccAddress) []byte {
 	return append([]byte{DelegationKey}, delAddr.Bytes()...)
 }
 
@@ -140,7 +143,7 @@ func GetDelegationsKey(delAddr sdk.AccAddress) []byte {
 
 // gets the key for an unbonding delegation by delegator and validator addr
 // VALUE: staking/UnbondingDelegation
-func GetUBDKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
+func GetUBDKey(delAddr decsdk.AccAddress, valAddr decsdk.ValAddress) []byte {
 	return append(
 		GetUBDsKey(delAddr.Bytes()),
 		valAddr.Bytes()...)
@@ -148,7 +151,7 @@ func GetUBDKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
 
 // gets the index-key for an unbonding delegation, stored by validator-index
 // VALUE: none (key rearrangement used)
-func GetUBDByValIndexKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
+func GetUBDByValIndexKey(delAddr decsdk.AccAddress, valAddr decsdk.ValAddress) []byte {
 	return append(GetUBDsByValIndexKey(valAddr), delAddr.Bytes()...)
 }
 
@@ -166,12 +169,12 @@ func GetUBDKeyFromValIndexKey(IndexKey []byte) []byte {
 //______________
 
 // gets the prefix for all unbonding delegations from a delegator
-func GetUBDsKey(delAddr sdk.AccAddress) []byte {
+func GetUBDsKey(delAddr decsdk.AccAddress) []byte {
 	return append([]byte{UnbondingDelegationKey}, delAddr.Bytes()...)
 }
 
 // gets the prefix keyspace for the indexes of unbonding delegations for a validator
-func GetUBDsByValIndexKey(valAddr sdk.ValAddress) []byte {
+func GetUBDsByValIndexKey(valAddr decsdk.ValAddress) []byte {
 	return append([]byte{UnbondingDelegationByValIndexKey}, valAddr.Bytes()...)
 }
 
@@ -185,7 +188,7 @@ func GetUnbondingDelegationTimeKey(timestamp time.Time) []byte {
 
 // gets the key for a redelegation
 // VALUE: staking/RedelegationKey
-func GetREDKey(delAddr sdk.AccAddress, valSrcAddr, valDstAddr sdk.ValAddress) []byte {
+func GetREDKey(delAddr decsdk.AccAddress, valSrcAddr, valDstAddr decsdk.ValAddress) []byte {
 	key := make([]byte, 1+sdk.AddrLen*3)
 
 	copy(key[0:sdk.AddrLen+1], GetREDsKey(delAddr.Bytes()))
@@ -197,7 +200,7 @@ func GetREDKey(delAddr sdk.AccAddress, valSrcAddr, valDstAddr sdk.ValAddress) []
 
 // gets the index-key for a redelegation, stored by source-validator-index
 // VALUE: none (key rearrangement used)
-func GetREDByValSrcIndexKey(delAddr sdk.AccAddress, valSrcAddr, valDstAddr sdk.ValAddress) []byte {
+func GetREDByValSrcIndexKey(delAddr decsdk.AccAddress, valSrcAddr, valDstAddr decsdk.ValAddress) []byte {
 	REDSFromValsSrcKey := GetREDsFromValSrcIndexKey(valSrcAddr)
 	offset := len(REDSFromValsSrcKey)
 
@@ -211,7 +214,7 @@ func GetREDByValSrcIndexKey(delAddr sdk.AccAddress, valSrcAddr, valDstAddr sdk.V
 
 // gets the index-key for a redelegation, stored by destination-validator-index
 // VALUE: none (key rearrangement used)
-func GetREDByValDstIndexKey(delAddr sdk.AccAddress, valSrcAddr, valDstAddr sdk.ValAddress) []byte {
+func GetREDByValDstIndexKey(delAddr decsdk.AccAddress, valSrcAddr, valDstAddr decsdk.ValAddress) []byte {
 	REDSToValsDstKey := GetREDsToValDstIndexKey(valDstAddr)
 	offset := len(REDSToValsDstKey)
 
@@ -258,40 +261,40 @@ func GetRedelegationTimeKey(timestamp time.Time) []byte {
 //______________
 
 // gets the prefix keyspace for redelegations from a delegator
-func GetREDsKey(delAddr sdk.AccAddress) []byte {
+func GetREDsKey(delAddr decsdk.AccAddress) []byte {
 	return append([]byte{RedelegationKey}, delAddr.Bytes()...)
 }
 
 // gets the prefix keyspace for all redelegations redelegating away from a source validator
-func GetREDsFromValSrcIndexKey(valSrcAddr sdk.ValAddress) []byte {
+func GetREDsFromValSrcIndexKey(valSrcAddr decsdk.ValAddress) []byte {
 	return append([]byte{RedelegationByValSrcIndexKey}, valSrcAddr.Bytes()...)
 }
 
 // gets the prefix keyspace for all redelegations redelegating towards a destination validator
-func GetREDsToValDstIndexKey(valDstAddr sdk.ValAddress) []byte {
+func GetREDsToValDstIndexKey(valDstAddr decsdk.ValAddress) []byte {
 	return append([]byte{RedelegationByValDstIndexKey}, valDstAddr.Bytes()...)
 }
 
 // gets the prefix keyspace for all redelegations redelegating towards a destination validator
 // from a particular delegator
-func GetREDsByDelToValDstIndexKey(delAddr sdk.AccAddress, valDstAddr sdk.ValAddress) []byte {
+func GetREDsByDelToValDstIndexKey(delAddr decsdk.AccAddress, valDstAddr decsdk.ValAddress) []byte {
 	return append(
 		GetREDsToValDstIndexKey(valDstAddr),
 		delAddr.Bytes()...)
 }
 
 // stored by *Consensus* address (not operator address)
-func GetValidatorSigningInfoKey(v sdk.ConsAddress) []byte {
+func GetValidatorSigningInfoKey(v decsdk.ConsAddress) []byte {
 	return append([]byte{ValidatorSigningInfoKey}, v.Bytes()...)
 }
 
 // stored by *Consensus* address (not operator address)
-func GetValidatorMissedBlockBitArrayPrefixKey(v sdk.ConsAddress) []byte {
+func GetValidatorMissedBlockBitArrayPrefixKey(v decsdk.ConsAddress) []byte {
 	return append([]byte{ValidatorMissedBlockBitArrayKey}, v.Bytes()...)
 }
 
 // stored by *Consensus* address (not operator address)
-func GetValidatorMissedBlockBitArrayKey(v sdk.ConsAddress, i int64) []byte {
+func GetValidatorMissedBlockBitArrayKey(v decsdk.ConsAddress, i int64) []byte {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, uint64(i))
 	return append(GetValidatorMissedBlockBitArrayPrefixKey(v), b...)

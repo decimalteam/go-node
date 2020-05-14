@@ -15,10 +15,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	authexported "bitbucket.org/decimalteam/go-node/x/auth/exported"
+	authtypes "bitbucket.org/decimalteam/go-node/x/auth/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
@@ -45,7 +46,7 @@ func SetGenTxsInAppGenesisState(cdc *codec.Codec, appGenesisState map[string]jso
 // coins in the genesis accounts
 func ValidateAccountInGenesis(appGenesisState map[string]json.RawMessage,
 	genAccIterator types.GenesisAccountsIterator,
-	key sdk.AccAddress, coin sdk.Coin, cdc *codec.Codec) error {
+	key decsdk.AccAddress, coin sdk.Coin, cdc *codec.Codec) error {
 
 	accountIsInGenesis := false
 

@@ -1,13 +1,16 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // AfterValidatorCreated - call hook if registered
-func (k Keeper) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress) {
+func (k Keeper) AfterValidatorCreated(ctx sdk.Context, valAddr decsdk.ValAddress) {
 	val, err := k.GetValidator(ctx, valAddr)
 	if err != nil {
 		panic(err)
@@ -19,21 +22,21 @@ func (k Keeper) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress) {
 }
 
 // BeforeValidatorModified - call hook if registered
-func (k Keeper) BeforeValidatorModified(ctx sdk.Context, valAddr sdk.ValAddress) {
+func (k Keeper) BeforeValidatorModified(ctx sdk.Context, valAddr decsdk.ValAddress) {
 	if k.hooks != nil {
 		k.hooks.BeforeValidatorModified(ctx, valAddr)
 	}
 }
 
 // AfterValidatorRemoved - call hook if registered
-func (k Keeper) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+func (k Keeper) AfterValidatorRemoved(ctx sdk.Context, consAddr decsdk.ConsAddress, valAddr decsdk.ValAddress) {
 	if k.hooks != nil {
 		k.hooks.AfterValidatorRemoved(ctx, consAddr, valAddr)
 	}
 }
 
 // AfterValidatorBonded - call hook if registered
-func (k Keeper) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+func (k Keeper) AfterValidatorBonded(ctx sdk.Context, consAddr decsdk.ConsAddress, valAddr decsdk.ValAddress) {
 	_, found := k.getValidatorSigningInfo(ctx, consAddr)
 	if !found {
 		signingInfo := types.NewValidatorSigningInfo(
@@ -52,42 +55,42 @@ func (k Keeper) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, 
 }
 
 // AfterValidatorBeginUnbonding - call hook if registered
-func (k Keeper) AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+func (k Keeper) AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr decsdk.ConsAddress, valAddr decsdk.ValAddress) {
 	if k.hooks != nil {
 		k.hooks.AfterValidatorBeginUnbonding(ctx, consAddr, valAddr)
 	}
 }
 
 // BeforeDelegationCreated - call hook if registered
-func (k Keeper) BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+func (k Keeper) BeforeDelegationCreated(ctx sdk.Context, delAddr decsdk.AccAddress, valAddr decsdk.ValAddress) {
 	if k.hooks != nil {
 		k.hooks.BeforeDelegationCreated(ctx, delAddr, valAddr)
 	}
 }
 
 // BeforeDelegationSharesModified - call hook if registered
-func (k Keeper) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+func (k Keeper) BeforeDelegationSharesModified(ctx sdk.Context, delAddr decsdk.AccAddress, valAddr decsdk.ValAddress) {
 	if k.hooks != nil {
 		k.hooks.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
 	}
 }
 
 // BeforeDelegationRemoved - call hook if registered
-func (k Keeper) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+func (k Keeper) BeforeDelegationRemoved(ctx sdk.Context, delAddr decsdk.AccAddress, valAddr decsdk.ValAddress) {
 	if k.hooks != nil {
 		k.hooks.BeforeDelegationRemoved(ctx, delAddr, valAddr)
 	}
 }
 
 // AfterDelegationModified - call hook if registered
-func (k Keeper) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+func (k Keeper) AfterDelegationModified(ctx sdk.Context, delAddr decsdk.AccAddress, valAddr decsdk.ValAddress) {
 	if k.hooks != nil {
 		k.hooks.AfterDelegationModified(ctx, delAddr, valAddr)
 	}
 }
 
 // BeforeValidatorSlashed - call hook if registered
-func (k Keeper) BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdk.Dec) {
+func (k Keeper) BeforeValidatorSlashed(ctx sdk.Context, valAddr decsdk.ValAddress, fraction sdk.Dec) {
 	if k.hooks != nil {
 		k.hooks.BeforeValidatorSlashed(ctx, valAddr, fraction)
 	}

@@ -1,13 +1,18 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"log"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // TODO integrate with test_common.go helper (CreateTestInput)
@@ -22,8 +27,8 @@ func setupHelper(t *testing.T, power int64) (sdk.Context, Keeper, types.Params) 
 
 	// add numVals validators
 	for i := int64(0); i < numVals; i++ {
-		validator := types.NewValidator(addrVals[i], PKs[i], sdk.ZeroDec(), sdk.AccAddress(addrVals[i]), types.Description{})
-		del := types.NewDelegation(sdk.AccAddress(validator.ValAddress), validator.ValAddress, sdk.NewCoin(keeper.BondDenom(ctx), amt))
+		validator := types.NewValidator(addrVals[i], PKs[i], sdk.ZeroDec(), decsdk.AccAddress(addrVals[i]), types.Description{})
+		del := types.NewDelegation(decsdk.AccAddress(validator.ValAddress), validator.ValAddress, sdk.NewCoin(keeper.BondDenom(ctx), amt))
 		keeper.SetDelegation(ctx, del)
 		validator = TestingUpdateValidator(keeper, ctx, validator, true)
 		keeper.SetValidatorByConsAddr(ctx, validator)
@@ -40,7 +45,7 @@ func TestRevocation(t *testing.T) {
 	// setup
 	ctx, keeper, _ := setupHelper(t, 10)
 	addr := addrVals[0]
-	consAddr := sdk.ConsAddress(PKs[0].Address())
+	consAddr := decsdk.ConsAddress(PKs[0].Address())
 
 	// initial state
 	val, err := keeper.GetValidator(ctx, addr)
@@ -67,7 +72,7 @@ func TestSlashUnbondingDelegation(t *testing.T) {
 
 	// set an unbonding delegation with expiration timestamp (beyond which the
 	// unbonding delegation shouldn't be slashed)
-	ubd := types.NewUnbondingDelegation(sdk.AccAddress(addrVals[0]), addrVals[0], 0,
+	ubd := types.NewUnbondingDelegation(decsdk.AccAddress(addrVals[0]), addrVals[0], 0,
 		time.Unix(5, 0), sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(10)))
 
 	keeper.SetUnbondingDelegation(ctx, ubd)
@@ -88,7 +93,7 @@ func TestSlashUnbondingDelegation(t *testing.T) {
 	keeper.SetUnbondingDelegation(ctx, ubd)
 	slashAmount = keeper.slashUnbondingDelegation(ctx, ubd, 0, fraction)
 	require.Equal(t, int64(5), slashAmount.Int64())
-	ubd, found := keeper.GetUnbondingDelegation(ctx, sdk.AccAddress(addrVals[0]), addrVals[0])
+	ubd, found := keeper.GetUnbondingDelegation(ctx, decsdk.AccAddress(addrVals[0]), addrVals[0])
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
 
@@ -174,7 +179,7 @@ func TestSlashRedelegation(t *testing.T) {
 // tests Slash at a future height (must panic)
 func TestSlashAtFutureHeight(t *testing.T) {
 	ctx, keeper, _ := setupHelper(t, 10)
-	consAddr := sdk.ConsAddress(PKs[0].Address())
+	consAddr := decsdk.ConsAddress(PKs[0].Address())
 	fraction := sdk.NewDecWithPrec(5, 1)
 	require.Panics(t, func() { keeper.Slash(ctx, consAddr, 1, 10, fraction) })
 }
@@ -183,7 +188,7 @@ func TestSlashAtFutureHeight(t *testing.T) {
 // this just represents pre-genesis and should have the same effect as slashing at height 0
 func TestSlashAtNegativeHeight(t *testing.T) {
 	ctx, keeper, _ := setupHelper(t, 10)
-	consAddr := sdk.ConsAddress(PKs[0].Address())
+	consAddr := decsdk.ConsAddress(PKs[0].Address())
 	fraction := sdk.NewDecWithPrec(5, 1)
 
 	oldBondedPool := keeper.GetBondedPool(ctx)
@@ -211,7 +216,7 @@ func TestSlashAtNegativeHeight(t *testing.T) {
 // tests Slash at the current height
 func TestSlashValidatorAtCurrentHeight(t *testing.T) {
 	ctx, keeper, _ := setupHelper(t, 10)
-	consAddr := sdk.ConsAddress(PKs[0].Address())
+	consAddr := decsdk.ConsAddress(PKs[0].Address())
 	fraction := sdk.NewDecWithPrec(5, 1)
 
 	oldBondedPool := keeper.GetBondedPool(ctx)
@@ -239,7 +244,7 @@ func TestSlashValidatorAtCurrentHeight(t *testing.T) {
 // tests Slash at a previous height with an unbonding delegation
 func TestSlashWithUnbondingDelegation(t *testing.T) {
 	ctx, keeper, _ := setupHelper(t, 10)
-	consAddr := sdk.ConsAddress(PKs[0].Address())
+	consAddr := decsdk.ConsAddress(PKs[0].Address())
 	fraction := sdk.NewDecWithPrec(5, 1)
 
 	// set an unbonding delegation with expiration timestamp beyond which the
@@ -349,7 +354,7 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 // tests Slash at a previous height with a redelegation
 func TestSlashWithRedelegation(t *testing.T) {
 	ctx, keeper, _ := setupHelper(t, 10)
-	consAddr := sdk.ConsAddress(PKs[0].Address())
+	consAddr := decsdk.ConsAddress(PKs[0].Address())
 	fraction := sdk.NewDecWithPrec(5, 1)
 	bondDenom := keeper.BondDenom(ctx)
 
@@ -521,9 +526,9 @@ func TestSlashBoth(t *testing.T) {
 
 	// slash validator
 	ctx = ctx.WithBlockHeight(12)
-	validator, found := keeper.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(PKs[0]))
+	validator, found := keeper.GetValidatorByConsAddr(ctx, decsdk.GetConsAddress(PKs[0]))
 	require.True(t, found)
-	consAddr0 := sdk.ConsAddress(PKs[0].Address())
+	consAddr0 := decsdk.ConsAddress(PKs[0].Address())
 	keeper.Slash(ctx, consAddr0, 10, 10, fraction)
 
 	burnedNotBondedAmount := fraction.MulInt(ubdATokens).TruncateInt()
@@ -541,7 +546,7 @@ func TestSlashBoth(t *testing.T) {
 	require.True(t, found)
 	require.Len(t, rdA.Entries, 1)
 	// read updated validator
-	validator, found = keeper.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(PKs[0]))
+	validator, found = keeper.GetValidatorByConsAddr(ctx, decsdk.GetConsAddress(PKs[0]))
 	require.True(t, found)
 	// power not decreased, all stake was bonded since
 	require.Equal(t, int64(10), validator.GetConsensusPower())

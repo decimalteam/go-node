@@ -1,7 +1,6 @@
 package app
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"log"
 
@@ -10,6 +9,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
 // ExportAppStateAndValidators exports the state of the application for a genesis
@@ -49,7 +51,7 @@ func (app *newApp) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []str
 	whiteListMap := make(map[string]bool)
 
 	for _, addr := range jailWhiteList {
-		_, err := sdk.ValAddressFromBech32(addr)
+		_, err := decsdk.ValAddressFromPrefixedHex(addr)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -95,7 +97,7 @@ func (app *newApp) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []str
 	counter := int16(0)
 
 	for ; iter.Valid(); iter.Next() {
-		addr := sdk.ValAddress(iter.Key()[1:])
+		addr := decsdk.ValAddress(iter.Key()[1:])
 		validator, err := app.validatorKeeper.GetValidator(ctx, addr)
 		if err != nil {
 			panic("expected validator, not found")

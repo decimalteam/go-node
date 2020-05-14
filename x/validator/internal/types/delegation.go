@@ -4,40 +4,43 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
 )
 
 // DVPair is struct that just has a delegator-validator pair with no other data.
 // It is intended to be used as a marshalable pointer. For example, a DVPair can be used to construct the
 // key to getting an UnbondingDelegation from state.
 type DVPair struct {
-	DelegatorAddress sdk.AccAddress
-	ValidatorAddress sdk.ValAddress
+	DelegatorAddress decsdk.AccAddress
+	ValidatorAddress decsdk.ValAddress
 }
 
 // DVVTriplet is struct that just has a delegator-validator-validator triplet with no other data.
 // It is intended to be used as a marshalable pointer. For example, a DVVTriplet can be used to construct the
 // key to getting a Redelegation from state.
 type DVVTriplet struct {
-	DelegatorAddress    sdk.AccAddress
-	ValidatorSrcAddress sdk.ValAddress
-	ValidatorDstAddress sdk.ValAddress
+	DelegatorAddress    decsdk.AccAddress
+	ValidatorSrcAddress decsdk.ValAddress
+	ValidatorDstAddress decsdk.ValAddress
 }
 
 // Delegation represents the bond with tokens held by an account. It is
 // owned by one delegator, and is associated with the voting power of one
 // validator.
 type Delegation struct {
-	DelegatorAddress sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"`
-	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
-	Coin             sdk.Coin       `json:"coin" yaml:"coin"`
+	DelegatorAddress decsdk.AccAddress `json:"delegator_address" yaml:"delegator_address"`
+	ValidatorAddress decsdk.ValAddress `json:"validator_address" yaml:"validator_address"`
+	Coin             sdk.Coin          `json:"coin" yaml:"coin"`
 }
 
 // NewDelegation creates a new delegation object
-func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, coin sdk.Coin) Delegation {
+func NewDelegation(delegatorAddr decsdk.AccAddress, validatorAddr decsdk.ValAddress, coin sdk.Coin) Delegation {
 
 	return Delegation{
 		DelegatorAddress: delegatorAddr,
@@ -73,8 +76,8 @@ func (d Delegation) Equal(d2 Delegation) bool {
 }
 
 // nolint - for Delegation
-func (d Delegation) GetDelegatorAddr() sdk.AccAddress { return d.DelegatorAddress }
-func (d Delegation) GetValidatorAddr() sdk.ValAddress { return d.ValidatorAddress }
+func (d Delegation) GetDelegatorAddr() decsdk.AccAddress { return d.DelegatorAddress }
+func (d Delegation) GetValidatorAddr() decsdk.ValAddress { return d.ValidatorAddress }
 
 // String returns a human readable string representation of a Delegation.
 func (d Delegation) String() string {
@@ -98,8 +101,8 @@ func (d Delegations) String() (out string) {
 // UnbondingDelegation stores all of a single delegator's unbonding bonds
 // for a single validator in an time-ordered list
 type UnbondingDelegation struct {
-	DelegatorAddress sdk.AccAddress             `json:"delegator_address" yaml:"delegator_address"` // delegator
-	ValidatorAddress sdk.ValAddress             `json:"validator_address" yaml:"validator_address"` // validator unbonding from operator addr
+	DelegatorAddress decsdk.AccAddress          `json:"delegator_address" yaml:"delegator_address"` // delegator
+	ValidatorAddress decsdk.ValAddress          `json:"validator_address" yaml:"validator_address"` // validator unbonding from operator addr
 	Entries          []UnbondingDelegationEntry `json:"entries" yaml:"entries"`                     // unbonding delegation entries
 }
 
@@ -117,8 +120,8 @@ func (e UnbondingDelegationEntry) IsMature(currentTime time.Time) bool {
 }
 
 // NewUnbondingDelegation - create a new unbonding delegation object
-func NewUnbondingDelegation(delegatorAddr sdk.AccAddress,
-	validatorAddr sdk.ValAddress, creationHeight int64, minTime time.Time,
+func NewUnbondingDelegation(delegatorAddr decsdk.AccAddress,
+	validatorAddr decsdk.ValAddress, creationHeight int64, minTime time.Time,
 	balance sdk.Coin) UnbondingDelegation {
 
 	entry := NewUnbondingDelegationEntry(creationHeight, minTime, balance)
@@ -212,9 +215,9 @@ func (ubds UnbondingDelegations) String() (out string) {
 // redelegating bonds from a particular source validator to a
 // particular destination validator
 type Redelegation struct {
-	DelegatorAddress    sdk.AccAddress      `json:"delegator_address" yaml:"delegator_address"`         // delegator
-	ValidatorSrcAddress sdk.ValAddress      `json:"validator_src_address" yaml:"validator_src_address"` // validator redelegation source operator addr
-	ValidatorDstAddress sdk.ValAddress      `json:"validator_dst_address" yaml:"validator_dst_address"` // validator redelegation destination operator addr
+	DelegatorAddress    decsdk.AccAddress   `json:"delegator_address" yaml:"delegator_address"`         // delegator
+	ValidatorSrcAddress decsdk.ValAddress   `json:"validator_src_address" yaml:"validator_src_address"` // validator redelegation source operator addr
+	ValidatorDstAddress decsdk.ValAddress   `json:"validator_dst_address" yaml:"validator_dst_address"` // validator redelegation destination operator addr
 	Entries             []RedelegationEntry `json:"entries" yaml:"entries"`                             // redelegation entries
 }
 
@@ -227,8 +230,8 @@ type RedelegationEntry struct {
 }
 
 // NewRedelegation - create a new redelegation object
-func NewRedelegation(delegatorAddr sdk.AccAddress, validatorSrcAddr,
-	validatorDstAddr sdk.ValAddress, creationHeight int64,
+func NewRedelegation(delegatorAddr decsdk.AccAddress, validatorSrcAddr,
+	validatorDstAddr decsdk.ValAddress, creationHeight int64,
 	minTime time.Time, balance sdk.Int,
 	sharesDst sdk.Dec) Redelegation {
 
@@ -347,7 +350,7 @@ type DelegationResponse struct {
 	Balance sdk.Coin `json:"balance" yaml:"balance"`
 }
 
-func NewDelegationResp(d sdk.AccAddress, v sdk.ValAddress, b sdk.Coin) DelegationResponse {
+func NewDelegationResp(d decsdk.AccAddress, v decsdk.ValAddress, b sdk.Coin) DelegationResponse {
 	return DelegationResponse{NewDelegation(d, v, b), b}
 }
 
@@ -397,7 +400,7 @@ type RedelegationEntryResponse struct {
 	Balance sdk.Int `json:"balance"`
 }
 
-func NewRedelegationResponse(d sdk.AccAddress, vSrc, vDst sdk.ValAddress, entries []RedelegationEntryResponse) RedelegationResponse {
+func NewRedelegationResponse(d decsdk.AccAddress, vSrc, vDst decsdk.ValAddress, entries []RedelegationEntryResponse) RedelegationResponse {
 	return RedelegationResponse{
 		Redelegation{
 			DelegatorAddress:    d,

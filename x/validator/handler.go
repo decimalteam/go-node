@@ -2,13 +2,15 @@ package validator
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	tmstrings "github.com/tendermint/tendermint/libs/strings"
-	tmtypes "github.com/tendermint/tendermint/types"
 	"time"
 
+	tmstrings "github.com/tendermint/tendermint/libs/strings"
+	tmtypes "github.com/tendermint/tendermint/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -42,7 +44,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		return nil, types.ErrValidatorOwnerExists(k.Codespace())
 	}
 
-	if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(msg.PubKey)); err == nil {
+	if _, err := k.GetValidatorByConsAddr(ctx, decsdk.GetConsAddress(msg.PubKey)); err == nil {
 		return nil, types.ErrValidatorPubKeyExists(k.Codespace())
 	}
 
@@ -66,7 +68,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 
 	k.AfterValidatorCreated(ctx, val.ValAddress)
 
-	_, err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
+	_, err = k.Delegate(ctx, decsdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), types.CodeInvalidDelegation, err.Error())
 	}
@@ -82,7 +84,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(msg.ValidatorAddr).String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, decsdk.AccAddress(msg.ValidatorAddr).String()),
 		),
 	})
 
@@ -147,7 +149,7 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 }
 
 func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidate) (*sdk.Result, error) {
-	validator, err := k.GetValidatorByConsAddr(ctx, sdk.ConsAddress(msg.PubKey.Address()))
+	validator, err := k.GetValidatorByConsAddr(ctx, decsdk.ConsAddress(msg.PubKey.Address()))
 	if err != nil {
 		return nil, types.ErrNoValidatorFound(k.Codespace())
 	}
@@ -169,7 +171,7 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(validator.ValAddress).String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, decsdk.AccAddress(validator.ValAddress).String()),
 		),
 	})
 
@@ -204,7 +206,7 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(msg.ValidatorAddress).String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, decsdk.AccAddress(msg.ValidatorAddress).String()),
 		),
 	})
 
@@ -237,7 +239,7 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*s
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(msg.ValidatorAddress).String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, decsdk.AccAddress(msg.ValidatorAddress).String()),
 		),
 	})
 

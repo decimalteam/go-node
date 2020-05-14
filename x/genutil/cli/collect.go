@@ -22,10 +22,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 
+	decsdk "bitbucket.org/decimalteam/go-node/utils/types"
+	authexported "bitbucket.org/decimalteam/go-node/x/auth/exported"
+	authtypes "bitbucket.org/decimalteam/go-node/x/auth/types"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 )
@@ -216,8 +217,8 @@ func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 
 		msg := msgs[0].(validator.MsgDeclareCandidate)
 		// validate delegator and validator addresses and funds against the accounts in the state
-		delAddr := sdk.AccAddress(msg.ValidatorAddr).String()
-		valAddr := sdk.AccAddress(msg.ValidatorAddr).String()
+		delAddr := decsdk.AccAddress(msg.ValidatorAddr).String()
+		valAddr := decsdk.AccAddress(msg.ValidatorAddr).String()
 
 		delAcc, delOk := addrMap[delAddr]
 		if !delOk {
