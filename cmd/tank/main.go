@@ -361,8 +361,6 @@ func (p *Provider) BuyCoin(coinToBuy, coinToSell string, amountToBuy, amountToSe
 		}
 	}()
 
-	atomic.AddUint64(buyer.Sequence, 1)
-
 	// Read broadcast response
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -423,8 +421,6 @@ func (p *Provider) SellCoin(coinToBuy, coinToSell string, amountToBuy, amountToS
 			log.Println(err)
 		}
 	}()
-
-	atomic.AddUint64(buyer.Sequence, 1)
 
 	// Read broadcast response
 	respBody, err := ioutil.ReadAll(resp.Body)
