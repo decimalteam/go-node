@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/big"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -187,7 +189,7 @@ func main() {
 	for i := range accounts {
 		go func(accountNum int) {
 			for {
-				err = provider.SendCoin(accounts[accountNum], accounts[(accountNum+1)%len(accounts)], sdk.NewInt(5))
+				err = provider.SendCoin(accounts[accountNum], accounts[(accountNum+1)%len(accounts)], sdk.NewInt(rand.Int63n(99)+1).Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(13), nil))))
 				if err != nil {
 					log.Println(err)
 				}
@@ -195,35 +197,35 @@ func main() {
 			}
 		}(i)
 
-		go func(account Account) {
-			count := 0
-			for {
-				count++
-				if count%2 == 0 {
-					err = provider.BuyCoin("TEST3", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(2001000000000000), account)
-					if err != nil {
-						log.Println(err)
-					}
-					count++
-				}
-				time.Sleep(cfg.TimeoutMs.Buy)
-			}
-		}(accounts[i])
-
-		go func(account Account) {
-			count := 0
-			for {
-				count++
-				if count%2 == 0 {
-					continue
-				}
-				err = provider.SellCoin("tDCL", "TEST3", sdk.NewInt(2001000000000000), sdk.NewInt(1000000000000000), account)
-				if err != nil {
-					log.Println(err)
-				}
-				time.Sleep(cfg.TimeoutMs.Sell)
-			}
-		}(accounts[i])
+		//go func(account Account) {
+		//	count := 0
+		//	for {
+		//		count++
+		//		if count%2 == 0 {
+		//			err = provider.BuyCoin("TEST3", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(2001000000000000), account)
+		//			if err != nil {
+		//				log.Println(err)
+		//			}
+		//			count++
+		//		}
+		//		time.Sleep(cfg.TimeoutMs.Buy)
+		//	}
+		//}(accounts[i])
+		//
+		//go func(account Account) {
+		//	count := 0
+		//	for {
+		//		count++
+		//		if count%2 == 0 {
+		//			continue
+		//		}
+		//		err = provider.SellCoin("tDCL", "TEST3", sdk.NewInt(2001000000000000), sdk.NewInt(1000000000000000), account)
+		//		if err != nil {
+		//			log.Println(err)
+		//		}
+		//		time.Sleep(cfg.TimeoutMs.Sell)
+		//	}
+		//}(accounts[i])
 
 	}
 
