@@ -187,15 +187,16 @@ func main() {
 	}
 
 	for i := range accounts[:len(accounts)/2] {
-		go func(accountNum int) {
+		go func(accountNum int, accountNumNext int) {
 			for {
-				err = provider.SendCoin(accounts[accountNum], accounts[(accountNum+1)%len(accounts)], sdk.NewInt(rand.Int63n(99)+1).Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(13), nil))))
+				log.Println("Send ", accounts[accountNum])
+				err = provider.SendCoin(accounts[accountNum], accounts[accountNumNext], sdk.NewInt(rand.Int63n(99)+1).Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(13), nil))))
 				if err != nil {
 					log.Println(err)
 				}
 				time.Sleep(cfg.TimeoutMs.Send)
 			}
-		}(i)
+		}(i, (i+1)%(len(accounts)/2))
 	}
 
 	for i := range accounts[len(accounts)/2:] {
