@@ -203,12 +203,12 @@ func main() {
 		go func(account Account) {
 			for {
 				log.Println("Buy ", account.Address.String())
-				err = provider.BuyCoin("TEST4", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(2000000010000000), account)
+				err = provider.BuyCoin("TEST4", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(1000000000000000000000000), account)
 				if err != nil {
 					log.Println(err)
 				}
 				time.Sleep(cfg.TimeoutMs.Buy)
-				err = provider.SellCoin("tDCL", "TEST4", sdk.NewInt(2000000010000000), sdk.NewInt(1000000000000000), account)
+				err = provider.SellCoin("tDCL", "TEST4", sdk.NewInt(1), sdk.NewInt(1000000000000000), account)
 				if err != nil {
 					log.Println(err)
 				}
