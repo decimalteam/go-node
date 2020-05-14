@@ -202,7 +202,7 @@ func main() {
 	for i := range accounts[len(accounts)/2:] {
 		go func(account Account) {
 			for {
-				log.Println("Send ", account.Address.String())
+				log.Println("Buy ", account.Address.String())
 				err = provider.BuyCoin("TEST3", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(2001000000000000), account)
 				if err != nil {
 					log.Println(err)
