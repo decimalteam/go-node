@@ -186,7 +186,7 @@ func main() {
 		atomic.StoreUint64(accounts[i].Sequence, 0)
 	}
 
-	for i := range accounts {
+	for i := range accounts[len(accounts)/2:] {
 		go func(accountNum int) {
 			for {
 				err = provider.SendCoin(accounts[accountNum], accounts[(accountNum+1)%len(accounts)], sdk.NewInt(rand.Int63n(99)+1).Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(13), nil))))
@@ -196,29 +196,16 @@ func main() {
 				time.Sleep(cfg.TimeoutMs.Send)
 			}
 		}(i)
+	}
 
+	for i := range accounts[:len(accounts)/2] {
 		go func(account Account) {
-			count := 0
 			for {
-				count++
-				if count%2 == 0 {
-					err = provider.BuyCoin("TEST3", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(2001000000000000), account)
-					if err != nil {
-						log.Println(err)
-					}
-					count++
+				err = provider.BuyCoin("TEST3", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(2001000000000000), account)
+				if err != nil {
+					log.Println(err)
 				}
 				time.Sleep(cfg.TimeoutMs.Buy)
-			}
-		}(accounts[i])
-
-		go func(account Account) {
-			count := 0
-			for {
-				count++
-				if count%2 == 0 {
-					continue
-				}
 				err = provider.SellCoin("tDCL", "TEST3", sdk.NewInt(2001000000000000), sdk.NewInt(1000000000000000), account)
 				if err != nil {
 					log.Println(err)
