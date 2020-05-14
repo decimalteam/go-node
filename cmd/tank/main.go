@@ -203,7 +203,7 @@ func main() {
 		go func(account Account) {
 			for {
 				log.Println("Buy ", account.Address.String())
-				err = provider.BuyCoin("TEST4", "tDCL", sdk.NewInt(1000000000000000), sdk.NewInt(1000000000000000000000000), account)
+				err = provider.BuyCoin("TEST4", "tDCL", sdk.NewInt(1000000000000000), Pow(sdk.NewInt(1), 25), account)
 				if err != nil {
 					log.Println(err)
 				}
@@ -512,4 +512,8 @@ func (p *Provider) SendAll(sender Account, accounts []Account, amount sdk.Int, t
 	}
 
 	return nil
+}
+
+func Pow(value sdk.Int, power int64) sdk.Int {
+	return value.Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(power), nil)))
 }
