@@ -32,9 +32,9 @@ const (
 	//
 
 	TitleTestBaseCoin  = "Test decimal coin"
-	SymbolTestBaseCoin = "tDEL"
+	SymbolTestBaseCoin = "tDCL"
 	TitleBaseCoin      = "Decimal coin"
-	SymbolBaseCoin     = "DEL"
+	SymbolBaseCoin     = "DCL"
 
 	// test coin
 	TitleTestCoin  = "Crypton coin"

@@ -1,10 +1,9 @@
 package formulas
 
 import (
-	"math/big"
-
 	"bitbucket.org/decimalteam/go-node/utils/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"math/big"
 )
 
 const (
@@ -16,7 +15,7 @@ func newFloat(x float64) *big.Float {
 }
 
 // Return = supply * ((1 + deposit / reserve) ^ (crr / 100) - 1)
-// Рассчитывает сколько монет мы получим заплатив deposit DEL (Покупка формула 2)
+// Рассчитывает сколько монет мы получим заплатив deposit DCL (Покупка формула 2)
 func CalculatePurchaseReturn(supply sdk.Int, reserve sdk.Int, crr uint, deposit sdk.Int) sdk.Int {
 	if deposit.Equal(sdk.NewInt(0)) {
 		return sdk.NewInt(0)
@@ -44,7 +43,7 @@ func CalculatePurchaseReturn(supply sdk.Int, reserve sdk.Int, crr uint, deposit 
 
 // reversed function CalculatePurchaseReturn
 // deposit = reserve * (((wantReceive + supply) / supply)^(100 / crr) - 1)
-// Рассчитывает сколько DEL надо заплатить , чтобы получить wantReceive монет (Покупка)
+// Рассчитывает сколько DCL надо заплатить , чтобы получить wantReceive монет (Покупка)
 
 func CalculatePurchaseAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantReceive sdk.Int) sdk.Int {
 	if wantReceive.Equal(sdk.NewInt(0)) {
@@ -74,7 +73,7 @@ func CalculatePurchaseAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantRece
 }
 
 // Return = reserve * (1 - (1 - sellAmount / supply) ^ (100 / crr))
-// Рассчитывает сколько DEL вы получите, если продадите sellAmount монет. (Продажа)
+// Рассчитывает сколько DCL вы получите, если продадите sellAmount монет. (Продажа)
 func CalculateSaleReturn(supply sdk.Int, reserve sdk.Int, crr uint, sellAmount sdk.Int) sdk.Int {
 	// special case for 0 sell amount
 	if sellAmount.Equal(sdk.NewInt(0)) {
@@ -112,7 +111,7 @@ func CalculateSaleReturn(supply sdk.Int, reserve sdk.Int, crr uint, sellAmount s
 
 // reversed function CalculateSaleReturn
 // -(-1 + (-(wantReceive - reserve)/reserve)^(crr / 100)) * supply
-// Рассчитывает сколько монет надо продать, чтобы получить wantReceive DEL. (Продажа 2)
+// Рассчитывает сколько монет надо продать, чтобы получить wantReceive DCL. (Продажа 2)
 
 func CalculateSaleAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantReceive sdk.Int) sdk.Int {
 	if wantReceive.Equal(sdk.NewInt(0)) {
