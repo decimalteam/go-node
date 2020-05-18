@@ -32,9 +32,9 @@ const (
 	//
 
 	TitleTestBaseCoin  = "Test decimal coin"
-	SymbolTestBaseCoin = "tDCL"
+	SymbolTestBaseCoin = "tDEL"
 	TitleBaseCoin      = "Decimal coin"
-	SymbolBaseCoin     = "DCL"
+	SymbolBaseCoin     = "DEL"
 
 	// test coin
 	TitleTestCoin  = "Crypton coin"
@@ -45,8 +45,8 @@ const (
 )
 
 var (
-	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("10000000000000000000000")
-	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("100000000000000000000000")
+	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("220000000000000000000000000")
+	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("220000000000000000000000000")
 
 	// test params buy
 	InitialReserveTestCoin, _ = sdk.NewIntFromString("120798840222697144373637")   //    120798.840222697144373637

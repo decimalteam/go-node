@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
@@ -23,6 +22,7 @@ import (
 	"github.com/cosmos/go-bip39"
 
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 )
 
@@ -161,7 +161,7 @@ func main() {
 		}
 	}
 
-	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1)), "tDCL")
+	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1)), "tDEL")
 	if err != nil {
 		log.Println("Init send", err)
 		return
@@ -203,12 +203,12 @@ func main() {
 		go func(account Account) {
 			for {
 				log.Println("Buy ", account.Address.String())
-				err = provider.BuyCoin("TEST4", "tDCL", sdk.NewInt(1000000000000000), Pow(sdk.NewInt(1), 25), account)
+				err = provider.BuyCoin("TEST4", "tDEL", sdk.NewInt(1000000000000000), Pow(sdk.NewInt(1), 25), account)
 				if err != nil {
 					log.Println(err)
 				}
 				time.Sleep(cfg.TimeoutMs.Buy)
-				err = provider.SellCoin("tDCL", "TEST4", sdk.NewInt(1), sdk.NewInt(1000000000000000), account)
+				err = provider.SellCoin("tDEL", "TEST4", sdk.NewInt(1), sdk.NewInt(1000000000000000), account)
 				if err != nil {
 					log.Println(err)
 				}
@@ -238,7 +238,7 @@ func (p *Provider) SendCoin(sender, receiver Account, amount sdk.Int) error {
 		false, ChainID, memo, nil, nil,
 	).WithKeybase(p.keybase)
 
-	msgs := []sdk.Msg{coin.NewMsgSendCoin(sender.Address, "tDCL", amount, receiver.Address)}
+	msgs := []sdk.Msg{coin.NewMsgSendCoin(sender.Address, "tDEL", amount, receiver.Address)}
 
 	tx, err := txBldr.BuildAndSign(sender.Name, sender.Password, msgs)
 	if err != nil {

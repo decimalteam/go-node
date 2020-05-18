@@ -34,10 +34,10 @@ const RootPath = "$HOME/.decimal/cli"
 const RPCPrefix = "http://139.59.133.148/rpc"
 
 // BaseCoin is base coin in original case.
-const BaseCoin = "tDCL"
+const BaseCoin = "tDEL"
 
 // BaseCoinLower is base coin in lower case.
-const BaseCoinLower = "tdcl"
+const BaseCoinLower = "tdel"
 
 // Faucet settings.
 const (
@@ -161,7 +161,7 @@ func handleTradeCalculationRequest(m *tgbotapi.Message) (handled bool) {
 > [COIN] supply=S reserve=R crr=CRR
 where:
 S - amount of COIN supplied at the moment (float)
-R - amount of total tDCL reserved for the COIN at the moment (float)
+R - amount of total tDEL reserved for the COIN at the moment (float)
 CRR - amount of persentages from 10 to 100 (integer)`
 
 	tradeCalculationRequests := `
