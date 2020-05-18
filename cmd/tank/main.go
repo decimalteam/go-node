@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	ChainID             = "decimal-testnet"
+	ChainID             = config.ChainID
 	RootPath            = "$HOME/.decimal/cli"
 	TankKeyringBackend  = keys.BackendTest
 	TankAccountName     = "tank"

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"strings"
 
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -128,7 +129,7 @@ func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wants
 }
 
 func GetBaseCoin() string {
-	if config.ChainID == "decimal-testnet" {
+	if strings.HasPrefix(config.ChainID, "decimal-testnet") {
 		return config.SymbolTestBaseCoin
 	} else {
 		return config.SymbolBaseCoin

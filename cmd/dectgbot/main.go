@@ -41,7 +41,7 @@ const BaseCoinLower = "tdel"
 
 // Faucet settings.
 const (
-	FaucetChainID         = "decimal-testnet"
+	FaucetChainID         = config.ChainID
 	FaucetGas             = uint64(200000)
 	FaucetGasAdj          = float64(1.1)
 	FaucetKeyringBackend  = keys.BackendTest

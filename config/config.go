@@ -1,6 +1,10 @@
 package config
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 const (
 
@@ -78,7 +82,7 @@ type Config struct {
 
 func GetDefaultConfig(chainId string) *Config {
 	cnf := Config{}
-	if chainId == "decimal-testnet" {
+	if strings.HasPrefix(chainId, "decimal-testnet") {
 		cnf.TitleBaseCoin = TitleTestBaseCoin
 		cnf.SymbolBaseCoin = SymbolTestBaseCoin
 		cnf.InitialVolumeBaseCoin = InitialVolumeTestBaseCoin
