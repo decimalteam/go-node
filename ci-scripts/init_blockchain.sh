@@ -9,22 +9,22 @@ deccli keys add val --keyring-backend test
 deccli keys add spammer --keyring-backend test
 
 # Initialize new blockchain
-decd init test-node-fra1-01 --chain-id decimal-testnet
-decd init test-node-fra1-02 --chain-id decimal-testnet
-decd init test-node-nyc3-01 --chain-id decimal-testnet
-decd init test-node-sgp1-01 --chain-id decimal-testnet
+decd init test-node-fra1-01 --chain-id decimal-testnet-05-18-19-35
+decd init test-node-fra1-02 --chain-id decimal-testnet-05-18-19-35
+decd init test-node-nyc3-01 --chain-id decimal-testnet-05-18-19-35
+decd init test-node-sgp1-01 --chain-id decimal-testnet-05-18-19-35
 
 # Add initial funds to the genesis file
 # decd add-genesis-account $(deccli keys show val -a --keyring-backend test) 100000000000000000tdel
 # decd add-genesis-account $(deccli keys show spammer -a --keyring-backend test) 1000000000000000000000000000tdel
 
 # Add initial funds to the genesis file
-decd add-genesis-account dx16rr3cvdgj8jsywhx8lfteunn9uz0xg2c7ua9nl 50000000000000000000000000tdel # validator on test-node-fra1-01 (50,000,000 tDEL)
-decd add-genesis-account dx1ajytg8jg8ypx0rj9p792x32fuxyezga43jd3ry 50000000000000000000000000tdel # validator on test-node-fra1-02 (50,000,000 tDEL)
-decd add-genesis-account dx1azre0dtclv5y05ufynkhswzh0cwh4ktzlas3mp 50000000000000000000000000tdel # validator on test-node-nyc3-01 (50,000,000 tDEL)
-decd add-genesis-account dx1j3j2mwxnvlmsu2tkwm4z5390vq8v337wd6hmg2 50000000000000000000000000tdel # validator on test-node-sgp1-01 (50,000,000 tDEL)
-decd add-genesis-account dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd 1000000000000000000000000tdel # faucet (1,000,000 tDEL)
-decd add-genesis-account dx1esffyu0wxk6eez77fhzdxfgvjp4646hqm9sx6c 1000000000000000000000000tdel # tanker (1,000,000 tDEL)
+decd add-genesis-account dx16rr3cvdgj8jsywhx8lfteunn9uz0xg2c7ua9nl 10000000000000000000000000tdel # validator on test-node-fra1-01 (10,000,000 tDEL)
+decd add-genesis-account dx1ajytg8jg8ypx0rj9p792x32fuxyezga43jd3ry 10000000000000000000000000tdel # validator on test-node-fra1-02 (10,000,000 tDEL)
+decd add-genesis-account dx1azre0dtclv5y05ufynkhswzh0cwh4ktzlas3mp 10000000000000000000000000tdel # validator on test-node-nyc3-01 (10,000,000 tDEL)
+decd add-genesis-account dx1j3j2mwxnvlmsu2tkwm4z5390vq8v337wd6hmg2 10000000000000000000000000tdel # validator on test-node-sgp1-01 (10,000,000 tDEL)
+decd add-genesis-account dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd 80000000000000000000000000tdel # faucet (80,000,000 tDEL)
+decd add-genesis-account dx1esffyu0wxk6eez77fhzdxfgvjp4646hqm9sx6c 80000000000000000000000000tdel # tanker (80,000,000 tDEL)
 
 # decd add-genesis-account dxd0c71c31a891e5023ae63fd2bcf2732f04f32158 10000000000000000000000000tdel # validator on test-node-fra1-01 (10,000,000 tDEL)
 # decd add-genesis-account dxec88b41e483902678e450f8aa34549e1899123b5 10000000000000000000000000tdel # validator on test-node-fra1-02 (10,000,000 tDEL)
@@ -43,7 +43,7 @@ decd add-genesis-account dx1esffyu0wxk6eez77fhzdxfgvjp4646hqm9sx6c 1000000000000
 decd gentx \
     --name test-node-fra1-01 \
     --sequence 0 \
-    --amount 50000000000000000000000000tdel \
+    --amount 10000000000000000000000000tdel \
     --pubkey dxvalconspub1zcjduepquc5nas24rhqm0l8lyte0dfx2k3uda56wdn998lyrs6mpvsk9xmks6xa0ly \
     --details "Declaring validator on test-node-fra1-01" \
     --website decimalchain.com \
@@ -56,7 +56,7 @@ decd collect-gentxs
 decd gentx \
     --name test-node-fra1-02 \
     --sequence 0 \
-    --amount 50000000000000000000000000tdel \
+    --amount 10000000000000000000000000tdel \
     --pubkey dxvalconspub1zcjduepq5hj3p750mves8wpmh4ywy6yjkz72sppr2kmzk7lzeedyelauwamsl3c57q \
     --details "Declaring validator on test-node-fra1-02" \
     --website decimalchain.com \
@@ -69,7 +69,7 @@ decd collect-gentxs
 decd gentx \
     --name test-node-nyc3-01 \
     --sequence 0 \
-    --amount 50000000000000000000000000tdel \
+    --amount 10000000000000000000000000tdel \
     --pubkey dxvalconspub1zcjduepqjwlm5xcsp60v6fgwt95zq624yjhjnpkrzm209c5f8ajz8rdvq6gsdx5y2l \
     --details "Declaring validator on test-node-nyc3-01" \
     --website decimalchain.com \
@@ -82,7 +82,7 @@ decd collect-gentxs
 decd gentx \
     --name test-node-sgp1-01 \
     --sequence 0 \
-    --amount 50000000000000000000000000tdel \
+    --amount 10000000000000000000000000tdel \
     --pubkey dxvalconspub1zcjduepq73se7rmlycftjta3ydjvrjmn28rrweyxyg42tzfr5lcw6lx8zl7qc6dpss \
     --details "Declaring validator on test-node-sgp1-01" \
     --website decimalchain.com \
