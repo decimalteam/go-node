@@ -74,6 +74,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 	// TODO: take reserve from creator and give it initial volume
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Creator)
 	balance := acc.GetCoins()
+	log.Println(msg.InitialReserve, balance)
 	if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(msg.InitialReserve) {
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, "")
 	}

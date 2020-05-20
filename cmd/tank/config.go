@@ -7,37 +7,31 @@ import (
 )
 
 type Config struct {
-	TimeoutMs struct {
-		Send time.Duration `json:"send"`
-		Buy  time.Duration `json:"buy"`
-		Sell time.Duration `json:"sell"`
-	} `json:"timeout_ms"`
-	CountAccounts int `json:"count_accounts"`
+	Timeout       map[string]time.Duration `json:"timeout"`
+	Weights       map[string]int           `json:"weights"`
+	CountAccounts int                      `json:"count_accounts"`
 }
 
 func (c *Config) UnmarshalJSON(data []byte) (err error) {
 	var tmp struct {
-		TimeoutMs struct {
-			Send string `json:"send"`
-			Buy  string `json:"buy"`
-			Sell string `json:"sell"`
-		} `json:"timeout_ms"`
-		CountAccounts int `json:"count_accounts"`
+		Timeout       map[string]string `json:"timeout"`
+		Weights       map[string]int    `json:"weights"`
+		CountAccounts int               `json:"count_accounts"`
 	}
 	if err = json.Unmarshal(data, &tmp); err != nil {
 		return err
 	}
 
-	c.TimeoutMs = struct {
-		Send time.Duration `json:"send"`
-		Buy  time.Duration `json:"buy"`
-		Sell time.Duration `json:"sell"`
-	}{}
+	c.Timeout = make(map[string]time.Duration)
+	for tx, timeout := range tmp.Timeout {
+		c.Timeout[tx], err = time.ParseDuration(timeout)
+		if err != nil {
+			return err
+		}
+	}
 
-	c.TimeoutMs.Send, err = time.ParseDuration(tmp.TimeoutMs.Send)
-	c.TimeoutMs.Buy, err = time.ParseDuration(tmp.TimeoutMs.Buy)
-	c.TimeoutMs.Sell, err = time.ParseDuration(tmp.TimeoutMs.Sell)
 	c.CountAccounts = tmp.CountAccounts
+	c.Weights = tmp.Weights
 	return err
 }
 

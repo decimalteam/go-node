@@ -1,8 +1,12 @@
 {
-  "timeout_ms": {
-    "send": "6s",
-    "buy": "500ms",
-    "sell": "500ms"
+  "timeout": {
+    "create_coin": "1h"
   },
-  "count_accounts": 200
+  "weights": {
+    "send": 5,
+    "sell": 2,
+    "buy": 2,
+    "sell_all": 1
+  },
+  "count_accounts": 10
 }
