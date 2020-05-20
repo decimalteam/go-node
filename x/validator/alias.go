@@ -11,6 +11,7 @@ const (
 	ModuleName        = types.ModuleName
 	RouterKey         = types.RouterKey
 	StoreKey          = types.StoreKey
+	TStoreKey         = types.TStoreKey
 	DefaultParamSpace = keeper.DefaultParamspace
 	DefaultCodespace  = types.DefaultCodespace
 	QuerierRoute      = types.QuerierRoute

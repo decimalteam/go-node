@@ -19,15 +19,23 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 			sdk.NewEvent(
 				types.EventTypeProposerReward,
 				sdk.NewAttribute("accum_rewards", accumRewards.String()),
-				sdk.NewAttribute("accum_rewards_validator", val.GetOperator().String()),
+				sdk.NewAttribute("accum_rewards_validator", val.ValAddress.String()),
 			),
 		)
 
 		rewardsVal := rewards.ToDec().Mul(val.Commission).TruncateInt()
-		err := k.coinKeeper.UpdateBalance(ctx, k.BondDenom(ctx), rewardsVal, sdk.AccAddress(val.ValAddress))
+		err := k.coinKeeper.UpdateBalance(ctx, k.BondDenom(ctx), rewardsVal, val.RewardAddress)
 		if err != nil {
 			return err
 		}
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeCommissionReward,
+				sdk.NewAttribute(sdk.AttributeKeyAmount, rewardsVal.String()),
+				sdk.NewAttribute(types.AttributeKeyValidator, val.ValAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyRewardAddress, val.RewardAddress.String()),
+			),
+		)
 
 		rewards = rewards.Sub(rewardsVal)
 		remainder := rewards
@@ -63,7 +71,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 				sdk.NewEvent(
 					types.EventTypeProposerReward,
 					sdk.NewAttribute(sdk.AttributeKeyAmount, reward.String()),
-					sdk.NewAttribute(types.AttributeKeyValidator, val.GetOperator().String()),
+					sdk.NewAttribute(types.AttributeKeyValidator, val.ValAddress.String()),
 					sdk.NewAttribute(types.AttributeKeyDelegator, del.DelegatorAddress.String()),
 				),
 			)

@@ -28,6 +28,8 @@ var (
 	NewMsgSendCoin      = types.NewMsgSendCoin
 	NewMsgBuyCoin       = types.NewMsgBuyCoin
 	NewMsgSellCoin      = types.NewMsgSellCoin
+	NewMsgCreateCoin    = types.NewMsgCreateCoin
+	NewMsgSellAllCoin   = types.NewMsgSellAllCoin
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
@@ -35,12 +37,15 @@ var (
 )
 
 type (
-	Keeper       = keeper.Keeper
-	CodeType     = types.CodeType
-	GenesisState = types.GenesisState
-	Params       = types.Params
-	Coin         = types.Coin
-	MsgSendCoin  = types.MsgSendCoin
-	MsgBuyCoin   = types.MsgBuyCoin
-	MsgSellCoin  = types.MsgSellCoin
+	Keeper           = keeper.Keeper
+	CodeType         = types.CodeType
+	GenesisState     = types.GenesisState
+	Params           = types.Params
+	Coin             = types.Coin
+	MsgSendCoin      = types.MsgSendCoin
+	MsgBuyCoin       = types.MsgBuyCoin
+	MsgSellCoin      = types.MsgSellCoin
+	MsgCreateCoin    = types.MsgCreateCoin
+	MsgSellAllCoin   = types.MsgSellAllCoin
+	MsgMultiSendCoin = types.MsgMultiSendCoin
 )

@@ -10,6 +10,7 @@ const (
 	EventTypeSetOffline        = "set_offline"
 	EventTypeCompleteUnbonding = "complete_unbonding"
 	EventTypeProposerReward    = "proposer_reward"
+	EventTypeCommissionReward  = "commission_reward"
 	EventTypeSlash             = "slash"
 	EventTypeEmission          = "emission"
 

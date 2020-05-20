@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
 	tmtypes "github.com/tendermint/tendermint/types"
+	"log"
 	"time"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -38,6 +39,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCandidate) (*sdk.Result, error) {
 	// check to see if the pubkey or sender has been registered before
+	log.Println("Declare gas: ", ctx.GasMeter().GasConsumed())
 	if _, err := k.GetValidator(ctx, msg.ValidatorAddr); err == nil {
 		return nil, types.ErrValidatorOwnerExists(k.Codespace())
 	}
@@ -86,10 +88,13 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		),
 	})
 
+	log.Println("Declare gas: ", ctx.GasMeter().GasConsumed())
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.Result, error) {
+	log.Println("Delegate gas: ", ctx.GasMeter().GasConsumed())
 	val, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
 		return nil, types.ErrNoValidatorFound(k.Codespace())
@@ -118,16 +123,21 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		),
 	})
 
+	log.Println("Delegate gas: ", ctx.GasMeter().GasConsumed())
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Result, error) {
+	log.Println("Unbond gas: ", ctx.GasMeter().GasConsumed())
 	completionTime, err := k.Undelegate(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.Amount)
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
 
 	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
+
+	log.Println("Unbond gas: ", ctx.GasMeter().GasConsumed())
 
 	return &sdk.Result{Data: completionTimeBz, Events: sdk.Events{
 		sdk.NewEvent(
@@ -177,6 +187,7 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 }
 
 func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk.Result, error) {
+	log.Println("Set-online gas: ", ctx.GasMeter().GasConsumed())
 	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
 		return nil, types.ErrNoValidatorFound(k.Codespace())
@@ -207,6 +218,8 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk
 			sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(msg.ValidatorAddress).String()),
 		),
 	})
+
+	log.Println("Set-online gas: ", ctx.GasMeter().GasConsumed())
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

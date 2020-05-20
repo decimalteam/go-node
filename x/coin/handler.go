@@ -2,6 +2,7 @@ package coin
 
 import (
 	"fmt"
+	"log"
 	"math/big"
 	"strconv"
 	"strings"
@@ -69,6 +70,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		LimitVolume: msg.LimitVolume,
 		Volume:      msg.InitialVolume,
 	}
+	log.Println("Create coin gas: ", ctx.GasMeter().GasConsumed())
 	// TODO: take reserve from creator and give it initial volume
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Creator)
 	balance := acc.GetCoins()
@@ -104,6 +106,8 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		),
 	})
 
+	log.Println("Create coin gas: ", ctx.GasMeter().GasConsumed())
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
@@ -113,6 +117,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
 	// TODO: commission
+	log.Println("Send coin gas: ", ctx.GasMeter().GasConsumed())
 	err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coin), msg.Amount)})
 	if err != nil {
 		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
@@ -127,6 +132,8 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.R
 			sdk.NewAttribute(types.AttributeReceiver, msg.Receiver.String()),
 		),
 	})
+
+	log.Println("Send coin gas: ", ctx.GasMeter().GasConsumed())
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
@@ -158,7 +165,7 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 ////////////////////////////////////////////////////////////////
 
 func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Result, error) {
-
+	log.Println("Buy coin gas: ", ctx.GasMeter().GasConsumed())
 	// Retrieve buyer account and it's balance of selling coins
 	account := k.AccountKeeper.GetAccount(ctx, msg.Buyer)
 	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell))
@@ -301,11 +308,13 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 
 	fmt.Printf("####### Buy transaction successed!\n")
 
+	log.Println("Buy coin gas: ", ctx.GasMeter().GasConsumed())
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll bool) (*sdk.Result, error) {
-
+	log.Println("Sell coin gas: ", ctx.GasMeter().GasConsumed())
 	// Retrieve seller account and it's balance of selling coins
 	account := k.AccountKeeper.GetAccount(ctx, msg.Seller)
 	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell))
@@ -456,6 +465,7 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 	})
 
 	fmt.Printf("####### Sell transaction successed!\n")
+	log.Println("Sell coin gas: ", ctx.GasMeter().GasConsumed())
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
