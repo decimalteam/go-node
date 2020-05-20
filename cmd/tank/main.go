@@ -88,10 +88,10 @@ func NewProvider() *Provider {
 	if err != nil {
 		log.Fatalf("ERROR: Unable to initialize keybase: %v", err)
 	}
-	//_, err = keybase.CreateAccount(TankAccountName, TankMnemonic, "", TankAccountPassword, TankBIP44Path, keys.Secp256k1)
-	//if err != nil {
-	//	log.Println(err)
-	//}
+	_, err = keybase.CreateAccount(TankAccountName, TankMnemonic, "", TankAccountPassword, TankBIP44Path, keys.Secp256k1)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return &Provider{
 		cdc:     cdc,
