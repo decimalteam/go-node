@@ -1,40 +1,48 @@
 package config
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 const (
+
+	// DecimalVersion is integer version of the Decimal app.
+	DecimalVersion = "1"
+
+	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
 
-	// PrefixValidator is the prefix for validator keys
+	// PrefixValidator is the prefix for validator keys.
 	PrefixValidator = "val"
-	// PrefixConsensus is the prefix for consensus keys
+	// PrefixConsensus is the prefix for consensus keys.
 	PrefixConsensus = "cons"
-	// PrefixPublic is the prefix for public keys
+	// PrefixPublic is the prefix for public keys.
 	PrefixPublic = "pub"
-	// PrefixOperator is the prefix for operator keys
+	// PrefixOperator is the prefix for operator keys.
 	PrefixOperator = "oper"
 
-	// DecimalPrefixAccAddr defines the Decimal prefix of an account's address
+	// DecimalPrefixAccAddr defines the Decimal prefix of an account's address.
 	DecimalPrefixAccAddr = DecimalMainPrefix
-	// DecimalPrefixAccPub defines the Decimal prefix of an account's public key
+	// DecimalPrefixAccPub defines the Decimal prefix of an account's public key.
 	DecimalPrefixAccPub = DecimalMainPrefix + PrefixPublic
-	// DecimalPrefixValAddr defines the Decimal prefix of a validator's operator address
+	// DecimalPrefixValAddr defines the Decimal prefix of a validator's operator address.
 	DecimalPrefixValAddr = DecimalMainPrefix + PrefixValidator + PrefixOperator
-	// DecimalPrefixValPub defines the Decimal prefix of a validator's operator public key
+	// DecimalPrefixValPub defines the Decimal prefix of a validator's operator public key.
 	DecimalPrefixValPub = DecimalMainPrefix + PrefixValidator + PrefixOperator + PrefixPublic
-	// DecimalPrefixConsAddr defines the Decimal prefix of a consensus node address
+	// DecimalPrefixConsAddr defines the Decimal prefix of a consensus node address.
 	DecimalPrefixConsAddr = DecimalMainPrefix + PrefixValidator + PrefixConsensus
-	// DecimalPrefixConsPub defines the Decimal prefix of a consensus node public key
+	// DecimalPrefixConsPub defines the Decimal prefix of a consensus node public key.
 	DecimalPrefixConsPub = DecimalMainPrefix + PrefixValidator + PrefixConsensus + PrefixPublic
 
-	// Change this params
-	ChainID = "decimal-testnet"
-	//
+	// ChainID is the Decimal chain identifier.
+	ChainID = "decimal-testnet-05-18-19-35"
 
 	TitleTestBaseCoin  = "Test decimal coin"
-	SymbolTestBaseCoin = "tDCL"
+	SymbolTestBaseCoin = "tDEL"
 	TitleBaseCoin      = "Decimal coin"
-	SymbolBaseCoin     = "DCL"
+	SymbolBaseCoin     = "DEL"
 
 	// test coin
 	TitleTestCoin  = "Crypton coin"
@@ -45,8 +53,8 @@ const (
 )
 
 var (
-	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("10000000000000000000000")
-	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("100000000000000000000000")
+	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("200000000000000000000000000")
+	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("200000000000000000000000000")
 
 	// test params buy
 	InitialReserveTestCoin, _ = sdk.NewIntFromString("120798840222697144373637")   //    120798.840222697144373637
@@ -74,7 +82,7 @@ type Config struct {
 
 func GetDefaultConfig(chainId string) *Config {
 	cnf := Config{}
-	if chainId == "decimal-testnet" {
+	if strings.HasPrefix(chainId, "decimal-testnet") {
 		cnf.TitleBaseCoin = TitleTestBaseCoin
 		cnf.SymbolBaseCoin = SymbolTestBaseCoin
 		cnf.InitialVolumeBaseCoin = InitialVolumeTestBaseCoin

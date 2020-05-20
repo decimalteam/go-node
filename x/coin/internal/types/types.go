@@ -1,10 +1,11 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type Coin struct {
@@ -27,7 +28,7 @@ func (c Coin) String() string {
 }
 
 func (c Coin) IsBase() bool {
-	if config.ChainID == "decimal-testnet" {
+	if strings.HasPrefix(config.ChainID, "decimal-testnet") {
 		return c.Symbol == config.SymbolTestBaseCoin
 	} else {
 		return c.Symbol == config.SymbolBaseCoin

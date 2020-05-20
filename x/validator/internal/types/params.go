@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -28,7 +29,7 @@ const (
 	// IBC connected chains
 	DefaultHistoricalEntries uint16 = 0
 
-	DefaultBondDenom string = "tdcl"
+	DefaultBondDenom string = "tdel"
 
 	DefaultMaxDelegations uint16 = 1000
 )
