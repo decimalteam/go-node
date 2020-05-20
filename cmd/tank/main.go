@@ -300,7 +300,7 @@ func main() {
 		}
 	}
 
-	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1000000)), "tDEL")
+	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(100000)), "tDEL")
 	if err != nil {
 		log.Println("Init send", err)
 		return
