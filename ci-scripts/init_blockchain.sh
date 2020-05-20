@@ -9,10 +9,10 @@ deccli keys add val --keyring-backend test
 deccli keys add spammer --keyring-backend test
 
 # Initialize new blockchain
-decd init test-node-fra1-01 --chain-id decimal-testnet-05-18-19-35
-decd init test-node-fra1-02 --chain-id decimal-testnet-05-18-19-35
-decd init test-node-nyc3-01 --chain-id decimal-testnet-05-18-19-35
-decd init test-node-sgp1-01 --chain-id decimal-testnet-05-18-19-35
+decd init test-node-fra1-01 --chain-id decimal-testnet-05-20-17-00
+decd init test-node-fra1-02 --chain-id decimal-testnet-05-20-17-00
+decd init test-node-nyc3-01 --chain-id decimal-testnet-05-20-17-00
+decd init test-node-sgp1-01 --chain-id decimal-testnet-05-20-17-00
 
 # Add initial funds to the genesis file
 # decd add-genesis-account $(deccli keys show val -a --keyring-backend test) 100000000000000000tdel
@@ -92,7 +92,7 @@ decd gentx \
 decd collect-gentxs
 
 # Configure created blockchain
-deccli config chain-id decimal-testnet
+deccli config chain-id decimal-testnet-05-20-17-00
 deccli config trust-node true
 
 # Finish new blockchain initialization

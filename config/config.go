@@ -37,7 +37,7 @@ const (
 	DecimalPrefixConsPub = DecimalMainPrefix + PrefixValidator + PrefixConsensus + PrefixPublic
 
 	// ChainID is the Decimal chain identifier.
-	ChainID = "decimal-testnet-05-18-19-35"
+	ChainID = "decimal-testnet-05-20-17-00"
 
 	TitleTestBaseCoin  = "Test decimal coin"
 	SymbolTestBaseCoin = "tDEL"
