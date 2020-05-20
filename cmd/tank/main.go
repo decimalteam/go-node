@@ -355,7 +355,7 @@ type BroadcastResponse struct {
 }
 
 func GetSequenceAndAccNumber(address string) (uint64, uint64, error) {
-	resp, err := http.Get("http://localhost:1317/auth/accounts/" + address)
+	resp, err := http.Get("http://139.59.133.148/rest/auth/accounts/" + address)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -475,7 +475,7 @@ func Pow(value sdk.Int, power int64) sdk.Int {
 }
 
 func GetCoins() ([]string, error) {
-	resp, err := http.Get("http://localhost:1317/coins")
+	resp, err := http.Get("http://139.59.133.148/rest/coins")
 	if err != nil {
 		return nil, err
 	}
