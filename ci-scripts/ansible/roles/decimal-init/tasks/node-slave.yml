@@ -28,11 +28,3 @@
 
 - name: Include tasks with common (master & slave) final actions
   include: node-common-in-last.yml
-
-- name: Include tasks for Explorer Indexer node
-  include: explorer-indexer.yml
-  when: ansible_hostname.find('explorer-indexer') != -1
-
-- name: Include tasks for Explorer Master Database
-  include: explorer-masterdb.yml
-  when: ansible_hostname.find('explorer-db-master') != -1
