@@ -41,8 +41,8 @@ const (
 	DefaultGas    = uint64(20000000)
 	DefaultGasAdj = float64(1.1)
 
-	RPCPrefix  = "http://139.59.133.148/rpc"
-	RESTPrefix = "http://139.59.133.148/rest"
+	RPCPrefix  = "http://localhost:26657"
+	RESTPrefix = "http://localhost:1317"
 )
 
 type Account struct {
@@ -228,7 +228,7 @@ func (d *Distributor) createTx(tx string, count int) {
 	case "create_coin":
 		d.Workers[count].ch <- func(account Account) error {
 			d.Coins = append(d.Coins, "TEST"+strconv.Itoa(len(d.Coins)))
-			return d.provider.CreateCoin("TEST"+strconv.Itoa(len(d.Coins)-1), "TEST"+strconv.Itoa(len(d.Coins)-1), 50, helpers.BipToPip(sdk.NewInt(1000)), helpers.BipToPip(sdk.NewInt(1000)), helpers.BipToPip(sdk.NewInt(100000000000000)), account)
+			return d.provider.CreateCoin("TEST"+strconv.Itoa(len(d.Coins)-1), "TEST"+strconv.Itoa(len(d.Coins)-1), 50, helpers.BipToPip(sdk.NewInt(100000)), helpers.BipToPip(sdk.NewInt(100000)), helpers.BipToPip(sdk.NewInt(100000000000000)), account)
 		}
 	case "sell_all":
 		d.Workers[count].ch <- func(account Account) error {
@@ -310,7 +310,7 @@ func main() {
 	time.Sleep(time.Second * 10)
 
 	if len(testCoins) == 0 {
-		err = provider.CreateCoin("TEST0", "TEST0", 50, helpers.BipToPip(sdk.NewInt(10000)), helpers.BipToPip(sdk.NewInt(10000)), helpers.BipToPip(sdk.NewInt(100000000000000)), mainAccount)
+		err = provider.CreateCoin("TEST0", "TEST0", 50, helpers.BipToPip(sdk.NewInt(100000)), helpers.BipToPip(sdk.NewInt(100000)), helpers.BipToPip(sdk.NewInt(100000000000000)), mainAccount)
 		if err != nil {
 			log.Println(err)
 			return
@@ -356,7 +356,7 @@ type BroadcastResponse struct {
 }
 
 func GetSequenceAndAccNumber(address string) (uint64, uint64, error) {
-	resp, err := http.Get("http://139.59.133.148/rest/auth/accounts/" + address)
+	resp, err := http.Get(RESTPrefix + "/auth/accounts/" + address)
 	if err != nil {
 		return 0, 0, err
 	}
