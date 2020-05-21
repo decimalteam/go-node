@@ -76,7 +76,7 @@ func NewProvider() *Provider {
 	cdc.RegisterConcrete(coin.MsgBuyCoin{}, "coin/BuyCoin", nil)
 	cdc.RegisterConcrete(coin.MsgSellCoin{}, "coin/SellCoin", nil)
 	cdc.RegisterConcrete(coin.MsgCreateCoin{}, "coin/CreateCoin", nil)
-	cdc.RegisterConcrete(coin.MsgSellAllCoin{}, "coin/SellAll", nil)
+	cdc.RegisterConcrete(coin.MsgSellAllCoin{}, "coin/SellAllCoin", nil)
 
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)
 	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/validator/BaseAccount", nil)
@@ -232,7 +232,7 @@ func (d *Distributor) createTx(tx string, count int) {
 		}
 	case "sell_all":
 		d.Workers[count].ch <- func(account Account) error {
-			return d.provider.SellCoin("tDEL", d.Coins[rand.Intn(len(d.Coins))], sdk.NewInt(1), sdk.NewInt(1000000000000000), account)
+			return d.provider.SellAllCoins(account, "tDEL", d.Coins[rand.Intn(len(d.Coins))], sdk.NewInt(1))
 		}
 	}
 }
