@@ -41,7 +41,8 @@ const (
 	DefaultGas    = uint64(20000000)
 	DefaultGasAdj = float64(1.1)
 
-	RPCPrefix = "http://localhost:26657"
+	RPCPrefix  = "http://139.59.133.148/rpc"
+	RESTPrefix = "http://139.59.133.148/rest"
 )
 
 type Account struct {
@@ -475,7 +476,7 @@ func Pow(value sdk.Int, power int64) sdk.Int {
 }
 
 func GetCoins() ([]string, error) {
-	resp, err := http.Get("http://139.59.133.148/rest/coins")
+	resp, err := http.Get(RESTPrefix + "/coins")
 	if err != nil {
 		return nil, err
 	}
