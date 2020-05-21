@@ -33,6 +33,9 @@ const RootPath = "$HOME/.decimal/cli"
 // RPCPrefix is prefix of available Tendermint RPC endpoint.
 const RPCPrefix = "http://139.59.133.148/rpc"
 
+// RESTPrefix is prefix of available LCD REST server endpoint.
+const RESTPrefix = "http://139.59.133.148/rest"
+
 // BaseCoin is base coin in original case.
 const BaseCoin = "tDEL"
 
@@ -141,10 +144,10 @@ func main() {
 
 		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
-		// Try to handle request as trade calculation request
-		if handleTradeCalculationRequest(update.Message) {
-			continue
-		}
+		// // Try to handle request as trade calculation request
+		// if handleTradeCalculationRequest(update.Message) {
+		// 	continue
+		// }
 
 		// Handle request as faucet request
 		handleFaucetRequest(update.Message)
@@ -508,10 +511,64 @@ func sendCoins(address string, amount *big.Int) (response string, txHash string,
 			if err != nil {
 				log.Printf("ERROR: Cannot write to file %s: %v", sequencePath, err)
 			}
+		} else if resultTx["code"].(float64) == 4 {
+			// Retrieve sequence from the REST server
+			s, _, err2 := GetSequenceAndAccNumber(sender.String())
+			if err2 != nil {
+				log.Printf("ERROR: Cannot retrieve sequence from the REST server for address %s: %v", sender.String(), err2)
+			}
+			if s != sequence {
+				sequence = s
+				err = ioutil.WriteFile(sequencePath, []byte(strconv.FormatUint(sequence, 10)), os.ModePerm)
+				if err != nil {
+					log.Printf("ERROR: Cannot write to file %s: %v", sequencePath, err)
+				}
+				response, txHash, err = sendCoins(address, amount)
+				return
+			}
+			// Update sequence in the sequence file
+			sequence++
+			err = ioutil.WriteFile(sequencePath, []byte(strconv.FormatUint(sequence, 10)), os.ModePerm)
+			if err != nil {
+				log.Printf("ERROR: Cannot write to file %s: %v", sequencePath, err)
+			}
 		}
 	}
 
 	return
+}
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+func GetSequenceAndAccNumber(address string) (uint64, uint64, error) {
+	resp, err := http.Get(RESTPrefix + "/auth/accounts/" + address)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer func() {
+		err = resp.Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+	decoder := json.NewDecoder(resp.Body)
+
+	var account struct {
+		Result struct {
+			Value struct {
+				Sequence      uint64 `json:"sequence"`
+				AccountNumber uint64 `json:"account_number"`
+			} `json:"value"`
+		} `json:"result"`
+	}
+	err = decoder.Decode(&account)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return account.Result.Value.Sequence, account.Result.Value.AccountNumber, nil
 }
 
 ////////////////////////////////////////////////////////////////
