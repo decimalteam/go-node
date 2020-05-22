@@ -4,9 +4,10 @@
   },
   "weights": {
     "send": 5,
+    "multi_send": 2,
     "sell": 2,
     "buy": 2,
     "sell_all": 1
   },
-  "count_accounts": 10
+  "count_accounts": 12
 }

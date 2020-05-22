@@ -1,6 +1,7 @@
 package coin
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"fmt"
 	"log"
 	"math/big"
@@ -61,6 +62,20 @@ func NewHandler(k Keeper) sdk.Handler {
 // Creating coins handlers
 ////////////////////////////////////////////////////////////////
 
+func getCreateCoinCommission(symbol string) sdk.Int {
+	switch len(symbol) {
+	case 3:
+		return sdk.NewInt(1_000_000)
+	case 4:
+		return sdk.NewInt(100_000)
+	case 5:
+		return sdk.NewInt(10_000)
+	case 6:
+		return sdk.NewInt(1000)
+	}
+	return sdk.NewInt(100)
+}
+
 func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*sdk.Result, error) {
 	var coin = types.Coin{
 		Title:       msg.Title,
@@ -70,25 +85,40 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		LimitVolume: msg.LimitVolume,
 		Volume:      msg.InitialVolume,
 	}
-	log.Println("Create coin gas: ", ctx.GasMeter().GasConsumed())
-	// TODO: take reserve from creator and give it initial volume
+
+	commission := getCreateCoinCommission(msg.Symbol)
+	commission = helpers.BipToPip(commission)
+
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Creator)
 	balance := acc.GetCoins()
-	log.Println(msg.InitialReserve, balance)
 	if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(msg.InitialReserve) {
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, "")
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinReserve, "Not enough coin to reserve")
+	}
+
+	if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(commission) {
+		return nil, types.ErrorInsufficientCoinToPayCommission(commission.String())
+	}
+
+	if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(commission.Add(msg.InitialReserve)) {
+		return nil, types.ErrorInsufficientFundsToCreateCoin(commission.Add(msg.InitialReserve).String())
 	}
 
 	err := k.UpdateBalance(ctx, strings.ToLower(cliUtils.GetBaseCoin()), msg.InitialReserve.Neg(), msg.Creator)
 	if err != nil {
-		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, "")
+		return nil, types.ErrorUpdateBalance(err)
 	}
 
 	k.SetCoin(ctx, coin)
 	err = k.UpdateBalance(ctx, strings.ToLower(coin.Symbol), msg.InitialVolume, msg.Creator)
 	if err != nil {
-		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, "")
+		return nil, types.ErrorUpdateBalance(err)
 	}
+
+	err = k.UpdateBalance(ctx, strings.ToLower(cliUtils.GetBaseCoin()), commission.Neg(), msg.Creator)
+	if err != nil {
+		return nil, types.ErrorUpdateBalance(err)
+	}
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -106,8 +136,6 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Creator.String()),
 		),
 	})
-
-	log.Println("Create coin gas: ", ctx.GasMeter().GasConsumed())
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
@@ -133,7 +161,6 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.R
 			sdk.NewAttribute(types.AttributeReceiver, msg.Receiver.String()),
 		),
 	})
-
 	log.Println("Send coin gas: ", ctx.GasMeter().GasConsumed())
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"io/ioutil"
 	"log"
 	"math/big"
@@ -16,6 +15,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys"
@@ -77,6 +78,7 @@ func NewProvider() *Provider {
 	cdc.RegisterConcrete(coin.MsgSellCoin{}, "coin/SellCoin", nil)
 	cdc.RegisterConcrete(coin.MsgCreateCoin{}, "coin/CreateCoin", nil)
 	cdc.RegisterConcrete(coin.MsgSellAllCoin{}, "coin/SellAllCoin", nil)
+	cdc.RegisterConcrete(coin.MsgMultiSendCoin{}, "coin/MultiSendCoin", nil)
 
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)
 	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/validator/BaseAccount", nil)
@@ -234,7 +236,23 @@ func (d *Distributor) createTx(tx string, count int) {
 		d.Workers[count].ch <- func(account Account) error {
 			return d.provider.SellAllCoins(account, "tDEL", d.Coins[rand.Intn(len(d.Coins))], sdk.NewInt(1))
 		}
+	case "multi_send":
+		d.Workers[count].ch <- func(account Account) error {
+			return d.provider.MultiSendCoin(account, d.createSendCoins())
+		}
 	}
+}
+
+func (d *Distributor) createSendCoins() []coin.SendCoin {
+	msg := make([]coin.SendCoin, rand.Intn(10))
+	for i := 0; i < len(msg); i++ {
+		msg[i] = coin.SendCoin{
+			Coin:     "tDEL",
+			Amount:   sdk.NewInt(rand.Int63n(99) + 1).Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(13), nil))),
+			Receiver: d.Workers[rand.Intn(len(d.Workers))].account.Address,
+		}
+	}
+	return msg
 }
 
 func main() {
@@ -386,6 +404,10 @@ func GetSequenceAndAccNumber(address string) (uint64, uint64, error) {
 
 func (p *Provider) SendCoin(sender, receiver Account, amount sdk.Int) error {
 	return p.SendTx([]sdk.Msg{coin.NewMsgSendCoin(sender.Address, "tDEL", amount, receiver.Address)}, sender)
+}
+
+func (p *Provider) MultiSendCoin(sender Account, coins []coin.SendCoin) error {
+	return p.SendTx([]sdk.Msg{coin.NewMsgMultiSendCoin(sender.Address, coins)}, sender)
 }
 
 func (p *Provider) BuyCoin(coinToBuy, coinToSell string, amountToBuy, amountToSell sdk.Int, buyer Account) error {
