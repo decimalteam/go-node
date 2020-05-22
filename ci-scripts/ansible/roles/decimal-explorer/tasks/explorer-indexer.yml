@@ -4,6 +4,10 @@
   stat: path={{ systemd_path }}/{{ service_name_indexer }}
   register: service_status_indexer
 
+- name: Check if Explorer Indexer Parser Service Exists
+  stat: path={{ systemd_path }}/{{ service_name_indexer_parser }}
+  register: service_status_indexer_parser
+
 - name: Stop service Explorer Indexer, if started
   service:
     name: '{{ service_name_indexer }}'
@@ -12,11 +16,28 @@
   become: yes
   notify: run service Explorer Indexer
 
-- name: Drop schema "graphile_worker" with cascade
+- name: Stop service Explorer Indexer Parser, if started
+  service:
+    name: '{{ service_name_indexer_parser }}'
+    state: stopped
+  when: ansible_hostname.find('explorer-indexer') != -1
+  become: yes
+  notify: run service Explorer Indexer Parser
+
+- name: Drop schema "public" with cascade
   postgresql_schema:
     db: orderer
-    name: graphile_worker
+    name: public
     state: absent
     cascade_drop: yes
+  become: yes
+  become_user: postgres
+
+- name: Create schema "public"
+  postgresql_schema:
+    db: orderer
+    name: public
+    owner: orderer
+    state: present
   become: yes
   become_user: postgres
