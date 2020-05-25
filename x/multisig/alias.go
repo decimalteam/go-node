@@ -19,13 +19,17 @@ const (
 
 var (
 	// functions aliases
-	NewKeeper           = keeper.NewKeeper
-	NewQuerier          = keeper.NewQuerier
-	RegisterCodec       = types.RegisterCodec
-	NewGenesisState     = types.NewGenesisState
-	DefaultGenesisState = types.DefaultGenesisState
-	ValidateGenesis     = types.ValidateGenesis
-	// TODO: Fill out function aliases
+	NewKeeper               = keeper.NewKeeper
+	NewQuerier              = keeper.NewQuerier
+	RegisterCodec           = types.RegisterCodec
+	NewGenesisState         = types.NewGenesisState
+	DefaultGenesisState     = types.DefaultGenesisState
+	ValidateGenesis         = types.ValidateGenesis
+	NewMsgCreateWallet      = types.NewMsgCreateWallet
+	NewMsgCreateTransaction = types.NewMsgCreateTransaction
+	NewMsgSignTransaction   = types.NewMsgSignTransaction
+	NewWallet               = types.NewWallet
+	NewTransaction          = types.NewTransaction
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
@@ -33,10 +37,13 @@ var (
 )
 
 type (
-	Keeper       = keeper.Keeper
-	CodeType     = types.CodeType
-	GenesisState = types.GenesisState
-	Params       = types.Params
-
-	// TODO: Fill out module types
+	Keeper               = keeper.Keeper
+	CodeType             = types.CodeType
+	GenesisState         = types.GenesisState
+	Params               = types.Params
+	MsgCreateWallet      = types.MsgCreateWallet
+	MsgCreateTransaction = types.MsgCreateTransaction
+	MsgSignTransaction   = types.MsgSignTransaction
+	Wallet               = types.Wallet
+	Transaction          = types.Transaction
 )

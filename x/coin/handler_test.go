@@ -1,15 +1,12 @@
 package coin
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"reflect"
 	"testing"
+
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-func createTestCoin(symbol string) (types.Coin, error) {
-
-}
 
 func Test_handleMsgBuyCoin(t *testing.T) {
 	type args struct {
