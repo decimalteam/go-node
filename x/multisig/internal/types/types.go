@@ -12,6 +12,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const MultisigTransactionIDPrefix = "dxmstx"
+
 ////////////////////////////////////////////////////////////////
 // Multisig Wallet
 ////////////////////////////////////////////////////////////////
@@ -84,7 +86,7 @@ func NewTransaction(wallet, receiver sdk.AccAddress, coins sdk.Coins, signers []
 
 	hz := sha3.Sum256(bz)
 
-	id, err := bech32.ConvertAndEncode("dxmultisigtx", hz[12:])
+	id, err := bech32.ConvertAndEncode(MultisigTransactionIDPrefix, hz[12:])
 	if err != nil {
 		return nil, err
 	}
