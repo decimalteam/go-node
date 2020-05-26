@@ -32,7 +32,7 @@ func NewHandler(k Keeper) sdk.Handler {
 func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) (*sdk.Result, error) {
 
 	// Create new multisig wallet
-	wallet, err := NewWallet(msg.Owners, msg.Weights, msg.Threshold)
+	wallet, err := NewWallet(msg.Owners, msg.Weights, msg.Threshold, ctx.TxBytes())
 	if err != nil {
 		msgError := fmt.Sprintf("Unable to create new multi-signature wallet: %s", err.Error())
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
@@ -90,6 +90,7 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 		msg.Coins,
 		make([]sdk.AccAddress, len(wallet.Owners)),
 		ctx.BlockHeight(),
+		ctx.TxBytes(),
 	)
 
 	// Save created multisig transaction to the KVStore

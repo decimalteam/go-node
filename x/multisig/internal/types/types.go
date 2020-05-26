@@ -5,13 +5,12 @@ import (
 
 	"golang.org/x/crypto/sha3"
 
-	"github.com/google/uuid"
-
 	"github.com/tendermint/tendermint/libs/bech32"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// MultisigTransactionIDPrefix is prefix for multisig transaction ID.
 const MultisigTransactionIDPrefix = "dxmstx"
 
 ////////////////////////////////////////////////////////////////
@@ -27,19 +26,21 @@ type Wallet struct {
 }
 
 // NewWallet returns a new Wallet.
-func NewWallet(owners []sdk.AccAddress, weights []uint, threshold uint) (*Wallet, error) {
-	uid, err := uuid.NewRandom()
-	if err != nil {
-		return nil, err
-	}
+func NewWallet(owners []sdk.AccAddress, weights []uint, threshold uint, salt []byte) (*Wallet, error) {
 
-	bz, err := uid.MarshalBinary()
-	if err != nil {
-		return nil, err
+	walletMetadata := struct {
+		Owners    []sdk.AccAddress `json:"owners" yaml:"owners"`
+		Weights   []uint           `json:"weights" yaml:"weights"`
+		Threshold uint             `json:"threshold" yaml:"threshold"`
+		Salt      []byte           `json:"salt" yaml:"salt"`
+	}{
+		Owners:    owners,
+		Weights:   weights,
+		Threshold: threshold,
+		Salt:      salt,
 	}
-
-	hz := sha3.Sum256(bz)
-	address := sdk.AccAddress(hz[12:])
+	bz := sha3.Sum256(sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(walletMetadata)))
+	address := sdk.AccAddress(bz[12:])
 
 	return &Wallet{
 		Address:   address,
@@ -73,20 +74,25 @@ type Transaction struct {
 }
 
 // NewTransaction returns a new Transaction.
-func NewTransaction(wallet, receiver sdk.AccAddress, coins sdk.Coins, signers []sdk.AccAddress, height int64) (*Transaction, error) {
-	uid, err := uuid.NewRandom()
-	if err != nil {
-		return nil, err
+func NewTransaction(wallet, receiver sdk.AccAddress, coins sdk.Coins, signers []sdk.AccAddress, height int64, salt []byte) (*Transaction, error) {
+
+	transactionMetadata := struct {
+		Wallet    sdk.AccAddress   `json:"wallet" yaml:"wallet"`
+		Receiver  sdk.AccAddress   `json:"receiver" yaml:"receiver"`
+		Coins     sdk.Coins        `json:"coins" yaml:"coins"`
+		Signers   []sdk.AccAddress `json:"signers" yaml:"signers"`
+		CreatedAt int64            `json:"created_at" yaml:"created_at"` // block height
+		Salt      []byte           `json:"salt" yaml:"salt"`
+	}{
+		Wallet:    wallet,
+		Receiver:  receiver,
+		Coins:     coins,
+		Signers:   signers,
+		CreatedAt: height,
+		Salt:      salt,
 	}
-
-	bz, err := uid.MarshalBinary()
-	if err != nil {
-		return nil, err
-	}
-
-	hz := sha3.Sum256(bz)
-
-	id, err := bech32.ConvertAndEncode(MultisigTransactionIDPrefix, hz[12:])
+	bz := sha3.Sum256(sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(transactionMetadata)))
+	id, err := bech32.ConvertAndEncode(MultisigTransactionIDPrefix, bz[12:])
 	if err != nil {
 		return nil, err
 	}
