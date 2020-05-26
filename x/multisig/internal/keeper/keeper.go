@@ -42,7 +42,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // GetIterator returns iterator over KVStore with specified prefix.
 func (k Keeper) GetIterator(ctx sdk.Context, prefix string) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
-	return sdk.KVStorePrefixIterator(store, nil)
+	return sdk.KVStorePrefixIterator(store, []byte(prefix))
 }
 
 // GetWallet returns multisig wallet metadata struct with specified address.

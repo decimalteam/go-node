@@ -44,6 +44,8 @@ type (
 	MsgCreateWallet      = types.MsgCreateWallet
 	MsgCreateTransaction = types.MsgCreateTransaction
 	MsgSignTransaction   = types.MsgSignTransaction
+	QueryWallets         = types.QueryWallets
+	QueryTransactions    = types.QueryTransactions
 	Wallet               = types.Wallet
 	Transaction          = types.Transaction
 )
