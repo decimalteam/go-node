@@ -12,6 +12,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgSellAllCoin{}, "coin/SellAllCoin", nil)
 	cdc.RegisterConcrete(MsgSendCoin{}, "coin/SendCoin", nil)
 	cdc.RegisterConcrete(MsgMultiSendCoin{}, "coin/MultiSendCoin", nil)
+	cdc.RegisterConcrete(MsgRedeemCheck{}, "coin/RedeemCheck", nil)
 }
 
 // ModuleCdc defines the module codec

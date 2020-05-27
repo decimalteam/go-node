@@ -8,6 +8,7 @@ const (
 	EventTypeSellAllCoin   = "SellAllCoin"
 	EventTypeSendCoin      = "SendCoin"
 	EventTypeMultiSendCoin = "MultiSendCoin"
+	EventTypeRedeemCheck   = "RedeemCheck"
 	// Create Coin
 	AttributeSymbol      = "symbol"
 	AttributeTitle       = "title"
@@ -27,6 +28,11 @@ const (
 	AttributeCoin     = "coin"
 	AttributeAmount   = "amount"
 	AttributeReceiver = "receiver"
+
+	// Redeem Check
+	AttributeIssuer     = "issuer"
+	AttributeCheckNonce = "checkNonce"
+	AttributeDueBlock   = "dueBlock"
 
 	AttributeValueCategory = ModuleName
 )

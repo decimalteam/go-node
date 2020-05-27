@@ -1,17 +1,24 @@
 package coin
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/helpers"
+	"bytes"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"math/big"
 	"strconv"
 	"strings"
 
+	"golang.org/x/crypto/sha3"
+
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/rlp"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
@@ -50,7 +57,8 @@ func NewHandler(k Keeper) sdk.Handler {
 				AmountToBuy:  msg.AmountToBuy,
 			}
 			return handleMsgSellCoin(ctx, k, msgSell, true)
-
+		case types.MsgRedeemCheck:
+			return handleMsgRedeemCheck(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -494,6 +502,149 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 
 	fmt.Printf("####### Sell transaction successed!\n")
 	log.Println("Sell coin gas: ", ctx.GasMeter().GasConsumed())
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+////////////////////////////////////////////////////////////////
+// Redeem check handler
+////////////////////////////////////////////////////////////////
+
+func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (*sdk.Result, error) {
+	log.Println("Redeem check gas: ", ctx.GasMeter().GasConsumed())
+
+	// Decode provided check from base64 format to raw bytes
+	checkBytes, err := base64.StdEncoding.DecodeString(msg.Check)
+	if err != nil {
+		msgError := "unable to decode check from base64"
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+	}
+
+	// Parse provided check from raw bytes to ensure it is valid
+	check, err := types.ParseCheck(checkBytes)
+	if err != nil {
+		msgError := fmt.Sprintf("unable to parse check: %s", err.Error())
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+	}
+
+	// Decode provided proof from base64 format to raw bytes
+	proof, err := base64.StdEncoding.DecodeString(msg.Proof)
+	if err != nil {
+		msgError := "unable to decode proof from base64"
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidProof, msgError)
+	}
+
+	// Recover issuer address from check signature
+	issuer, err := check.Sender()
+	if err != nil {
+		errMsg := fmt.Sprintf("unable to recover check issuer address: %s", err.Error)
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, errMsg)
+	}
+
+	// Retrieve seller account and it's balance of selling coins
+	account := k.AccountKeeper.GetAccount(ctx, issuer)
+	balance := account.GetCoins().AmountOf(strings.ToLower(check.Coin))
+
+	// Retrieve the coin specified in the check
+	coin, err := k.GetCoin(ctx, check.Coin)
+	if err != nil {
+		errMsg := fmt.Sprintf("unable to retrieve coin %s requested to sell: %v", check.Coin, err)
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCoinSymbol, errMsg)
+	}
+	if coin.Symbol != check.Coin {
+		errMsg := fmt.Sprintf("unable to retrieve coin %s requested to sell: retrieved coin %s instead", check.Coin, coin.Symbol)
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCoinSymbol, errMsg)
+	}
+
+	// Ensure that check issuer account holds enough coins
+	amount := sdk.NewIntFromBigInt(check.Amount)
+	if balance.LT(amount) {
+		errMsg := fmt.Sprintf(
+			"wanted to send %f %s, but available only %f %s at the moment",
+			floatFromInt(balance), coin.Symbol, floatFromInt(amount), coin.Symbol,
+		)
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidAmount, errMsg)
+	}
+
+	// Ensure the proper chain ID is specified in the check
+	if check.ChainID != ctx.ChainID() {
+		errMsg := fmt.Sprintf("wanted chain ID %s, but check is issued for chain with ID %s", ctx.ChainID(), check.ChainID)
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidChainID, errMsg)
+	}
+
+	// Ensure nonce length
+	if len(check.Nonce) > 16 {
+		errMsg := "nonce is too big (should be up to 16 bytes)"
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidNonce, errMsg)
+	}
+
+	// Check block number
+	if check.DueBlock < uint64(ctx.BlockHeight()) {
+		errMsg := fmt.Sprintf("check was expired at block %d", check.DueBlock)
+		return nil, sdkerrors.New(types.DefaultCodespace, types.CheckExpired, errMsg)
+	}
+
+	// Ensure check is not redeemed yet
+	if k.IsCheckRedeemed(ctx, check) {
+		errMsg := "check was redeemed already"
+		return nil, sdkerrors.New(types.DefaultCodespace, types.CheckRedeemed, errMsg)
+	}
+
+	// Recover public key from check lock
+	publicKeyA, err := check.LockPubKey()
+	if err != nil {
+		msgError := fmt.Sprintf("unable to recover lock public key from check: %s", err.Error())
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+	}
+
+	// Prepare bytes used to recover public key from provided proof
+	receiverAddressHash := make([]byte, 32)
+	hw := sha3.NewLegacyKeccak256()
+	err = rlp.Encode(hw, []interface{}{
+		msg.Receiver,
+	})
+	if err != nil {
+		msgError := fmt.Sprintf("unable to RLP encode check receiver address: %s", err.Error())
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+	}
+	hw.Sum(receiverAddressHash[:0])
+
+	// Recover public key from provided proof
+	publicKeyB, err := crypto.Ecrecover(receiverAddressHash[:], proof)
+
+	// Compare both public keys to ensure provided proof is correct
+	if !bytes.Equal(publicKeyA, publicKeyB) {
+		msgError := fmt.Sprintf("provided proof is invalid", err.Error())
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidProof, msgError)
+	}
+
+	// Set check redeemed
+	k.SetCheckRedeemed(ctx, check)
+
+	// Update accounts balances
+	err = k.UpdateBalance(ctx, coin.Symbol, amount.Neg(), issuer)
+	if err != nil {
+		errMsg := fmt.Sprintf("unable to update balance of check issuer account %s: %v", issuer, err)
+		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
+	}
+	err = k.UpdateBalance(ctx, coin.Symbol, amount, msg.Receiver)
+	if err != nil {
+		errMsg := fmt.Sprintf("unable to update balance of check redeemer account %s: %v", msg.Receiver, err)
+		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
+	}
+
+	// Emit event
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeRedeemCheck),
+		sdk.NewAttribute(types.AttributeIssuer, issuer.String()),
+		sdk.NewAttribute(types.AttributeReceiver, msg.Receiver.String()),
+		sdk.NewAttribute(types.AttributeCoin, check.Coin),
+		sdk.NewAttribute(types.AttributeAmount, check.Amount.String()),
+		sdk.NewAttribute(types.AttributeCheckNonce, new(big.Int).SetBytes(check.Nonce).String()),
+		sdk.NewAttribute(types.AttributeDueBlock, strconv.FormatUint(check.DueBlock, 10)),
+	))
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
