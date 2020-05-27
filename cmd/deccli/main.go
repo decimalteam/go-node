@@ -24,8 +24,8 @@ import (
 
 	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/config"
-	checkCmd "bitbucket.org/decimalteam/go-node/x/check/client/cli"
 	coinCmd "bitbucket.org/decimalteam/go-node/x/coin/client/cli"
+	multisigCmd "bitbucket.org/decimalteam/go-node/x/multisig/client/cli"
 )
 
 func main() {
@@ -101,7 +101,7 @@ func queryCmd(cdc *amino.Codec) *cobra.Command {
 
 	// add modules' query commands
 	app.ModuleBasics.AddQueryCommands(coinCmd.GetQueryCmd("coin", cdc), cdc)
-	app.ModuleBasics.AddQueryCommands(checkCmd.GetQueryCmd("check", cdc), cdc)
+	app.ModuleBasics.AddQueryCommands(multisigCmd.GetQueryCmd("multisig", cdc), cdc)
 	app.ModuleBasics.AddQueryCommands(queryCmd, cdc)
 
 	return queryCmd

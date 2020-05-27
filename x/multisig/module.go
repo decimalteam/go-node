@@ -12,6 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	"bitbucket.org/decimalteam/go-node/x/multisig/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/multisig/client/rest"
@@ -73,16 +75,18 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper Keeper
-	// TODO: Add keepers that your application depends on
+	keeper        Keeper
+	accountKeeper auth.AccountKeeper
+	coinKeeper    bank.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper /*TODO: Add Keepers that your application depends on*/) AppModule {
+func NewAppModule(k Keeper, accountKeeper auth.AccountKeeper, bankKeeper bank.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
-		// TODO: Add keepers that your application depends on
+		accountKeeper:  accountKeeper,
+		coinKeeper:     bankKeeper,
 	}
 }
 

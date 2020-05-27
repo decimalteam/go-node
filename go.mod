@@ -6,12 +6,13 @@ require (
 	github.com/99designs/keyring v1.1.3
 	github.com/bartekn/go-bip39 v0.0.0-20171116152956-a05967ea095d
 	github.com/btcsuite/btcd v0.0.0-20190824003749-130ea5bddde3
-	github.com/cosmos/cosmos-sdk v0.38.3
+	github.com/cosmos/cosmos-sdk v0.38.4
 	github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d
 	github.com/cosmos/ledger-cosmos-go v0.11.1
 	github.com/ethereum/go-ethereum v1.9.11
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible // indirect
 	github.com/golang/mock v1.3.1 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.3
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect

@@ -1,17 +1,18 @@
 package types
 
-// Local code type
+// CodeType defines the local code type.
 type CodeType = uint32
 
+// DefaultCodespace defines default multisig codespace.
+const DefaultCodespace string = ModuleName
+
+// Custom errors codes.
 const (
-	// Default multisig codespace
-	DefaultCodespace string = ModuleName
-
-	// CodeInvalid      CodeType = 101
+	InvalidCreator      CodeType = 101
+	InvalidOwnerCount   CodeType = 102
+	InvalidOwner        CodeType = 103
+	InvalidWeightCount  CodeType = 104
+	InvalidWeight       CodeType = 105
+	InvalidCoinToSend   CodeType = 106
+	InvalidAmountToSend CodeType = 107
 )
-
-// TODO: Fill out some custom errors for the module
-// You can see how they are constructed below:
-// var (
-//	ErrInvalid = sdkerrors.Register(ModuleName, 1, "custom error message")
-// )

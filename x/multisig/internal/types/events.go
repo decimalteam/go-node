@@ -2,14 +2,29 @@ package types
 
 // multisig module event types
 const (
-	// TODO: Create your event types
-	// EventType<Action>    		= "action"
+	EventTypeCreateWallet      = "CreateWallet"
+	EventTypeCreateTransaction = "CreateTransaction"
+	EventTypeSignTransaction   = "SignTransaction"
 
-	// TODO: Create keys fo your events, the values will be derivided from the msg
-	// AttributeKeyAddress  		= "address"
+	// Common
+	AttributeKeyCreator     = "creator"
+	AttributeKeyWallet      = "wallet"
+	AttributeKeyTransaction = "transaction"
 
-	// TODO: Some events may not have values for that reason you want to emit that something happened.
-	// AttributeValueDoubleSign = "double_sign"
+	// CreateWallet
+	AttributeKeyOwners    = "owners"
+	AttributeKeyWeights   = "weights"
+	AttributeKeyThreshold = "threshold"
+
+	// CreateTransaction
+	AttributeKeyReceiver = "receiver"
+	AttributeKeyCoins    = "coins"
+
+	// SignTransaction
+	AttributeKeySigner            = "signer"
+	AttributeKeySignerWeight      = "signerWeight"
+	AttributeKeyTransactionWeight = "transactionWeight"
+	AttributeKeyApproved          = "approved"
 
 	AttributeValueCategory = ModuleName
 )

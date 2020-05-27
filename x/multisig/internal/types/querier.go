@@ -1,21 +1,27 @@
 package types
 
-// Query endpoints supported by the multisig querier
-const (
-//TODO: Describe query parameters, update <action> with your query
-// Query<Action>    = "<action>"
-)
+import "strings"
 
-/*
-Below you will be able how to set your own queries:
+// QueryWallets specifies type containing set of multisig wallets.
+type QueryWallets []Wallet
 
-
-// QueryResList Queries Result Payload for a query
-type QueryResList []string
-
-// implement fmt.Stringer
-func (n QueryResList) String() string {
-	return strings.Join(n[:], "\n")
+// String implements fmt.Stringer interface.
+func (n QueryWallets) String() string {
+	wallets := make([]string, len(n))
+	for i, wallet := range n {
+		wallets[i] = wallet.String()
+	}
+	return strings.Join(wallets[:], "\n")
 }
 
-*/
+// QueryTransactions specifies type containing set of multisig transactions.
+type QueryTransactions []Transaction
+
+// String implements fmt.Stringer interface.
+func (n QueryTransactions) String() string {
+	transactions := make([]string, len(n))
+	for i, transaction := range n {
+		transactions[i] = transaction.String()
+	}
+	return strings.Join(transactions[:], "\n")
+}
