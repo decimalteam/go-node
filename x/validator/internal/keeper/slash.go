@@ -24,14 +24,14 @@ import (
 // CONTRACT:
 //    Infraction was committed at the current height or at a past height,
 //    not at a height in the future
-func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeight int64, power int64, slashFactor sdk.Dec) {
+func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeight int64, power int64, slashFactor sdk.Dec) sdk.Int {
 	logger := k.Logger(ctx)
 
 	if slashFactor.IsNegative() {
 		panic(fmt.Errorf("attempted to slash with a negative slash factor: %v", slashFactor))
 	}
 
-	// Amount of slashing = slash slashFactor * power at time of infraction
+	// Coin of slashing = slash slashFactor * power at time of infraction
 	amount := types.TokensFromConsensusPower(power)
 	slashAmountDec := amount.ToDec().Mul(slashFactor)
 	slashAmount := slashAmountDec.TruncateInt()
@@ -47,7 +47,7 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 		logger.Error(fmt.Sprintf(
 			"WARNING: Ignored attempt to slash a nonexistent validator with address %s, we recommend you investigate immediately",
 			consAddr))
-		return
+		return sdk.ZeroInt()
 	}
 
 	// should not be slashing an unbonded validator
@@ -113,7 +113,7 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 		"validator %s slashed by slash factor of %s; burned %v tokens",
 		validator.GetOperator(), slashFactor.String(), amountSlashed))
 
-	return
+	return slashAmount
 }
 
 // jail a validator
@@ -305,13 +305,6 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			logger.Info(fmt.Sprintf("Validator %s past min height of %d and below signed blocks threshold of %d",
 				consAddr, minHeight, types.MinSignedPerWindow))
 
-			ctx.EventManager().EmitEvent(sdk.NewEvent(
-				types.EventTypeSlash,
-				sdk.NewAttribute(types.AttributeKeyAddress, consAddr.String()),
-				sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", power)),
-				sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueMissingSignature),
-			))
-
 			// We need to retrieve the stake distribution which signed the block, so we subtract ValidatorUpdateDelay from the evidence height,
 			// and subtract an additional 1 since this is the LastCommit.
 			// Note that this *can* result in a negative "distributionHeight" up to -ValidatorUpdateDelay-1,
@@ -319,8 +312,15 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			// That's fine since this is just used to filter unbonding delegations & redelegations.
 			distributionHeight := height - sdk.ValidatorUpdateDelay - 1
 
-			k.Slash(ctx, consAddr, distributionHeight, power, types.SlashFractionDowntime)
+			slashAmount := k.Slash(ctx, consAddr, distributionHeight, power, types.SlashFractionDowntime)
 			k.Jail(ctx, consAddr)
+
+			ctx.EventManager().EmitEvent(sdk.NewEvent(
+				types.EventTypeSlash,
+				sdk.NewAttribute(types.AttributeKeyAddress, consAddr.String()),
+				sdk.NewAttribute(types.AttributeKeySlashAmount, slashAmount.String()),
+				sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueMissingSignature),
+			))
 
 			// We need to reset the counter & array so that the validator won't be immediately slashed for downtime upon rebonding.
 			signInfo.MissedBlocksCounter = 0
@@ -437,19 +437,19 @@ func (k Keeper) HandleDoubleSign(ctx sdk.Context, addr crypto.Address, infractio
 	// get the percentage slash penalty fraction
 	fraction := types.SlashFractionDoubleSign
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeSlash,
-		sdk.NewAttribute(types.AttributeKeyAddress, consAddr.String()),
-		sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", power)),
-		sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueDoubleSign),
-	))
-
 	// Slash validator
 	// `power` is the int64 power of the validator as provided to/by
 	// Tendermint. This value is validator.Tokens as sent to Tendermint via
 	// ABCI, and now received as evidence.
 	// The fraction is passed in to separately to slash unbonding and rebonding delegations.
-	k.Slash(ctx, consAddr, distributionHeight, power, fraction)
+	slashAmount := k.Slash(ctx, consAddr, distributionHeight, power, fraction)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeSlash,
+		sdk.NewAttribute(types.AttributeKeyAddress, consAddr.String()),
+		sdk.NewAttribute(types.AttributeKeySlashAmount, slashAmount.String()),
+		sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueDoubleSign),
+	))
 
 	// Jail validator if not already jailed
 	// begin unbonding validator if not already unbonding (tombstone)
