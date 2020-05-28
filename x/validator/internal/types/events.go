@@ -13,6 +13,8 @@ const (
 	EventTypeCommissionReward  = "commission_reward"
 	EventTypeSlash             = "slash"
 	EventTypeEmission          = "emission"
+	EventTypeLiveness          = "liveness"
+	EventTypeUpdatesValidators = "updates_validator"
 
 	AttributeKeyValidator      = "validator"
 	AttributeKeyDelegator      = "delegator"
@@ -25,6 +27,8 @@ const (
 	AttributeKeyPower          = "power"
 	AttributeKeySequence       = "sequence"
 	AttributeKeySlashAmount    = "slash_amount"
+	AttributeKeyMissedBlocks   = "missed_blocks"
+	AttributeKeyHeight         = "height"
 
 	AttributeValueDoubleSign       = "double_sign"
 	AttributeValueMissingSignature = "missing_signature"
