@@ -451,7 +451,7 @@ func (p *Provider) SendTx(messages []sdk.Msg, sender Account) error {
 
 	// TODO: Find the way to avoid this ugly hack!
 	{
-		hackPrefix, _ := hex.DecodeString("282816a9")
+		hackPrefix, _ := hex.DecodeString("D1E553A3")
 		hackLength := (int(tx[1])<<8 + int(tx[0])) + 4
 		hackTx := []byte{byte(hackLength & 0xFF), byte(hackLength >> 8)}
 		hackTx = append(hackTx, hackPrefix...)
