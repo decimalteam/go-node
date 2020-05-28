@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -108,4 +109,19 @@ func (k Keeper) UpdateCoin(ctx sdk.Context, coin types.Coin, reserve sdk.Int, vo
 	coin.Reserve = reserve
 	coin.Volume = volume
 	k.SetCoin(ctx, coin)
+}
+
+func (k Keeper) IsCheckRedeemed(ctx sdk.Context, check *types.Check) bool {
+	checkHash := check.HashFull()
+	store := ctx.KVStore(k.storeKey)
+	key := []byte(types.CheckPrefix + hex.EncodeToString(checkHash[:]))
+	return len(store.Get(key)) > 0
+}
+
+func (k Keeper) SetCheckRedeemed(ctx sdk.Context, check *types.Check) {
+	checkHash := check.HashFull()
+	store := ctx.KVStore(k.storeKey)
+	key := []byte(types.CheckPrefix + hex.EncodeToString(checkHash[:]))
+	store.Set(key, []byte{1})
+	return
 }
