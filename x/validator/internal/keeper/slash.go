@@ -195,7 +195,7 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 				panic(err)
 			}
 			ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, unbondingSlashAmount)
-			k.coinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(unbondingSlashAmount))
+			k.CoinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(unbondingSlashAmount))
 		}
 	}
 
@@ -232,7 +232,7 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 				panic(err)
 			}
 			ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondSlashAmount)
-			k.coinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(bondSlashAmount))
+			k.CoinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(bondSlashAmount))
 		}
 	}
 
@@ -282,6 +282,15 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	}
 
 	if missed {
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeLiveness,
+				sdk.NewAttribute(types.AttributeKeyAddress, consAddr.String()),
+				sdk.NewAttribute(types.AttributeKeyMissedBlocks, fmt.Sprintf("%d", signInfo.MissedBlocksCounter)),
+				sdk.NewAttribute(types.AttributeKeyHeight, fmt.Sprintf("%d", height)),
+			),
+		)
+
 		logger.Info(
 			fmt.Sprintf("Absent validator %s (%s) at height %d, %d missed, threshold %d", consAddr, pubkey, height, signInfo.MissedBlocksCounter, types.MinSignedPerWindow))
 	}

@@ -141,6 +141,15 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 	// set total power on lookup index if there are any updates
 	if len(updates) > 0 {
+		for _, update := range updates {
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeUpdatesValidators,
+					sdk.NewAttribute(types.AttributeKeyPubKey, update.PubKey.String()),
+					sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", update.Power)),
+				),
+			)
+		}
 		err := k.SetLastTotalPower(ctx, totalPower)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
