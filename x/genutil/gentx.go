@@ -1,6 +1,7 @@
 package genutil
 
 import (
+	vtypes "bitbucket.org/decimalteam/go-node/x/validator/utils"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -16,7 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	"bitbucket.org/decimalteam/go-node/x/validator"
@@ -24,7 +24,7 @@ import (
 
 // SetGenTxsInAppGenesisState - sets the genesis transactions in the app genesis state
 func SetGenTxsInAppGenesisState(cdc *codec.Codec, appGenesisState map[string]json.RawMessage,
-	genTxs []authtypes.StdTx) (map[string]json.RawMessage, error) {
+	genTxs []vtypes.StdTx) (map[string]json.RawMessage, error) {
 
 	genesisState := GetGenesisStateFromAppState(cdc, appGenesisState)
 	// convert all the GenTxs to JSON
@@ -94,7 +94,7 @@ func DeliverGenTxs(ctx sdk.Context, cdc *codec.Codec, genTxs []json.RawMessage,
 	validatorKeeper validator.Keeper, deliverTx deliverTxfn) ([]abci.ValidatorUpdate, error) {
 
 	for _, genTx := range genTxs {
-		var tx authtypes.StdTx
+		var tx vtypes.StdTx
 		cdc.MustUnmarshalJSON(genTx, &tx)
 		bz := cdc.MustMarshalBinaryLengthPrefixed(tx)
 		res := deliverTx(abci.RequestDeliverTx{Tx: bz})

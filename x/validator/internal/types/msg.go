@@ -64,14 +64,14 @@ func (msg MsgDeclareCandidate) ValidateBasic() error {
 type MsgDelegate struct {
 	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-	Amount           sdk.Coin       `json:"amount"`
+	Coin             sdk.Coin       `json:"amount"`
 }
 
-func NewMsgDelegate(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, amount sdk.Coin) MsgDelegate {
+func NewMsgDelegate(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, coin sdk.Coin) MsgDelegate {
 	return MsgDelegate{
 		DelegatorAddress: delegatorAddr,
 		ValidatorAddress: validatorAddr,
-		Amount:           amount,
+		Coin:             coin,
 	}
 }
 

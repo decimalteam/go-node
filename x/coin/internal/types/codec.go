@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // RegisterCodec registers concrete types on codec
@@ -23,4 +24,9 @@ func init() {
 	RegisterCodec(ModuleCdc)
 	codec.RegisterCrypto(ModuleCdc)
 	ModuleCdc.Seal()
+}
+
+type FeeCoinTx struct {
+	sdk.Tx
+	FeeCoin string
 }

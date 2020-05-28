@@ -92,7 +92,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	cdc := MakeCodec()
 
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
-	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
+	bApp := bam.NewBaseApp(appName, logger, db, validator.DefaultTxDecoder(cdc), baseAppOptions...)
 
 	bApp.SetAppVersion(config.DecimalVersion)
 
@@ -167,6 +167,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		multisigSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
+		app.coinKeeper,
 	)
 
 	app.validatorKeeper = validator.NewKeeper(
@@ -175,6 +176,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		validatorSubspace,
 		app.coinKeeper,
 		app.supplyKeeper,
+		app.accountKeeper,
 		auth.FeeCollectorName,
 	)
 
@@ -184,7 +186,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
-		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
+		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper, app.coinKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
 	)
 

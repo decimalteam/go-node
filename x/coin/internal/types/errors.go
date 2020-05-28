@@ -23,7 +23,8 @@ const (
 	CodeInvalid                     CodeType = 108
 	InsufficientCoinReserve         CodeType = 118
 	InsufficientCoinToPayCommission CodeType = 120
-	InsufficientCoinToCreateCoin    CodeType = 121
+	InsufficientFunds               CodeType = 121
+	CodeErrCalculateCommission      CodeType = 122
 	// Buy/Sell coin
 	SameCoins                 CodeType = 109
 	CoinToBuyNotExists        CodeType = 110
@@ -50,10 +51,14 @@ func ErrorInsufficientCoinToPayCommission(commission string) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, InsufficientCoinToPayCommission, fmt.Sprintf("Insufficient coin to pay commission: wanted = %s", commission))
 }
 
-func ErrorInsufficientFundsToCreateCoin(funds string) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, InsufficientCoinToPayCommission, fmt.Sprintf("Insufficient funds to create coin: wanted = %s", funds))
+func ErrorInsufficientFunds(funds string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, InsufficientFunds, fmt.Sprintf("Insufficient funds: wanted = %s", funds))
 }
 
 func ErrorUpdateBalance(err error) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, UpdateBalanceError, err.Error())
+}
+
+func ErrCalculateCommission(err error) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeErrCalculateCommission, err.Error())
 }

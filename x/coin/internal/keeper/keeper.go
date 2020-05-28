@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"encoding/hex"
 	"fmt"
 	"strings"
@@ -109,6 +111,32 @@ func (k Keeper) UpdateCoin(ctx sdk.Context, coin types.Coin, reserve sdk.Int, vo
 	coin.Reserve = reserve
 	coin.Volume = volume
 	k.SetCoin(ctx, coin)
+}
+
+func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sdk.Int, string, error) {
+	feeCoin, ok := ctx.Value(types.FeeCoin).(string)
+	if !ok {
+		feeCoin = cliUtils.GetBaseCoin()
+	}
+
+	commission := commissionInBaseCoin
+
+	if feeCoin != cliUtils.GetBaseCoin() {
+		coinInfo, err := k.GetCoin(ctx, feeCoin)
+		if err != nil {
+			return sdk.Int{}, "", err
+		}
+
+		if coinInfo.Reserve.LT(commissionInBaseCoin) {
+			return sdk.Int{}, "", fmt.Errorf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
+				coinInfo.Reserve.String(),
+				commissionInBaseCoin.String())
+		}
+
+		commission = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, commissionInBaseCoin)
+	}
+
+	return commission, feeCoin, nil
 }
 
 func (k Keeper) IsCheckRedeemed(ctx sdk.Context, check *types.Check) bool {

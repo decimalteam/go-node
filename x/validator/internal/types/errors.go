@@ -30,6 +30,11 @@ const (
 	CodeErrNoHistoricalInfo CodeType = 701
 
 	CodeDelegatorStakeIsTooLow CodeType = 801
+
+	CodeInsufficientCoinToPayCommission CodeType = 901
+	CodeInsufficientFunds               CodeType = 902
+	CodeUpdateBalanceError              CodeType = 903
+	CodeErrCalculateCommission          CodeType = 904
 )
 
 func ErrEmptyPubKey(codespace string) *sdkerrors.Error {
@@ -123,4 +128,20 @@ func ErrInvalidHistoricalInfo(codespace string) *sdkerrors.Error {
 
 func ErrNoHistoricalInfo(codespace string) *sdkerrors.Error {
 	return sdkerrors.New(codespace, CodeErrNoHistoricalInfo, "no historical info found")
+}
+
+func ErrInsufficientCoinToPayCommission(commission string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInsufficientCoinToPayCommission, fmt.Sprintf("Insufficient coin to pay commission: wanted = %s", commission))
+}
+
+func ErrInsufficientFunds(funds string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInsufficientFunds, fmt.Sprintf("Insufficient funds: wanted = %s", funds))
+}
+
+func ErrUpdateBalance(err error) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeUpdateBalanceError, err.Error())
+}
+
+func ErrCalculateCommission(err error) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeErrCalculateCommission, err.Error())
 }

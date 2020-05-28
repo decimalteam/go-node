@@ -62,6 +62,8 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			break
 		}
 
+		k.checkDelegations(ctx, validator)
+
 		// apply the appropriate state change if necessary
 		switch {
 		case validator.IsUnbonded():
@@ -281,6 +283,38 @@ func (k Keeper) beginUnbondingValidator(ctx sdk.Context, validator types.Validat
 	}
 
 	return validator, nil
+}
+
+func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator) {
+	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+	if len(delegations) <= int(k.MaxDelegations(ctx)) {
+		return
+
+	}
+
+	sort.SliceStable(delegations, func(i, j int) bool {
+		return delegations[i].Coin.Amount.LT(delegations[j].Coin.Amount)
+	})
+
+	for i := int(k.MaxDelegations(ctx)); i < len(delegations); i++ {
+		switch validator.Status {
+		case types.Bonded:
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegations[i].DelegatorAddress, sdk.NewCoins(delegations[i].Coin))
+			if err != nil {
+				panic(err)
+			}
+		case types.Unbonded:
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegations[i].DelegatorAddress, sdk.NewCoins(delegations[i].Coin))
+			if err != nil {
+				panic(err)
+			}
+		}
+		err := k.unbond(ctx, delegations[i].DelegatorAddress, delegations[i].ValidatorAddress, delegations[i].Coin)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 }
 
 // given a map of remaining validators to previous bonded power
