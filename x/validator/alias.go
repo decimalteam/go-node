@@ -30,6 +30,7 @@ var (
 	RegisterCodec       = types.RegisterCodec
 	DefaultGenesisState = types.DefaultGenesisState
 	DefaultTxDecoder    = types.DefaultTxDecoder
+	DefaultTxEncoder    = types.DefaultTxEncoder
 
 	ErrCalculateCommission             = types.ErrCalculateCommission
 	ErrUpdateBalance                   = types.ErrUpdateBalance
