@@ -1,6 +1,8 @@
 package main
 
 import (
+	vtypes "bitbucket.org/decimalteam/go-node/x/validator"
+	"bitbucket.org/decimalteam/go-node/x/validator/utils"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
@@ -436,12 +438,12 @@ func (p *Provider) SendAll(sender Account, accounts []Account, amount sdk.Int, t
 
 func (p *Provider) SendTx(messages []sdk.Msg, sender Account) error {
 	memo := "tank send"
-	txEncoder := auth.DefaultTxEncoder(p.cdc)
-	txBldr := auth.NewTxBuilder(
+	txEncoder := vtypes.DefaultTxEncoder(p.cdc)
+	txBldr := utils.NewTxBuilder(
 		txEncoder,
 		sender.AccNumber, atomic.LoadUint64(sender.Sequence),
 		DefaultGas, DefaultGasAdj,
-		false, ChainID, memo, nil, nil,
+		false, ChainID, memo, nil, "", nil,
 	).WithKeybase(p.keybase)
 
 	tx, err := txBldr.BuildAndSign(sender.Name, sender.Password, messages)
