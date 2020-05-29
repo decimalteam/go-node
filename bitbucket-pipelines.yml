@@ -22,36 +22,6 @@ definitions:
           - build/deccli
           - build/decd
 
-  deploy-script: &deploy
-    caches:
-      - pip
-    script:
-      - MESSAGE=`git log --format=%B -n 1 $BITBUCKET_COMMIT` # getting commit message
-      - pip3 install ansible==2.9.8
-
-      - chmod 700 ci-scripts/ansible
-      - cd ci-scripts/ansible
-
-      # run update playbook
-      - if [[ $MESSAGE == *\[update\]* ]]; then
-        ansible-playbook -i "$MASTER_HOSTS, $SLAVE_HOSTS" -e "ansible_user=$USERNAME chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-update.yml;
-        else echo 0; fi
-
-      # run reset playbook for MASTER HOSTS
-      - if [[ $MESSAGE == *\[reset\]* ]]; then
-        ansible-playbook -i "$MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
-        else echo 0; fi
-
-      # run reset playbook for EXPLORER HOSTS
-      - if [[ $MESSAGE == *\[reset\]* ]]; then
-        ansible-playbook -i "$EXPLORER_HOSTS" -e "ansible_user=$USERNAME" decimal-explorer-init.yml;
-        else echo 0; fi
-
-      # run reset playbook for SLAVE HOSTS
-      - if [[ $MESSAGE == *\[reset\]* ]]; then
-        ansible-playbook -i "$SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
-        else echo 0; fi
-
   caches:
     pip: ~/.cache/pip
     go-src: ~/go/src
@@ -59,19 +29,104 @@ definitions:
 
 pipelines:
   branches:
-    staging:
-      - step:
-          <<: *build
-      - step:
-          name: Deploy
-          deployment: Staging
-          <<: *deploy
-
     develop:
       - step:
           <<: *build
       - step:
           name: Deploy
-          deployment: Test
-          <<: *deploy       
+          deployment: testnet
+          caches:
+            - pip
+          script:
+            - MESSAGE=`git log --format=%B -n 1 $BITBUCKET_COMMIT` # getting commit message
+            - pip3 install ansible==2.9.8
 
+            - chmod 700 ci-scripts/ansible
+            - cd ci-scripts/ansible
+
+            # run update playbook
+            - if [[ $MESSAGE == *\[update\]* ]]; then
+              ansible-playbook -i "$MASTER_HOSTS, $SLAVE_HOSTS" -e "ansible_user=$USERNAME chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-update.yml;
+              else echo 0; fi
+
+            # run reset playbook for MASTER HOSTS
+            - if [[ $MESSAGE == *\[reset\]* ]]; then
+              ansible-playbook -i "$MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
+              else echo 0; fi
+
+            # run reset playbook for EXPLORER HOSTS
+            - if [[ $MESSAGE == *\[reset\]* ]]; then
+              ansible-playbook -i "$EXPLORER_HOSTS" -e "ansible_user=$USERNAME" decimal-explorer-init.yml;
+              else echo 0; fi
+
+            # run reset playbook for SLAVE HOSTS
+            - if [[ $MESSAGE == *\[reset\]* ]]; then
+              ansible-playbook -i "$SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
+              else echo 0; fi
+
+  custom: # Pipelines that are triggered manually
+    update-hosts:
+      - step:
+          <<: *build
+      - step:
+          name: Deploy
+          deployment: testnet
+          caches:
+            - pip
+          script:
+            - pip install ansible==2.9.7
+
+            - chmod 700 ci-scripts/ansible
+            - cd ci-scripts/ansible
+
+            # run update playbook for UPDATE HOSTS
+            - ansible-playbook -i "$UPDATE_HOSTS" -e "ansible_user=$USERNAME chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build" decimal-nodes-update.yml;
+
+    reset-master-hosts:
+      - step:
+          <<: *build
+      - step:
+          name: Deploy
+          deployment: testnet
+          caches:
+            - pip
+          script:
+            - pip install ansible==2.9.7
+
+            - chmod 700 ci-scripts/ansible
+            - cd ci-scripts/ansible
+
+            # run reset playbook for MASTER HOSTS
+            - ansible-playbook -i "$RESET_MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
+
+    reset-slave-hosts:
+      - step:
+          <<: *build
+      - step:
+          name: Deploy
+          deployment: testnet
+          caches:
+            - pip
+          script:
+            - pip install ansible==2.9.7
+
+            - chmod 700 ci-scripts/ansible
+            - cd ci-scripts/ansible
+
+            # run reset playbook for SLAVE HOSTS
+            - ansible-playbook -i "$RESET_SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
+
+    update-services-on-hosts:
+      - step:
+          name: Deploy
+          deployment: testnet
+          caches:
+            - pip
+          script:
+            - pip install ansible==2.9.7
+
+            - chmod 700 ci-scripts/ansible
+            - cd ci-scripts/ansible
+
+            # run service update playbook for UPDATE HOSTS
+            - ansible-playbook -i "$UPDATE_HOSTS" -e "ansible_user=$USERNAME chain_id=$CHAIN_ID" decimal-service-update.yml;

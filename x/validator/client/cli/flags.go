@@ -42,8 +42,8 @@ var (
 
 func init() {
 	FsPk.String(FlagPubKey, "", "The Bech32 encoded PubKey of the validator")
-	FsAmount.String(FlagAmount, "", "Coin of coins to bond")
-	fsShares.String(FlagSharesAmount, "", "Coin of source-shares to either unbond or redelegate as a positive integer or decimal")
+	FsAmount.String(FlagAmount, "", "Amount of coins to bond")
+	fsShares.String(FlagSharesAmount, "", "Amount of source-shares to either unbond or redelegate as a positive integer or decimal")
 	fsShares.String(FlagSharesFraction, "", "Fraction of source-shares to either unbond or redelegate as a positive integer or decimal >0 and <=1")
 	fsDescriptionCreate.String(FlagMoniker, "", "The validator's name")
 	fsDescriptionCreate.String(FlagIdentity, "", "The optional identity signature (ex. UPort or Keybase)")

@@ -1,10 +1,8 @@
 package coin
 
+/*
 import (
 	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/utils/helpers"
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bytes"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,59 +16,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
-	"strconv"
-	"strings"
 	"testing"
 )
-
-// dummy addresses used for testing
-// nolint: unused deadcode
-var (
-	Addresses = createTestAddrs(500)
-	BaseDenom = strings.ToLower(cliUtils.GetBaseCoin())
-)
-
-// for incode address generation
-func TestAddr(addr string, bech string) sdk.AccAddress {
-
-	res, err := sdk.AccAddressFromHex(addr)
-	if err != nil {
-		panic(err)
-	}
-	bechexpected := res.String()
-	if bech != bechexpected {
-		panic("Bech encoding doesn't match reference")
-	}
-
-	bechres, err := sdk.AccAddressFromBech32(bech)
-	if err != nil {
-		panic(err)
-	}
-	if !bytes.Equal(bechres, res) {
-		panic("Bech decode and hex decode don't match")
-	}
-
-	return res
-}
-
-// nolint: unparam
-func createTestAddrs(numAddrs int) []sdk.AccAddress {
-	var addresses []sdk.AccAddress
-	var buffer bytes.Buffer
-
-	// start at 100 so we can make up to 999 test addresses with valid test addresses
-	for i := 100; i < (numAddrs + 100); i++ {
-		numString := strconv.Itoa(i)
-		buffer.WriteString("A58856F0FD53BF058B4909A21AEC019107BA6") //base address string
-
-		buffer.WriteString(numString) //adding on final two digits to make addresses unique
-		res, _ := sdk.AccAddressFromHex(buffer.String())
-		bech := res.String()
-		addresses = append(addresses, TestAddr(buffer.String(), bech))
-		buffer.Reset()
-	}
-	return addresses
-}
 
 // create a codec used only for testing
 func MakeTestCodec() *codec.Codec {
@@ -78,12 +25,12 @@ func MakeTestCodec() *codec.Codec {
 
 	// Register Msgs
 	cdc.RegisterInterface((*sdk.Msg)(nil), nil)
-	cdc.RegisterConcrete(MsgCreateCoin{}, "test/coin/CreateCoin", nil)
-	cdc.RegisterConcrete(MsgBuyCoin{}, "test/coin/BuyCoin", nil)
-	cdc.RegisterConcrete(MsgSellCoin{}, "test/coin/SellCoin", nil)
-	cdc.RegisterConcrete(MsgSendCoin{}, "test/coin/SendCoin", nil)
-	cdc.RegisterConcrete(MsgSellAllCoin{}, "test/coin/SellAllCoin", nil)
-	cdc.RegisterConcrete(MsgMultiSendCoin{}, "test/coin/MultiSendCoin", nil)
+	cdc.RegisterConcrete(MsgCreateCoin{}, "test/coin/create_coin", nil)
+	cdc.RegisterConcrete(MsgBuyCoin{}, "test/coin/buy_coin", nil)
+	cdc.RegisterConcrete(MsgSellCoin{}, "test/coin/sell_coin", nil)
+	cdc.RegisterConcrete(MsgSendCoin{}, "test/coin/send_coin", nil)
+	cdc.RegisterConcrete(MsgSellAllCoin{}, "test/coin/sell_all_coin", nil)
+	cdc.RegisterConcrete(MsgMultiSendCoin{}, "test/coin/multi_send_coin", nil)
 
 	// Register AppAccount
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)
@@ -97,7 +44,7 @@ func MakeTestCodec() *codec.Codec {
 // Hogpodge of all sorts of input required for testing.
 // `initPower` is converted to an amount of tokens.
 // If `initPower` is 0, no addrs get created.
-func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, Keeper, auth.AccountKeeper) {
+func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context, Keeper, auth.AccountKeeper, supply.Keeper) {
 	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
 	keyParams := sdk.NewKVStoreKey(params.StoreKey)
 	tKeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
@@ -149,12 +96,13 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, Keeper, auth.Ac
 	})
 
 	// fill all the addresses with some coins, set the loose pool tokens simultaneously
-	for _, addr := range Addresses {
-		_, err := bk.AddCoins(ctx, addr, sdk.NewCoins(sdk.NewCoin(BaseDenom, helpers.BipToPip(sdk.NewInt(10000000000)))))
+	for _, addr := range Addrs {
+		_, err := bk.AddCoins(ctx, addr, initCoins)
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	return ctx, coinKeeper, accountKeeper
+	return ctx, accountKeeper, keeper, supplyKeeper, coinKeeper
 }
+*/

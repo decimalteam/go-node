@@ -160,7 +160,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 		Volume: coinConfig.InitialVolumeBaseCoin,
 	})
 
-	keeper := NewKeeper(cdc, keyStaking, pk.Subspace(DefaultParamspace), coinKeeper, supplyKeeper, accountKeeper, auth.FeeCollectorName)
+	keeper := NewKeeper(cdc, keyStaking, pk.Subspace(DefaultParamspace), coinKeeper, supplyKeeper, auth.FeeCollectorName)
 	keeper.SetParams(ctx, types.DefaultParams())
 
 	// set module accounts

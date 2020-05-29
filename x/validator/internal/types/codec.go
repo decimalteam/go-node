@@ -12,7 +12,6 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgEditCandidate{}, "validator/edit-candidate", nil)
 	cdc.RegisterConcrete(MsgSetOnline{}, "validator/set-online", nil)
 	cdc.RegisterConcrete(MsgSetOffline{}, "validator/set-offline", nil)
-	cdc.RegisterConcrete(StdTx{}, "decimal/StdTx", nil)
 }
 
 // ModuleCdc defines the module codec

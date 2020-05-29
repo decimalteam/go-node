@@ -1,8 +1,6 @@
 package main
 
 import (
-	vtypes "bitbucket.org/decimalteam/go-node/x/validator"
-	"bitbucket.org/decimalteam/go-node/x/validator/utils"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -16,12 +14,14 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 
-	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
 )
 
 // Token is Telegram Bot token received from @BotFather.
@@ -440,12 +440,12 @@ func sendCoins(address string, amount *big.Int) (response string, txHash string,
 
 	// memo := "faucet transfer"
 	memo := ""
-	txEncoder := vtypes.DefaultTxEncoder(cdc)
-	txBldr := utils.NewTxBuilder(
+	txEncoder := auth.DefaultTxEncoder(cdc)
+	txBldr := auth.NewTxBuilder(
 		txEncoder,
 		FaucetAccountNumber, sequence,
 		FaucetGas, FaucetGasAdj,
-		false, FaucetChainID, memo, nil, "", nil,
+		false, FaucetChainID, memo, nil, nil,
 	).WithKeybase(keybase)
 
 	sender, err := sdk.AccAddressFromBech32(FaucetAddress)
@@ -470,7 +470,7 @@ func sendCoins(address string, amount *big.Int) (response string, txHash string,
 
 	// TODO: Find the way to avoid this ugly hack!
 	{
-		hackPrefix, _ := hex.DecodeString("D1E553A3")
+		hackPrefix, _ := hex.DecodeString("282816a9")
 		hackLength := (int(tx[1])<<8 + int(tx[0])) + 4
 		fmt.Println(hackLength)
 		hackTx := []byte{byte(hackLength & 0xFF), byte(hackLength >> 8)}

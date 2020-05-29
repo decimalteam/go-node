@@ -24,8 +24,6 @@ import (
 // Coin
 ////////////////////////////////////////////////////////////////
 
-const FeeCoin = "fee_coin"
-
 type Coin struct {
 	Title       string  `json:"title" yaml:"title"`                                   // Full coin title (Bitcoin)
 	CRR         uint    `json:"constant_reserve_ratio" yaml:"constant_reserve_ratio"` // between 10 and 100
