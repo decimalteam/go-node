@@ -111,6 +111,6 @@ func NewFeeCoinDecorator(ck coin.Keeper) FeeCoinDecorator {
 }
 
 func (d FeeCoinDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	//ctx = ctx.WithValue("fee_coin", "tdel")
+	ctx = ctx.WithValue("fee_coin", "tDEL")
 	return next(ctx, tx, simulate)
 }
