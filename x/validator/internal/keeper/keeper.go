@@ -3,7 +3,6 @@ package keeper
 import (
 	"container/list"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"strings"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -23,9 +22,8 @@ type Keeper struct {
 	storeKey         sdk.StoreKey
 	cdc              *codec.Codec
 	paramSpace       types.ParamSubspace
-	CoinKeeper       coin.Keeper
+	coinKeeper       coin.Keeper
 	supplyKeeper     supply.Keeper
-	AccountKeeper    auth.AccountKeeper
 	hooks            types.ValidatorHooks
 	FeeCollectorName string
 
@@ -34,7 +32,8 @@ type Keeper struct {
 }
 
 // NewKeeper creates a validator keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, accountKeeper auth.AccountKeeper, feeCollectorName string) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, feeCollectorName string) Keeper {
+
 	// ensure bonded and not bonded module accounts are set
 	if addr := supplyKeeper.GetModuleAddress(types.BondedPoolName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.BondedPoolName))
@@ -48,9 +47,8 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspac
 		storeKey:           key,
 		cdc:                cdc,
 		paramSpace:         paramSpace.WithKeyTable(ParamKeyTable()),
-		CoinKeeper:         coinKeeper,
+		coinKeeper:         coinKeeper,
 		supplyKeeper:       supplyKeeper,
-		AccountKeeper:      accountKeeper,
 		validatorCache:     make(map[string]cachedValidator, aminoCacheSize),
 		validatorCacheList: list.New(),
 		FeeCollectorName:   feeCollectorName,
@@ -113,38 +111,5 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (coin.Coin, error) {
 	} else {
 		symbol = strings.ToUpper(symbol)
 	}
-	return k.CoinKeeper.GetCoin(ctx, symbol)
-}
-
-// Returns integer abs
-func Abs(x sdk.Int) sdk.Int {
-	if x.IsNegative() {
-		return x.Neg()
-	} else {
-		return x
-	}
-}
-
-// Updating balances
-func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int, address sdk.AccAddress) error {
-	// Get account instance
-	acc := k.AccountKeeper.GetAccount(ctx, address)
-	// Get account coins information
-	coins := acc.GetCoins()
-	updAmount := Abs(amount)
-	updCoin := sdk.Coins{sdk.NewCoin(strings.ToLower(coinSymbol), updAmount)}
-	// Updating coin information
-	if amount.IsNegative() {
-		coins = coins.Sub(updCoin)
-	} else {
-		coins = coins.Add(updCoin...)
-	}
-	// Update coin information
-	err := acc.SetCoins(coins)
-	if err != nil {
-		return err
-	}
-	// Update account information
-	k.AccountKeeper.SetAccount(ctx, acc)
-	return nil
+	return k.coinKeeper.GetCoin(ctx, symbol)
 }
