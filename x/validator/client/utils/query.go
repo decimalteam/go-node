@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"encoding/hex"
 	"errors"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // QueryTxsByEvents performs a search for transactions for a given set of events

@@ -1,8 +1,9 @@
 package txrest
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	types "bitbucket.org/decimalteam/go-node/x/validator"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
@@ -47,6 +48,8 @@ func BroadcastTxRequest(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+
+		log.Println(res)
 
 		rest.PostProcessResponseBare(w, cliCtx, res)
 	}
