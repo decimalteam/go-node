@@ -31,6 +31,9 @@ var (
 	DefaultGenesisState = types.DefaultGenesisState
 	DefaultTxDecoder    = types.DefaultTxDecoder
 	DefaultTxEncoder    = types.DefaultTxEncoder
+	StdSignBytes        = types.StdSignBytes
+	NewTxBuilderFromCLI = types.NewTxBuilderFromCLI
+	NewStdTx            = types.NewStdTx
 
 	ErrCalculateCommission             = types.ErrCalculateCommission
 	ErrUpdateBalance                   = types.ErrUpdateBalance
@@ -46,6 +49,9 @@ type (
 	CodeType     = types.CodeType
 	GenesisState = types.GenesisState
 	Params       = types.Params
+
+	StdTx        = types.StdTx
+	StdSignature = types.StdSignature
 
 	MsgDeclareCandidate = types.MsgDeclareCandidate
 	MsgDelegate         = types.MsgDelegate

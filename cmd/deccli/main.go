@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 
+	authcmd "bitbucket.org/decimalteam/go-node/x/validator/client/utils/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -16,7 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 
 	"bitbucket.org/decimalteam/go-node/app"
