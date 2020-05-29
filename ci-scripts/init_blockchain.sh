@@ -19,12 +19,12 @@ decd init test-node-sgp1-01 --chain-id decimal-testnet-05-29-19-00
 # decd add-genesis-account $(deccli keys show spammer -a --keyring-backend test) 1000000000000000000000000000tdel
 
 # Add initial funds to the genesis file
-decd add-genesis-account dx16rr3cvdgj8jsywhx8lfteunn9uz0xg2c7ua9nl 10000000000000000000000000tdel # validator on test-node-fra1-01 (10,000,000 tDEL)
-decd add-genesis-account dx1ajytg8jg8ypx0rj9p792x32fuxyezga43jd3ry 10000000000000000000000000tdel # validator on test-node-fra1-02 (10,000,000 tDEL)
-decd add-genesis-account dx1azre0dtclv5y05ufynkhswzh0cwh4ktzlas3mp 10000000000000000000000000tdel # validator on test-node-nyc3-01 (10,000,000 tDEL)
-decd add-genesis-account dx1j3j2mwxnvlmsu2tkwm4z5390vq8v337wd6hmg2 10000000000000000000000000tdel # validator on test-node-sgp1-01 (10,000,000 tDEL)
+decd add-genesis-account dx16rr3cvdgj8jsywhx8lfteunn9uz0xg2c7ua9nl 10000010000000000000000000tdel # validator on test-node-fra1-01 (10,000,000 tDEL)
+decd add-genesis-account dx1ajytg8jg8ypx0rj9p792x32fuxyezga43jd3ry 10000010000000000000000000tdel # validator on test-node-fra1-02 (10,000,000 tDEL)
+decd add-genesis-account dx1azre0dtclv5y05ufynkhswzh0cwh4ktzlas3mp 10000010000000000000000000tdel # validator on test-node-nyc3-01 (10,000,000 tDEL)
+decd add-genesis-account dx1j3j2mwxnvlmsu2tkwm4z5390vq8v337wd6hmg2 10000010000000000000000000tdel # validator on test-node-sgp1-01 (10,000,000 tDEL)
 decd add-genesis-account dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd 80000000000000000000000000tdel # faucet (80,000,000 tDEL)
-decd add-genesis-account dx1esffyu0wxk6eez77fhzdxfgvjp4646hqm9sx6c 80000000000000000000000000tdel # tanker (80,000,000 tDEL)
+decd add-genesis-account dx1esffyu0wxk6eez77fhzdxfgvjp4646hqm9sx6c 79999960000000000000000000tdel # tanker (80,000,000 tDEL)
 
 # decd add-genesis-account dxd0c71c31a891e5023ae63fd2bcf2732f04f32158 10000000000000000000000000tdel # validator on test-node-fra1-01 (10,000,000 tDEL)
 # decd add-genesis-account dxec88b41e483902678e450f8aa34549e1899123b5 10000000000000000000000000tdel # validator on test-node-fra1-02 (10,000,000 tDEL)
