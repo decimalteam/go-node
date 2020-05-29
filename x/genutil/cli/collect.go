@@ -1,7 +1,6 @@
 package cli
 
 import (
-	vtypes "bitbucket.org/decimalteam/go-node/x/validator/utils"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -24,6 +23,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	"bitbucket.org/decimalteam/go-node/x/genutil"
@@ -155,7 +155,7 @@ func GenAppStateFromConfig(cdc *codec.Codec, config *cfg.Config,
 // the list of appGenTxs, and persistent peers required to generate genesis.json.
 func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 	genDoc tmtypes.GenesisDoc, genAccIterator types.GenesisAccountsIterator,
-) (appGenTxs []vtypes.StdTx, persistentPeers string, err error) {
+) (appGenTxs []authtypes.StdTx, persistentPeers string, err error) {
 
 	var fos []os.FileInfo
 	fos, err = ioutil.ReadDir(genTxsDir)
@@ -192,7 +192,7 @@ func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 		if jsonRawTx, err = ioutil.ReadFile(filename); err != nil {
 			return appGenTxs, persistentPeers, err
 		}
-		var genStdTx vtypes.StdTx
+		var genStdTx authtypes.StdTx
 		if err = cdc.UnmarshalJSON(jsonRawTx, &genStdTx); err != nil {
 			return appGenTxs, persistentPeers, err
 		}

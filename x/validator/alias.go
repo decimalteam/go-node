@@ -17,6 +17,7 @@ const (
 	QuerierRoute      = types.QuerierRoute
 	NotBondedPoolName = types.NotBondedPoolName
 	BondedPoolName    = types.BondedPoolName
+	DefaultBondDenom  = types.DefaultBondDenom
 
 	ValidatorsKey = types.ValidatorsKey
 
@@ -29,16 +30,6 @@ var (
 	NewQuerier          = keeper.NewQuerier
 	RegisterCodec       = types.RegisterCodec
 	DefaultGenesisState = types.DefaultGenesisState
-	DefaultTxDecoder    = types.DefaultTxDecoder
-	DefaultTxEncoder    = types.DefaultTxEncoder
-	StdSignBytes        = types.StdSignBytes
-	NewTxBuilderFromCLI = types.NewTxBuilderFromCLI
-	NewStdTx            = types.NewStdTx
-
-	ErrCalculateCommission             = types.ErrCalculateCommission
-	ErrUpdateBalance                   = types.ErrUpdateBalance
-	ErrInsufficientFunds               = types.ErrInsufficientFunds
-	ErrInsufficientCoinToPayCommission = types.ErrInsufficientCoinToPayCommission
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
@@ -49,9 +40,6 @@ type (
 	CodeType     = types.CodeType
 	GenesisState = types.GenesisState
 	Params       = types.Params
-
-	StdTx        = types.StdTx
-	StdSignature = types.StdSignature
 
 	MsgDeclareCandidate = types.MsgDeclareCandidate
 	MsgDelegate         = types.MsgDelegate

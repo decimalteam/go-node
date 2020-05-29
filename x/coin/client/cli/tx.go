@@ -22,7 +22,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	coinTxCmd.AddCommand(setFlagFeeCoin(flags.PostCommands(
+	coinTxCmd.AddCommand(flags.PostCommands(
 		GetCmdCreateCoin(cdc),
 		GetCmdBuyCoin(cdc),
 		GetCmdSellCoin(cdc),
@@ -30,14 +30,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdSellAllCoin(cdc),
 		GetCmdIssueCheck(cdc),
 		GetCmdRedeemCheck(cdc),
-	))...)
+	)...)
 
 	return coinTxCmd
-}
-
-func setFlagFeeCoin(cmds []*cobra.Command) []*cobra.Command {
-	for _, cmd := range cmds {
-		cmd.Flags().String("fee-coin", "tDEL", "Coin for paying fee")
-	}
-	return cmds
 }

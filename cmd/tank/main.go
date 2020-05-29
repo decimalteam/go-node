@@ -1,8 +1,6 @@
 package main
 
 import (
-	vtypes "bitbucket.org/decimalteam/go-node/x/validator"
-	"bitbucket.org/decimalteam/go-node/x/validator/utils"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
@@ -438,12 +436,12 @@ func (p *Provider) SendAll(sender Account, accounts []Account, amount sdk.Int, t
 
 func (p *Provider) SendTx(messages []sdk.Msg, sender Account) error {
 	memo := "tank send"
-	txEncoder := vtypes.DefaultTxEncoder(p.cdc)
-	txBldr := utils.NewTxBuilder(
+	txEncoder := auth.DefaultTxEncoder(p.cdc)
+	txBldr := auth.NewTxBuilder(
 		txEncoder,
 		sender.AccNumber, atomic.LoadUint64(sender.Sequence),
 		DefaultGas, DefaultGasAdj,
-		false, ChainID, memo, nil, "", nil,
+		false, ChainID, memo, nil, nil,
 	).WithKeybase(p.keybase)
 
 	tx, err := txBldr.BuildAndSign(sender.Name, sender.Password, messages)
@@ -453,7 +451,7 @@ func (p *Provider) SendTx(messages []sdk.Msg, sender Account) error {
 
 	// TODO: Find the way to avoid this ugly hack!
 	{
-		hackPrefix, _ := hex.DecodeString("D1E553A3")
+		hackPrefix, _ := hex.DecodeString("282816a9")
 		hackLength := (int(tx[1])<<8 + int(tx[0])) + 4
 		hackTx := []byte{byte(hackLength & 0xFF), byte(hackLength >> 8)}
 		hackTx = append(hackTx, hackPrefix...)

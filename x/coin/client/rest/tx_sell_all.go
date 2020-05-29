@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/client/utils/rest"
+	//"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"fmt"
 	"net/http"
 
@@ -9,6 +9,8 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/rest"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	//"strings"
 )
 
@@ -68,6 +70,6 @@ func CoinSellAllRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		//	return err
 		//}
 
-		rest.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
 }

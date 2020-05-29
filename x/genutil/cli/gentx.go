@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/client/utils"
-	vtypes "bitbucket.org/decimalteam/go-node/x/validator/utils"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -28,6 +26,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	"bitbucket.org/decimalteam/go-node/x/genutil"
@@ -42,7 +42,7 @@ const (
 type StakingMsgBuildingHelpers interface {
 	CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string)
 	PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey)
-	BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr vtypes.TxBuilder) (vtypes.TxBuilder, sdk.Msg, error)
+	BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error)
 }
 
 // GenTxCmd builds the application's gentx command.
@@ -125,7 +125,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 			}
 
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := vtypes.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			viper.Set(flags.FlagGenerateOnly, true)
 
@@ -204,8 +204,8 @@ func makeOutputFilepath(rootDir, nodeID string) (string, error) {
 	return filepath.Join(writePath, fmt.Sprintf("gentx-%v.json", nodeID)), nil
 }
 
-func readUnsignedGenTxFile(cdc *codec.Codec, r io.Reader) (vtypes.StdTx, error) {
-	var stdTx vtypes.StdTx
+func readUnsignedGenTxFile(cdc *codec.Codec, r io.Reader) (auth.StdTx, error) {
+	var stdTx auth.StdTx
 	bytes, err := ioutil.ReadAll(r)
 	if err != nil {
 		return stdTx, err
@@ -214,7 +214,7 @@ func readUnsignedGenTxFile(cdc *codec.Codec, r io.Reader) (vtypes.StdTx, error) 
 	return stdTx, err
 }
 
-func writeSignedGenTx(cdc *codec.Codec, outputDocument string, tx vtypes.StdTx) error {
+func writeSignedGenTx(cdc *codec.Codec, outputDocument string, tx auth.StdTx) error {
 	outputFile, err := os.OpenFile(outputDocument, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
 	if err != nil {
 		return err

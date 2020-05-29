@@ -1,7 +1,6 @@
 package multisig
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
 	"encoding/json"
 
 	"github.com/gorilla/mux"
@@ -78,18 +77,16 @@ type AppModule struct {
 
 	keeper        Keeper
 	accountKeeper auth.AccountKeeper
-	bankKeeper    bank.Keeper
-	coinKeeper    coin.Keeper
+	coinKeeper    bank.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper, accountKeeper auth.AccountKeeper, bankKeeper bank.Keeper, coinKeeper coin.Keeper) AppModule {
+func NewAppModule(k Keeper, accountKeeper auth.AccountKeeper, bankKeeper bank.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
 		accountKeeper:  accountKeeper,
-		bankKeeper:     bankKeeper,
-		coinKeeper:     coinKeeper,
+		coinKeeper:     bankKeeper,
 	}
 }
 

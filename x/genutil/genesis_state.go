@@ -1,7 +1,6 @@
 package genutil
 
 import (
-	vtypes "bitbucket.org/decimalteam/go-node/x/validator/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
@@ -10,9 +9,11 @@ import (
 	tos "github.com/tendermint/tendermint/libs/os"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
 const ModuleName = "genutil"
@@ -31,7 +32,7 @@ func NewGenesisState(genTxs []json.RawMessage) GenesisState {
 
 // NewGenesisStateFromStdTx creates a new GenesisState object
 // from auth transactions
-func NewGenesisStateFromStdTx(codec *codec.Codec, genTxs []vtypes.StdTx) GenesisState {
+func NewGenesisStateFromStdTx(codec *codec.Codec, genTxs []authtypes.StdTx) GenesisState {
 	genTxsBz := make([]json.RawMessage, len(genTxs))
 	for i, genTx := range genTxs {
 		genTxsBz[i] = codec.MustMarshalJSON(genTx)
@@ -93,7 +94,7 @@ func GenesisStateFromGenFile(cdc *codec.Codec, genFile string,
 // ValidateGenesis validates GenTx transactions
 func ValidateGenesis(cdc *codec.Codec, genesisState GenesisState) error {
 	for i, genTx := range genesisState.GenTxs {
-		var tx vtypes.StdTx
+		var tx authtypes.StdTx
 		if err := cdc.UnmarshalJSON(genTx, &tx); err != nil {
 			return err
 		}
