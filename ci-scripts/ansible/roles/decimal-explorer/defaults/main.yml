@@ -2,5 +2,4 @@
 # defaults file for decimal-explorer
 systemd_path: '/etc/systemd/system/'
 service_name_worker: worker.service
-service_name_indexer: indexer.service
-service_name_indexer_parser: indexer-parser.service
+indexer_bin: '/home/centos/indexer'
