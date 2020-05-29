@@ -166,6 +166,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		keys[multisig.StoreKey],
 		multisigSubspace,
 		app.accountKeeper,
+		app.coinKeeper,
 		app.bankKeeper,
 	)
 
@@ -174,6 +175,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		keys[validator.StoreKey],
 		validatorSubspace,
 		app.coinKeeper,
+		app.accountKeeper,
 		app.supplyKeeper,
 		auth.FeeCollectorName,
 	)

@@ -31,6 +31,11 @@ var (
 	RegisterCodec       = types.RegisterCodec
 	DefaultGenesisState = types.DefaultGenesisState
 
+	ErrCalculateCommission             = types.ErrCalculateCommission
+	ErrUpdateBalance                   = types.ErrUpdateBalance
+	ErrInsufficientFunds               = types.ErrInsufficientFunds
+	ErrInsufficientCoinToPayCommission = types.ErrInsufficientCoinToPayCommission
+
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
 )

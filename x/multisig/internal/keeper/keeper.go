@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/coin"
 	"fmt"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -19,16 +20,18 @@ type Keeper struct {
 	cdc           *codec.Codec
 	paramspace    types.ParamSubspace
 	AccountKeeper auth.AccountKeeper
+	CoinKeeper    coin.Keeper
 	BankKeeper    bank.Keeper
 }
 
 // NewKeeper creates a multisig keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, accountKeeper auth.AccountKeeper, bankKeeper bank.Keeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, accountKeeper auth.AccountKeeper, coinKeeper coin.Keeper, bankKeeper bank.Keeper) Keeper {
 	keeper := Keeper{
 		storeKey:      key,
 		cdc:           cdc,
 		paramspace:    paramspace.WithKeyTable(types.ParamKeyTable()),
 		AccountKeeper: accountKeeper,
+		CoinKeeper:    coinKeeper,
 		BankKeeper:    bankKeeper,
 	}
 	return keeper

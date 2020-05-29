@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"log"
 	"math/big"
 	"strconv"
 	"strings"
@@ -21,6 +20,13 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
+)
+
+const (
+	SendFee        int64 = 10
+	SellFee        int64 = 100
+	BuyFee         int64 = 100
+	RedeemCheckFee int64 = 30
 )
 
 var e18 = big.NewFloat(1000000000000000000)
@@ -94,8 +100,10 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		Volume:      msg.InitialVolume,
 	}
 
-	commission := getCreateCoinCommission(msg.Symbol)
-	commission = helpers.BipToPip(commission)
+	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(msg.Symbol)))
+	if err != nil {
+		return nil, types.ErrCalculateCommission(err)
+	}
 
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Creator)
 	balance := acc.GetCoins()
@@ -108,10 +116,10 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 	}
 
 	if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(commission.Add(msg.InitialReserve)) {
-		return nil, types.ErrorInsufficientFundsToCreateCoin(commission.Add(msg.InitialReserve).String())
+		return nil, types.ErrorInsufficientFunds(commission.Add(msg.InitialReserve).String())
 	}
 
-	err := k.UpdateBalance(ctx, strings.ToLower(cliUtils.GetBaseCoin()), msg.InitialReserve.Neg(), msg.Creator)
+	err = k.UpdateBalance(ctx, strings.ToLower(cliUtils.GetBaseCoin()), msg.InitialReserve.Neg(), msg.Creator)
 	if err != nil {
 		return nil, types.ErrorUpdateBalance(err)
 	}
@@ -122,7 +130,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		return nil, types.ErrorUpdateBalance(err)
 	}
 
-	err = k.UpdateBalance(ctx, strings.ToLower(cliUtils.GetBaseCoin()), commission.Neg(), msg.Creator)
+	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Creator)
 	if err != nil {
 		return nil, types.ErrorUpdateBalance(err)
 	}
@@ -153,12 +161,28 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 ////////////////////////////////////////////////////////////////
 
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
-	// TODO: commission
-	log.Println("Send coin gas: ", ctx.GasMeter().GasConsumed())
-	err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coin), msg.Amount)})
+	commission, feeCoin, err := k.GetCommission(ctx, helpers.UnitToPip(SendFee))
+	if err != nil {
+		return nil, types.ErrCalculateCommission(err)
+	}
+
+	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)
+	balance := acc.GetCoins()
+
+	if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(commission) {
+		return nil, types.ErrorInsufficientCoinToPayCommission(commission.String())
+	}
+
+	err = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coin), msg.Amount)})
 	if err != nil {
 		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
 	}
+
+	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
+	if err != nil {
+		return nil, types.ErrorUpdateBalance(err)
+	}
+
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -169,14 +193,24 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.R
 			sdk.NewAttribute(types.AttributeReceiver, msg.Receiver.String()),
 		),
 	})
-	log.Println("Send coin gas: ", ctx.GasMeter().GasConsumed())
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoin) (*sdk.Result, error) {
+	commission, feeCoin, err := k.GetCommission(ctx, helpers.UnitToPip(SendFee+int64((len(msg.Coins)-1)*5)))
+	if err != nil {
+		return nil, types.ErrCalculateCommission(err)
+	}
+
+	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)
+	balance := acc.GetCoins()
+
+	if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(commission) {
+		return nil, types.ErrorInsufficientCoinToPayCommission(commission.String())
+	}
+
 	for i := range msg.Coins {
-		// TODO: Commission
 		_ = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Coins[i].Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coins[i].Coin), msg.Coins[i].Amount)})
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
@@ -193,6 +227,12 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 			),
 		})
 	}
+
+	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
+	if err != nil {
+		return nil, types.ErrorUpdateBalance(err)
+	}
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
@@ -201,10 +241,18 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 ////////////////////////////////////////////////////////////////
 
 func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Result, error) {
-	log.Println("Buy coin gas: ", ctx.GasMeter().GasConsumed())
+	commission, feeCoin, err := k.GetCommission(ctx, helpers.UnitToPip(BuyFee))
+	if err != nil {
+		return nil, types.ErrCalculateCommission(err)
+	}
+
 	// Retrieve buyer account and it's balance of selling coins
 	account := k.AccountKeeper.GetAccount(ctx, msg.Buyer)
 	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell))
+
+	if balance.LT(commission) {
+		return nil, types.ErrorInsufficientCoinToPayCommission(commission.String())
+	}
 
 	// Retrieve the coin requested to buy
 	coinToBuy, err := k.GetCoin(ctx, msg.CoinToBuy)
@@ -226,20 +274,6 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 	if coinToSell.Symbol != msg.CoinToSell {
 		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to sell: retrieved coin %s instead", msg.CoinToSell, coinToSell.Symbol)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToSellNotExists, errMsg)
-	}
-
-	if !coinToBuy.IsBase() {
-		fmt.Printf("####### Coin to buy: %s\n", coinToBuy.Symbol)
-		fmt.Printf("####### - reserve: %f (%s)\n", floatFromInt(coinToBuy.Reserve), coinToBuy.Reserve)
-		fmt.Printf("####### - supply: %f (%s)\n", floatFromInt(coinToBuy.Volume), coinToBuy.Volume)
-		fmt.Printf("####### - limit: %f (%s)\n", floatFromInt(coinToBuy.LimitVolume), coinToBuy.LimitVolume)
-	}
-
-	if !coinToSell.IsBase() {
-		fmt.Printf("####### Coin to sell: %s\n", coinToSell.Symbol)
-		fmt.Printf("####### - reserve: %f (%s)\n", floatFromInt(coinToSell.Reserve), coinToSell.Reserve)
-		fmt.Printf("####### - supply: %f (%s)\n", floatFromInt(coinToSell.Volume), coinToSell.Volume)
-		fmt.Printf("####### - limit: %f (%s)\n", floatFromInt(coinToSell.LimitVolume), coinToSell.LimitVolume)
 	}
 
 	// Ensure supply limit of the coin to buy does not overflow
@@ -269,10 +303,6 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 		amountInBaseCoin = formulas.CalculatePurchaseAmount(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountToBuy)
 		amountToSell = formulas.CalculateSaleAmount(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountInBaseCoin)
 	}
-	fmt.Printf("####### Buy %f (%s) %s for %s\n", floatFromInt(amountToBuy), amountToBuy, coinToBuy.Symbol, coinToSell.Symbol)
-	fmt.Printf("####### - calculated amount to buy: %f (%s)\n", floatFromInt(amountToBuy), amountToBuy)
-	fmt.Printf("####### - calculated amount to sell: %f (%s)\n", floatFromInt(amountToSell), amountToSell)
-	fmt.Printf("####### - calculated amount in base coin: %f (%s)\n", floatFromInt(amountInBaseCoin), amountInBaseCoin)
 
 	// Ensure maximum amount of coins to sell (price guard)
 	if amountToSell.GT(msg.AmountToSell) {
@@ -304,6 +334,10 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, errMsg)
 	}
 
+	if balance.LT(amountToSell.Add(commission)) {
+		return nil, types.ErrorInsufficientFunds(amountToSell.Add(commission).String())
+	}
+
 	// Update buyer account balances
 	err = k.UpdateBalance(ctx, msg.CoinToSell, amountToSell.Neg(), msg.Buyer)
 	if err != nil {
@@ -314,6 +348,11 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 	if err != nil {
 		errMsg := fmt.Sprintf("Unable to update balance of account %s: %v", account.GetAddress(), err)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
+	}
+
+	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Buyer)
+	if err != nil {
+		return nil, types.ErrorUpdateBalance(err)
 	}
 
 	// Update coins
@@ -342,18 +381,22 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 		),
 	})
 
-	fmt.Printf("####### Buy transaction successed!\n")
-
-	log.Println("Buy coin gas: ", ctx.GasMeter().GasConsumed())
-
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll bool) (*sdk.Result, error) {
-	log.Println("Sell coin gas: ", ctx.GasMeter().GasConsumed())
+	commission, feeCoin, err := k.GetCommission(ctx, helpers.UnitToPip(SellFee))
+	if err != nil {
+		return nil, types.ErrCalculateCommission(err)
+	}
+
 	// Retrieve seller account and it's balance of selling coins
 	account := k.AccountKeeper.GetAccount(ctx, msg.Seller)
 	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell))
+
+	if balance.LT(commission) {
+		return nil, types.ErrorInsufficientCoinToPayCommission(commission.String())
+	}
 
 	// Fill amount to sell in case of MsgSellAll
 	if sellAll {
@@ -382,20 +425,6 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, errMsg)
 	}
 
-	if !coinToBuy.IsBase() {
-		fmt.Printf("####### Coin to buy: %s\n", coinToBuy.Symbol)
-		fmt.Printf("####### - reserve: %f (%s)\n", floatFromInt(coinToBuy.Reserve), coinToBuy.Reserve)
-		fmt.Printf("####### - supply: %f (%s)\n", floatFromInt(coinToBuy.Volume), coinToBuy.Volume)
-		fmt.Printf("####### - limit: %f (%s)\n", floatFromInt(coinToBuy.LimitVolume), coinToBuy.LimitVolume)
-	}
-
-	if !coinToSell.IsBase() {
-		fmt.Printf("####### Coin to sell: %s\n", coinToSell.Symbol)
-		fmt.Printf("####### - reserve: %f (%s)\n", floatFromInt(coinToSell.Reserve), coinToSell.Reserve)
-		fmt.Printf("####### - supply: %f (%s)\n", floatFromInt(coinToSell.Volume), coinToSell.Volume)
-		fmt.Printf("####### - limit: %f (%s)\n", floatFromInt(coinToSell.LimitVolume), coinToSell.LimitVolume)
-	}
-
 	// Ensure that seller account holds enough coins to sell
 	if balance.LT(msg.AmountToSell) {
 		errMsg := fmt.Sprintf(
@@ -403,6 +432,10 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 			floatFromInt(balance), coinToSell.Symbol, floatFromInt(msg.AmountToSell), coinToSell.Symbol,
 		)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, errMsg)
+	}
+
+	if balance.LT(msg.AmountToSell.Add(commission)) {
+		return nil, types.ErrorInsufficientFunds(msg.AmountToSell.Add(commission).String())
 	}
 
 	// Calculate amount of buy coins which seller will receive
@@ -421,10 +454,6 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 		amountInBaseCoin = formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountToSell)
 		amountToBuy = formulas.CalculatePurchaseReturn(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountInBaseCoin)
 	}
-	fmt.Printf("####### Sell %f (%s) %s for %s\n", floatFromInt(amountToSell), amountToSell, coinToSell.Symbol, coinToBuy.Symbol)
-	fmt.Printf("####### - calculated amount to sell: %f (%s)\n", floatFromInt(amountToSell), amountToSell)
-	fmt.Printf("####### - calculated amount to buy: %f (%s)\n", floatFromInt(amountToBuy), amountToBuy)
-	fmt.Printf("####### - calculated amount in base coin: %f (%s)\n", floatFromInt(amountInBaseCoin), amountInBaseCoin)
 
 	// Ensure minimum amount of coins to buy (price guard)
 	if amountToBuy.LT(msg.AmountToBuy) {
@@ -470,6 +499,11 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
 
+	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Seller)
+	if err != nil {
+		return nil, types.ErrorUpdateBalance(err)
+	}
+
 	// Update coins
 	if !coinToSell.IsBase() {
 		k.UpdateCoin(ctx, coinToSell, coinToSell.Reserve.Sub(amountInBaseCoin), coinToSell.Volume.Sub(amountToSell))
@@ -500,9 +534,6 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 		),
 	})
 
-	fmt.Printf("####### Sell transaction successed!\n")
-	log.Println("Sell coin gas: ", ctx.GasMeter().GasConsumed())
-
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
@@ -511,7 +542,14 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 ////////////////////////////////////////////////////////////////
 
 func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (*sdk.Result, error) {
-	log.Println("Redeem check gas: ", ctx.GasMeter().GasConsumed())
+	commission, feeCoin, err := k.GetCommission(ctx, helpers.UnitToPip(RedeemCheckFee))
+	if err != nil {
+		return nil, types.ErrCalculateCommission(err)
+	}
+
+	// Retrieve seller account and it's balance of selling coins
+	account := k.AccountKeeper.GetAccount(ctx, msg.Receiver)
+	balanceFee := account.GetCoins().AmountOf(strings.ToLower(feeCoin))
 
 	// Decode provided check from base64 format to raw bytes
 	checkBytes, err := base64.StdEncoding.DecodeString(msg.Check)
@@ -541,8 +579,6 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, errMsg)
 	}
 
-	// Retrieve seller account and it's balance of selling coins
-	account := k.AccountKeeper.GetAccount(ctx, issuer)
 	balance := account.GetCoins().AmountOf(strings.ToLower(check.Coin))
 
 	// Retrieve the coin specified in the check
@@ -564,6 +600,14 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 			floatFromInt(balance), coin.Symbol, floatFromInt(amount), coin.Symbol,
 		)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidAmount, errMsg)
+	}
+
+	if balanceFee.LT(commission) {
+		return nil, types.ErrorInsufficientCoinToPayCommission(commission.String())
+	}
+
+	if feeCoin == check.Coin && balance.LT(amount.Add(commission)) {
+		return nil, types.ErrorInsufficientFunds(amount.Add(commission).String())
 	}
 
 	// Ensure the proper chain ID is specified in the check
@@ -631,6 +675,11 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	if err != nil {
 		errMsg := fmt.Sprintf("unable to update balance of check redeemer account %s: %v", msg.Receiver, err)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
+	}
+
+	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Receiver)
+	if err != nil {
+		return nil, types.ErrorUpdateBalance(err)
 	}
 
 	// Emit event
