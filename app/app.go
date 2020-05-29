@@ -24,6 +24,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/validator"
+	"bitbucket.org/decimalteam/go-node/x/validator/ante"
 )
 
 const appName = "decimal"
@@ -216,11 +217,10 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// The AnteHandler handles signature verification and transaction pre-processing
 	app.SetAnteHandler(
-		validator.NewAnteHandler(
+		ante.NewAnteHandler(
 			app.accountKeeper,
-			app.validatorKeeper,
-			app.coinKeeper,
 			app.supplyKeeper,
+			app.coinKeeper,
 			auth.DefaultSigVerificationGasConsumer,
 		),
 	)

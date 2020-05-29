@@ -1,28 +1,17 @@
-package validator
+package ante
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/validator"
 	vtypes "bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 	"strconv"
 )
-
-// Ante
-func NewAnteHandler(ak keeper.AccountKeeper, vk Keeper, ck coin.Keeper, sk supply.Keeper, consumer ante.SignatureVerificationGasConsumer) sdk.AnteHandler {
-	return func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
-		return NewSequenceEventDecorator(ak).AnteHandle(ctx, tx, simulate, func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) {
-			return NewFeeCoinDecorator(ck).AnteHandle(ctx, tx, simulate, auth.NewAnteHandler(ak, sk, consumer))
-		})
-	}
-}
 
 type SequenceEventDecorator struct {
 	ak keeper.AccountKeeper
@@ -58,11 +47,11 @@ func (sed SequenceEventDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 }
 
 type FeeCoinUpdateDecorator struct {
-	vk Keeper
+	vk validator.Keeper
 	ck coin.Keeper
 }
 
-func NewFeeCoinUpdateDecorator(vk Keeper, ck coin.Keeper) FeeCoinUpdateDecorator {
+func NewFeeCoinUpdateDecorator(vk validator.Keeper, ck coin.Keeper) FeeCoinUpdateDecorator {
 	return FeeCoinUpdateDecorator{
 		vk: vk,
 		ck: ck,
@@ -88,7 +77,7 @@ func (d FeeCoinUpdateDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 			}
 			if fee.Denom != d.vk.BondDenom(ctx) {
 				if feeCoin.Reserve.LT(fee.Amount) {
-					return ctx, vtypes.ErrCoinReserveIsNotSufficient(DefaultCodespace, feeCoin.Reserve.String(), fee.Amount.String())
+					return ctx, vtypes.ErrCoinReserveIsNotSufficient(validator.DefaultCodespace, feeCoin.Reserve.String(), fee.Amount.String())
 				}
 
 				commission = formulas.CalculateSaleAmount(feeCoin.Volume, feeCoin.Reserve, feeCoin.CRR, fee.Amount)
