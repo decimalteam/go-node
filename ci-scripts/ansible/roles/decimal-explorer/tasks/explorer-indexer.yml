@@ -2,7 +2,7 @@
 # tasks file for decimal explorer indexer
 - name: Stop indexer explorer process
   shell: pm2 stop all
-  ignore_errors: yes  
+  notify: run service Explorer Indexer  
 
 - name: Drop schema "public" with cascade
   postgresql_schema:
@@ -21,14 +21,3 @@
     state: present
   become: yes
   become_user: postgres
-
-- name: Start indexer  process
-  shell: pm2 start app.json
-  args:
-    chdir: '{{ indexer_bin }}'
-
-- name: Start indexer parser  process
-  shell: pm2 start app-parser.json
-  args:
-    chdir: '{{ indexer_bin }}'
-    

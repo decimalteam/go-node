@@ -9,3 +9,6 @@
     state: started
     enabled: yes
   become: yes
+
+- name: run service Explorer Indexer
+  shell: pm2 start all
