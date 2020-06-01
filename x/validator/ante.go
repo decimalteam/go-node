@@ -1,24 +1,38 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	vtypes "bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"errors"
+	"strconv"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"strconv"
+
+	"bitbucket.org/decimalteam/go-node/utils"
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	vtypes "bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // Ante
 func NewAnteHandler(ak keeper.AccountKeeper, vk Keeper, ck coin.Keeper, sk supply.Keeper, consumer ante.SignatureVerificationGasConsumer) sdk.AnteHandler {
 	return func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
-		return NewFeeCoinDecorator(ck).AnteHandle(ctx, tx, simulate, auth.NewAnteHandler(ak, sk, consumer))
+		return NewFeeCoinDecorator(ck).AnteHandle(ctx, tx, simulate, sdk.ChainAnteDecorators(
+			utils.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+			ante.NewMempoolFeeDecorator(),
+			ante.NewValidateBasicDecorator(),
+			ante.NewValidateMemoDecorator(ak),
+			ante.NewConsumeGasForTxSizeDecorator(ak),
+			ante.NewSetPubKeyDecorator(ak), // SetPubKeyDecorator must be called before all signature verification decorators
+			ante.NewValidateSigCountDecorator(ak),
+			ante.NewDeductFeeDecorator(ak, sk),
+			ante.NewSigGasConsumeDecorator(ak, consumer),
+			ante.NewSigVerificationDecorator(ak),
+			ante.NewIncrementSequenceDecorator(ak), // innermost AnteDecorator
+		))
 	}
 }
 
