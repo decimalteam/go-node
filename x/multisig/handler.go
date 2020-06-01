@@ -22,7 +22,7 @@ const (
 // NewHandler creates an sdk.Handler for all the multisig type messages
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		// ctx = ctx.WithEventManager(sdk.NewEventManager())
+		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		case MsgCreateWallet:
 			return handleMsgCreateWallet(ctx, k, msg)
