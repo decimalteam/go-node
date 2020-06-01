@@ -456,15 +456,13 @@ func (k Keeper) DequeueAllMatureRedelegationQueue(ctx sdk.Context, currTime time
 
 // Perform a delegation, set/update everything necessary within the store.
 // tokenSrc indicates the bond status of the incoming funds.
-func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.Coin, tokenSrc types.BondStatus,
-	validator types.Validator, subtractAccount bool) (sdk.Dec, error) {
+func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.Coin, tokenSrc types.BondStatus, validator types.Validator, subtractAccount bool) error {
 
-	newShares := sdk.ZeroDec()
 	// In some situations, the exchange rate becomes invalid, e.g. if
 	// Validator loses all tokens due to slashing. In this case,
 	// make all future delegations invalid.
 	if validator.InvalidExRate() {
-		return sdk.ZeroDec(), types.ErrDelegatorShareExRateInvalid(k.Codespace())
+		return types.ErrDelegatorShareExRateInvalid(k.Codespace())
 	}
 
 	// Get or create the delegation object
@@ -500,7 +498,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 
 		err := k.supplyKeeper.DelegateCoinsFromAccountToModule(ctx, delegation.DelegatorAddress, sendName, sdk.NewCoins(bondCoin))
 		if err != nil {
-			return sdk.ZeroDec(), err
+			return err
 		}
 	} else {
 
@@ -537,7 +535,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	// Call the after-modification hook
 	k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 
-	return newShares, nil
+	return nil
 }
 
 // Undelegate unbonds an amount of delegator shares from a given validator. It

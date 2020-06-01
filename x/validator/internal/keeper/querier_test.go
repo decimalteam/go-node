@@ -204,7 +204,7 @@ func TestQueryDelegation(t *testing.T) {
 	keeper.SetValidatorByPowerIndex(ctx, val2)
 
 	delTokens := sdk.TokensFromConsensusPower(20)
-	_, err := keeper.Delegate(ctx, addrAcc2, sdk.NewCoin(keeper.BondDenom(ctx), delTokens), types.Unbonded, val1, true)
+	err := keeper.Delegate(ctx, addrAcc2, sdk.NewCoin(keeper.BondDenom(ctx), delTokens), types.Unbonded, val1, true)
 	require.NoError(t, err)
 
 	// apply TM updates
@@ -394,7 +394,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 
 	// delegate
 	delAmount := sdk.TokensFromConsensusPower(100)
-	_, err = keeper.Delegate(ctx, addrAcc1, sdk.NewCoin(keeper.BondDenom(ctx), delAmount), types.Unbonded, val1, true)
+	err = keeper.Delegate(ctx, addrAcc1, sdk.NewCoin(keeper.BondDenom(ctx), delAmount), types.Unbonded, val1, true)
 	require.NoError(t, err)
 	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
 	require.NoError(t, err)

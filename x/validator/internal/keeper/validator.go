@@ -134,6 +134,22 @@ func (k Keeper) GetAllValidatorsByPowerIndex(ctx sdk.Context) []types.Validator 
 	return validators
 }
 
+func (k Keeper) GetAllValidatorsByPowerIndexReversed(ctx sdk.Context) []types.Validator {
+	var validators []types.Validator
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStoreReversePrefixIterator(store, []byte{types.ValidatorsByPowerIndexKey})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		validator, err := k.GetValidator(ctx, iterator.Value())
+		if err != nil {
+			panic(err)
+		}
+		validators = append(validators, validator)
+	}
+	return validators
+}
+
 func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	total := sdk.ZeroInt()
 	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)

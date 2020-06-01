@@ -95,7 +95,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 
 	k.AfterValidatorCreated(ctx, val.ValAddress)
 
-	_, err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
+	err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), types.CodeInvalidDelegation, err.Error())
 	}
@@ -151,7 +151,7 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, types.ErrDelegatorStakeIsTooLow(k.Codespace())
 	}
 
-	_, err = k.Delegate(ctx, msg.DelegatorAddress, msg.Amount, types.Unbonded, val, true)
+	err = k.Delegate(ctx, msg.DelegatorAddress, msg.Amount, types.Unbonded, val, true)
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
