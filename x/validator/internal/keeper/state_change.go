@@ -48,7 +48,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		}
 
 		currentPower := k.TotalStake(ctx, validator)
-
 		// if we get to a zero-power validator (which we don't bond),
 		// there are no more possible bonded validators
 		if validator.PotentialConsensusPower(currentPower) == 0 {
