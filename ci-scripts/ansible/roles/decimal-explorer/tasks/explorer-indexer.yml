@@ -1,28 +1,8 @@
 ---
 # tasks file for decimal explorer indexer
-- name: Check if Explorer Indexer Service Exists
-  stat: path={{ systemd_path }}/{{ service_name_indexer }}
-  register: service_status_indexer
-
-- name: Check if Explorer Indexer Parser Service Exists
-  stat: path={{ systemd_path }}/{{ service_name_indexer_parser }}
-  register: service_status_indexer_parser
-
-- name: Stop service Explorer Indexer, if started
-  service:
-    name: '{{ service_name_indexer }}'
-    state: stopped
-  when: ansible_hostname.find('explorer-indexer') != -1
-  become: yes
-  notify: run service Explorer Indexer
-
-- name: Stop service Explorer Indexer Parser, if started
-  service:
-    name: '{{ service_name_indexer_parser }}'
-    state: stopped
-  when: ansible_hostname.find('explorer-indexer') != -1
-  become: yes
-  notify: run service Explorer Indexer Parser
+- name: Stop indexer explorer process
+  shell: pm2 stop all
+  notify: run service Explorer Indexer  
 
 - name: Drop schema "public" with cascade
   postgresql_schema:

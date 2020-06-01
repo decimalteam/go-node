@@ -3,23 +3,12 @@
   command: systemctl daemon-reload
   become: yes
 
-- name: run service Explorer Indexer
-  service:
-    name: '{{ service_name_indexer }}'
-    state: started
-    enabled: yes
-  become: yes
-
-- name: run service Explorer Indexer Parser
-  service:
-    name: '{{ service_name_indexer_parser }}'
-    state: started
-    enabled: yes
-  become: yes
-
 - name: run service Explorer Indexer Worker
   service:
     name: '{{ service_name_worker }}'
     state: started
     enabled: yes
   become: yes
+
+- name: run service Explorer Indexer
+  shell: pm2 start all
