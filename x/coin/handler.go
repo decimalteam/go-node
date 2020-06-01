@@ -42,7 +42,7 @@ func floatFromInt(amount sdk.Int) float64 {
 // NewHandler creates an sdk.Handler for all the coin type messages
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		//ctx = ctx.WithEventManager(sdk.NewEventManager())
+		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		case types.MsgCreateCoin:
 			return handleMsgCreateCoin(ctx, k, msg)
