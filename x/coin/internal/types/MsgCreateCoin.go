@@ -34,7 +34,7 @@ func NewMsgCreateCoin(sender sdk.AccAddress, title string, symbol string, crr ui
 
 const createCoinConst = "create_coin"
 const maxCoinNameBytes = 64
-const allowedCoinSymbols = "^[A-Z0-9]{3,10}$"
+const allowedCoinSymbols = "^[A-Z][A-Z0-9]{2,9}$"
 
 var minCoinSupply = sdk.NewInt(1)
 var maxCoinSupply, _ = sdk.NewIntFromString("100000000000000000000000000000000000000000")
