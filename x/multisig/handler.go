@@ -1,10 +1,11 @@
 package multisig
 
 import (
-	vtypes "bitbucket.org/decimalteam/go-node/x/validator"
 	"fmt"
 	"strconv"
 	"strings"
+
+	vtypes "bitbucket.org/decimalteam/go-node/x/validator"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -43,7 +44,7 @@ func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) 
 		return nil, vtypes.ErrCalculateCommission(err)
 	}
 
-	account := keeper.AccountKeeper.GetAccount(ctx, msg.Creator)
+	account := keeper.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balanceFee := account.GetCoins().AmountOf(strings.ToLower(feeCoin))
 
 	if balanceFee.LT(commission) {
@@ -74,7 +75,7 @@ func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) 
 	// Save created multisig wallet to the KVStore
 	keeper.SetWallet(ctx, *wallet)
 
-	err = keeper.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Creator)
+	err = keeper.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
 	if err != nil {
 		return nil, vtypes.ErrUpdateBalance(err)
 	}
@@ -85,7 +86,7 @@ func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) 
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeCreateWallet),
-			sdk.NewAttribute(types.AttributeKeyCreator, msg.Creator.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 			sdk.NewAttribute(types.AttributeKeyOwners, helpers.JoinAccAddresses(msg.Owners)),
 			sdk.NewAttribute(types.AttributeKeyWeights, helpers.JoinUints(msg.Weights)),
 			sdk.NewAttribute(types.AttributeKeyThreshold, strconv.FormatUint(uint64(msg.Threshold), 10)),
@@ -102,7 +103,7 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 		return nil, vtypes.ErrCalculateCommission(err)
 	}
 
-	account := keeper.AccountKeeper.GetAccount(ctx, msg.Creator)
+	account := keeper.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balanceFee := account.GetCoins().AmountOf(strings.ToLower(feeCoin))
 
 	if balanceFee.LT(commission) {
@@ -142,7 +143,7 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 
 	// Sign created multisig transaction by the creator
 	signEvents, err := handleMsgSignTransaction(ctx, keeper, MsgSignTransaction{
-		Signer: msg.Creator,
+		Sender: msg.Sender,
 		TxID:   transaction.ID,
 	}, false)
 	if err != nil {
@@ -150,7 +151,7 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 	}
 
-	err = keeper.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Creator)
+	err = keeper.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
 	if err != nil {
 		return nil, vtypes.ErrUpdateBalance(err)
 	}
@@ -161,7 +162,7 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeCreateTransaction),
-			sdk.NewAttribute(types.AttributeKeyCreator, msg.Creator.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 			sdk.NewAttribute(types.AttributeKeyWallet, msg.Wallet.String()),
 			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver.String()),
 			sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
@@ -179,7 +180,7 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 		return nil, vtypes.ErrCalculateCommission(err)
 	}
 
-	account := keeper.AccountKeeper.GetAccount(ctx, msg.Signer)
+	account := keeper.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balanceFee := account.GetCoins().AmountOf(strings.ToLower(feeCoin))
 
 	if balanceFee.LT(commission) {
@@ -201,34 +202,34 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 	}
 
 	// Calculate current weight of signatures
-	transactionWeight := uint(0)
+	confirmations := uint(0)
 	for i, c := 0, len(wallet.Owners); i < c; i++ {
 		if !transaction.Signers[i].Empty() {
-			transactionWeight += wallet.Weights[i]
+			confirmations += wallet.Weights[i]
 		}
 	}
 
 	// Ensure current weight of signatures is not enough
-	if transactionWeight >= wallet.Threshold {
-		msgError := fmt.Sprintf("Multi-signature transaction already has enough signatures (%d >= %d)", transactionWeight, wallet.Threshold)
+	if confirmations >= wallet.Threshold {
+		msgError := fmt.Sprintf("Multi-signature transaction already has enough signatures (%d >= %d)", confirmations, wallet.Threshold)
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 	}
 
 	// Append the signature to the multisig transaction
 	weight := uint(0)
 	for i, c := 0, len(wallet.Owners); i < c; i++ {
-		if wallet.Owners[i].Equals(msg.Signer) {
+		if wallet.Owners[i].Equals(msg.Sender) {
 			if !transaction.Signers[i].Empty() {
-				msgError := fmt.Sprintf("Unable to sign multi-signature transaction since signer with address %s is already signed it", msg.Signer)
+				msgError := fmt.Sprintf("Unable to sign multi-signature transaction since signer with address %s is already signed it", msg.Sender)
 				return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 			}
 			weight = wallet.Weights[i]
-			transactionWeight += weight
-			transaction.Signers[i] = msg.Signer
+			confirmations += weight
+			transaction.Signers[i] = msg.Sender
 			break
 		}
 		if i == c-1 {
-			msgError := fmt.Sprintf("Unable to sign multi-signature transaction since signer with address %s is not an owner of the wallet", msg.Signer)
+			msgError := fmt.Sprintf("Unable to sign multi-signature transaction since signer with address %s is not an owner of the wallet", msg.Sender)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 		}
 	}
@@ -237,8 +238,8 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 	keeper.SetTransaction(ctx, transaction)
 
 	// Check if new weight of signatures is enough to perform multisig transaction
-	approved := transactionWeight >= wallet.Threshold
-	if approved {
+	confirmed := confirmations >= wallet.Threshold
+	if confirmed {
 		// Perform transaction
 		err := keeper.BankKeeper.SendCoins(ctx, wallet.Address, transaction.Receiver, transaction.Coins)
 		if err != nil {
@@ -247,7 +248,7 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 		}
 	}
 
-	err = keeper.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Signer)
+	err = keeper.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
 	if err != nil {
 		return nil, vtypes.ErrUpdateBalance(err)
 	}
@@ -258,11 +259,11 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeSignTransaction),
-			sdk.NewAttribute(types.AttributeKeySigner, msg.Signer.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 			sdk.NewAttribute(types.AttributeKeySignerWeight, strconv.FormatUint(uint64(weight), 10)),
 			sdk.NewAttribute(types.AttributeKeyTransaction, msg.TxID),
-			sdk.NewAttribute(types.AttributeKeyTransactionWeight, strconv.FormatUint(uint64(transactionWeight), 10)),
-			sdk.NewAttribute(types.AttributeKeyApproved, strconv.FormatBool(approved)),
+			sdk.NewAttribute(types.AttributeKeyConfirmations, strconv.FormatUint(uint64(confirmations), 10)),
+			sdk.NewAttribute(types.AttributeKeyConfirmed, strconv.FormatBool(confirmed)),
 		),
 	}
 	if !emitEvents {

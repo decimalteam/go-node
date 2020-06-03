@@ -8,27 +8,25 @@ import (
 var _ sdk.Msg = &MsgSellAllCoin{}
 
 type MsgSellAllCoin struct {
-	Seller      sdk.AccAddress `json:"seller" yaml:"seller"`
-	CoinToBuy   string         `json:"coin_to_buy" yaml:"coin_to_buy"`
-	CoinToSell  string         `json:"coin_to_sell" yaml:"coin_to_sell"`
-	AmountToBuy sdk.Int        `json:"amount_to_buy" yaml:"amount_to_buy"`
+	Sender       sdk.AccAddress `json:"sender" yaml:"sender"`
+	CoinToSell   string         `json:"coin_to_sell" yaml:"coin_to_sell"`
+	MinCoinToBuy sdk.Coin       `json:"min_coin_to_buy" yaml:"min_coin_to_buy"`
 }
 
-func NewMsgSellAllCoin(seller sdk.AccAddress, coinToBuy string, coinToSell string, amountToBuy sdk.Int) MsgSellAllCoin {
+func NewMsgSellAllCoin(sender sdk.AccAddress, coinToSell string, minCoinToBuy sdk.Coin) MsgSellAllCoin {
 	return MsgSellAllCoin{
-		Seller:      seller,
-		CoinToBuy:   coinToBuy,
-		CoinToSell:  coinToSell,
-		AmountToBuy: amountToBuy,
+		Sender:       sender,
+		CoinToSell:   coinToSell,
+		MinCoinToBuy: minCoinToBuy,
 	}
 }
 
-const SellAllCoinConst = "SellAllCoin"
+const SellAllCoinConst = "sell_all_coin"
 
 func (msg MsgSellAllCoin) Route() string { return RouterKey }
 func (msg MsgSellAllCoin) Type() string  { return SellAllCoinConst }
 func (msg MsgSellAllCoin) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Seller}
+	return []sdk.AccAddress{msg.Sender}
 }
 
 func (msg MsgSellAllCoin) GetSignBytes() []byte {
@@ -37,7 +35,7 @@ func (msg MsgSellAllCoin) GetSignBytes() []byte {
 }
 
 func (msg MsgSellAllCoin) ValidateBasic() error {
-	if msg.CoinToSell == msg.CoinToBuy {
+	if msg.CoinToSell == msg.MinCoinToBuy.Denom {
 		return sdkerrors.New(DefaultCodespace, SameCoins, "Cannot sell same coins")
 	}
 	return nil

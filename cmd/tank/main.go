@@ -243,12 +243,11 @@ func (d *Distributor) createTx(tx string, count int) {
 	}
 }
 
-func (d *Distributor) createSendCoins() []coin.SendCoin {
-	msg := make([]coin.SendCoin, rand.Intn(10))
+func (d *Distributor) createSendCoins() []coin.Send {
+	msg := make([]coin.Send, rand.Intn(10))
 	for i := 0; i < len(msg); i++ {
-		msg[i] = coin.SendCoin{
-			Coin:     "tDEL",
-			Amount:   sdk.NewInt(rand.Int63n(99) + 1).Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(13), nil))),
+		msg[i] = coin.Send{
+			Coin:     sdk.NewCoin("tDEL", sdk.NewInt(rand.Int63n(99)+1).Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(13), nil)))),
 			Receiver: d.Workers[rand.Intn(len(d.Workers))].account.Address,
 		}
 	}
@@ -403,33 +402,33 @@ func GetSequenceAndAccNumber(address string) (uint64, uint64, error) {
 }
 
 func (p *Provider) SendCoin(sender, receiver Account, amount sdk.Int) error {
-	return p.SendTx([]sdk.Msg{coin.NewMsgSendCoin(sender.Address, "tDEL", amount, receiver.Address)}, sender)
+	return p.SendTx([]sdk.Msg{coin.NewMsgSendCoin(sender.Address, sdk.NewCoin("tDEL", amount), receiver.Address)}, sender)
 }
 
-func (p *Provider) MultiSendCoin(sender Account, coins []coin.SendCoin) error {
+func (p *Provider) MultiSendCoin(sender Account, coins []coin.Send) error {
 	return p.SendTx([]sdk.Msg{coin.NewMsgMultiSendCoin(sender.Address, coins)}, sender)
 }
 
 func (p *Provider) BuyCoin(coinToBuy, coinToSell string, amountToBuy, amountToSell sdk.Int, buyer Account) error {
-	return p.SendTx([]sdk.Msg{coin.NewMsgBuyCoin(buyer.Address, coinToBuy, coinToSell, amountToBuy, amountToSell)}, buyer)
+	return p.SendTx([]sdk.Msg{coin.NewMsgBuyCoin(buyer.Address, sdk.NewCoin(coinToBuy, amountToBuy), sdk.NewCoin(coinToSell, amountToSell))}, buyer)
 }
 
 func (p *Provider) SellCoin(coinToBuy, coinToSell string, amountToBuy, amountToSell sdk.Int, buyer Account) error {
-	return p.SendTx([]sdk.Msg{coin.NewMsgSellCoin(buyer.Address, coinToBuy, coinToSell, amountToSell, amountToBuy)}, buyer)
+	return p.SendTx([]sdk.Msg{coin.NewMsgSellCoin(buyer.Address, sdk.NewCoin(coinToSell, amountToSell), sdk.NewCoin(coinToBuy, amountToBuy))}, buyer)
 }
 
 func (p *Provider) CreateCoin(title string, symbol string, crr uint, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int, sender Account) error {
-	return p.SendTx([]sdk.Msg{coin.NewMsgCreateCoin(title, crr, symbol, initVolume, initReserve, limitVolume, sender.Address)}, sender)
+	return p.SendTx([]sdk.Msg{coin.NewMsgCreateCoin(sender.Address, title, symbol, crr, initVolume, initReserve, limitVolume)}, sender)
 }
 
 func (p *Provider) SellAllCoins(seller Account, coinToBuy string, coinToSell string, amountToBuy sdk.Int) error {
-	return p.SendTx([]sdk.Msg{coin.NewMsgSellAllCoin(seller.Address, coinToBuy, coinToSell, amountToBuy)}, seller)
+	return p.SendTx([]sdk.Msg{coin.NewMsgSellAllCoin(seller.Address, coinToSell, sdk.NewCoin(coinToBuy, amountToBuy))}, seller)
 }
 
 func (p *Provider) SendAll(sender Account, accounts []Account, amount sdk.Int, token string) error {
 	msgs := make([]sdk.Msg, len(accounts))
 	for i, account := range accounts {
-		msgs[i] = coin.NewMsgSendCoin(sender.Address, token, amount, account.Address)
+		msgs[i] = coin.NewMsgSendCoin(sender.Address, sdk.NewCoin(token, amount), account.Address)
 	}
 	return p.SendTx(msgs, sender)
 }

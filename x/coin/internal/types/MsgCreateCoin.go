@@ -11,7 +11,7 @@ import (
 var _ sdk.Msg = &MsgCreateCoin{}
 
 type MsgCreateCoin struct {
-	Creator              sdk.AccAddress `json:"creator" yaml:"creator"`
+	Sender               sdk.AccAddress `json:"sender" yaml:"sender"`
 	Title                string         `json:"title" yaml:"title"`                                   // Full coin title (Bitcoin)
 	Symbol               string         `json:"symbol" yaml:"symbol"`                                 // Short coin title (BTC)
 	ConstantReserveRatio uint           `json:"constant_reserve_ratio" yaml:"constant_reserve_ratio"` // between 10 and 100
@@ -20,19 +20,19 @@ type MsgCreateCoin struct {
 	LimitVolume          sdk.Int        `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
 }
 
-func NewMsgCreateCoin(title string, crr uint, symbol string, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int, creator sdk.AccAddress) MsgCreateCoin {
+func NewMsgCreateCoin(sender sdk.AccAddress, title string, symbol string, crr uint, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int) MsgCreateCoin {
 	return MsgCreateCoin{
-		Creator:              creator,
+		Sender:               sender,
 		Title:                title,
-		ConstantReserveRatio: crr,
 		Symbol:               symbol,
+		ConstantReserveRatio: crr,
 		InitialVolume:        initVolume,
 		InitialReserve:       initReserve,
 		LimitVolume:          limitVolume,
 	}
 }
 
-const createCoinConst = "CreateCoin"
+const createCoinConst = "create_coin"
 const maxCoinNameBytes = 64
 const allowedCoinSymbols = "^[A-Z0-9]{3,10}$"
 
@@ -44,7 +44,7 @@ var minCoinReserve = sdk.NewInt(10)
 func (msg MsgCreateCoin) Route() string { return RouterKey }
 func (msg MsgCreateCoin) Type() string  { return createCoinConst }
 func (msg MsgCreateCoin) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Creator}
+	return []sdk.AccAddress{msg.Sender}
 }
 
 func (msg MsgCreateCoin) GetSignBytes() []byte {
@@ -53,10 +53,6 @@ func (msg MsgCreateCoin) GetSignBytes() []byte {
 }
 
 func (msg MsgCreateCoin) ValidateBasic() error {
-	// Validate coin CRR
-	if msg.ConstantReserveRatio < 10 || msg.ConstantReserveRatio > 100 {
-		return sdkerrors.New(DefaultCodespace, InvalidCRR, "Coin CRR must be between 10 and 100")
-	}
 	// Validate coin title
 	if len(msg.Title) > maxCoinNameBytes {
 		return sdkerrors.New(DefaultCodespace, InvalidCoinTitle, fmt.Sprintf("Coin name is invalid. Allowed up to %d bytes.", maxCoinNameBytes))
@@ -64,6 +60,10 @@ func (msg MsgCreateCoin) ValidateBasic() error {
 	// Validate coin symbol
 	if match, _ := regexp.MatchString(allowedCoinSymbols, msg.Symbol); !match {
 		return sdkerrors.New(DefaultCodespace, InvalidCoinSymbol, fmt.Sprintf("Invalid coin symbol. Should be %s", allowedCoinSymbols))
+	}
+	// Validate coin CRR
+	if msg.ConstantReserveRatio < 10 || msg.ConstantReserveRatio > 100 {
+		return sdkerrors.New(DefaultCodespace, InvalidCRR, "Coin CRR must be between 10 and 100")
 	}
 	// Check coin initial volume to be correct
 	if msg.InitialVolume.LT(minCoinSupply) || msg.InitialVolume.GT(maxCoinSupply) {

@@ -19,16 +19,16 @@ const (
 
 // MsgCreateWallet defines a CreateWallet message to create new multisignature wallet.
 type MsgCreateWallet struct {
-	Creator   sdk.AccAddress   `json:"creator" yaml:"creator"`
+	Sender    sdk.AccAddress   `json:"sender" yaml:"sender"`
 	Owners    []sdk.AccAddress `json:"owners" yaml:"owners"`
 	Weights   []uint           `json:"weights" yaml:"weights"`
 	Threshold uint             `json:"threshold" yaml:"threshold"`
 }
 
 // NewMsgCreateWallet creates a new MsgCreateWallet instance.
-func NewMsgCreateWallet(creator sdk.AccAddress, owners []sdk.AccAddress, weights []uint, threshold uint) MsgCreateWallet {
+func NewMsgCreateWallet(sender sdk.AccAddress, owners []sdk.AccAddress, weights []uint, threshold uint) MsgCreateWallet {
 	return MsgCreateWallet{
-		Creator:   creator,
+		Sender:    sender,
 		Owners:    owners,
 		Weights:   weights,
 		Threshold: threshold,
@@ -39,16 +39,16 @@ func NewMsgCreateWallet(creator sdk.AccAddress, owners []sdk.AccAddress, weights
 func (msg MsgCreateWallet) Route() string { return RouterKey }
 
 // Type returns the name of the type for the message.
-func (msg MsgCreateWallet) Type() string { return "CreateWallet" }
+func (msg MsgCreateWallet) Type() string { return "create_wallet" }
 
 // ValidateBasic performs basic validation of the message.
 func (msg MsgCreateWallet) ValidateBasic() error {
-	// Validate creator
-	if msg.Creator.Empty() {
+	// Validate sender
+	if msg.Sender.Empty() {
 		return sdkerrors.New(
 			DefaultCodespace,
-			InvalidCreator,
-			"Invalid creator address: creator address cannot be empty",
+			InvalidSender,
+			"Invalid sender address: sender address cannot be empty",
 		)
 	}
 	// Validate owner count
@@ -120,5 +120,5 @@ func (msg MsgCreateWallet) GetSignBytes() []byte {
 
 // GetSigners returns the list of signers required to sign the message.
 func (msg MsgCreateWallet) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Creator}
+	return []sdk.AccAddress{msg.Sender}
 }

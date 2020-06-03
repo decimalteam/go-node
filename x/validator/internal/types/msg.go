@@ -108,7 +108,7 @@ func NewMsgSetOnline(validatorAddr sdk.ValAddress) MsgSetOnline {
 	return MsgSetOnline{ValidatorAddress: validatorAddr}
 }
 
-const SetOnlineConst = "set-online"
+const SetOnlineConst = "set_online"
 
 func (msg MsgSetOnline) Route() string { return RouterKey }
 func (msg MsgSetOnline) Type() string  { return SetOnlineConst }
@@ -138,7 +138,7 @@ func NewMsgSetOffline(validatorAddr sdk.ValAddress) MsgSetOffline {
 	return MsgSetOffline{ValidatorAddress: validatorAddr}
 }
 
-const SetOfflineConst = "set-offline"
+const SetOfflineConst = "set_offline"
 
 func (msg MsgSetOffline) Route() string { return RouterKey }
 func (msg MsgSetOffline) Type() string  { return SetOfflineConst }
@@ -213,7 +213,7 @@ func NewMsgEditCandidate(pubKey crypto.PubKey, validatorAddress sdk.ValAddress, 
 	}
 }
 
-const EditCandidateConst = "edit-candidate"
+const EditCandidateConst = "edit_candidate"
 
 func (msg MsgEditCandidate) Route() string { return RouterKey }
 func (msg MsgEditCandidate) Type() string  { return EditCandidateConst }

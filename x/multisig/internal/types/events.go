@@ -2,12 +2,12 @@ package types
 
 // multisig module event types
 const (
-	EventTypeCreateWallet      = "CreateWallet"
-	EventTypeCreateTransaction = "CreateTransaction"
-	EventTypeSignTransaction   = "SignTransaction"
+	EventTypeCreateWallet      = "create_wallet"
+	EventTypeCreateTransaction = "create_transaction"
+	EventTypeSignTransaction   = "sign_transaction"
 
 	// Common
-	AttributeKeyCreator     = "creator"
+	AttributeKeySender      = "sender"
 	AttributeKeyWallet      = "wallet"
 	AttributeKeyTransaction = "transaction"
 
@@ -21,10 +21,10 @@ const (
 	AttributeKeyCoins    = "coins"
 
 	// SignTransaction
-	AttributeKeySigner            = "signer"
-	AttributeKeySignerWeight      = "signerWeight"
-	AttributeKeyTransactionWeight = "transactionWeight"
-	AttributeKeyApproved          = "approved"
+	AttributeKeySigner        = "signer"
+	AttributeKeySignerWeight  = "signer_weight"
+	AttributeKeyConfirmations = "confirmations"
+	AttributeKeyConfirmed     = "confirmed"
 
 	AttributeValueCategory = ModuleName
 )

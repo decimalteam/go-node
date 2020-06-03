@@ -8,7 +8,7 @@ const DefaultCodespace string = ModuleName
 
 // Custom errors codes.
 const (
-	InvalidCreator      CodeType = 101
+	InvalidSender       CodeType = 101
 	InvalidOwnerCount   CodeType = 102
 	InvalidOwner        CodeType = 103
 	InvalidWeightCount  CodeType = 104

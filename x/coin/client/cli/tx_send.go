@@ -30,7 +30,7 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 			amount, _ := sdk.NewIntFromString(args[1])
 			receiver, err := sdk.AccAddressFromBech32(args[2])
 			print(err)
-			msg := types.NewMsgSendCoin(cliCtx.GetFromAddress(), coin, amount, receiver)
+			msg := types.NewMsgSendCoin(cliCtx.GetFromAddress(), sdk.NewCoin(coin, amount), receiver)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

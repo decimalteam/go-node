@@ -56,11 +56,9 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgSellCoin(ctx, k, msg, false)
 		case types.MsgSellAllCoin:
 			msgSell := MsgSellCoin{
-				Seller:       msg.Seller,
-				CoinToBuy:    msg.CoinToBuy,
-				CoinToSell:   msg.CoinToSell,
-				AmountToSell: sdk.ZeroInt(),
-				AmountToBuy:  msg.AmountToBuy,
+				Sender:       msg.Sender,
+				CoinToSell:   sdk.NewCoin(msg.CoinToSell, sdk.ZeroInt()),
+				MinCoinToBuy: msg.MinCoinToBuy,
 			}
 			return handleMsgSellCoin(ctx, k, msgSell, true)
 		case types.MsgRedeemCheck:
@@ -105,7 +103,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		return nil, types.ErrCalculateCommission(err)
 	}
 
-	acc := k.AccountKeeper.GetAccount(ctx, msg.Creator)
+	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balance := acc.GetCoins()
 	if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(msg.InitialReserve) {
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinReserve, "Not enough coin to reserve")
@@ -119,18 +117,18 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		return nil, types.ErrorInsufficientFunds(commission.Add(msg.InitialReserve).String())
 	}
 
-	err = k.UpdateBalance(ctx, strings.ToLower(cliUtils.GetBaseCoin()), msg.InitialReserve.Neg(), msg.Creator)
+	err = k.UpdateBalance(ctx, strings.ToLower(cliUtils.GetBaseCoin()), msg.InitialReserve.Neg(), msg.Sender)
 	if err != nil {
 		return nil, types.ErrorUpdateBalance(err)
 	}
 
 	k.SetCoin(ctx, coin)
-	err = k.UpdateBalance(ctx, strings.ToLower(coin.Symbol), msg.InitialVolume, msg.Creator)
+	err = k.UpdateBalance(ctx, strings.ToLower(coin.Symbol), msg.InitialVolume, msg.Sender)
 	if err != nil {
 		return nil, types.ErrorUpdateBalance(err)
 	}
 
-	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Creator)
+	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
 	if err != nil {
 		return nil, types.ErrorUpdateBalance(err)
 	}
@@ -140,16 +138,13 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeCreateCoin),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 			sdk.NewAttribute(types.AttributeSymbol, msg.Symbol),
 			sdk.NewAttribute(types.AttributeTitle, msg.Title),
+			sdk.NewAttribute(types.AttributeCRR, strconv.FormatUint(uint64(msg.ConstantReserveRatio), 10)),
 			sdk.NewAttribute(types.AttributeInitVolume, msg.InitialVolume.String()),
 			sdk.NewAttribute(types.AttributeInitReserve, msg.InitialReserve.String()),
-			sdk.NewAttribute(types.AttributeCRR, strconv.FormatUint(uint64(msg.ConstantReserveRatio), 10)),
 			sdk.NewAttribute(types.AttributeLimitVolume, msg.LimitVolume.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Creator.String()),
 		),
 	})
 
@@ -173,7 +168,7 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.R
 		return nil, types.ErrorInsufficientCoinToPayCommission(commission.String())
 	}
 
-	err = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coin), msg.Amount)})
+	err = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
 	if err != nil {
 		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
 	}
@@ -188,8 +183,9 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.R
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeSendCoin),
-			sdk.NewAttribute(types.AttributeCoin, msg.Coin),
-			sdk.NewAttribute(types.AttributeAmount, msg.Amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+			sdk.NewAttribute(types.AttributeCoin, msg.Coin.Denom),
+			sdk.NewAttribute(types.AttributeAmount, msg.Coin.Amount.String()),
 			sdk.NewAttribute(types.AttributeReceiver, msg.Receiver.String()),
 		),
 	})
@@ -198,7 +194,7 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.R
 }
 
 func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoin) (*sdk.Result, error) {
-	commission, feeCoin, err := k.GetCommission(ctx, helpers.UnitToPip(SendFee+int64((len(msg.Coins)-1)*5)))
+	commission, feeCoin, err := k.GetCommission(ctx, helpers.UnitToPip(SendFee+int64((len(msg.Sends)-1)*5)))
 	if err != nil {
 		return nil, types.ErrCalculateCommission(err)
 	}
@@ -210,20 +206,17 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 		return nil, types.ErrorInsufficientCoinToPayCommission(commission.String())
 	}
 
-	for i := range msg.Coins {
-		_ = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Coins[i].Receiver, sdk.Coins{sdk.NewCoin(strings.ToLower(msg.Coins[i].Coin), msg.Coins[i].Amount)})
+	for i := range msg.Sends {
+		_ = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Sends[i].Receiver, sdk.Coins{msg.Sends[i].Coin})
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
 				sdk.EventTypeMessage,
 				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 				sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeMultiSendCoin),
-				sdk.NewAttribute(types.AttributeCoin, msg.Coins[i].Coin),
-				sdk.NewAttribute(types.AttributeAmount, msg.Coins[i].Amount.String()),
-				sdk.NewAttribute(types.AttributeReceiver, msg.Coins[i].Receiver.String()),
-			),
-			sdk.NewEvent(
-				sdk.EventTypeMessage,
 				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+				sdk.NewAttribute(types.AttributeCoin, msg.Sends[i].Coin.Denom),
+				sdk.NewAttribute(types.AttributeAmount, msg.Sends[i].Coin.Amount.String()),
+				sdk.NewAttribute(types.AttributeReceiver, msg.Sends[i].Receiver.String()),
 			),
 		})
 	}
@@ -247,48 +240,48 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 	}
 
 	// Retrieve buyer account and it's balance of selling coins
-	account := k.AccountKeeper.GetAccount(ctx, msg.Buyer)
-	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell))
+	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
+	balance := account.GetCoins().AmountOf(strings.ToLower(msg.MaxCoinToSell.Denom))
 
 	if balance.LT(commission) {
 		return nil, types.ErrorInsufficientCoinToPayCommission(commission.String())
 	}
 
 	// Retrieve the coin requested to buy
-	coinToBuy, err := k.GetCoin(ctx, msg.CoinToBuy)
+	coinToBuy, err := k.GetCoin(ctx, msg.CoinToBuy.Denom)
 	if err != nil {
 		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to buy: %v", msg.CoinToBuy, err)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, errMsg)
 	}
-	if coinToBuy.Symbol != msg.CoinToBuy {
+	if coinToBuy.Symbol != msg.CoinToBuy.Denom {
 		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to buy: retrieved coin %s instead", msg.CoinToBuy, coinToBuy.Symbol)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, errMsg)
 	}
 
 	// Retrieve the coin requested to sell
-	coinToSell, err := k.GetCoin(ctx, msg.CoinToSell)
+	coinToSell, err := k.GetCoin(ctx, msg.MaxCoinToSell.Denom)
 	if err != nil {
-		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to sell: %v", msg.CoinToSell, err)
+		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to sell: %v", msg.MaxCoinToSell, err)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, errMsg)
 	}
-	if coinToSell.Symbol != msg.CoinToSell {
-		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to sell: retrieved coin %s instead", msg.CoinToSell, coinToSell.Symbol)
+	if coinToSell.Symbol != msg.MaxCoinToSell.Denom {
+		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to sell: retrieved coin %s instead", msg.MaxCoinToSell, coinToSell.Symbol)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToSellNotExists, errMsg)
 	}
 
 	// Ensure supply limit of the coin to buy does not overflow
 	if !coinToBuy.IsBase() {
-		if coinToBuy.Volume.Add(msg.AmountToBuy).GT(coinToBuy.LimitVolume) {
+		if coinToBuy.Volume.Add(msg.CoinToBuy.Amount).GT(coinToBuy.LimitVolume) {
 			errMsg := fmt.Sprintf(
 				"Wanted to buy %f %s, but this operation will overflow coin supply limit",
-				floatFromInt(msg.AmountToBuy), coinToBuy.Symbol,
+				floatFromInt(msg.CoinToBuy.Amount), coinToBuy.Symbol,
 			)
 			return nil, sdkerrors.New(types.DefaultCodespace, types.TxBreaksVolumeLimit, errMsg)
 		}
 	}
 
 	// Calculate amount of sell coins which buyer will receive
-	amountToBuy, amountToSell, amountInBaseCoin := msg.AmountToBuy, sdk.ZeroInt(), sdk.ZeroInt()
+	amountToBuy, amountToSell, amountInBaseCoin := msg.CoinToBuy.Amount, sdk.ZeroInt(), sdk.ZeroInt()
 	switch {
 	case coinToSell.IsBase():
 		// Buyer buys custom coin for base coin
@@ -305,10 +298,10 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 	}
 
 	// Ensure maximum amount of coins to sell (price guard)
-	if amountToSell.GT(msg.AmountToSell) {
+	if amountToSell.GT(msg.MaxCoinToSell.Amount) {
 		errMsg := fmt.Sprintf(
 			"Wanted to sell maximum %f %s, but required to spend %f %s at the moment",
-			floatFromInt(msg.AmountToSell), coinToSell.Symbol, floatFromInt(amountToSell), coinToSell.Symbol,
+			floatFromInt(msg.MaxCoinToSell.Amount), coinToSell.Symbol, floatFromInt(amountToSell), coinToSell.Symbol,
 		)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.MaximumValueToSellReached, errMsg)
 	}
@@ -339,18 +332,18 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 	}
 
 	// Update buyer account balances
-	err = k.UpdateBalance(ctx, msg.CoinToSell, amountToSell.Neg(), msg.Buyer)
+	err = k.UpdateBalance(ctx, msg.MaxCoinToSell.Denom, amountToSell.Neg(), msg.Sender)
 	if err != nil {
 		errMsg := fmt.Sprintf("Unable to update balance of account %s: %v", account.GetAddress(), err)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
-	err = k.UpdateBalance(ctx, msg.CoinToBuy, amountToBuy, msg.Buyer)
+	err = k.UpdateBalance(ctx, msg.CoinToBuy.Denom, amountToBuy, msg.Sender)
 	if err != nil {
 		errMsg := fmt.Sprintf("Unable to update balance of account %s: %v", account.GetAddress(), err)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
 
-	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Buyer)
+	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
 	if err != nil {
 		return nil, types.ErrorUpdateBalance(err)
 	}
@@ -369,15 +362,12 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeBuyCoin),
-			sdk.NewAttribute(types.AttributeCoinToBuy, msg.CoinToBuy),
-			sdk.NewAttribute(types.AttributeCoinToSell, msg.CoinToSell),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+			sdk.NewAttribute(types.AttributeCoinToBuy, msg.CoinToBuy.Denom),
 			sdk.NewAttribute(types.AttributeAmountToBuy, amountToBuy.String()),
+			sdk.NewAttribute(types.AttributeCoinToSell, msg.MaxCoinToSell.Denom),
 			sdk.NewAttribute(types.AttributeAmountToSell, amountToSell.String()),
 			sdk.NewAttribute(types.AttributeAmountInBaseCoin, amountInBaseCoin.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Buyer.String()),
 		),
 	})
 
@@ -391,8 +381,8 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 	}
 
 	// Retrieve seller account and it's balance of selling coins
-	account := k.AccountKeeper.GetAccount(ctx, msg.Seller)
-	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell))
+	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
+	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell.Denom))
 
 	if balance.LT(commission) {
 		return nil, types.ErrorInsufficientCoinToPayCommission(commission.String())
@@ -400,46 +390,46 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 
 	// Fill amount to sell in case of MsgSellAll
 	if sellAll {
-		msg.AmountToSell = balance
+		msg.CoinToSell.Amount = balance
 	}
 
 	// Retrieve the coin requested to sell
-	coinToSell, err := k.GetCoin(ctx, msg.CoinToSell)
+	coinToSell, err := k.GetCoin(ctx, msg.CoinToSell.Denom)
 	if err != nil {
 		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to sell: %v", msg.CoinToSell, err)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToSellNotExists, errMsg)
 	}
-	if coinToSell.Symbol != msg.CoinToSell {
+	if coinToSell.Symbol != msg.CoinToSell.Denom {
 		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to sell: retrieved coin %s instead", msg.CoinToSell, coinToSell.Symbol)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToSellNotExists, errMsg)
 	}
 
 	// Retrieve the coin requested to buy
-	coinToBuy, err := k.GetCoin(ctx, msg.CoinToBuy)
+	coinToBuy, err := k.GetCoin(ctx, msg.MinCoinToBuy.Denom)
 	if err != nil {
-		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to buy: %v", msg.CoinToBuy, err)
+		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to buy: %v", msg.MinCoinToBuy, err)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, errMsg)
 	}
-	if coinToBuy.Symbol != msg.CoinToBuy {
-		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to buy: retrieved coin %s instead", msg.CoinToBuy, coinToBuy.Symbol)
+	if coinToBuy.Symbol != msg.MinCoinToBuy.Denom {
+		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to buy: retrieved coin %s instead", msg.MinCoinToBuy, coinToBuy.Symbol)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, errMsg)
 	}
 
 	// Ensure that seller account holds enough coins to sell
-	if balance.LT(msg.AmountToSell) {
+	if balance.LT(msg.CoinToSell.Amount) {
 		errMsg := fmt.Sprintf(
 			"Wanted to sell %f %s, but available only %f %s at the moment",
-			floatFromInt(balance), coinToSell.Symbol, floatFromInt(msg.AmountToSell), coinToSell.Symbol,
+			floatFromInt(balance), coinToSell.Symbol, floatFromInt(msg.CoinToSell.Amount), coinToSell.Symbol,
 		)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, errMsg)
 	}
 
-	if balance.LT(msg.AmountToSell.Add(commission)) {
-		return nil, types.ErrorInsufficientFunds(msg.AmountToSell.Add(commission).String())
+	if balance.LT(msg.CoinToSell.Amount.Add(commission)) {
+		return nil, types.ErrorInsufficientFunds(msg.CoinToSell.Amount.Add(commission).String())
 	}
 
 	// Calculate amount of buy coins which seller will receive
-	amountToSell, amountToBuy, amountInBaseCoin := msg.AmountToSell, sdk.ZeroInt(), sdk.ZeroInt()
+	amountToSell, amountToBuy, amountInBaseCoin := msg.CoinToSell.Amount, sdk.ZeroInt(), sdk.ZeroInt()
 	switch {
 	case coinToBuy.IsBase():
 		// Seller sells custom coin for base coin
@@ -456,10 +446,10 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 	}
 
 	// Ensure minimum amount of coins to buy (price guard)
-	if amountToBuy.LT(msg.AmountToBuy) {
+	if amountToBuy.LT(msg.MinCoinToBuy.Amount) {
 		errMsg := fmt.Sprintf(
 			"Wanted to buy minimum %f %s, but expected to receive %f %s at the moment",
-			floatFromInt(msg.AmountToBuy), coinToBuy.Symbol, floatFromInt(amountToBuy), coinToBuy.Symbol,
+			floatFromInt(msg.MinCoinToBuy.Amount), coinToBuy.Symbol, floatFromInt(amountToBuy), coinToBuy.Symbol,
 		)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.MinimumValueToBuyReached, errMsg)
 	}
@@ -488,18 +478,18 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 	}
 
 	// Update seller account balances
-	err = k.UpdateBalance(ctx, msg.CoinToSell, amountToSell.Neg(), msg.Seller)
+	err = k.UpdateBalance(ctx, msg.CoinToSell.Denom, amountToSell.Neg(), msg.Sender)
 	if err != nil {
 		errMsg := fmt.Sprintf("Unable to update balance of account %s: %v", account.GetAddress(), err)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
-	err = k.UpdateBalance(ctx, msg.CoinToBuy, amountToBuy, msg.Seller)
+	err = k.UpdateBalance(ctx, msg.MinCoinToBuy.Denom, amountToBuy, msg.Sender)
 	if err != nil {
 		errMsg := fmt.Sprintf("Unable to update balance of account %s: %v", account.GetAddress(), err)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
 
-	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Seller)
+	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
 	if err != nil {
 		return nil, types.ErrorUpdateBalance(err)
 	}
@@ -522,15 +512,12 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeyAction, eventType),
-			sdk.NewAttribute(types.AttributeCoinToSell, msg.CoinToSell),
-			sdk.NewAttribute(types.AttributeCoinToBuy, msg.CoinToBuy),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+			sdk.NewAttribute(types.AttributeCoinToSell, msg.CoinToSell.Denom),
 			sdk.NewAttribute(types.AttributeAmountToSell, amountToSell.String()),
+			sdk.NewAttribute(types.AttributeCoinToBuy, msg.MinCoinToBuy.Denom),
 			sdk.NewAttribute(types.AttributeAmountToBuy, amountToBuy.String()),
 			sdk.NewAttribute(types.AttributeAmountInBaseCoin, amountInBaseCoin.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Seller.String()),
 		),
 	})
 
@@ -548,7 +535,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	}
 
 	// Retrieve seller account and it's balance of selling coins
-	account := k.AccountKeeper.GetAccount(ctx, msg.Receiver)
+	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balanceFee := account.GetCoins().AmountOf(strings.ToLower(feeCoin))
 
 	// Decode provided check from base64 format to raw bytes
@@ -642,19 +629,19 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	}
 
 	// Prepare bytes used to recover public key from provided proof
-	receiverAddressHash := make([]byte, 32)
+	senderAddressHash := make([]byte, 32)
 	hw := sha3.NewLegacyKeccak256()
 	err = rlp.Encode(hw, []interface{}{
-		msg.Receiver,
+		msg.Sender,
 	})
 	if err != nil {
-		msgError := fmt.Sprintf("unable to RLP encode check receiver address: %s", err.Error())
+		msgError := fmt.Sprintf("unable to RLP encode check sender address: %s", err.Error())
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
 	}
-	hw.Sum(receiverAddressHash[:0])
+	hw.Sum(senderAddressHash[:0])
 
 	// Recover public key from provided proof
-	publicKeyB, err := crypto.Ecrecover(receiverAddressHash[:], proof)
+	publicKeyB, err := crypto.Ecrecover(senderAddressHash[:], proof)
 
 	// Compare both public keys to ensure provided proof is correct
 	if !bytes.Equal(publicKeyA, publicKeyB) {
@@ -671,13 +658,13 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		errMsg := fmt.Sprintf("unable to update balance of check issuer account %s: %v", issuer, err)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
-	err = k.UpdateBalance(ctx, coin.Symbol, amount, msg.Receiver)
+	err = k.UpdateBalance(ctx, coin.Symbol, amount, msg.Sender)
 	if err != nil {
-		errMsg := fmt.Sprintf("unable to update balance of check redeemer account %s: %v", msg.Receiver, err)
+		errMsg := fmt.Sprintf("unable to update balance of check redeemer account %s: %v", msg.Sender, err)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
 	}
 
-	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Receiver)
+	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
 	if err != nil {
 		return nil, types.ErrorUpdateBalance(err)
 	}
@@ -687,8 +674,8 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeyAction, types.EventTypeRedeemCheck),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		sdk.NewAttribute(types.AttributeIssuer, issuer.String()),
-		sdk.NewAttribute(types.AttributeReceiver, msg.Receiver.String()),
 		sdk.NewAttribute(types.AttributeCoin, check.Coin),
 		sdk.NewAttribute(types.AttributeAmount, check.Amount.String()),
 		sdk.NewAttribute(types.AttributeCheckNonce, new(big.Int).SetBytes(check.Nonce).String()),

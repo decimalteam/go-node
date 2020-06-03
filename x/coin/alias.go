@@ -49,5 +49,5 @@ type (
 	MsgCreateCoin    = types.MsgCreateCoin
 	MsgSellAllCoin   = types.MsgSellAllCoin
 	MsgMultiSendCoin = types.MsgMultiSendCoin
-	SendCoin         = types.SendCoin
+	Send             = types.Send
 )

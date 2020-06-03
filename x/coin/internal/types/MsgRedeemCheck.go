@@ -7,25 +7,25 @@ import (
 var _ sdk.Msg = &MsgRedeemCheck{}
 
 type MsgRedeemCheck struct {
-	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
-	Check    string         `json:"check" yaml:"check"`
-	Proof    string         `json:"proof" yaml:"proof"`
+	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
+	Check  string         `json:"check" yaml:"check"`
+	Proof  string         `json:"proof" yaml:"proof"`
 }
 
-func NewMsgRedeemCheck(receiver sdk.AccAddress, check string, proof string) MsgRedeemCheck {
+func NewMsgRedeemCheck(sender sdk.AccAddress, check string, proof string) MsgRedeemCheck {
 	return MsgRedeemCheck{
-		Receiver: receiver,
-		Check:    check,
-		Proof:    proof,
+		Sender: sender,
+		Check:  check,
+		Proof:  proof,
 	}
 }
 
-const RedeemCheckConst = "RedeemCheck"
+const RedeemCheckConst = "redeem_check"
 
 func (msg MsgRedeemCheck) Route() string { return RouterKey }
 func (msg MsgRedeemCheck) Type() string  { return RedeemCheckConst }
 func (msg MsgRedeemCheck) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Receiver}
+	return []sdk.AccAddress{msg.Sender}
 }
 
 func (msg MsgRedeemCheck) GetSignBytes() []byte {

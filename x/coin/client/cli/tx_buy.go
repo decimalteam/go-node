@@ -42,7 +42,7 @@ func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
 			}
 			// TODO: Calculate amounts and check limits
 			// Do basic validating
-			msg := types.NewMsgBuyCoin(cliCtx.GetFromAddress(), coinToBuySymbol, coinToSellSymbol, amountToBuy, maxAmountToSell)
+			msg := types.NewMsgBuyCoin(cliCtx.GetFromAddress(), sdk.NewCoin(coinToBuySymbol, amountToBuy), sdk.NewCoin(coinToSellSymbol, maxAmountToSell))
 			err := msg.ValidateBasic()
 			if err != nil {
 				return err
