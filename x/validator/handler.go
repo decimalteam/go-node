@@ -137,9 +137,9 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, types.ErrInsufficientCoinToPayCommission(commission.String())
 	}
 
-	if msg.Amount.Denom == k.BondDenom(ctx) {
-		if balance.AmountOf(k.BondDenom(ctx)).LT(commission.Add(msg.Amount.Amount)) {
-			return nil, types.ErrInsufficientFunds(commission.Add(msg.Amount.Amount).String())
+	if msg.Coin.Denom == k.BondDenom(ctx) {
+		if balance.AmountOf(k.BondDenom(ctx)).LT(commission.Add(msg.Coin.Amount)) {
+			return nil, types.ErrInsufficientFunds(commission.Add(msg.Coin.Amount).String())
 		}
 	}
 
@@ -148,11 +148,11 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, types.ErrNoValidatorFound(k.Codespace())
 	}
 
-	if !k.IsDelegatorStakeSufficient(ctx, val, msg.DelegatorAddress, msg.Amount) {
+	if !k.IsDelegatorStakeSufficient(ctx, val, msg.DelegatorAddress, msg.Coin) {
 		return nil, types.ErrDelegatorStakeIsTooLow(k.Codespace())
 	}
 
-	err = k.Delegate(ctx, msg.DelegatorAddress, msg.Amount, types.Unbonded, val, true)
+	err = k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
@@ -166,8 +166,8 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		sdk.NewEvent(
 			types.EventTypeDelegate,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyCoin, msg.Amount.Denom),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Coin.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyCoin, msg.Coin.Denom),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -192,7 +192,7 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 		return nil, types.ErrInsufficientCoinToPayCommission(commission.String())
 	}
 
-	completionTime, err := k.Undelegate(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.Amount)
+	completionTime, err := k.Undelegate(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.Coin)
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
@@ -208,8 +208,8 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 		sdk.NewEvent(
 			types.EventTypeUnbond,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyCoin, msg.Amount.Denom),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Coin.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyCoin, msg.Coin.Denom),
 			sdk.NewAttribute(types.AttributeKeyDelegator, msg.DelegatorAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 		),

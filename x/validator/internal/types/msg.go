@@ -64,14 +64,14 @@ func (msg MsgDeclareCandidate) ValidateBasic() error {
 type MsgDelegate struct {
 	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-	Amount           sdk.Coin       `json:"amount"`
+	Coin             sdk.Coin       `json:"coin"`
 }
 
-func NewMsgDelegate(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, amount sdk.Coin) MsgDelegate {
+func NewMsgDelegate(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, coin sdk.Coin) MsgDelegate {
 	return MsgDelegate{
 		DelegatorAddress: delegatorAddr,
 		ValidatorAddress: validatorAddr,
-		Amount:           amount,
+		Coin:             coin,
 	}
 }
 
@@ -163,14 +163,14 @@ func (msg MsgSetOffline) ValidateBasic() error {
 type MsgUnbond struct {
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
 	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
-	Amount           sdk.Coin       `json:"amount"`
+	Coin             sdk.Coin       `json:"coin"`
 }
 
-func NewMsgUnbond(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, amount sdk.Coin) MsgUnbond {
+func NewMsgUnbond(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, coin sdk.Coin) MsgUnbond {
 	return MsgUnbond{
 		ValidatorAddress: validatorAddr,
 		DelegatorAddress: delegatorAddr,
-		Amount:           amount,
+		Coin:             coin,
 	}
 }
 
