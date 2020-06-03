@@ -81,17 +81,15 @@ func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) 
 	}
 
 	// Emit transaction events
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-			sdk.NewAttribute(types.AttributeKeyOwners, helpers.JoinAccAddresses(msg.Owners)),
-			sdk.NewAttribute(types.AttributeKeyWeights, helpers.JoinUints(msg.Weights)),
-			sdk.NewAttribute(types.AttributeKeyThreshold, strconv.FormatUint(uint64(msg.Threshold), 10)),
-			sdk.NewAttribute(types.AttributeKeyWallet, wallet.Address.String()),
-		),
-	})
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		sdk.NewAttribute(types.AttributeKeyOwners, helpers.JoinAccAddresses(msg.Owners)),
+		sdk.NewAttribute(types.AttributeKeyWeights, helpers.JoinUints(msg.Weights)),
+		sdk.NewAttribute(types.AttributeKeyThreshold, strconv.FormatUint(uint64(msg.Threshold), 10)),
+		sdk.NewAttribute(types.AttributeKeyWallet, wallet.Address.String()),
+	))
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
@@ -156,17 +154,15 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 	}
 
 	// Emit transaction events
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-			sdk.NewAttribute(types.AttributeKeyWallet, msg.Wallet.String()),
-			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver.String()),
-			sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
-			sdk.NewAttribute(types.AttributeKeyTransaction, transaction.ID),
-		),
-	})
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		sdk.NewAttribute(types.AttributeKeyWallet, msg.Wallet.String()),
+		sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver.String()),
+		sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
+		sdk.NewAttribute(types.AttributeKeyTransaction, transaction.ID),
+	))
 	ctx.EventManager().EmitEvents(signEvents.Events)
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

@@ -30,9 +30,9 @@ const (
 	AttributeReceiver = "receiver"
 
 	// Redeem Check
-	AttributeIssuer     = "issuer"
-	AttributeCheckNonce = "check_nonce"
-	AttributeDueBlock   = "due_block"
+	AttributeIssuer   = "issuer"
+	AttributeNonce    = "nonce"
+	AttributeDueBlock = "due_block"
 
 	AttributeValueCategory = ModuleName
 )
