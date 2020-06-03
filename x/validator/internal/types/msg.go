@@ -12,7 +12,7 @@ type MsgDeclareCandidate struct {
 	ValidatorAddr sdk.ValAddress `json:"validator_addr" yaml:"validator_addr"`
 	RewardAddr    sdk.AccAddress `json:"reward_addr" yaml:"reward_addr"`
 	PubKey        crypto.PubKey  `json:"pub_key" yaml:"pub_key"`
-	Stake         sdk.Coin       `json:"value" yaml:"value"`
+	Stake         sdk.Coin       `json:"stake" yaml:"stake"`
 	Description   Description    `json:"description"`
 }
 
