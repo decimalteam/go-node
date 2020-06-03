@@ -458,8 +458,7 @@ func sendCoins(address string, amount *big.Int) (response string, txHash string,
 	}
 	msgs := []sdk.Msg{&MsgSendCoin{
 		Sender:   sender,
-		Coin:     BaseCoin,
-		Amount:   sdk.NewIntFromBigInt(amount),
+		Coin:     sdk.NewCoin(BaseCoin, sdk.NewIntFromBigInt(amount)),
 		Receiver: receiver,
 	}}
 
@@ -577,16 +576,14 @@ func GetSequenceAndAccNumber(address string) (uint64, uint64, error) {
 
 type MsgSendCoin struct {
 	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`
-	Coin     string         `json:"coin" yaml:"coin"`
-	Amount   sdk.Int        `json:"amount" yaml:"amount"`
+	Coin     sdk.Coin       `json:"coin" yaml:"coin"`
 	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
 }
 
-func NewMsgSendCoin(sender sdk.AccAddress, coin string, amount sdk.Int, receiver sdk.AccAddress) MsgSendCoin {
+func NewMsgSendCoin(sender sdk.AccAddress, coin sdk.Coin, receiver sdk.AccAddress) MsgSendCoin {
 	return MsgSendCoin{
 		Sender:   sender,
 		Coin:     coin,
-		Amount:   amount,
 		Receiver: receiver,
 	}
 }
@@ -607,7 +604,7 @@ func (msg MsgSendCoin) ValidateBasic() error {
 }
 
 func ValidateSendCoin(msg MsgSendCoin) error {
-	if msg.Amount.LTE(sdk.NewInt(0)) {
+	if msg.Coin.Amount.LTE(sdk.NewInt(0)) {
 		return sdkerrors.New("coin", 1, "Amount should be greater than 0")
 	}
 	return nil
