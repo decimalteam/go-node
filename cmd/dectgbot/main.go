@@ -36,11 +36,8 @@ const RPCPrefix = "http://139.59.133.148/rpc"
 // RESTPrefix is prefix of available LCD REST server endpoint.
 const RESTPrefix = "http://139.59.133.148/rest"
 
-// BaseCoin is base coin in original case.
-const BaseCoin = "tDEL"
-
-// BaseCoinLower is base coin in lower case.
-const BaseCoinLower = "tdel"
+// BaseCoin is base coin.
+const BaseCoin = "tdel"
 
 // Faucet settings.
 const (
@@ -300,8 +297,8 @@ Y - amoun of COIN want to spend (float)`
 	// Check coins
 	coinA := coins[strings.ToLower(symbolA)]
 	coinB := coins[strings.ToLower(symbolB)]
-	isBaseCoinA := strings.ToLower(symbolA) == BaseCoinLower
-	isBaseCoinB := strings.ToLower(symbolB) == BaseCoinLower
+	isBaseCoinA := strings.ToLower(symbolA) == BaseCoin
+	isBaseCoinB := strings.ToLower(symbolB) == BaseCoin
 	if isBaseCoinA {
 		text := fmt.Sprintf("Invalid trade calculation request: trading coin cannot be %s. Usage:%s%s", BaseCoin, coinSpecification, tradeCalculationRequests)
 		answerWithError(m, text)
@@ -399,7 +396,7 @@ func handleFaucetRequest(m *tgbotapi.Message) {
 	}
 
 	// Validate amount to transfer
-	if coin := strings.ToLower(strs[2]); coin != BaseCoinLower {
+	if coin := strings.ToLower(strs[2]); coin != BaseCoin {
 		text := fmt.Sprintf("Invalid coin symbol: only %q is allowed now", BaseCoin)
 		answerWithError(m, text)
 		return
@@ -458,7 +455,7 @@ func sendCoins(address string, amount *big.Int) (response string, txHash string,
 	}
 	msgs := []sdk.Msg{&MsgSendCoin{
 		Sender:   sender,
-		Coin:     sdk.NewCoin(BaseCoinLower, sdk.NewIntFromBigInt(amount)),
+		Coin:     sdk.NewCoin(BaseCoin, sdk.NewIntFromBigInt(amount)),
 		Receiver: receiver,
 	}}
 

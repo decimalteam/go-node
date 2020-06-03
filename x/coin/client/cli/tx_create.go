@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -50,7 +49,7 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 			balance := acc.GetCoins()
-			if balance.AmountOf(strings.ToLower(cliUtils.GetBaseCoin())).LT(initReserve) {
+			if balance.AmountOf(cliUtils.GetBaseCoin()).LT(initReserve) {
 				return sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinReserve, "Not enough coin to reserve")
 			}
 			// Check if coin does not exist yet

@@ -1,20 +1,21 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"encoding/hex"
 	"fmt"
 	"strings"
 
-	"bitbucket.org/decimalteam/go-node/config"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 // Keeper of the coin store
@@ -49,19 +50,23 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (types.Coin, error) {
 	store := ctx.KVStore(k.storeKey)
 	var coin types.Coin
-	byteKey := []byte(types.CoinPrefix + symbol)
-	err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(byteKey), &coin)
+	key := []byte(types.CoinPrefix + strings.ToLower(symbol))
+	value := store.Get(key)
+	if value == nil {
+		return coin, fmt.Errorf("coin %s is not found in the key-value store", strings.ToLower(symbol))
+	}
+	err := k.cdc.UnmarshalBinaryLengthPrefixed(value, &coin)
 	if err != nil {
 		return coin, err
 	}
 	return coin, nil
 }
 
-func (k Keeper) SetCoin(ctx sdk.Context, value types.Coin) { // CreateCoin
+func (k Keeper) SetCoin(ctx sdk.Context, coin types.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(value)
-	key := value.Symbol
-	store.Set([]byte(types.CoinPrefix+key), bz)
+	value := k.cdc.MustMarshalBinaryLengthPrefixed(coin)
+	key := []byte(types.CoinPrefix + strings.ToLower(coin.Symbol))
+	store.Set(key, value)
 }
 
 // GetCoinsIterator gets an iterator over all Coins in which the keys are the symbols and the values are the coins
@@ -130,7 +135,9 @@ func (k Keeper) SetCheckRedeemed(ctx sdk.Context, check *types.Check) {
 
 func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sdk.Int, string, error) {
 	feeCoin, ok := ctx.Value("fee_coin").(string)
-	if !ok {
+	if ok {
+		feeCoin = strings.ToLower(feeCoin)
+	} else {
 		feeCoin = cliUtils.GetBaseCoin()
 	}
 
