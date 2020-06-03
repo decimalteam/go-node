@@ -592,7 +592,7 @@ func NewMsgSendCoin(sender sdk.AccAddress, coin string, amount sdk.Int, receiver
 }
 
 func (msg MsgSendCoin) Route() string { return "coin" }
-func (msg MsgSendCoin) Type() string  { return "SendCoin" }
+func (msg MsgSendCoin) Type() string  { return "send_coin" }
 func (msg MsgSendCoin) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
