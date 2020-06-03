@@ -458,7 +458,7 @@ func sendCoins(address string, amount *big.Int) (response string, txHash string,
 	}
 	msgs := []sdk.Msg{&MsgSendCoin{
 		Sender:   sender,
-		Coin:     sdk.NewCoin(BaseCoin, sdk.NewIntFromBigInt(amount)),
+		Coin:     sdk.NewCoin(BaseCoinLower, sdk.NewIntFromBigInt(amount)),
 		Receiver: receiver,
 	}}
 
