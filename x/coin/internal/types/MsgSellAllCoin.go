@@ -9,11 +9,11 @@ var _ sdk.Msg = &MsgSellAllCoin{}
 
 type MsgSellAllCoin struct {
 	Sender       sdk.AccAddress `json:"sender" yaml:"sender"`
-	CoinToSell   string         `json:"coin_to_sell" yaml:"coin_to_sell"`
+	CoinToSell   sdk.Coin       `json:"coin_to_sell" yaml:"coin_to_sell"`
 	MinCoinToBuy sdk.Coin       `json:"min_coin_to_buy" yaml:"min_coin_to_buy"`
 }
 
-func NewMsgSellAllCoin(sender sdk.AccAddress, coinToSell string, minCoinToBuy sdk.Coin) MsgSellAllCoin {
+func NewMsgSellAllCoin(sender sdk.AccAddress, coinToSell sdk.Coin, minCoinToBuy sdk.Coin) MsgSellAllCoin {
 	return MsgSellAllCoin{
 		Sender:       sender,
 		CoinToSell:   coinToSell,
@@ -35,7 +35,7 @@ func (msg MsgSellAllCoin) GetSignBytes() []byte {
 }
 
 func (msg MsgSellAllCoin) ValidateBasic() error {
-	if msg.CoinToSell == msg.MinCoinToBuy.Denom {
+	if msg.CoinToSell.Denom == msg.MinCoinToBuy.Denom {
 		return sdkerrors.New(DefaultCodespace, SameCoins, "Cannot sell same coins")
 	}
 	return nil

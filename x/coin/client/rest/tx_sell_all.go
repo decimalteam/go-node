@@ -64,7 +64,7 @@ func CoinSellAllRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		//	return err
 		//}
 		// Do basic validating
-		msg := types.NewMsgSellAllCoin(cliCtx.GetFromAddress(), coinToSellSymbol, sdk.NewCoin(coinToBuySymbol, amountToBuy))
+		msg := types.NewMsgSellAllCoin(cliCtx.GetFromAddress(), sdk.NewCoin(coinToSellSymbol, sdk.NewInt(0)), sdk.NewCoin(coinToBuySymbol, amountToBuy))
 		//err = msg.ValidateBasic()
 		//if err != nil {
 		//	return err

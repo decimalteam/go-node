@@ -1,16 +1,17 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	tmstrings "github.com/tendermint/tendermint/libs/strings"
-	tmtypes "github.com/tendermint/tendermint/types"
 	"strings"
 	"time"
 
+	tmstrings "github.com/tendermint/tendermint/libs/strings"
+	tmtypes "github.com/tendermint/tendermint/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -110,7 +111,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 			types.EventTypeDeclareCandidate,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddr.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Stake.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Stake.Denom),
+			sdk.NewAttribute(types.AttributeKeyCoin, msg.Stake.Denom),
 			sdk.NewAttribute(types.AttributeKeyPubKey, msg.PubKey.Address().String()),
 		),
 		sdk.NewEvent(
@@ -166,7 +167,7 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 			types.EventTypeDelegate,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Amount.Denom),
+			sdk.NewAttribute(types.AttributeKeyCoin, msg.Amount.Denom),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -208,7 +209,7 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 			types.EventTypeUnbond,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Amount.Denom),
+			sdk.NewAttribute(types.AttributeKeyCoin, msg.Amount.Denom),
 			sdk.NewAttribute(types.AttributeKeyDelegator, msg.DelegatorAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 		),

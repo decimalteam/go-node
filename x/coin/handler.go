@@ -57,7 +57,7 @@ func NewHandler(k Keeper) sdk.Handler {
 		case types.MsgSellAllCoin:
 			msgSell := MsgSellCoin{
 				Sender:       msg.Sender,
-				CoinToSell:   sdk.NewCoin(msg.CoinToSell, sdk.ZeroInt()),
+				CoinToSell:   msg.CoinToSell,
 				MinCoinToBuy: msg.MinCoinToBuy,
 			}
 			return handleMsgSellCoin(ctx, k, msgSell, true)

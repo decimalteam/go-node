@@ -422,7 +422,7 @@ func (p *Provider) CreateCoin(title string, symbol string, crr uint, initVolume 
 }
 
 func (p *Provider) SellAllCoins(seller Account, coinToBuy string, coinToSell string, amountToBuy sdk.Int) error {
-	return p.SendTx([]sdk.Msg{coin.NewMsgSellAllCoin(seller.Address, coinToSell, sdk.NewCoin(coinToBuy, amountToBuy))}, seller)
+	return p.SendTx([]sdk.Msg{coin.NewMsgSellAllCoin(seller.Address, sdk.NewCoin(coinToSell, sdk.NewInt(0)), sdk.NewCoin(coinToBuy, amountToBuy))}, seller)
 }
 
 func (p *Provider) SendAll(sender Account, accounts []Account, amount sdk.Int, token string) error {

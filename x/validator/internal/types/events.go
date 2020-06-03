@@ -19,7 +19,7 @@ const (
 	AttributeKeyValidator      = "validator"
 	AttributeKeyDelegator      = "delegator"
 	AttributeKeyRewardAddress  = "reward_address"
-	AttributeKeyDenom          = "denom"
+	AttributeKeyCoin           = "coin"
 	AttributeKeyPubKey         = "pub_key"
 	AttributeKeyCompletionTime = "completion_time"
 	AttributeKeyAddress        = "address"
