@@ -18,11 +18,11 @@ const (
 	AttributeLimitVolume = "limit_volume"
 
 	// Buy/Sell Coin
-	AttributeCoinToBuy        = "coinToBuy"
-	AttributeCoinToSell       = "coinToSell"
-	AttributeAmountToBuy      = "amountToBuy"
-	AttributeAmountToSell     = "amountToSell"
-	AttributeAmountInBaseCoin = "amountInBaseCoin"
+	AttributeCoinToBuy        = "coin_to_buy"
+	AttributeCoinToSell       = "coin_to_sell"
+	AttributeAmountToBuy      = "amount_to_buy"
+	AttributeAmountToSell     = "amount_to_sell"
+	AttributeAmountInBaseCoin = "amount_in_base_coin"
 
 	// Send/MultiSend Coin
 	AttributeCoin     = "coin"
@@ -31,8 +31,8 @@ const (
 
 	// Redeem Check
 	AttributeIssuer     = "issuer"
-	AttributeCheckNonce = "checkNonce"
-	AttributeDueBlock   = "dueBlock"
+	AttributeCheckNonce = "check_nonce"
+	AttributeDueBlock   = "due_block"
 
 	AttributeValueCategory = ModuleName
 )
