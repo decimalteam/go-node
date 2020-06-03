@@ -6,13 +6,13 @@ import (
 
 // RegisterCodec registers concrete types on codec
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgCreateCoin{}, "coin/CreateCoin", nil)
-	cdc.RegisterConcrete(MsgBuyCoin{}, "coin/BuyCoin", nil)
-	cdc.RegisterConcrete(MsgSellCoin{}, "coin/SellCoin", nil)
-	cdc.RegisterConcrete(MsgSellAllCoin{}, "coin/SellAllCoin", nil)
-	cdc.RegisterConcrete(MsgSendCoin{}, "coin/SendCoin", nil)
-	cdc.RegisterConcrete(MsgMultiSendCoin{}, "coin/MultiSendCoin", nil)
-	cdc.RegisterConcrete(MsgRedeemCheck{}, "coin/RedeemCheck", nil)
+	cdc.RegisterConcrete(MsgCreateCoin{}, "coin/create_coin", nil)
+	cdc.RegisterConcrete(MsgBuyCoin{}, "coin/buy_coin", nil)
+	cdc.RegisterConcrete(MsgSellCoin{}, "coin/sell_coin", nil)
+	cdc.RegisterConcrete(MsgSellAllCoin{}, "coin/sell_all_coin", nil)
+	cdc.RegisterConcrete(MsgSendCoin{}, "coin/send_coin", nil)
+	cdc.RegisterConcrete(MsgMultiSendCoin{}, "coin/multi_send_coin", nil)
+	cdc.RegisterConcrete(MsgRedeemCheck{}, "coin/redeem_check", nil)
 }
 
 // ModuleCdc defines the module codec

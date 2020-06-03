@@ -34,7 +34,7 @@ func MakeTestCodec() *codec.Codec {
 
 	// Register AppAccount
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)
-	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/coin/BaseAccount", nil)
+	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/coin/base_account", nil)
 	supply.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
 

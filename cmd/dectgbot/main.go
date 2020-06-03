@@ -90,7 +90,7 @@ func init() {
 
 	// Initialize cosmos-sdk codec
 	sdk.RegisterCodec(cdc)
-	cdc.RegisterConcrete(MsgSendCoin{}, "coin/SendCoin", nil)
+	cdc.RegisterConcrete(MsgSendCoin{}, "coin/send_coin", nil)
 	codec.RegisterCrypto(cdc)
 	cdc.Seal()
 

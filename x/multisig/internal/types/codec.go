@@ -6,9 +6,9 @@ import (
 
 // RegisterCodec registers concrete types on codec
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgCreateWallet{}, "multisig/CreateWallet", nil)
-	cdc.RegisterConcrete(MsgCreateTransaction{}, "multisig/CreateTransaction", nil)
-	cdc.RegisterConcrete(MsgSignTransaction{}, "multisig/SignTransaction", nil)
+	cdc.RegisterConcrete(MsgCreateWallet{}, "multisig/create_wallet", nil)
+	cdc.RegisterConcrete(MsgCreateTransaction{}, "multisig/create_transaction", nil)
+	cdc.RegisterConcrete(MsgSignTransaction{}, "multisig/sign_transaction", nil)
 }
 
 // ModuleCdc defines the module codec

@@ -1,15 +1,16 @@
 package keeper // noalias
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"bytes"
 	"encoding/hex"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"math/rand"
 	"strconv"
 	"testing"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 
 	"github.com/stretchr/testify/require"
 
@@ -63,17 +64,17 @@ func MakeTestCodec() *codec.Codec {
 
 	// Register Msgs
 	cdc.RegisterInterface((*sdk.Msg)(nil), nil)
-	cdc.RegisterConcrete(bank.MsgSend{}, "test/validator/Send", nil)
-	cdc.RegisterConcrete(types.MsgDeclareCandidate{}, "test/validator/declare-candidate", nil)
-	cdc.RegisterConcrete(types.MsgEditCandidate{}, "test/validator/edit-candidate", nil)
-	cdc.RegisterConcrete(types.MsgSetOnline{}, "test/validator/set-online", nil)
-	cdc.RegisterConcrete(types.MsgSetOffline{}, "test/validator/set-offline", nil)
+	cdc.RegisterConcrete(bank.MsgSend{}, "test/validator/send", nil)
+	cdc.RegisterConcrete(types.MsgDeclareCandidate{}, "test/validator/declare_candidate", nil)
+	cdc.RegisterConcrete(types.MsgEditCandidate{}, "test/validator/edit_candidate", nil)
+	cdc.RegisterConcrete(types.MsgSetOnline{}, "test/validator/set_online", nil)
+	cdc.RegisterConcrete(types.MsgSetOffline{}, "test/validator/set_offline", nil)
 	cdc.RegisterConcrete(types.MsgUnbond{}, "test/validator/unbond", nil)
 	cdc.RegisterConcrete(types.MsgDelegate{}, "test/validator/delegate", nil)
 
 	// Register AppAccount
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)
-	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/validator/BaseAccount", nil)
+	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/validator/base_account", nil)
 	supply.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
 

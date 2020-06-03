@@ -73,15 +73,15 @@ func NewProvider() *Provider {
 	// Initialize cosmos-sdk codec
 	cdc := codec.New()
 	cdc.RegisterInterface((*sdk.Msg)(nil), nil)
-	cdc.RegisterConcrete(coin.MsgSendCoin{}, "coin/SendCoin", nil)
-	cdc.RegisterConcrete(coin.MsgBuyCoin{}, "coin/BuyCoin", nil)
-	cdc.RegisterConcrete(coin.MsgSellCoin{}, "coin/SellCoin", nil)
-	cdc.RegisterConcrete(coin.MsgCreateCoin{}, "coin/CreateCoin", nil)
-	cdc.RegisterConcrete(coin.MsgSellAllCoin{}, "coin/SellAllCoin", nil)
-	cdc.RegisterConcrete(coin.MsgMultiSendCoin{}, "coin/MultiSendCoin", nil)
+	cdc.RegisterConcrete(coin.MsgSendCoin{}, "coin/send_coin", nil)
+	cdc.RegisterConcrete(coin.MsgBuyCoin{}, "coin/buy_coin", nil)
+	cdc.RegisterConcrete(coin.MsgSellCoin{}, "coin/sell_coin", nil)
+	cdc.RegisterConcrete(coin.MsgCreateCoin{}, "coin/create_coin", nil)
+	cdc.RegisterConcrete(coin.MsgSellAllCoin{}, "coin/sell_all_coin", nil)
+	cdc.RegisterConcrete(coin.MsgMultiSendCoin{}, "coin/multi_send_coin", nil)
 
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)
-	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/validator/BaseAccount", nil)
+	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/validator/base_account", nil)
 	codec.RegisterCrypto(cdc)
 
 	rootPath := os.ExpandEnv(RootPath)

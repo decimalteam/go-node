@@ -9,9 +9,9 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgDeclareCandidate{}, "validator/declare_candidate", nil)
 	cdc.RegisterConcrete(MsgDelegate{}, "validator/delegate", nil)
 	cdc.RegisterConcrete(MsgUnbond{}, "validator/unbond", nil)
-	cdc.RegisterConcrete(MsgEditCandidate{}, "validator/edit-candidate", nil)
-	cdc.RegisterConcrete(MsgSetOnline{}, "validator/set-online", nil)
-	cdc.RegisterConcrete(MsgSetOffline{}, "validator/set-offline", nil)
+	cdc.RegisterConcrete(MsgEditCandidate{}, "validator/edit_candidate", nil)
+	cdc.RegisterConcrete(MsgSetOnline{}, "validator/set_online", nil)
+	cdc.RegisterConcrete(MsgSetOffline{}, "validator/set_offline", nil)
 }
 
 // ModuleCdc defines the module codec
