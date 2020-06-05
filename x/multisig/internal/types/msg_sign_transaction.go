@@ -20,11 +20,13 @@ func NewMsgSignTransaction(sender sdk.AccAddress, txID string) MsgSignTransactio
 	}
 }
 
+const SignTransactionConst = "sign_transaction"
+
 // Route returns name of the route for the message.
 func (msg MsgSignTransaction) Route() string { return RouterKey }
 
 // Type returns the name of the type for the message.
-func (msg MsgSignTransaction) Type() string { return "sign_transaction" }
+func (msg MsgSignTransaction) Type() string { return SignTransactionConst }
 
 // ValidateBasic runs stateless checks on the message
 func (msg MsgSignTransaction) ValidateBasic() error {

@@ -14,12 +14,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/multisig/internal/types"
 )
 
-const (
-	CreateWalletFee      int64 = 100
-	CreateTransactionFee int64 = 100
-	SignTransactionFee   int64 = 100
-)
-
 // NewHandler creates an sdk.Handler for all the multisig type messages
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
@@ -39,18 +33,6 @@ func NewHandler(k Keeper) sdk.Handler {
 }
 
 func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) (*sdk.Result, error) {
-	commission, feeCoin, err := keeper.CoinKeeper.GetCommission(ctx, helpers.UnitToPip(CreateWalletFee))
-	if err != nil {
-		return nil, vtypes.ErrCalculateCommission(err)
-	}
-
-	account := keeper.AccountKeeper.GetAccount(ctx, msg.Sender)
-	balanceFee := account.GetCoins().AmountOf(strings.ToLower(feeCoin))
-
-	if balanceFee.LT(commission) {
-		return nil, vtypes.ErrInsufficientCoinToPayCommission(commission.String())
-	}
-
 	// Create new multisig wallet
 	wallet, err := NewWallet(msg.Owners, msg.Weights, msg.Threshold, ctx.TxBytes())
 	if err != nil {
@@ -75,11 +57,6 @@ func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) 
 	// Save created multisig wallet to the KVStore
 	keeper.SetWallet(ctx, *wallet)
 
-	err = keeper.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
-	if err != nil {
-		return nil, vtypes.ErrUpdateBalance(err)
-	}
-
 	// Emit transaction events
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -95,17 +72,7 @@ func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) 
 }
 
 func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTransaction) (*sdk.Result, error) {
-	commission, feeCoin, err := keeper.CoinKeeper.GetCommission(ctx, helpers.UnitToPip(CreateTransactionFee))
-	if err != nil {
-		return nil, vtypes.ErrCalculateCommission(err)
-	}
-
 	account := keeper.AccountKeeper.GetAccount(ctx, msg.Sender)
-	balanceFee := account.GetCoins().AmountOf(strings.ToLower(feeCoin))
-
-	if balanceFee.LT(commission) {
-		return nil, vtypes.ErrInsufficientCoinToPayCommission(commission.String())
-	}
 
 	// Retrieve multisig wallet from the KVStore
 	wallet := keeper.GetWallet(ctx, msg.Wallet.String())
@@ -117,11 +84,6 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 	for _, coin := range msg.Coins {
 		if account.GetCoins().AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
 			return nil, vtypes.ErrInsufficientFunds(coin.String())
-		}
-		if feeCoin == coin.Denom {
-			if balanceFee.LT(commission.Add(coin.Amount)) {
-				return nil, vtypes.ErrInsufficientFunds(sdk.NewCoin(feeCoin, commission.Add(coin.Amount)).String())
-			}
 		}
 	}
 
@@ -148,11 +110,6 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 	}
 
-	err = keeper.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
-	if err != nil {
-		return nil, vtypes.ErrUpdateBalance(err)
-	}
-
 	// Emit transaction events
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -169,18 +126,6 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 }
 
 func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransaction, emitEvents bool) (*sdk.Result, error) {
-	commission, feeCoin, err := keeper.CoinKeeper.GetCommission(ctx, helpers.UnitToPip(SignTransactionFee))
-	if err != nil {
-		return nil, vtypes.ErrCalculateCommission(err)
-	}
-
-	account := keeper.AccountKeeper.GetAccount(ctx, msg.Sender)
-	balanceFee := account.GetCoins().AmountOf(strings.ToLower(feeCoin))
-
-	if balanceFee.LT(commission) {
-		return nil, vtypes.ErrInsufficientCoinToPayCommission(commission.String())
-	}
-
 	// Retrieve multisig transaction from the KVStore
 	transaction := keeper.GetTransaction(ctx, msg.TxID)
 	if transaction.Wallet.Empty() {
@@ -240,11 +185,6 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 			msgError := fmt.Sprintf("Unable to perform multi-signature transaction %s: %s", transaction.ID, err.Error())
 			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 		}
-	}
-
-	err = keeper.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
-	if err != nil {
-		return nil, vtypes.ErrUpdateBalance(err)
 	}
 
 	// Emit transaction events

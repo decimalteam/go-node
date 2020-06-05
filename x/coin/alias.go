@@ -15,6 +15,14 @@ const (
 	DefaultCodespace  = types.DefaultCodespace
 	//QueryParams       = types.QueryParams
 	QuerierRoute = types.QuerierRoute
+
+	BuyCoinConst       = types.BuyCoinConst
+	SellCoinConst      = types.SellCoinConst
+	MultiSendCoinConst = types.MultiSendCoinConst
+	RedeemCheckConst   = types.RedeemCheckConst
+	SellAllConst       = types.SellAllCoinConst
+	CreateCoinConst    = types.CreateCoinConst
+	SendCoinConst      = types.SendCoinConst
 )
 
 var (

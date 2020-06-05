@@ -35,11 +35,13 @@ func NewMsgCreateWallet(sender sdk.AccAddress, owners []sdk.AccAddress, weights 
 	}
 }
 
+const CreateWalletConst = "create_wallet"
+
 // Route returns name of the route for the message.
 func (msg MsgCreateWallet) Route() string { return RouterKey }
 
 // Type returns the name of the type for the message.
-func (msg MsgCreateWallet) Type() string { return "create_wallet" }
+func (msg MsgCreateWallet) Type() string { return CreateWalletConst }
 
 // ValidateBasic performs basic validation of the message.
 func (msg MsgCreateWallet) ValidateBasic() error {

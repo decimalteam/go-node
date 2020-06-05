@@ -12,8 +12,12 @@ func BipToPip(bip sdk.Int) sdk.Int {
 	return bip.Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)))
 }
 
-func UnitToPip(unit int64) sdk.Int {
-	return sdk.NewInt(unit).Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(15), nil)))
+func UnitToPip(unit sdk.Int) sdk.Int {
+	return unit.Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(15), nil)))
+}
+
+func PipToUnit(pip sdk.Int) sdk.Int {
+	return pip.Quo(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(15), nil)))
 }
 
 // JoinAccAddresses returns string containing all provided address joined with ",".

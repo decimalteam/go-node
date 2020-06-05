@@ -21,7 +21,12 @@ const (
 
 	ValidatorsKey = types.ValidatorsKey
 
-	AttributeKeySequence = types.AttributeKeySequence
+	DeclareCandidateConst = types.DeclareCandidateConst
+	DelegateConst         = types.DelegateConst
+	SetOnlineConst        = types.SetOnlineConst
+	SetOfflineConst       = types.SetOfflineConst
+	UnbondConst           = types.UnbondConst
+	EditCandidateConst    = types.EditCandidateConst
 )
 
 var (

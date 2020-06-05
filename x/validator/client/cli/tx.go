@@ -303,7 +303,15 @@ func GetEditCandidate(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgEditCandidate(pubKey, valAddress, rewardAddress)
+			description := types.NewDescription(
+				viper.GetString(FlagMoniker),
+				viper.GetString(FlagIdentity),
+				viper.GetString(FlagWebsite),
+				viper.GetString(FlagSecurityContact),
+				viper.GetString(FlagDetails),
+			)
+
+			msg := types.NewMsgEditCandidate(pubKey, valAddress, rewardAddress, description)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

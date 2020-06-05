@@ -15,6 +15,10 @@ const (
 	DefaultCodespace  = types.DefaultCodespace
 	//QueryParams       = types.QueryParams
 	QuerierRoute = types.QuerierRoute
+
+	CreateTransactionConst = types.CreateTransactionConst
+	CreateWalletConst      = types.CreateWalletConst
+	SignTransactionConst   = types.SignTransactionConst
 )
 
 var (

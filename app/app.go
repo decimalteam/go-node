@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils"
 	"encoding/json"
 	"io"
 	"os"
@@ -216,7 +217,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// The AnteHandler handles signature verification and transaction pre-processing
 	app.SetAnteHandler(
-		validator.NewAnteHandler(
+		utils.NewAnteHandler(
 			app.accountKeeper,
 			app.validatorKeeper,
 			app.coinKeeper,

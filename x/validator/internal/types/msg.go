@@ -203,13 +203,15 @@ type MsgEditCandidate struct {
 	PubKey           crypto.PubKey  `json:"pub_key"`
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
 	RewardAddress    sdk.AccAddress `json:"reward_address"`
+	Description      Description    `json:"description"`
 }
 
-func NewMsgEditCandidate(pubKey crypto.PubKey, validatorAddress sdk.ValAddress, rewardAddress sdk.AccAddress) MsgEditCandidate {
+func NewMsgEditCandidate(pubKey crypto.PubKey, validatorAddress sdk.ValAddress, rewardAddress sdk.AccAddress, description Description) MsgEditCandidate {
 	return MsgEditCandidate{
 		PubKey:           pubKey,
 		ValidatorAddress: validatorAddress,
 		RewardAddress:    rewardAddress,
+		Description:      description,
 	}
 }
 

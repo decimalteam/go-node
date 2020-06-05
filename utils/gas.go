@@ -46,6 +46,9 @@ func addUint64Overflow(a, b uint64) (uint64, bool) {
 
 func (g *gasMeter) ConsumeGas(amount sdk.Gas, descriptor string) {
 	// fmt.Printf("####### Consume %d gas: %s\n", amount, descriptor)
+	if descriptor != "commission" {
+		return
+	}
 	var overflow bool
 	// TODO: Should we set the consumed field after overflow checking?
 	g.consumed, overflow = addUint64Overflow(g.consumed, amount)

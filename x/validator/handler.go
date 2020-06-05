@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
@@ -11,17 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-)
-
-const (
-	declareCandidateFee = 10000
-	editCandidateFee    = 10000
-	delegateFee         = 200
-	unbondFee           = 200
-	setOnlineFee        = 100
-	setOfflineFee       = 100
 )
 
 // NewHandler creates an sdk.Handler for all the validator type messages
@@ -49,24 +38,6 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCandidate) (*sdk.Result, error) {
-	commission, feeCoin, err := k.CoinKeeper.GetCommission(ctx, helpers.UnitToPip(declareCandidateFee))
-	if err != nil {
-		return nil, types.ErrCalculateCommission(err)
-	}
-
-	acc := k.AccountKeeper.GetAccount(ctx, sdk.AccAddress(msg.ValidatorAddr))
-	balance := acc.GetCoins()
-
-	if balance.AmountOf(k.BondDenom(ctx)).LT(commission) {
-		return nil, types.ErrInsufficientCoinToPayCommission(commission.String())
-	}
-
-	if msg.Stake.Denom == k.BondDenom(ctx) {
-		if balance.AmountOf(k.BondDenom(ctx)).LT(commission.Add(msg.Stake.Amount)) {
-			return nil, types.ErrInsufficientFunds(commission.Add(msg.Stake.Amount).String())
-		}
-	}
-
 	// check to see if the pubkey or sender has been registered before
 	if _, err := k.GetValidator(ctx, msg.ValidatorAddr); err == nil {
 		return nil, types.ErrValidatorOwnerExists(k.Codespace())
@@ -87,7 +58,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 	}
 
 	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Commission, msg.RewardAddr, msg.Description)
-	err = k.SetValidator(ctx, val)
+	err := k.SetValidator(ctx, val)
 	if err != nil {
 		return nil, types.ErrInvalidStruct(k.Codespace())
 	}
@@ -99,11 +70,6 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 	err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), types.CodeInvalidDelegation, err.Error())
-	}
-
-	err = k.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), sdk.AccAddress(msg.ValidatorAddr))
-	if err != nil {
-		return nil, types.ErrUpdateBalance(err)
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -125,24 +91,6 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 }
 
 func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.Result, error) {
-	commission, feeCoin, err := k.CoinKeeper.GetCommission(ctx, helpers.UnitToPip(delegateFee))
-	if err != nil {
-		return nil, types.ErrCalculateCommission(err)
-	}
-
-	acc := k.AccountKeeper.GetAccount(ctx, msg.DelegatorAddress)
-	balance := acc.GetCoins()
-
-	if balance.AmountOf(k.BondDenom(ctx)).LT(commission) {
-		return nil, types.ErrInsufficientCoinToPayCommission(commission.String())
-	}
-
-	if msg.Coin.Denom == k.BondDenom(ctx) {
-		if balance.AmountOf(k.BondDenom(ctx)).LT(commission.Add(msg.Coin.Amount)) {
-			return nil, types.ErrInsufficientFunds(commission.Add(msg.Coin.Amount).String())
-		}
-	}
-
 	val, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
 		return nil, types.ErrNoValidatorFound(k.Codespace())
@@ -157,11 +105,6 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
 
-	err = k.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.DelegatorAddress)
-	if err != nil {
-		return nil, types.ErrUpdateBalance(err)
-	}
-
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
@@ -174,29 +117,12 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 }
 
 func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Result, error) {
-	commission, feeCoin, err := k.CoinKeeper.GetCommission(ctx, helpers.UnitToPip(unbondFee))
-	if err != nil {
-		return nil, types.ErrCalculateCommission(err)
-	}
-
-	acc := k.AccountKeeper.GetAccount(ctx, msg.DelegatorAddress)
-	balance := acc.GetCoins()
-
-	if balance.AmountOf(k.BondDenom(ctx)).LT(commission) {
-		return nil, types.ErrInsufficientCoinToPayCommission(commission.String())
-	}
-
 	completionTime, err := k.Undelegate(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.Coin)
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
 
 	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
-
-	err = k.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.DelegatorAddress)
-	if err != nil {
-		return nil, types.ErrUpdateBalance(err)
-	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -211,18 +137,6 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 }
 
 func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidate) (*sdk.Result, error) {
-	commission, feeCoin, err := k.CoinKeeper.GetCommission(ctx, helpers.UnitToPip(editCandidateFee))
-	if err != nil {
-		return nil, types.ErrCalculateCommission(err)
-	}
-
-	acc := k.AccountKeeper.GetAccount(ctx, sdk.AccAddress(msg.ValidatorAddress))
-	balance := acc.GetCoins()
-
-	if balance.AmountOf(k.BondDenom(ctx)).LT(commission) {
-		return nil, types.ErrInsufficientCoinToPayCommission(commission.String())
-	}
-
 	validator, err := k.GetValidatorByConsAddr(ctx, sdk.ConsAddress(msg.PubKey.Address()))
 	if err != nil {
 		return nil, types.ErrNoValidatorFound(k.Codespace())
@@ -230,16 +144,12 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 
 	validator.ValAddress = msg.ValidatorAddress
 	validator.RewardAddress = msg.RewardAddress
+	validator.Description = msg.Description
 
 	k.SetValidatorByConsAddr(ctx, validator)
 	err = k.SetValidator(ctx, validator)
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
-	}
-
-	err = k.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), sdk.AccAddress(msg.ValidatorAddress))
-	if err != nil {
-		return nil, types.ErrUpdateBalance(err)
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -254,18 +164,6 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 }
 
 func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk.Result, error) {
-	commission, feeCoin, err := k.CoinKeeper.GetCommission(ctx, helpers.UnitToPip(setOnlineFee))
-	if err != nil {
-		return nil, types.ErrCalculateCommission(err)
-	}
-
-	acc := k.AccountKeeper.GetAccount(ctx, sdk.AccAddress(msg.ValidatorAddress))
-	balance := acc.GetCoins()
-
-	if balance.AmountOf(k.BondDenom(ctx)).LT(commission) {
-		return nil, types.ErrInsufficientCoinToPayCommission(commission.String())
-	}
-
 	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
 		return nil, types.ErrNoValidatorFound(k.Codespace())
@@ -285,11 +183,6 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk
 	}
 	k.SetValidatorByPowerIndex(ctx, validator)
 
-	err = k.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), sdk.AccAddress(msg.ValidatorAddress))
-	if err != nil {
-		return nil, types.ErrUpdateBalance(err)
-	}
-
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
@@ -301,18 +194,6 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk
 }
 
 func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*sdk.Result, error) {
-	commission, feeCoin, err := k.CoinKeeper.GetCommission(ctx, helpers.UnitToPip(setOfflineFee))
-	if err != nil {
-		return nil, types.ErrCalculateCommission(err)
-	}
-
-	acc := k.AccountKeeper.GetAccount(ctx, sdk.AccAddress(msg.ValidatorAddress))
-	balance := acc.GetCoins()
-
-	if balance.AmountOf(k.BondDenom(ctx)).LT(commission) {
-		return nil, types.ErrInsufficientCoinToPayCommission(commission.String())
-	}
-
 	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
 		return nil, types.ErrNoValidatorFound(k.Codespace())
@@ -329,11 +210,6 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*s
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
 	k.DeleteValidatorByPowerIndex(ctx, validator)
-
-	err = k.CoinKeeper.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), sdk.AccAddress(msg.ValidatorAddress))
-	if err != nil {
-		return nil, types.ErrUpdateBalance(err)
-	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,

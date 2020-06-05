@@ -1,16 +1,14 @@
 package validator
 
 import (
-	"fmt"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 // BeginBlocker check for infraction evidence or downtime of validators
@@ -93,7 +91,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		if fee.Denom == k.BondDenom(ctx) {
 			rewards = rewards.Add(fee.Amount)
 		} else {
-			feeCoin, err := coinKeeper.GetCoin(ctx, fee.Denom)
+			feeCoin, err := k.GetCoin(ctx, fee.Denom)
 			if err != nil {
 				panic(err)
 			}

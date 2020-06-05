@@ -32,7 +32,7 @@ func NewMsgCreateCoin(sender sdk.AccAddress, title string, symbol string, crr ui
 	}
 }
 
-const createCoinConst = "create_coin"
+const CreateCoinConst = "create_coin"
 const maxCoinNameBytes = 64
 const allowedCoinSymbols = "^[a-zA-Z][a-zA-Z0-9]{2,9}$"
 
@@ -42,7 +42,7 @@ var maxCoinSupply, _ = sdk.NewIntFromString("10000000000000000000000000000000000
 var minCoinReserve = sdk.NewInt(10)
 
 func (msg MsgCreateCoin) Route() string { return RouterKey }
-func (msg MsgCreateCoin) Type() string  { return createCoinConst }
+func (msg MsgCreateCoin) Type() string  { return CreateCoinConst }
 func (msg MsgCreateCoin) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
