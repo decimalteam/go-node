@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	"log"
 )
 
 // Ante
@@ -161,6 +162,8 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	commissionInBaseCoin := sdk.ZeroInt()
 	commissionInBaseCoin = commissionInBaseCoin.AddRaw(int64(len(ctx.TxBytes()) * 2))
 
+	log.Println(len(ctx.TxBytes()) * 2)
+
 	msgs := tx.GetMsgs()
 	for _, msg := range msgs {
 		switch msg.Type() {
@@ -247,6 +250,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds,
 			"insufficient funds to pay for fees; %s < %s", feeInBaseCoin, commissionInBaseCoin)
 	}
+
 	// deduct the fees
 	err = DeductFees(fd.sk, ctx, feePayerAcc, feeTx.GetFee())
 	if err != nil {
