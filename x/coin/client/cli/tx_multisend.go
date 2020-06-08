@@ -33,7 +33,7 @@ func GetCmdMultiSendCoin(cdc *codec.Codec) *cobra.Command {
 					sends[i/2].Coin = coin
 					coins[i/2] = coin
 				} else {
-					receiver, err := sdk.AccAddressFromBech32(args[1])
+					receiver, err := sdk.AccAddressFromBech32(args[i])
 					if err != nil {
 						return err
 					}
