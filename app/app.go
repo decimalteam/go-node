@@ -1,7 +1,6 @@
 package app
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils"
 	"encoding/json"
 	"io"
 	"os"
@@ -21,6 +20,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
@@ -268,28 +268,6 @@ func (app *newApp) LoadHeight(height int64) error {
 
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (app *newApp) ModuleAccountAddrs() map[string]bool {
-
-	// Получаем адрес и ключи формата Ed25519 (Ethereum)
-	//privateKey, err := crypto.GenerateKey()
-	//if err != nil {
-	//	panic(err)
-	//}
-	//privateKeyBytes := crypto.FromECDSA(privateKey)
-	//publicKey := privateKey.Public()
-	//publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	//if !ok {
-	//	panic(err)
-	//}
-	//publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
-	//address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
-	//hash := sha3.NewLegacyKeccak256()
-	//hash.Write(publicKeyBytes[1:])
-
-	//fmt.Printf("address: (%v) \n", address)
-	//fmt.Printf("publicKey: (%v) \n", hexutil.Encode(hash.Sum(nil)[12:]))
-	//fmt.Printf("publicKeyBytes: (%v) \n", hexutil.Encode(publicKeyBytes)[4:])
-	//fmt.Printf("privateKeyBytes: (%v) \n", hexutil.Encode(privateKeyBytes)[2:])
-
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
