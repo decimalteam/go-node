@@ -56,6 +56,16 @@ func CoinCreateRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
+		acc, err := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		balance := acc.GetCoins()
+		if balance.AmountOf(cliUtils.GetBaseCoin()).LT(initReserve) {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "Not enough coin to reserve")
+			return
+		}
 		// Check if coin does not exist yet
 		coinExists, _ := cliUtils.ExistsCoin(cliCtx, symbol)
 		if coinExists {

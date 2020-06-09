@@ -9,7 +9,7 @@ import (
 const (
 
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "1"
+	DecimalVersion = "0.9.2"
 
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
@@ -37,47 +37,23 @@ const (
 	DecimalPrefixConsPub = DecimalMainPrefix + PrefixValidator + PrefixConsensus + PrefixPublic
 
 	// ChainID is the Decimal chain identifier.
-	ChainID = "decimal-testnet-06-05-15-00"
+	ChainID = "decimal-testnet-06-08-15-00"
 
 	TitleTestBaseCoin  = "Test decimal coin"
 	SymbolTestBaseCoin = "tdel"
 	TitleBaseCoin      = "Decimal coin"
 	SymbolBaseCoin     = "del"
-
-	// test coin
-	TitleTestCoin  = "Crypton coin"
-	SymbolTestCoin = "crt"
-
-	// Check config
-	DecimalCheckPrefix = "Dc"
 )
 
 var (
 	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("200000000000000000000000000")
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("200000000000000000000000000")
-
-	// test params buy
-	InitialReserveTestCoin, _ = sdk.NewIntFromString("120798840222697144373637")   //    120798.840222697144373637
-	InitialVolumeTestCoin, _  = sdk.NewIntFromString("54363225921077956709926174") //  54363225.921077956709926174
-	CRRTestCoin               = 88
-
-	// test params sell
-	//InitialReserveTestCoin, _ = sdk.NewIntFromString("86177720949431621141039204") //86177720.949431621141039204
-	//InitialVolumeTestCoin, _  = sdk.NewIntFromString("19735598708313902262960810") //19735598.708313902262960810
-	//CRRTestCoin               = 75
 )
 
 type Config struct {
 	TitleBaseCoin         string  `json:"title" yaml:"title"`   // Full coin title (Bitcoin)
 	SymbolBaseCoin        string  `json:"symbol" yaml:"symbol"` // Short coin title (BTC)
 	InitialVolumeBaseCoin sdk.Int `json:"initial_volume" yaml:"initial_volume"`
-
-	//test
-	TitleTestCoin            string  `json:"title" yaml:"title"`   // Full coin title (Bitcoin)
-	SymbolTestCoin           string  `json:"symbol" yaml:"symbol"` // Short coin title (BTC)
-	InitialVolumeTestCoin    sdk.Int `json:"initial_volume" yaml:"initial_volume"`
-	InitialReserveTestCoin   sdk.Int `json:"initial_volume" yaml:"initial_volume"`
-	ConstantReserveRatioTest uint    `json:"constant_reserve_ratio" yaml:"constant_reserve_ratio"` // between 10 and 100
 }
 
 func GetDefaultConfig(chainId string) *Config {
@@ -86,16 +62,8 @@ func GetDefaultConfig(chainId string) *Config {
 		cnf.TitleBaseCoin = TitleTestBaseCoin
 		cnf.SymbolBaseCoin = SymbolTestBaseCoin
 		cnf.InitialVolumeBaseCoin = InitialVolumeTestBaseCoin
-
-		//test
-		cnf.TitleTestCoin = TitleTestCoin
-		cnf.SymbolTestCoin = SymbolTestCoin
-		cnf.InitialVolumeTestCoin = InitialVolumeTestCoin
-		cnf.InitialReserveTestCoin = InitialReserveTestCoin
-		cnf.ConstantReserveRatioTest = uint(CRRTestCoin)
-
 		return &cnf
-	} else if chainId == "decimal" {
+	} else if strings.HasPrefix(chainId, "decimal") {
 		cnf.TitleBaseCoin = TitleBaseCoin
 		cnf.SymbolBaseCoin = SymbolBaseCoin
 		cnf.InitialVolumeBaseCoin = InitialVolumeBaseCoin
