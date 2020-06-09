@@ -72,8 +72,6 @@ func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) 
 }
 
 func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTransaction) (*sdk.Result, error) {
-	account := keeper.AccountKeeper.GetAccount(ctx, msg.Sender)
-
 	// Retrieve multisig wallet from the KVStore
 	wallet := keeper.GetWallet(ctx, msg.Wallet.String())
 	if wallet.Address.Empty() {
@@ -81,8 +79,12 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 	}
 
+	walletAccount := keeper.AccountKeeper.GetAccount(ctx, wallet.Address)
+
+	msg.Coins.IsAllGTE(walletAccount.GetCoins())
+
 	for _, coin := range msg.Coins {
-		if account.GetCoins().AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
+		if walletAccount.GetCoins().AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
 			return nil, vtypes.ErrInsufficientFunds(coin.String())
 		}
 	}

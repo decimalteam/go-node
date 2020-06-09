@@ -221,20 +221,20 @@ func (d *Distributor) createTx(tx string, count int) {
 		}
 	case "buy":
 		d.Workers[count].ch <- func(account Account) error {
-			return d.provider.BuyCoin(d.Coins[rand.Intn(len(d.Coins))], "tDEL", sdk.NewInt(1000000000000000), Pow(sdk.NewInt(1), 25), account)
+			return d.provider.BuyCoin(d.Coins[rand.Intn(len(d.Coins))], "tdel", sdk.NewInt(1000000000000000), Pow(sdk.NewInt(1), 25), account)
 		}
 	case "sell":
 		d.Workers[count].ch <- func(account Account) error {
-			return d.provider.SellCoin("tDEL", d.Coins[rand.Intn(len(d.Coins))], sdk.NewInt(1), sdk.NewInt(1000000000000000), account)
+			return d.provider.SellCoin("tdel", d.Coins[rand.Intn(len(d.Coins))], sdk.NewInt(1), sdk.NewInt(1000000000000000), account)
 		}
 	case "create_coin":
 		d.Workers[count].ch <- func(account Account) error {
-			d.Coins = append(d.Coins, "TEST"+strconv.Itoa(len(d.Coins)))
-			return d.provider.CreateCoin("TEST"+strconv.Itoa(len(d.Coins)-1), "TEST"+strconv.Itoa(len(d.Coins)-1), 50, helpers.BipToPip(sdk.NewInt(100000)), helpers.BipToPip(sdk.NewInt(100000)), helpers.BipToPip(sdk.NewInt(100000000000000)), account)
+			d.Coins = append(d.Coins, "test"+strconv.Itoa(len(d.Coins)))
+			return d.provider.CreateCoin("test"+strconv.Itoa(len(d.Coins)-1), "test"+strconv.Itoa(len(d.Coins)-1), 50, helpers.BipToPip(sdk.NewInt(100000)), helpers.BipToPip(sdk.NewInt(100000)), helpers.BipToPip(sdk.NewInt(100000000000000)), account)
 		}
 	case "sell_all":
 		d.Workers[count].ch <- func(account Account) error {
-			return d.provider.SellAllCoins(account, "tDEL", d.Coins[rand.Intn(len(d.Coins))], sdk.NewInt(1))
+			return d.provider.SellAllCoins(account, "tdel", d.Coins[rand.Intn(len(d.Coins))], sdk.NewInt(1))
 		}
 	case "multi_send":
 		d.Workers[count].ch <- func(account Account) error {
@@ -247,7 +247,7 @@ func (d *Distributor) createSendCoins() []coin.Send {
 	msg := make([]coin.Send, rand.Intn(10))
 	for i := 0; i < len(msg); i++ {
 		msg[i] = coin.Send{
-			Coin:     sdk.NewCoin("tDEL", sdk.NewInt(rand.Int63n(99)+1).Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(13), nil)))),
+			Coin:     sdk.NewCoin("tdel", sdk.NewInt(rand.Int63n(99)+1).Mul(sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(13), nil)))),
 			Receiver: d.Workers[rand.Intn(len(d.Workers))].account.Address,
 		}
 	}
@@ -283,7 +283,7 @@ func main() {
 
 	var testCoins []string
 	for _, c := range coins {
-		if strings.HasPrefix(c, "TEST") {
+		if strings.HasPrefix(c, "test") {
 			testCoins = append(testCoins, c)
 		}
 	}
@@ -318,7 +318,7 @@ func main() {
 		}
 	}
 
-	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(100000)), "tDEL")
+	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(100000)), "tdel")
 	if err != nil {
 		log.Println("Init send", err)
 		return
@@ -327,16 +327,16 @@ func main() {
 	time.Sleep(time.Second * 10)
 
 	if len(testCoins) == 0 {
-		err = provider.CreateCoin("TEST0", "TEST0", 50, helpers.BipToPip(sdk.NewInt(100000)), helpers.BipToPip(sdk.NewInt(100000)), helpers.BipToPip(sdk.NewInt(100000000000000)), mainAccount)
+		err = provider.CreateCoin("test0", "test0", 50, helpers.BipToPip(sdk.NewInt(100000)), helpers.BipToPip(sdk.NewInt(100000)), helpers.BipToPip(sdk.NewInt(100000000000000)), mainAccount)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		testCoins = append(testCoins, "TEST0")
+		testCoins = append(testCoins, "test0")
 		time.Sleep(time.Second * 10)
 	}
 
-	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1)), "TEST0")
+	err = provider.SendAll(mainAccount, accounts, helpers.BipToPip(sdk.NewInt(1)), "test0")
 	if err != nil {
 		log.Println("Init send", err)
 		return
@@ -402,7 +402,7 @@ func GetSequenceAndAccNumber(address string) (uint64, uint64, error) {
 }
 
 func (p *Provider) SendCoin(sender, receiver Account, amount sdk.Int) error {
-	return p.SendTx([]sdk.Msg{coin.NewMsgSendCoin(sender.Address, sdk.NewCoin("tDEL", amount), receiver.Address)}, sender)
+	return p.SendTx([]sdk.Msg{coin.NewMsgSendCoin(sender.Address, sdk.NewCoin("tdel", amount), receiver.Address)}, sender)
 }
 
 func (p *Provider) MultiSendCoin(sender Account, coins []coin.Send) error {

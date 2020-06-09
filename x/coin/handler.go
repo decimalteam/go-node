@@ -138,6 +138,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		sdk.NewAttribute(types.AttributeInitVolume, msg.InitialVolume.String()),
 		sdk.NewAttribute(types.AttributeInitReserve, msg.InitialReserve.String()),
 		sdk.NewAttribute(types.AttributeLimitVolume, msg.LimitVolume.String()),
+		sdk.NewAttribute(types.AttributeCommission, sdk.NewCoin(strings.ToLower(feeCoin), commission).String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

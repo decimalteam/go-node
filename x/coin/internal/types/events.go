@@ -16,6 +16,7 @@ const (
 	AttributeInitVolume  = "initial_volume"
 	AttributeInitReserve = "initial_reserve"
 	AttributeLimitVolume = "limit_volume"
+	AttributeCommission  = "commission"
 
 	// Buy/Sell Coin
 	AttributeCoinToBuy        = "coin_to_buy"
