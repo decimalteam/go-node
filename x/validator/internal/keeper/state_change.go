@@ -49,6 +49,15 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		currentPower := k.TotalStake(ctx, validator)
 
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeUpdatesValidators,
+				sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
+				sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower(currentPower))),
+				sdk.NewAttribute(types.AttributeKeyStake, currentPower.String()),
+			),
+		)
+
 		// if we get to a zero-power validator (which we don't bond),
 		// there are no more possible bonded validators
 		if validator.PotentialConsensusPower(currentPower) == 0 {
@@ -83,14 +92,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
 			updates = append(updates, validator.ABCIValidatorUpdate(currentPower))
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeUpdatesValidators,
-					sdk.NewAttribute(types.AttributeKeyPubKey, updates[len(updates)-1].PubKey.String()),
-					sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", updates[len(updates)-1].Power)),
-					sdk.NewAttribute(types.AttributeKeyStake, currentPower.String()),
-				),
-			)
 
 			k.DeleteValidatorByPowerIndex(ctx, validator)
 			k.SetValidatorByPowerIndex(ctx, validator)
@@ -131,14 +132,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// update the validator set
 		updates = append(updates, validator.ABCIValidatorUpdateZero())
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeUpdatesValidators,
-				sdk.NewAttribute(types.AttributeKeyPubKey, updates[len(updates)-1].PubKey.String()),
-				sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", updates[len(updates)-1].Power)),
-				sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
-			),
-		)
 	}
 
 	// Update the pools based on the recent updates in the validator set:
