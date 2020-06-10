@@ -141,7 +141,7 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 		return commissionInBaseCoin, feeCoin, nil
 	}
 
-	commission := commissionInBaseCoin
+	commission := sdk.ZeroInt()
 
 	coin := fee[0]
 

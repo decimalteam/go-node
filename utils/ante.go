@@ -79,11 +79,11 @@ func (sud SetUpContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate
 		if r := recover(); r != nil {
 			switch rType := r.(type) {
 			case sdk.ErrorOutOfGas:
-				log := fmt.Sprintf(
+				logStr := fmt.Sprintf(
 					"out of gas in location: %v; gasWanted: %d, gasUsed: %d",
 					rType.Descriptor, gasTx.GetGas(), newCtx.GasMeter().GasConsumed())
 
-				err = sdkerrors.Wrap(sdkerrors.ErrOutOfGas, log)
+				err = sdkerrors.Wrap(sdkerrors.ErrOutOfGas, logStr)
 			default:
 				panic(r)
 			}
@@ -164,6 +164,8 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 
 	log.Println(len(ctx.TxBytes()) * 2)
 
+	ctx = ctx.WithValue("fee", feeTx.GetFee())
+
 	msgs := tx.GetMsgs()
 	for _, msg := range msgs {
 		switch msg.Type() {
@@ -205,8 +207,6 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	}
 
 	commissionInBaseCoin = helpers.UnitToPip(commissionInBaseCoin)
-
-	ctx = ctx.WithValue("fee", feeTx.GetFee())
 
 	feePayer := feeTx.FeePayer()
 	feePayerAcc := fd.ak.GetAccount(ctx, feePayer)
