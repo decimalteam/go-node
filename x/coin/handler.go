@@ -111,6 +111,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 			return nil, types.ErrorInsufficientFunds(commission.Add(msg.InitialReserve).String())
 		}
 	}
+
 	err = k.UpdateBalance(ctx, cliUtils.GetBaseCoin(), msg.InitialReserve.Neg(), msg.Sender)
 	if err != nil {
 		return nil, types.ErrorUpdateBalance(err)
