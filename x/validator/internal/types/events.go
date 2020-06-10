@@ -25,7 +25,7 @@ const (
 	AttributeKeyAddress                    = "address"
 	AttributeKeyReason                     = "reason"
 	AttributeKeyPower                      = "power"
-	AttributeKeySequence                   = "sequence"
+	AttributeKeyStake                      = "stake"
 	AttributeKeySlashAmount                = "slash_amount"
 	AttributeKeyMissedBlocks               = "missed_blocks"
 	AttributeKeyHeight                     = "height"

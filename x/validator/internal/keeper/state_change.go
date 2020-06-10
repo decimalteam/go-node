@@ -83,6 +83,14 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
 			updates = append(updates, validator.ABCIValidatorUpdate(currentPower))
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeUpdatesValidators,
+					sdk.NewAttribute(types.AttributeKeyPubKey, updates[len(updates)-1].PubKey.String()),
+					sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", updates[len(updates)-1].Power)),
+					sdk.NewAttribute(types.AttributeKeyStake, currentPower.String()),
+				),
+			)
 
 			k.DeleteValidatorByPowerIndex(ctx, validator)
 			k.SetValidatorByPowerIndex(ctx, validator)
@@ -123,6 +131,14 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// update the validator set
 		updates = append(updates, validator.ABCIValidatorUpdateZero())
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeUpdatesValidators,
+				sdk.NewAttribute(types.AttributeKeyPubKey, updates[len(updates)-1].PubKey.String()),
+				sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", updates[len(updates)-1].Power)),
+				sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
+			),
+		)
 	}
 
 	// Update the pools based on the recent updates in the validator set:
@@ -135,15 +151,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 	// set total power on lookup index if there are any updates
 	if len(updates) > 0 {
-		for _, update := range updates {
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeUpdatesValidators,
-					sdk.NewAttribute(types.AttributeKeyPubKey, update.PubKey.String()),
-					sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", update.Power)),
-				),
-			)
-		}
 		err := k.SetLastTotalPower(ctx, totalPower)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
