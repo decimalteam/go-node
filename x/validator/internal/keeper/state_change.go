@@ -37,6 +37,13 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	last := k.getLastValidatorsByAddr(ctx)
 
 	validators := k.GetAllValidatorsByPowerIndexReversed(ctx)
+	for _, validator := range validators {
+		k.checkDelegations(ctx, validator)
+		k.SetValidatorByPowerIndex(ctx, validator)
+	}
+
+	validators = k.GetAllValidatorsByPowerIndexReversed(ctx)
+
 	for i := 0; i < len(validators) && i < maxValidators; i++ {
 		// everything that is iterated in this loop is becoming or already a
 		// part of the bonded validator set
@@ -47,20 +54,19 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			return nil, errors.New("ApplyAndReturnValidatorSetUpdates: should never retrieve a jailed validator from the power store")
 		}
 
-		currentPower := k.TotalStake(ctx, validator)
-
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeUpdatesValidators,
 				sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
-				sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower(currentPower))),
-				sdk.NewAttribute(types.AttributeKeyStake, currentPower.String()),
+				sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower(validator.Tokens))),
+				sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
+				sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "validator"),
 			),
 		)
 
 		// if we get to a zero-power validator (which we don't bond),
 		// there are no more possible bonded validators
-		if validator.PotentialConsensusPower(currentPower) == 0 {
+		if validator.PotentialConsensusPower(validator.Tokens) == 0 {
 			break
 		}
 
@@ -72,7 +78,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 				if err != nil {
 					return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 				}
-				amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), currentPower))...)
+				amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), validator.Tokens))...)
 			}
 		case validator.IsBonded():
 			// no state change
@@ -86,15 +92,12 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		oldPowerBytes, found := last[valAddrBytes]
 
 		// calculate the new power bytes
-		newPower := validator.ConsensusPower(currentPower)
+		newPower := validator.ConsensusPower(validator.Tokens)
 		newPowerBytes := k.cdc.MustMarshalBinaryLengthPrefixed(newPower)
 
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
-			updates = append(updates, validator.ABCIValidatorUpdate(currentPower))
-
-			k.DeleteValidatorByPowerIndex(ctx, validator)
-			k.SetValidatorByPowerIndex(ctx, validator)
+			updates = append(updates, validator.ABCIValidatorUpdate(validator.Tokens))
 
 			// set validator power on lookup index
 			err = k.SetLastValidatorPower(ctx, validator.ValAddress, newPower)
@@ -119,6 +122,16 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeUpdatesValidators,
+				sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
+				sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower(validator.Tokens))),
+				sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
+				sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "candidate"),
+			),
+		)
 
 		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), validator.Tokens))...)
 
@@ -239,6 +252,38 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, validator types.Validator) (t
 		return types.Validator{}, fmt.Errorf("bad state transition bondedToUnbonding, validator: %v\n", validator)
 	}
 	return k.beginUnbondingValidator(ctx, validator)
+}
+
+func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator) {
+	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+	if len(delegations) <= int(k.MaxDelegations(ctx)) {
+		return
+
+	}
+
+	sort.SliceStable(delegations, func(i, j int) bool {
+		return delegations[i].Coin.Amount.LT(delegations[j].Coin.Amount)
+	})
+
+	for i := int(k.MaxDelegations(ctx)); i < len(delegations); i++ {
+		switch validator.Status {
+		case types.Bonded:
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegations[i].DelegatorAddress, sdk.NewCoins(delegations[i].Coin))
+			if err != nil {
+				panic(err)
+			}
+		case types.Unbonded:
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegations[i].DelegatorAddress, sdk.NewCoins(delegations[i].Coin))
+			if err != nil {
+				panic(err)
+			}
+		}
+		err := k.unbond(ctx, delegations[i].DelegatorAddress, delegations[i].ValidatorAddress, delegations[i].Coin)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 }
 
 // perform all the store operations for when a validator begins unbonding

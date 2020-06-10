@@ -26,6 +26,7 @@ const (
 	AttributeKeyReason                     = "reason"
 	AttributeKeyPower                      = "power"
 	AttributeKeyStake                      = "stake"
+	AttributeKeyValidatorOdCandidate       = "status"
 	AttributeKeySlashAmount                = "slash_amount"
 	AttributeKeyMissedBlocks               = "missed_blocks"
 	AttributeKeyHeight                     = "height"
