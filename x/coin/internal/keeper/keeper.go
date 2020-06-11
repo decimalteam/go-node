@@ -136,7 +136,7 @@ func (k Keeper) SetCheckRedeemed(ctx sdk.Context, check *types.Check) {
 func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sdk.Int, string, error) {
 	var feeCoin string
 	fee, ok := ctx.Value("fee").(sdk.Coins)
-	if !ok {
+	if !ok || fee == nil {
 		feeCoin = cliUtils.GetBaseCoin()
 		return commissionInBaseCoin, feeCoin, nil
 	}
