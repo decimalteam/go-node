@@ -462,7 +462,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, errMsg)
 	}
 
-	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
+	account := k.AccountKeeper.GetAccount(ctx, issuer)
 	balance := account.GetCoins().AmountOf(strings.ToLower(check.Coin))
 
 	// Retrieve the coin specified in the check
@@ -481,7 +481,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	if balance.LT(amount) {
 		errMsg := fmt.Sprintf(
 			"wanted to send %f %s, but available only %f %s at the moment",
-			floatFromInt(balance), coin.Symbol, floatFromInt(amount), coin.Symbol,
+			floatFromInt(amount), coin.Symbol, floatFromInt(balance), coin.Symbol,
 		)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidAmount, errMsg)
 	}
