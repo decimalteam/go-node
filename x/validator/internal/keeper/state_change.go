@@ -39,6 +39,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	validators := k.GetAllValidatorsByPowerIndexReversed(ctx)
 	for _, validator := range validators {
 		k.checkDelegations(ctx, validator)
+		k.DeleteValidatorByPowerIndex(ctx, validator)
 		k.SetValidatorByPowerIndex(ctx, validator)
 	}
 
