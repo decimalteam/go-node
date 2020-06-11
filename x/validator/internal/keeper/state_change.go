@@ -61,16 +61,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			break
 		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeUpdatesValidators,
-				sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
-				sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower(validator.Tokens))),
-				sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
-				sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "validator"),
-			),
-		)
-
 		// apply the appropriate state change if necessary
 		switch {
 		case validator.IsUnbonded():
@@ -98,7 +88,21 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
-			updates = append(updates, validator.ABCIValidatorUpdate(validator.Tokens))
+			if !validator.Online {
+				updates = append(updates, validator.ABCIValidatorUpdateZero())
+			} else {
+				updates = append(updates, validator.ABCIValidatorUpdate(validator.Tokens))
+			}
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeUpdatesValidators,
+					sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
+					sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower(validator.Tokens))),
+					sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
+					sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "validator"),
+				),
+			)
 
 			// set validator power on lookup index
 			err = k.SetLastValidatorPower(ctx, validator.ValAddress, newPower)

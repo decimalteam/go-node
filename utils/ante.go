@@ -193,7 +193,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		case coin.SellAllConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(sellFee)
 		case coin.RedeemCheckConst:
-			commissionInBaseCoin = commissionInBaseCoin.AddRaw(redeemCheckFee)
+			commissionInBaseCoin = sdk.ZeroInt()
 		case multisig.CreateTransactionConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(createTransactionFee)
 		case multisig.CreateWalletConst:
@@ -202,7 +202,6 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(signTransactionFee)
 		case coin.CreateCoinConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(createCoinFee)
-			return next(ctx, tx, simulate)
 		}
 	}
 

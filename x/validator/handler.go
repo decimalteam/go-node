@@ -209,7 +209,7 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*s
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
-	k.DeleteValidatorByPowerIndex(ctx, validator)
+	//k.DeleteValidatorByPowerIndex(ctx, validator)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,

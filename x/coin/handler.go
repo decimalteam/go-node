@@ -476,6 +476,11 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCoinSymbol, errMsg)
 	}
 
+	commission, feeCoin, err := k.GetCommission(ctx, helpers.UnitToPip(sdk.NewIntFromUint64(100)))
+	if err != nil {
+		return nil, types.ErrCalculateCommission(err)
+	}
+
 	// Ensure that check issuer account holds enough coins
 	amount := sdk.NewIntFromBigInt(check.Amount)
 	if balance.LT(amount) {
@@ -484,6 +489,16 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 			floatFromInt(amount), coin.Symbol, floatFromInt(balance), coin.Symbol,
 		)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidAmount, errMsg)
+	}
+
+	if feeCoin == strings.ToLower(check.Coin) {
+		if balance.LT(amount.Add(commission)) {
+			errMsg := fmt.Sprintf(
+				"wanted to pay %f %s, but available only %f %s at the moment",
+				floatFromInt(amount), coin.Symbol, floatFromInt(balance), coin.Symbol,
+			)
+			return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidAmount, errMsg)
+		}
 	}
 
 	// Ensure the proper chain ID is specified in the check
@@ -542,6 +557,10 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	k.SetCheckRedeemed(ctx, check)
 
 	// Update accounts balances
+	err = k.UpdateBalance(ctx, feeCoin, commission.Neg(), issuer)
+	if err != nil {
+		return nil, types.ErrorInsufficientCoinToPayCommission(commission.String())
+	}
 	err = k.UpdateBalance(ctx, coin.Symbol, amount.Neg(), issuer)
 	if err != nil {
 		errMsg := fmt.Sprintf("unable to update balance of check issuer account %s: %v", issuer, err)
