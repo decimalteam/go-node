@@ -55,6 +55,12 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			return nil, errors.New("ApplyAndReturnValidatorSetUpdates: should never retrieve a jailed validator from the power store")
 		}
 
+		// if we get to a zero-power validator (which we don't bond),
+		// there are no more possible bonded validators
+		if validator.PotentialConsensusPower(validator.Tokens) == 0 {
+			break
+		}
+
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeUpdatesValidators,
@@ -64,12 +70,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 				sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "validator"),
 			),
 		)
-
-		// if we get to a zero-power validator (which we don't bond),
-		// there are no more possible bonded validators
-		if validator.PotentialConsensusPower(validator.Tokens) == 0 {
-			break
-		}
 
 		// apply the appropriate state change if necessary
 		switch {
