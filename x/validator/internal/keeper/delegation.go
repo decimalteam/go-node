@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"fmt"
+	"log"
+	"sync"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -457,7 +460,6 @@ func (k Keeper) DequeueAllMatureRedelegationQueue(ctx sdk.Context, currTime time
 // Perform a delegation, set/update everything necessary within the store.
 // tokenSrc indicates the bond status of the incoming funds.
 func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.Coin, tokenSrc types.BondStatus, validator types.Validator, subtractAccount bool) error {
-
 	// In some situations, the exchange rate becomes invalid, e.g. if
 	// Validator loses all tokens due to slashing. In this case,
 	// make all future delegations invalid.
@@ -532,10 +534,26 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 
 	k.SetDelegation(ctx, delegation)
 
+	ok := k.CheckTotalStake(ctx, validator)
+	if !ok {
+		return fmt.Errorf("too big stake: ")
+	}
+
 	// Call the after-modification hook
 	k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 
 	return nil
+}
+
+func (k Keeper) CheckTotalStake(ctx sdk.Context, validator types.Validator) bool {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println(r)
+			return
+		}
+	}()
+	k.SetValidatorByPowerIndex(ctx, validator)
+	return true
 }
 
 // Undelegate unbonds an amount of delegator shares from a given validator. It

@@ -27,6 +27,12 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	var updates []abci.ValidatorUpdate
 	var err error
 
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
+
 	maxValidators := k.getValidatorsCountForBlock(ctx, ctx.BlockHeight())
 	totalPower := sdk.ZeroInt()
 	var amtFromBondedToNotBonded, amtFromNotBondedToBonded sdk.Coins
