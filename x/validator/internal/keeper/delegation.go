@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 	"log"
-	"sync"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
