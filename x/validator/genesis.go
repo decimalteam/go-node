@@ -55,6 +55,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 	}
 
 	for _, delegation := range data.Delegations {
+
 		// Call the before-creation hook if not exported
 		if !data.Exported {
 			keeper.BeforeDelegationCreated(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
