@@ -37,7 +37,7 @@ const (
 	DecimalPrefixConsPub = DecimalMainPrefix + PrefixValidator + PrefixConsensus + PrefixPublic
 
 	// ChainID is the Decimal chain identifier.
-	ChainID = "decimal-testnet-06-11-21-00"
+	ChainID = "decimal-testnet-06-12-18-00"
 
 	TitleTestBaseCoin  = "Test decimal coin"
 	SymbolTestBaseCoin = "tdel"
@@ -46,8 +46,8 @@ const (
 )
 
 var (
-	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("200000000000000000000000000")
-	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("200000000000000000000000000")
+	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("340000000000000000000000000")
+	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("340000000000000000000000000")
 )
 
 type Config struct {
