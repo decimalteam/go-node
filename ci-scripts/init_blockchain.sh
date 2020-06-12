@@ -11,10 +11,10 @@ deccli keys add spammer --keyring-backend test
 # rm -rf ~/.decimal/daemon
 
 # Initialize new blockchain
-decd init test-node-fra1-01 --chain-id decimal-testnet-06-11-21-00
-decd init test-node-fra1-02 --chain-id decimal-testnet-06-11-21-00
-decd init test-node-nyc3-01 --chain-id decimal-testnet-06-11-21-00
-decd init test-node-sgp1-01 --chain-id decimal-testnet-06-11-21-00
+decd init test-node-fra1-01 --chain-id decimal-testnet-06-12-18-00
+decd init test-node-fra1-02 --chain-id decimal-testnet-06-12-18-00
+decd init test-node-nyc3-01 --chain-id decimal-testnet-06-12-18-00
+decd init test-node-sgp1-01 --chain-id decimal-testnet-06-12-18-00
 
 # Add initial funds to the genesis file
 # decd add-genesis-account $(deccli keys show val -a --keyring-backend test) 100000000000000000tdel
@@ -25,7 +25,7 @@ decd add-genesis-account dx16rr3cvdgj8jsywhx8lfteunn9uz0xg2c7ua9nl 4000001100000
 decd add-genesis-account dx1ajytg8jg8ypx0rj9p792x32fuxyezga43jd3ry 40000011000000000000000000tdel # validator on test-node-fra1-02 (40,000,011 tDEL)
 decd add-genesis-account dx1azre0dtclv5y05ufynkhswzh0cwh4ktzlas3mp 40000011000000000000000000tdel # validator on test-node-nyc3-01 (40,000,011 tDEL)
 decd add-genesis-account dx1j3j2mwxnvlmsu2tkwm4z5390vq8v337wd6hmg2 40000011000000000000000000tdel # validator on test-node-sgp1-01 (40,000,011 tDEL)
-decd add-genesis-account dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd 20000000000000000000000000tdel # faucet (20,000,000 tDEL)
+decd add-genesis-account dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd 160000000000000000000000000tdel # faucet (160,000,000 tDEL)
 decd add-genesis-account dx1esffyu0wxk6eez77fhzdxfgvjp4646hqm9sx6c 19999956000000000000000000tdel # tanker (19,999,956 tDEL)
 
 # decd add-genesis-account dxd0c71c31a891e5023ae63fd2bcf2732f04f32158 10000000000000000000000000tdel # validator on test-node-fra1-01 (10,000,000 tDEL)
@@ -94,7 +94,7 @@ decd gentx \
 decd collect-gentxs
 
 # Configure created blockchain
-deccli config chain-id decimal-testnet-06-11-21-00
+deccli config chain-id decimal-testnet-06-12-18-00
 deccli config trust-node true
 
 # Finish new blockchain initialization
