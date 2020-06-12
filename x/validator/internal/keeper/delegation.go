@@ -551,6 +551,7 @@ func (k Keeper) CheckTotalStake(ctx sdk.Context, validator types.Validator) bool
 			return
 		}
 	}()
+	k.DeleteValidatorByPowerIndex(ctx, validator)
 	k.SetValidatorByPowerIndex(ctx, validator)
 	return true
 }
