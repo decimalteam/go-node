@@ -102,7 +102,7 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 
 	err = k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)
 	if err != nil {
-		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
+		return nil, sdkerrors.New(k.Codespace(), 100, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(

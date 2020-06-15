@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"fmt"
 	"log"
 	"time"
@@ -466,6 +467,17 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 		return types.ErrDelegatorShareExRateInvalid(k.Codespace())
 	}
 
+	coin, err := k.GetCoin(ctx, bondCoin.Denom)
+	if err != nil {
+		return err
+	}
+
+	amountInBaseCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount)
+
+	if coin.Reserve.Sub(amountInBaseCoin).Sign() < 0 {
+		return types.ErrCoinReserveIsNotSufficient(k.Codespace(), coin.Reserve.String(), amountInBaseCoin.String())
+	}
+
 	// Get or create the delegation object
 	delegation, found := k.GetDelegation(ctx, delAddr, validator.ValAddress)
 	if !found {
@@ -535,6 +547,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 
 	ok := k.CheckTotalStake(ctx, validator)
 	if !ok {
+		k.RemoveDelegation(ctx, delegation)
 		return fmt.Errorf("too big stake: ")
 	}
 

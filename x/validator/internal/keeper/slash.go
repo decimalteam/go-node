@@ -252,6 +252,15 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		panic(fmt.Sprintf("Validator consensus-address %s not found", consAddr))
 	}
 
+	validator, err := k.GetValidatorByConsAddr(ctx, consAddr)
+	if err != nil {
+		panic(err)
+	}
+
+	if !validator.Online {
+		return
+	}
+
 	// fetch signing info
 	signInfo, found := k.getValidatorSigningInfo(ctx, consAddr)
 	if !found {
@@ -300,15 +309,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 
 	//if we are past the minimum height and the validator has missed too many blocks, punish them
 	if height > minHeight && signInfo.MissedBlocksCounter > maxMissed {
-		validator, err := k.GetValidatorByConsAddr(ctx, consAddr)
-		if err != nil {
-			panic(err)
-		}
 		if !validator.IsJailed() {
-
-			if !validator.Online {
-				return
-			}
 
 			// Downtime confirmed: slash and jail the validator
 			logger.Info(fmt.Sprintf("Validator %s past min height of %d and below signed blocks threshold of %d",

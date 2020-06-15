@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"fmt"
 	"regexp"
 
@@ -37,9 +38,9 @@ const maxCoinNameBytes = 64
 const allowedCoinSymbols = "^[a-zA-Z][a-zA-Z0-9]{2,9}$"
 
 var minCoinSupply = sdk.NewInt(1)
-var maxCoinSupply, _ = sdk.NewIntFromString("100000000000000000000000000000000000000000")
+var maxCoinSupply = helpers.BipToPip(sdk.NewInt(1000000000000000))
 
-var minCoinReserve = sdk.NewInt(10)
+var minCoinReserve = helpers.BipToPip(sdk.NewInt(10000))
 
 func (msg MsgCreateCoin) Route() string { return RouterKey }
 func (msg MsgCreateCoin) Type() string  { return CreateCoinConst }
