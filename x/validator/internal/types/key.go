@@ -300,7 +300,7 @@ func GetValidatorMissedBlockBitArrayKey(v sdk.ConsAddress, i int64) []byte {
 
 // parse the validators operator address from power rank key
 func ParseValidatorPowerRankKey(key []byte) (operAddr []byte) {
-	powerBytesLen := 8
+	powerBytesLen := 16
 	if len(key) != 1+powerBytesLen+sdk.AddrLen {
 		panic("Invalid validator power rank key length")
 	}

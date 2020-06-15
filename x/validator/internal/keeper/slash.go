@@ -226,6 +226,16 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 		delegation.Coin.Amount = delegation.Coin.Amount.Sub(bondSlashAmount)
 		k.SetDelegation(ctx, delegation)
 
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeLiveness,
+				sdk.NewAttribute(types.AttributeKeyValidator, delegation.ValidatorAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyDelegator, delegation.DelegatorAddress.String()),
+				sdk.NewAttribute(types.AttributeKeySlashAmount, bondSlashAmount.String()),
+				sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueMissingSignature),
+			),
+		)
+
 		if delegation.Coin.Denom != k.BondDenom(ctx) {
 			coin, err := k.GetCoin(ctx, delegation.Coin.Denom)
 			if err != nil {
