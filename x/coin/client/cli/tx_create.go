@@ -55,7 +55,7 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 			// Check if coin does not exist yet
 			coinExists, _ := cliUtils.ExistsCoin(cliCtx, symbol)
 			if coinExists {
-				return sdkerrors.New(types.DefaultCodespace, types.CoinAlreadyExists, fmt.Sprintf("Coin with symbol %s already exists", symbol))
+				return sdkerrors.New(types.DefaultCodespace, types.CodeCoinAlreadyExists, fmt.Sprintf("Coin with symbol %s already exists", symbol))
 			}
 
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})

@@ -91,6 +91,11 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		Volume:      msg.InitialVolume,
 	}
 
+	_, err := k.GetCoin(ctx, strings.ToLower(msg.Symbol))
+	if err == nil {
+		return nil, types.ErrCoinAlreadyExist(msg.Symbol)
+	}
+
 	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(coin.Symbol)))
 	if err != nil {
 		return nil, types.ErrCalculateCommission(err)
@@ -581,6 +586,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		sdk.NewAttribute(types.AttributeCoin, sdk.NewCoin(check.Coin, sdk.NewIntFromBigInt(check.Amount)).String()),
 		sdk.NewAttribute(types.AttributeNonce, new(big.Int).SetBytes(check.Nonce).String()),
 		sdk.NewAttribute(types.AttributeDueBlock, strconv.FormatUint(check.DueBlock, 10)),
+		sdk.NewAttribute(types.AttributeCommissionRedeemCheck, sdk.NewCoin(feeCoin, commission).String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

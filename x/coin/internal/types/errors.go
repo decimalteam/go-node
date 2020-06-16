@@ -16,7 +16,7 @@ const (
 	DecodeError                     CodeType = 101
 	InvalidCRR                      CodeType = 102
 	InvalidCoinSymbol               CodeType = 103
-	CoinAlreadyExists               CodeType = 104
+	CodeCoinAlreadyExists           CodeType = 104
 	InvalidCoinTitle                CodeType = 105
 	InvalidCoinInitVolume           CodeType = 106
 	InvalidCoinInitReserve          CodeType = 107
@@ -25,6 +25,7 @@ const (
 	InsufficientCoinToPayCommission CodeType = 120
 	InsufficientCoinToCreateCoin    CodeType = 121
 	CodeErrCalculateCommission      CodeType = 122
+
 	// Buy/Sell coin
 	SameCoins                 CodeType = 109
 	CoinToBuyNotExists        CodeType = 110
@@ -61,4 +62,8 @@ func ErrorUpdateBalance(err error) *sdkerrors.Error {
 
 func ErrCalculateCommission(err error) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeErrCalculateCommission, err.Error())
+}
+
+func ErrCoinAlreadyExist(coin string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeCoinAlreadyExists, fmt.Sprintf("Coin %s already exist", coin))
 }

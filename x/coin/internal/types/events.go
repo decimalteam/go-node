@@ -10,13 +10,14 @@ const (
 	EventTypeMultiSendCoin = "multi_send_coin"
 	EventTypeRedeemCheck   = "redeem_check"
 	// Create Coin
-	AttributeTitle                = "title"
-	AttributeSymbol               = "symbol"
-	AttributeCRR                  = "crr"
-	AttributeInitVolume           = "initial_volume"
-	AttributeInitReserve          = "initial_reserve"
-	AttributeLimitVolume          = "limit_volume"
-	AttributeCommissionCreateCoin = "commission_create_coin"
+	AttributeTitle                 = "title"
+	AttributeSymbol                = "symbol"
+	AttributeCRR                   = "crr"
+	AttributeInitVolume            = "initial_volume"
+	AttributeInitReserve           = "initial_reserve"
+	AttributeLimitVolume           = "limit_volume"
+	AttributeCommissionCreateCoin  = "commission_create_coin"
+	AttributeCommissionRedeemCheck = "commission_redeem_check"
 
 	// Buy/Sell Coin
 	AttributeCoinToBuy        = "coin_to_buy"

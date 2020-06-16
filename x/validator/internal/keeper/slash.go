@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -231,7 +232,7 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 				types.EventTypeLiveness,
 				sdk.NewAttribute(types.AttributeKeyValidator, delegation.ValidatorAddress.String()),
 				sdk.NewAttribute(types.AttributeKeyDelegator, delegation.DelegatorAddress.String()),
-				sdk.NewAttribute(types.AttributeKeySlashAmount, bondSlashAmount.String()),
+				sdk.NewAttribute(types.AttributeKeySlashAmount, sdk.NewCoin(delegation.Coin.Denom, bondSlashAmount).String()),
 				sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueMissingSignature),
 			),
 		)
@@ -271,6 +272,10 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		return
 	}
 
+	if validator.Jailed {
+		return
+	}
+
 	// fetch signing info
 	signInfo, found := k.getValidatorSigningInfo(ctx, consAddr)
 	if !found {
@@ -301,6 +306,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	}
 
 	if missed {
+		log.Println(fmt.Sprintf("Missed blocks: %d", signInfo.MissedBlocksCounter))
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeLiveness,
@@ -346,6 +352,8 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			signInfo.MissedBlocksCounter = 0
 			signInfo.IndexOffset = 0
 			k.clearValidatorMissedBlockBitArray(ctx, consAddr)
+
+			log.Println(k.GetAllValidatorsByPowerIndex(ctx))
 		} else {
 			// Validator was (a) not found or (b) already jailed, don't slash
 			logger.Info(

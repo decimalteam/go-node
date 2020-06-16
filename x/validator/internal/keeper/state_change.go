@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"sort"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
@@ -175,6 +176,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
+		log.Println(updates)
 	}
 
 	return updates, nil
@@ -364,6 +366,7 @@ func (k Keeper) jailValidator(ctx sdk.Context, validator types.Validator) error 
 
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 	validator.Jailed = true
+	validator.Online = false
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
 		return err
