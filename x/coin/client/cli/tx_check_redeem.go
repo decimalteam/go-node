@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -31,14 +32,20 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			var checkBase64 = args[0]
+			var checkBech32 = args[0]
 			var passphrase = args[1] // TODO: Read passphrase by request to avoid saving it in terminal history
 
-			// Decode provided check from base64 format to raw bytes
-			checkBytes, err := base64.StdEncoding.DecodeString(checkBase64)
+			// Decode provided check from bech32 format to raw bytes
+			checkPrefix, checkBytes, err := bech32.DecodeAndConvert(checkBech32)
 			if err != nil {
-				msgError := "unable to decode check from base64"
+				msgError := "unable to decode check from bech32"
 				return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+			}
+
+			// Ensure correct prefix was used in check
+			if checkPrefix != "dxcheck" {
+				msgError := fmt.Sprintf("check has invalid bech32 prefix %q", checkPrefix)
+				return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
 			}
 
 			// Parse provided check from raw bytes to ensure it is valid

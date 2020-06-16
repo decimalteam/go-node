@@ -2,7 +2,6 @@ package cli
 
 import (
 	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -18,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/mintkey"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -107,10 +107,14 @@ func GetCmdIssueCheck(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
+			check, err := bech32.ConvertAndEncode("dxcheck", checkBytes)
+			if err != nil {
+				panic(err)
+			}
 			return cliCtx.PrintOutput(struct {
 				Check string
 			}{
-				Check: base64.StdEncoding.EncodeToString(checkBytes),
+				Check: check,
 			})
 		},
 	}

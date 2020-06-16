@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -439,10 +440,16 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 ////////////////////////////////////////////////////////////////
 
 func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (*sdk.Result, error) {
-	// Decode provided check from base64 format to raw bytes
-	checkBytes, err := base64.StdEncoding.DecodeString(msg.Check)
+	// Decode provided check from bech32 format to raw bytes
+	checkPrefix, checkBytes, err := bech32.DecodeAndConvert(msg.Check)
 	if err != nil {
-		msgError := "unable to decode check from base64"
+		msgError := "unable to decode check from bech32"
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+	}
+
+	// Ensure correct prefix was used in check
+	if checkPrefix != "dxcheck" {
+		msgError := fmt.Sprintf("check has invalid bech32 prefix %q", checkPrefix)
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
 	}
 
