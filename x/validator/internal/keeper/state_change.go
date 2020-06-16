@@ -138,15 +138,27 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeUpdatesValidators,
-				sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
-				sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower(validator.Tokens))),
-				sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
-				sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "candidate"),
-			),
-		)
+		if validator.Jailed {
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeUpdatesValidators,
+					sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
+					sdk.NewAttribute(types.AttributeKeyPower, "0"),
+					sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
+					sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "candidate"),
+				),
+			)
+		} else {
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeUpdatesValidators,
+					sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
+					sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower(validator.Tokens))),
+					sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
+					sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "candidate"),
+				),
+			)
+		}
 
 		amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), validator.Tokens))...)
 
