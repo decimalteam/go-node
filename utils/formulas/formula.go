@@ -88,8 +88,8 @@ func CalculateSaleReturn(supply sdk.Int, reserve sdk.Int, crr uint, sellAmount s
 	}
 
 	if crr == 100 {
-		ret := sdk.NewInt(1).Mul(reserve).Mul(sellAmount)
-		ret.Quo(supply)
+		ret := reserve.Mul(sellAmount)
+		ret = ret.Quo(supply)
 
 		return ret
 	}
@@ -121,8 +121,8 @@ func CalculateSaleAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantReceive 
 	}
 
 	if crr == 100 {
-		ret := sdk.NewInt(1).Mul(wantReceive).Mul(supply)
-		ret.Quo(reserve)
+		ret := wantReceive.Mul(supply)
+		ret = ret.Quo(reserve)
 
 		return ret
 	}
