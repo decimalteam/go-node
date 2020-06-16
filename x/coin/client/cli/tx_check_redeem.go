@@ -12,10 +12,11 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 
+	"github.com/tendermint/tendermint/libs/bech32"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -45,7 +46,7 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 			// Ensure correct prefix was used in check
 			if checkPrefix != "dxcheck" {
 				msgError := fmt.Sprintf("check has invalid bech32 prefix %q", checkPrefix)
-				return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+				return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
 			}
 
 			// Parse provided check from raw bytes to ensure it is valid
@@ -84,7 +85,7 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 			proofBase64 := base64.StdEncoding.EncodeToString(signature)
 
 			// Prepare redeem check message
-			msg := types.NewMsgRedeemCheck(cliCtx.FromAddress, checkBase64, proofBase64)
+			msg := types.NewMsgRedeemCheck(cliCtx.FromAddress, checkBech32, proofBase64)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

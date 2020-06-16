@@ -12,12 +12,12 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 
 	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/tendermint/tendermint/libs/bech32"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/mintkey"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -107,14 +107,14 @@ func GetCmdIssueCheck(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
-			check, err := bech32.ConvertAndEncode("dxcheck", checkBytes)
+			checkBech32, err := bech32.ConvertAndEncode("dxcheck", checkBytes)
 			if err != nil {
 				panic(err)
 			}
 			return cliCtx.PrintOutput(struct {
 				Check string
 			}{
-				Check: check,
+				Check: checkBech32,
 			})
 		},
 	}
