@@ -442,7 +442,7 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 
 func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (*sdk.Result, error) {
 	// Decode provided check from base58 format to raw bytes
-	checkBytes := base58.Decode(checkBase58)
+	checkBytes := base58.Decode(msg.Check)
 	// if err != nil {
 	// 	msgError := "unable to decode check from base58"
 	// 	return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
