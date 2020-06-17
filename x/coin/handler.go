@@ -483,10 +483,8 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCoinSymbol, errMsg)
 	}
 
-	commission, feeCoin, err := k.GetCommission(ctx, helpers.UnitToPip(sdk.NewIntFromUint64(100)))
-	if err != nil {
-		return nil, types.ErrCalculateCommission(err)
-	}
+	feeCoin := cliUtils.GetBaseCoin()
+	commission := helpers.UnitToPip(sdk.NewIntFromUint64(100))
 
 	// Ensure that check issuer account holds enough coins
 	amount := sdk.NewIntFromBigInt(check.Amount)
