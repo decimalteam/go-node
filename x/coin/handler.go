@@ -10,10 +10,10 @@ import (
 
 	"golang.org/x/crypto/sha3"
 
+	"github.com/btcsuite/btcutil/base58"
+
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
-
-	"github.com/tendermint/tendermint/libs/bech32"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -441,16 +441,10 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 ////////////////////////////////////////////////////////////////
 
 func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (*sdk.Result, error) {
-	// Decode provided check from bech32 format to raw bytes
-	checkPrefix, checkBytes, err := bech32.DecodeAndConvert(msg.Check)
+	// Decode provided check from base58 format to raw bytes
+	checkBytes, err := base58.CheckDecode(checkBase58)
 	if err != nil {
-		msgError := "unable to decode check from bech32"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
-	}
-
-	// Ensure correct prefix was used in check
-	if checkPrefix != "dxcheck" {
-		msgError := fmt.Sprintf("check has invalid bech32 prefix %q", checkPrefix)
+		msgError := "unable to decode check from base58"
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
 	}
 
