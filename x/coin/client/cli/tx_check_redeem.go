@@ -9,10 +9,10 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/btcsuite/btcutil/base58"
+
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
-
-	"github.com/tendermint/tendermint/libs/bech32"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -33,19 +33,13 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			var checkBech32 = args[0]
+			var checkBase58 = args[0]
 			var passphrase = args[1] // TODO: Read passphrase by request to avoid saving it in terminal history
 
-			// Decode provided check from bech32 format to raw bytes
-			checkPrefix, checkBytes, err := bech32.DecodeAndConvert(checkBech32)
+			// Decode provided check from base58 format to raw bytes
+			checkBytes, err := base58.CheckDecode(checkBase58)
 			if err != nil {
-				msgError := "unable to decode check from bech32"
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
-			}
-
-			// Ensure correct prefix was used in check
-			if checkPrefix != "dxcheck" {
-				msgError := fmt.Sprintf("check has invalid bech32 prefix %q", checkPrefix)
+				msgError := "unable to decode check from base58"
 				return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
 			}
 
@@ -85,7 +79,7 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 			proofBase64 := base64.StdEncoding.EncodeToString(signature)
 
 			// Prepare redeem check message
-			msg := types.NewMsgRedeemCheck(cliCtx.FromAddress, checkBech32, proofBase64)
+			msg := types.NewMsgRedeemCheck(cliCtx.FromAddress, checkBase58, proofBase64)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

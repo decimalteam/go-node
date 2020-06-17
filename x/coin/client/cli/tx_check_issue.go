@@ -8,11 +8,12 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/btcsuite/btcutil/base58"
+
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 
 	"github.com/tendermint/tendermint/crypto/secp256k1"
-	"github.com/tendermint/tendermint/libs/bech32"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -107,14 +108,14 @@ func GetCmdIssueCheck(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
-			checkBech32, err := bech32.ConvertAndEncode("dxcheck", checkBytes)
+			checkBase58, err := base58.CheckEncode(checkBytes)
 			if err != nil {
 				panic(err)
 			}
 			return cliCtx.PrintOutput(struct {
 				Check string
 			}{
-				Check: checkBech32,
+				Check: checkBase58,
 			})
 		},
 	}
