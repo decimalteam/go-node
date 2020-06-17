@@ -37,11 +37,11 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 			var passphrase = args[1] // TODO: Read passphrase by request to avoid saving it in terminal history
 
 			// Decode provided check from base58 format to raw bytes
-			checkBytes, err := base58.CheckDecode(checkBase58)
-			if err != nil {
-				msgError := "unable to decode check from base58"
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
-			}
+			checkBytes := base58.Decode(checkBase58)
+			// if err != nil {
+			// 	msgError := "unable to decode check from base58"
+			// 	return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+			// }
 
 			// Parse provided check from raw bytes to ensure it is valid
 			_, err = types.ParseCheck(checkBytes)

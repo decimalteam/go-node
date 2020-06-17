@@ -108,14 +108,10 @@ func GetCmdIssueCheck(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
-			checkBase58, err := base58.CheckEncode(checkBytes)
-			if err != nil {
-				panic(err)
-			}
 			return cliCtx.PrintOutput(struct {
 				Check string
 			}{
-				Check: checkBase58,
+				Check: base58.Encode(checkBytes),
 			})
 		},
 	}
