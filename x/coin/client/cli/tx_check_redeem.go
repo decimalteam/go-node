@@ -44,7 +44,7 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 			// }
 
 			// Parse provided check from raw bytes to ensure it is valid
-			_, err = types.ParseCheck(checkBytes)
+			_, err := types.ParseCheck(checkBytes)
 			if err != nil {
 				msgError := fmt.Sprintf("unable to parse check: %s", err.Error())
 				return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
