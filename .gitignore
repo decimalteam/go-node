@@ -24,3 +24,4 @@ build/
 /.decimal/
 deccli
 send.exp
+/test.sh
