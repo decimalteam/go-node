@@ -484,7 +484,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	}
 
 	feeCoin := cliUtils.GetBaseCoin()
-	commission := helpers.UnitToPip(sdk.NewIntFromUint64(100))
+	commission := helpers.UnitToPip(sdk.NewIntFromUint64(30))
 
 	// Ensure that check issuer account holds enough coins
 	amount := sdk.NewIntFromBigInt(check.Amount)
