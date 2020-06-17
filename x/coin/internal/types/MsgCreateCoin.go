@@ -74,5 +74,9 @@ func (msg MsgCreateCoin) ValidateBasic() error {
 	if msg.InitialReserve.LT(minCoinReserve) {
 		return sdkerrors.New(DefaultCodespace, InvalidCoinInitReserve, fmt.Sprintf("Coin initial reserve should be greater than or equal to %s", minCoinReserve.String()))
 	}
+
+	if msg.InitialVolume.GT(msg.LimitVolume) {
+		return ErrLimitVolumeBroken(msg.InitialVolume.String(), msg.LimitVolume.String())
+	}
 	return nil
 }

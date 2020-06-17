@@ -36,6 +36,7 @@ const (
 	MaximumValueToSellReached CodeType = 115
 	MinimumValueToBuyReached  CodeType = 116
 	UpdateBalanceError        CodeType = 117
+	CodeLimitVolumeBroken     CodeType = 127
 	// Send coin
 	InvalidAmount CodeType = 119
 	// Redeem check
@@ -66,4 +67,8 @@ func ErrCalculateCommission(err error) *sdkerrors.Error {
 
 func ErrCoinAlreadyExist(coin string) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeCoinAlreadyExists, fmt.Sprintf("Coin %s already exist", coin))
+}
+
+func ErrLimitVolumeBroken(volume string, limit string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeLimitVolumeBroken, fmt.Sprintf("volume should be less than or equal the volume limit: %s > %s", volume, limit))
 }
