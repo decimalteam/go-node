@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"fmt"
 	"log"
 	"time"
@@ -465,17 +464,6 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	// make all future delegations invalid.
 	if validator.InvalidExRate() {
 		return types.ErrDelegatorShareExRateInvalid(k.Codespace())
-	}
-
-	coin, err := k.GetCoin(ctx, bondCoin.Denom)
-	if err != nil {
-		return err
-	}
-
-	amountInBaseCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount)
-
-	if coin.Reserve.Sub(amountInBaseCoin).Sign() < 0 {
-		return types.ErrCoinReserveIsNotSufficient(k.Codespace(), coin.Reserve.String(), amountInBaseCoin.String())
 	}
 
 	// Get or create the delegation object
