@@ -566,15 +566,9 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	if err != nil {
 		return nil, types.ErrorInsufficientCoinToPayCommission(commission.String())
 	}
-	err = k.UpdateBalance(ctx, coin.Symbol, amount.Neg(), issuer)
+	err = k.BankKeeper.SendCoins(ctx, issuer, msg.Sender, sdk.Coins{sdk.NewCoin(coin.Symbol, amount)})
 	if err != nil {
-		errMsg := fmt.Sprintf("unable to update balance of check issuer account %s: %v", issuer, err)
-		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
-	}
-	err = k.UpdateBalance(ctx, coin.Symbol, amount, msg.Sender)
-	if err != nil {
-		errMsg := fmt.Sprintf("unable to update balance of check redeemer account %s: %v", msg.Sender, err)
-		return nil, sdkerrors.New(types.DefaultCodespace, types.UpdateBalanceError, errMsg)
+		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
 	}
 
 	// Emit event
