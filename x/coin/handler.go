@@ -199,8 +199,7 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 	// Retrieve the coin requested to buy
 	coinToBuy, err := k.GetCoin(ctx, msg.CoinToBuy.Denom)
 	if err != nil {
-		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to buy: %v", msg.CoinToBuy.Denom, err)
-		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, errMsg)
+		return nil, types.ErrCoinDoesNotExist(msg.CoinToBuy.Denom)
 	}
 	if coinToBuy.Symbol != msg.CoinToBuy.Denom {
 		return nil, types.ErrRetrievedAnotherCoin(msg.CoinToBuy.Denom, coinToBuy.Symbol)
