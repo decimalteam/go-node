@@ -109,7 +109,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		return nil, types.ErrInsufficientCoinReserve()
 	}
 
-	if balance.AmountOf(cliUtils.GetBaseCoin()).LT(commission) {
+	if balance.AmountOf(feeCoin).LT(commission) {
 		return nil, types.ErrInsufficientFundsToPayCommission(commission.String())
 	}
 

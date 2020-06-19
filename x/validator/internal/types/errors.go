@@ -13,10 +13,12 @@ const (
 	// Default validator codespace
 	DefaultCodespace string = ModuleName
 
-	CodeEmptyValidatorAddr CodeType = 100
-	CodeInvalidValidator   CodeType = 101
-	CodeCommissionNegative CodeType = 102
-	CodeCommissionHuge     CodeType = 103
+	CodeEmptyValidatorAddr           CodeType = 100
+	CodeValidatorAddressAlreadyExist CodeType = 101
+	CodeValidatorPubKeyAlreadyExist  CodeType = 102
+	CodeValidatorDoesNotExist        CodeType = 103
+	CodeCommissionNegative           CodeType = 104
+	CodeCommissionHuge               CodeType = 105
 
 	CodeInvalidStruct CodeType = 200
 	CodeInvalidInput  CodeType = 201
@@ -56,15 +58,15 @@ func ErrInvalidStruct(codespace string) *sdkerrors.Error {
 }
 
 func ErrValidatorOwnerExists(codespace string) *sdkerrors.Error {
-	return sdkerrors.New(codespace, CodeInvalidValidator, "validator already exist for this operator address, must use new validator operator address")
+	return sdkerrors.New(codespace, CodeValidatorAddressAlreadyExist, "validator already exist for this operator address, must use new validator operator address")
 }
 
 func ErrNoValidatorFound(codespace string) *sdkerrors.Error {
-	return sdkerrors.New(codespace, CodeInvalidValidator, "validator does not exist for that address")
+	return sdkerrors.New(codespace, CodeValidatorDoesNotExist, "validator does not exist for that address")
 }
 
 func ErrValidatorPubKeyExists(codespace string) *sdkerrors.Error {
-	return sdkerrors.New(codespace, CodeInvalidValidator, "validator already exist for this pubkey, must use new validator pubkey")
+	return sdkerrors.New(codespace, CodeValidatorPubKeyAlreadyExist, "validator already exist for this pubkey, must use new validator pubkey")
 }
 
 func ErrInsufficientShares(codespace string) *sdkerrors.Error {
