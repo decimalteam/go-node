@@ -1,10 +1,13 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"regexp"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
 )
 
 var _ sdk.Msg = &MsgCreateCoin{}
@@ -59,6 +62,12 @@ func (msg MsgCreateCoin) ValidateBasic() error {
 	// Validate coin symbol
 	if match, _ := regexp.MatchString(allowedCoinSymbols, msg.Symbol); !match {
 		return ErrInvalidCoinSymbol(msg.Symbol)
+	}
+	// Forbid creating coin with symbol DEL in testnet
+	if strings.HasPrefix(config.ChainID, "decimal-testnet") {
+		if strings.ToLower(msg.Symbol) == config.SymbolBaseCoin {
+			return ErrForbiddenCoinSymbol(msg.Symbol)
+		}
 	}
 	// Validate coin CRR
 	if msg.ConstantReserveRatio < 10 || msg.ConstantReserveRatio > 100 {

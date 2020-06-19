@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -15,16 +16,17 @@ const (
 	CodeInvalidCRR                      CodeType = 100
 	CodeCoinDoesNotExist                CodeType = 101
 	CodeInvalidCoinSymbol               CodeType = 102
-	CodeRetrievedAnotherCoin            CodeType = 103
-	CodeCoinAlreadyExists               CodeType = 104
-	CodeInvalidCoinTitle                CodeType = 105
-	CodeInvalidCoinInitialVolume        CodeType = 106
-	CodeInvalidCoinInitialReserve       CodeType = 107
-	CodeInternal                        CodeType = 108
-	CodeInsufficientCoinReserve         CodeType = 109
-	CodeInsufficientCoinToPayCommission CodeType = 110
-	CodeInsufficientFunds               CodeType = 111
-	CodeCalculateCommission             CodeType = 112
+	CodeForbiddenCoinSymbol             CodeType = 103
+	CodeRetrievedAnotherCoin            CodeType = 104
+	CodeCoinAlreadyExists               CodeType = 105
+	CodeInvalidCoinTitle                CodeType = 106
+	CodeInvalidCoinInitialVolume        CodeType = 107
+	CodeInvalidCoinInitialReserve       CodeType = 108
+	CodeInternal                        CodeType = 109
+	CodeInsufficientCoinReserve         CodeType = 110
+	CodeInsufficientCoinToPayCommission CodeType = 111
+	CodeInsufficientFunds               CodeType = 112
+	CodeCalculateCommission             CodeType = 113
 
 	// Buy/Sell coin
 	CodeSameCoins                  CodeType = 200
@@ -53,6 +55,10 @@ func ErrInvalidCRR() *sdkerrors.Error {
 
 func ErrInvalidCoinSymbol(symbol string) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeInvalidCoinSymbol, fmt.Sprintf("invalid coin symbol %s. Symbol must match this regular expression: %s", symbol, allowedCoinSymbols))
+}
+
+func ErrForbiddenCoinSymbol(symbol string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInvalidCoinSymbol, fmt.Sprintf("forbidden coin symbol %s", symbol))
 }
 
 func ErrCoinDoesNotExist(symbol string) *sdkerrors.Error {
