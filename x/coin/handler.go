@@ -397,10 +397,10 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (*sdk.Result, error) {
 	// Decode provided check from base58 format to raw bytes
 	checkBytes := base58.Decode(msg.Check)
-	// if err != nil {
-	// 	msgError := "unable to decode check from base58"
-	// 	return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
-	// }
+	if len(checkBytes) == 0 {
+		msgError := "unable to decode check from base58"
+		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+	}
 
 	// Parse provided check from raw bytes to ensure it is valid
 	check, err := types.ParseCheck(checkBytes)
@@ -419,7 +419,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Recover issuer address from check signature
 	issuer, err := check.Sender()
 	if err != nil {
-		errMsg := fmt.Sprintf("unable to recover check issuer address: %s", err.Error)
+		errMsg := fmt.Sprintf("unable to recover check issuer address: %s", err.Error())
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, errMsg)
 	}
 

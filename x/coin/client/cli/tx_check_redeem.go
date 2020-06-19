@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+
 	"golang.org/x/crypto/sha3"
 
 	"github.com/spf13/cobra"
@@ -37,10 +38,10 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 
 			// Decode provided check from base58 format to raw bytes
 			checkBytes := base58.Decode(checkBase58)
-			// if err != nil {
-			// 	msgError := "unable to decode check from base58"
-			// 	return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
-			// }
+			if len(checkBytes) == 0 {
+				msgError := "unable to decode check from base58"
+				return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+			}
 
 			// Parse provided check from raw bytes to ensure it is valid
 			_, err := types.ParseCheck(checkBytes)
