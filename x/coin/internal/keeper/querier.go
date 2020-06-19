@@ -34,7 +34,7 @@ func listCoins(ctx sdk.Context, k Keeper) ([]byte, error) {
 
 	res, err := codec.MarshalJSONIndent(k.cdc, coinList)
 	if err != nil {
-		return res, sdkerrors.New(types.DefaultCodespace, types.CodeInvalid, "Could not marshal result to JSON")
+		return res, types.ErrInternal(err.Error())
 	}
 
 	return res, nil
@@ -45,12 +45,12 @@ func getCoin(ctx sdk.Context, path []string, k Keeper) (res []byte, sdkError err
 
 	coin, err := k.GetCoin(ctx, coinHash)
 	if err != nil {
-		return nil, sdkerrors.New(types.DefaultCodespace, types.CodeInvalid, err.Error())
+		return nil, types.ErrCoinDoesNotExist(coinHash)
 	}
 
 	res, err = codec.MarshalJSONIndent(k.cdc, coin)
 	if err != nil {
-		return nil, sdkerrors.New(types.DefaultCodespace, types.CodeInvalid, "Could not marshal result to JSON")
+		return nil, types.ErrInternal(err.Error())
 	}
 
 	return res, nil

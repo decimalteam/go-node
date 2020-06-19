@@ -84,12 +84,12 @@ func BuyCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsB
 	}
 
 	if coinToBuy.Volume.Add(wantsBuy).GT(coinToBuy.LimitVolume) && !coinToBuy.IsBase() {
-		return sdk.Int{}, sdk.Int{}, sdkerrors.New(types.DefaultCodespace, types.TxBreaksVolumeLimit, "Tx breaks LimitVolume rule")
+		return sdk.Int{}, sdk.Int{}, types.ErrTxBreaksVolumeLimit(coinToBuy.Volume.Add(wantsBuy).String(), coinToBuy.LimitVolume.String())
 	}
 
 	coinToSellMinReserve := formulas.GetReserveLimitFromCRR(coinToSell.CRR)
 	if coinToSell.Reserve.Sub(amountSellInBaseCoin).LT(coinToSellMinReserve) && !coinToSell.IsBase() {
-		return sdk.Int{}, sdk.Int{}, sdkerrors.New(types.DefaultCodespace, types.TxBreaksMinReserveLimit, "Tx breaks MinReserveLimit rule")
+		return sdk.Int{}, sdk.Int{}, types.ErrTxBreaksMinReserveRule(coinToSell.Reserve.Sub(amountSellInBaseCoin).String())
 	}
 	return amountBuy, amountSell, nil
 }
@@ -112,17 +112,17 @@ func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wants
 	}
 
 	if coinToBuy.Volume.Add(amountBuy).GT(coinToBuy.LimitVolume) && !coinToBuy.IsBase() {
-		return sdk.Int{}, sdk.Int{}, sdkerrors.New(types.DefaultCodespace, types.TxBreaksVolumeLimit, "Tx breaks LimitVolume rule")
+		return sdk.Int{}, sdk.Int{}, types.ErrTxBreaksVolumeLimit(coinToBuy.Volume.Add(amountBuy).String(), coinToBuy.LimitVolume.String())
 	}
 
 	coinToSellMinReserve := formulas.GetReserveLimitFromCRR(coinToSell.CRR)
 	if coinToSell.Reserve.Sub(amountSellInBase).LT(coinToSellMinReserve) && !coinToSell.IsBase() {
-		return sdk.Int{}, sdk.Int{}, sdkerrors.New(types.DefaultCodespace, types.TxBreaksMinReserveLimit, "Tx breaks MinReserveLimit rule")
+		return sdk.Int{}, sdk.Int{}, types.ErrTxBreaksMinReserveRule(coinToSell.Reserve.Sub(amountSellInBase).String())
 	}
 
 	// Limit minAmountToBuy in CLI
 	if amountBuy.LT(wantsBuy) {
-		return sdk.Int{}, sdk.Int{}, sdkerrors.New(types.DefaultCodespace, types.MinimumValueToBuyReached, "Amount you will receive less than minimum")
+		return sdk.Int{}, sdk.Int{}, types.ErrMinimumValueToBuyReached(amountBuy.String(), wantsBuy.String())
 	}
 
 	return amountBuy, wantsSell, nil

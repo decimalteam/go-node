@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -9,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
@@ -32,7 +30,7 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 			var crr, err = strconv.ParseUint(args[2], 10, 8)
 			// If error when convert crr
 			if err != nil {
-				return sdkerrors.New(types.DefaultCodespace, types.DecodeError, "Failed to convert CRR to uint")
+				return types.ErrInvalidCRR()
 			}
 			var initReserve, _ = sdk.NewIntFromString(args[3])
 			var initVolume, _ = sdk.NewIntFromString(args[4])
@@ -50,12 +48,12 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 			}
 			balance := acc.GetCoins()
 			if balance.AmountOf(cliUtils.GetBaseCoin()).LT(initReserve) {
-				return sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinReserve, "Not enough coin to reserve")
+				return types.ErrInsufficientCoinReserve()
 			}
 			// Check if coin does not exist yet
 			coinExists, _ := cliUtils.ExistsCoin(cliCtx, symbol)
 			if coinExists {
-				return sdkerrors.New(types.DefaultCodespace, types.CodeCoinAlreadyExists, fmt.Sprintf("Coin with symbol %s already exists", symbol))
+				return types.ErrCoinAlreadyExist(symbol)
 			}
 
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})

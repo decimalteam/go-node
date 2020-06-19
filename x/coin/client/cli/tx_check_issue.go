@@ -45,7 +45,7 @@ func GetCmdIssueCheck(cdc *codec.Codec) *cobra.Command {
 			// Check if coin exists
 			coin, _ := cliUtils.GetCoin(cliCtx, coinSymbol)
 			if coin.Symbol != coinSymbol {
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidCoinSymbol, fmt.Sprintf("Coin with symbol %s does not exist", coinSymbol))
+				return types.ErrCoinDoesNotExist(coinSymbol)
 			}
 
 			// TODO: Check amount

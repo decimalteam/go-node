@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-
 	"golang.org/x/crypto/sha3"
 
 	"github.com/spf13/cobra"

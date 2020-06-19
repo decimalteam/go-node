@@ -60,6 +60,7 @@ func NewSetUpContextDecorator() SetUpContextDecorator {
 // AnteHandle implements sdk.AnteHandler function.
 func (sud SetUpContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	// all transactions must implement GasTx
+	log.Println("ante")
 	gasTx, ok := tx.(GasTx)
 	if !ok {
 		// Set a gas meter with limit 0 as to prevent an infinite gas meter attack
@@ -216,6 +217,9 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 
 	if feeTx.GetFee().IsZero() {
 		// deduct the fees
+		if commissionInBaseCoin.IsZero() {
+			return next(ctx, tx, simulate)
+		}
 		err = DeductFees(fd.sk, ctx, feePayerAcc, sdk.NewCoins(sdk.NewCoin(fd.vk.BondDenom(ctx), commissionInBaseCoin)))
 		if err != nil {
 			return ctx, err

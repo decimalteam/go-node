@@ -13,28 +13,30 @@ const (
 	// Default validator codespace
 	DefaultCodespace string = ModuleName
 
-	CodeEmptyValidatorAddr CodeType = 101
-	CodeInvalidValidator   CodeType = 102
+	CodeEmptyValidatorAddr CodeType = 100
+	CodeInvalidValidator   CodeType = 101
+	CodeCommissionNegative CodeType = 102
+	CodeCommissionHuge     CodeType = 103
 
-	CodeInvalidStruct CodeType = 201
-	CodeInvalidInput  CodeType = 202
+	CodeInvalidStruct CodeType = 200
+	CodeInvalidInput  CodeType = 201
 
-	CodeInvalidDelegation CodeType = 301
+	CodeInvalidDelegation CodeType = 300
 
-	CodeEmptyPubKey CodeType = 401
+	CodeEmptyPubKey CodeType = 400
 
-	CodeCoinReserveIsNotSufficient CodeType = 501
+	CodeCoinReserveIsNotSufficient CodeType = 500
 
-	CodeErrInvalidHistoricalInfo CodeType = 601
+	CodeErrInvalidHistoricalInfo CodeType = 600
 
-	CodeErrNoHistoricalInfo CodeType = 701
+	CodeErrNoHistoricalInfo CodeType = 700
 
-	CodeDelegatorStakeIsTooLow CodeType = 801
+	CodeDelegatorStakeIsTooLow CodeType = 800
 
-	CodeInsufficientCoinToPayCommission CodeType = 901
-	CodeInsufficientFunds               CodeType = 902
-	CodeUpdateBalanceError              CodeType = 903
-	CodeErrCalculateCommission          CodeType = 904
+	CodeInsufficientCoinToPayCommission CodeType = 900
+	CodeInsufficientFunds               CodeType = 901
+	CodeUpdateBalanceError              CodeType = 902
+	CodeErrCalculateCommission          CodeType = 903
 )
 
 func ErrEmptyPubKey(codespace string) *sdkerrors.Error {
@@ -75,7 +77,7 @@ func ErrDelegatorShareExRateInvalid(codespace string) *sdkerrors.Error {
 }
 
 func ErrDelegatorStakeIsTooLow(codespace string) *sdkerrors.Error {
-	return sdkerrors.New(codespace, CodeDelegatorStakeIsTooLow, "Stake is too low")
+	return sdkerrors.New(codespace, CodeDelegatorStakeIsTooLow, "stake is too low")
 }
 
 func ErrNoUnbondingDelegation(codespace string) *sdkerrors.Error {
@@ -111,11 +113,11 @@ func ErrNoDelegation(codespace string) *sdkerrors.Error {
 }
 
 func ErrCommissionNegative(codespace string) *sdkerrors.Error {
-	return sdkerrors.New(codespace, CodeInvalidValidator, "commission must be positive")
+	return sdkerrors.New(codespace, CodeCommissionNegative, "commission must be positive")
 }
 
 func ErrCommissionHuge(codespace string) *sdkerrors.Error {
-	return sdkerrors.New(codespace, CodeInvalidValidator, "commission cannot be more than 100%")
+	return sdkerrors.New(codespace, CodeCommissionHuge, "commission cannot be more than 100%")
 }
 
 func ErrValidatorPubKeyTypeNotSupported(codespace string) *sdkerrors.Error {

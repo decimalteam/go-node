@@ -2,11 +2,9 @@ package types
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
-	"fmt"
 	"regexp"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var _ sdk.Msg = &MsgCreateCoin{}
@@ -40,7 +38,7 @@ const allowedCoinSymbols = "^[a-zA-Z][a-zA-Z0-9]{2,9}$"
 var minCoinSupply = sdk.NewInt(1)
 var maxCoinSupply = helpers.BipToPip(sdk.NewInt(1000000000000000))
 
-var minCoinReserve = helpers.BipToPip(sdk.NewInt(10000))
+var MinCoinReserve = helpers.BipToPip(sdk.NewInt(10000))
 
 func (msg MsgCreateCoin) Route() string { return RouterKey }
 func (msg MsgCreateCoin) Type() string  { return CreateCoinConst }
@@ -56,23 +54,23 @@ func (msg MsgCreateCoin) GetSignBytes() []byte {
 func (msg MsgCreateCoin) ValidateBasic() error {
 	// Validate coin title
 	if len(msg.Title) > maxCoinNameBytes {
-		return sdkerrors.New(DefaultCodespace, InvalidCoinTitle, fmt.Sprintf("Coin name is invalid. Allowed up to %d bytes.", maxCoinNameBytes))
+		return ErrInvalidCoinTitle()
 	}
 	// Validate coin symbol
 	if match, _ := regexp.MatchString(allowedCoinSymbols, msg.Symbol); !match {
-		return sdkerrors.New(DefaultCodespace, InvalidCoinSymbol, fmt.Sprintf("Invalid coin symbol. Should be %s", allowedCoinSymbols))
+		return ErrInvalidCoinSymbol(msg.Symbol)
 	}
 	// Validate coin CRR
 	if msg.ConstantReserveRatio < 10 || msg.ConstantReserveRatio > 100 {
-		return sdkerrors.New(DefaultCodespace, InvalidCRR, "Coin CRR must be between 10 and 100")
+		return ErrInvalidCRR()
 	}
 	// Check coin initial volume to be correct
 	if msg.InitialVolume.LT(minCoinSupply) || msg.InitialVolume.GT(maxCoinSupply) {
-		return sdkerrors.New(DefaultCodespace, InvalidCoinInitVolume, fmt.Sprintf("Coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), msg.InitialVolume.String()))
+		return ErrInvalidCoinInitialVolume(msg.InitialVolume.String())
 	}
 	// Check coin initial reserve to be correct
-	if msg.InitialReserve.LT(minCoinReserve) {
-		return sdkerrors.New(DefaultCodespace, InvalidCoinInitReserve, fmt.Sprintf("Coin initial reserve should be greater than or equal to %s", minCoinReserve.String()))
+	if msg.InitialReserve.LT(MinCoinReserve) {
+		return ErrInvalidCoinInitialReserve()
 	}
 
 	if msg.InitialVolume.GT(msg.LimitVolume) {

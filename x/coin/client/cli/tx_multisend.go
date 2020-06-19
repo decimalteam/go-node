@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
@@ -50,7 +49,12 @@ func GetCmdMultiSendCoin(cdc *codec.Codec) *cobra.Command {
 			}
 			balance := acc.GetCoins()
 			if !balance.IsAllGTE(coins) {
-				return sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, "Not enough coin to send")
+				var wantFunds string
+				for _, send := range sends {
+					wantFunds += send.Coin.String() + ", "
+				}
+				wantFunds = wantFunds[:len(wantFunds)-2]
+				return types.ErrInsufficientFunds(wantFunds, balance.String())
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},

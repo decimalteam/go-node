@@ -2,7 +2,6 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var _ sdk.Msg = &MsgBuyCoin{}
@@ -36,7 +35,7 @@ func (msg MsgBuyCoin) GetSignBytes() []byte {
 
 func (msg MsgBuyCoin) ValidateBasic() error {
 	if msg.CoinToBuy.Denom == msg.MaxCoinToSell.Denom {
-		return sdkerrors.New(DefaultCodespace, SameCoins, "Cannot buy same coins")
+		return ErrSameCoin()
 	}
 	return nil
 }

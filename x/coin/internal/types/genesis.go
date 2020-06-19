@@ -1,13 +1,10 @@
 package types
 
 import (
-	"fmt"
 	"regexp"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"bitbucket.org/decimalteam/go-node/config"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GenesisState - all coin state that must be provided at genesis
@@ -39,15 +36,15 @@ func DefaultGenesisState() GenesisState {
 func ValidateGenesis(data GenesisState) error {
 	// Check coin title maximum length
 	if len(data.Title) > maxCoinNameBytes {
-		return sdkerrors.New(DefaultCodespace, InvalidCoinTitle, fmt.Sprintf("Coin name is invalid. Allowed up to %d bytes.", maxCoinNameBytes))
+		return ErrInvalidCoinTitle()
 	}
 	// Check coin symbol for correct regexp
 	if match, _ := regexp.MatchString(allowedCoinSymbols, data.Symbol); !match {
-		return sdkerrors.New(DefaultCodespace, InvalidCoinSymbol, fmt.Sprintf("Invalid coin symbol. Should be %s", allowedCoinSymbols))
+		return ErrInvalidCoinSymbol(data.Symbol)
 	}
 	// Check coin initial volume to be correct
 	if data.InitialVolume.LT(minCoinSupply) || data.InitialVolume.GT(maxCoinSupply) {
-		return sdkerrors.New(DefaultCodespace, InvalidCoinInitVolume, fmt.Sprintf("Coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), data.InitialVolume.String()))
+		return ErrInvalidCoinInitialVolume(data.InitialVolume.String())
 	}
 	return nil
 }

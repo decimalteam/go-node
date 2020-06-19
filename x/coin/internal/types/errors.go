@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -13,62 +12,125 @@ const (
 	// Default coin codespace
 	DefaultCodespace string = ModuleName
 	// Create coin
-	DecodeError                     CodeType = 101
-	InvalidCRR                      CodeType = 102
-	InvalidCoinSymbol               CodeType = 103
-	CodeCoinAlreadyExists           CodeType = 104
-	InvalidCoinTitle                CodeType = 105
-	InvalidCoinInitVolume           CodeType = 106
-	InvalidCoinInitReserve          CodeType = 107
-	CodeInvalid                     CodeType = 108
-	InsufficientCoinReserve         CodeType = 118
-	InsufficientCoinToPayCommission CodeType = 120
-	InsufficientCoinToCreateCoin    CodeType = 121
-	CodeErrCalculateCommission      CodeType = 122
+	CodeInvalidCRR                      CodeType = 100
+	CodeCoinDoesNotExist                CodeType = 101
+	CodeInvalidCoinSymbol               CodeType = 102
+	CodeRetrievedAnotherCoin            CodeType = 103
+	CodeCoinAlreadyExists               CodeType = 104
+	CodeInvalidCoinTitle                CodeType = 105
+	CodeInvalidCoinInitialVolume        CodeType = 106
+	CodeInvalidCoinInitialReserve       CodeType = 107
+	CodeInternal                        CodeType = 108
+	CodeInsufficientCoinReserve         CodeType = 109
+	CodeInsufficientCoinToPayCommission CodeType = 110
+	CodeInsufficientFunds               CodeType = 111
+	CodeCalculateCommission             CodeType = 112
 
 	// Buy/Sell coin
-	SameCoins                 CodeType = 109
-	CoinToBuyNotExists        CodeType = 110
-	CoinToSellNotExists       CodeType = 111
-	InsufficientCoinToSell    CodeType = 112
-	TxBreaksVolumeLimit       CodeType = 113
-	TxBreaksMinReserveLimit   CodeType = 114
-	MaximumValueToSellReached CodeType = 115
-	MinimumValueToBuyReached  CodeType = 116
-	UpdateBalanceError        CodeType = 117
-	CodeLimitVolumeBroken     CodeType = 127
+	CodeSameCoins                  CodeType = 200
+	CodeInsufficientFundsToSellAll CodeType = 201
+	CodeTxBreaksVolumeLimit        CodeType = 202
+	CodeTxBreaksMinReserveLimit    CodeType = 203
+	CodeMaximumValueToSellReached  CodeType = 204
+	CodeMinimumValueToBuyReached   CodeType = 205
+	CodeUpdateBalance              CodeType = 206
+	CodeLimitVolumeBroken          CodeType = 207
 	// Send coin
-	InvalidAmount CodeType = 119
+	CodeInvalidAmount CodeType = 300
 	// Redeem check
-	InvalidCheck      CodeType = 120
-	InvalidProof      CodeType = 121
-	InvalidPassphrase CodeType = 122
-	InvalidChainID    CodeType = 123
-	InvalidNonce      CodeType = 124
-	CheckExpired      CodeType = 125
-	CheckRedeemed     CodeType = 126
+	InvalidCheck      CodeType = 400
+	InvalidProof      CodeType = 401
+	InvalidPassphrase CodeType = 402
+	InvalidChainID    CodeType = 403
+	InvalidNonce      CodeType = 404
+	CheckExpired      CodeType = 405
+	CheckRedeemed     CodeType = 406
 )
 
-func ErrorInsufficientCoinToPayCommission(commission string) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, InsufficientCoinToPayCommission, fmt.Sprintf("Insufficient coin to pay commission: wanted = %s", commission))
+func ErrInvalidCRR() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInvalidCRR, "coin CRR must be between 10 and 100")
 }
 
-func ErrorInsufficientFunds(funds string) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, InsufficientCoinToCreateCoin, fmt.Sprintf("Insufficient funds: wanted = %s", funds))
+func ErrInvalidCoinSymbol(symbol string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInvalidCoinSymbol, fmt.Sprintf("invalid coin symbol %s. Symbol must match this regular expression: %s", symbol, allowedCoinSymbols))
 }
 
-func ErrorUpdateBalance(err error) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, UpdateBalanceError, err.Error())
+func ErrCoinDoesNotExist(symbol string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeCoinDoesNotExist, fmt.Sprintf("coin %s does not exist", symbol))
+}
+
+func ErrRetrievedAnotherCoin(symbolWant, symbolRetrieved string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeRetrievedAnotherCoin, fmt.Sprintf("retrieved coin %s instead %s", symbolRetrieved, symbolWant))
+}
+
+func ErrInvalidCoinTitle() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInvalidCoinTitle, fmt.Sprintf("invalid coin title. Allowed up to %d bytes", maxCoinNameBytes))
+}
+
+func ErrInvalidCoinInitialVolume(initialVolume string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInvalidCoinInitialVolume, fmt.Sprintf("coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), initialVolume))
+}
+
+func ErrInvalidCoinInitialReserve() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInvalidCoinInitialReserve, fmt.Sprintf("coin initial reserve should be greater than or equal to %s", MinCoinReserve.String()))
+}
+
+func ErrInternal(err string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInternal, err)
+}
+
+func ErrInsufficientCoinReserve() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInsufficientCoinReserve, "not enough coin to reserve")
+}
+
+func ErrInsufficientFundsToPayCommission(commission string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInsufficientCoinToPayCommission, fmt.Sprintf("insufficient funds to pay commission: wanted = %s", commission))
+}
+
+func ErrInsufficientFunds(fundsWant, fundsExist string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInsufficientFunds, fmt.Sprintf("insufficient account funds; %s < %s", fundsExist, fundsWant))
+}
+
+func ErrInsufficientFundsToSellAll() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInsufficientFundsToSellAll, fmt.Sprintf("not enough coin to sell"))
+}
+
+func ErrUpdateBalance(account string, err string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeUpdateBalance, fmt.Sprintf("unable to update balance of account %s: %s", account, err))
 }
 
 func ErrCalculateCommission(err error) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeErrCalculateCommission, err.Error())
+	return sdkerrors.New(DefaultCodespace, CodeCalculateCommission, err.Error())
 }
 
 func ErrCoinAlreadyExist(coin string) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeCoinAlreadyExists, fmt.Sprintf("Coin %s already exist", coin))
+	return sdkerrors.New(DefaultCodespace, CodeCoinAlreadyExists, fmt.Sprintf("coin %s already exist", coin))
 }
 
 func ErrLimitVolumeBroken(volume string, limit string) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeLimitVolumeBroken, fmt.Sprintf("volume should be less than or equal the volume limit: %s > %s", volume, limit))
+}
+
+func ErrSameCoin() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeSameCoins, "can't buy same coins")
+}
+
+func ErrTxBreaksVolumeLimit(volume, limitVolume string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeTxBreaksVolumeLimit, fmt.Sprintf("tx breaks LimitVolume rule: %s > %s", volume, limitVolume))
+}
+
+func ErrTxBreaksMinReserveRule(volume string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeTxBreaksMinReserveLimit, fmt.Sprintf("tx breaks MinReserveLimit rule: %s < %s", volume, MinCoinReserve.String()))
+}
+
+func ErrMaximumValueToSellReached(amount, max string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeMaximumValueToSellReached, fmt.Sprintf("wanted to sell maximum %s, but required to spend %s at the moment", max, amount))
+}
+
+func ErrMinimumValueToBuyReached(amount, min string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeMinimumValueToBuyReached, fmt.Sprintf("wanted to buy minimum %s, but expected to receive %s at the moment", min, amount))
+}
+
+func ErrInvalidAmount() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInvalidAmount, "amount should be greater than 0")
 }

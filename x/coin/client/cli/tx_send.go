@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -9,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
@@ -29,7 +27,9 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 			coin := args[0]
 			amount, _ := sdk.NewIntFromString(args[1])
 			receiver, err := sdk.AccAddressFromBech32(args[2])
-			print(err)
+			if err != nil {
+				return err
+			}
 			msg := types.NewMsgSendCoin(cliCtx.GetFromAddress(), sdk.NewCoin(coin, amount), receiver)
 			err = msg.ValidateBasic()
 			if err != nil {
@@ -38,9 +38,8 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 
 			// Check if coin exists
 			existsCoin, _ := cliUtils.ExistsCoin(cliCtx, coin)
-			print(err)
 			if !existsCoin {
-				return sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, fmt.Sprintf("Coin to sent with symbol %s does not exist", coin))
+				return types.ErrCoinDoesNotExist(coin)
 			}
 
 			// Check if enough balance
@@ -50,7 +49,7 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 			}
 			balance := acc.GetCoins()
 			if balance.AmountOf(strings.ToLower(coin)).LT(amount) {
-				return sdkerrors.New(types.DefaultCodespace, types.InsufficientCoinToSell, "Not enough coin to send")
+				return types.ErrInsufficientFunds(amount.String(), balance.AmountOf(strings.ToLower(coin)).String())
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},

@@ -2,7 +2,6 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var _ sdk.Msg = &MsgSendCoin{}
@@ -40,7 +39,7 @@ func (msg MsgSendCoin) ValidateBasic() error {
 
 func ValidateSend(msg MsgSendCoin) error {
 	if msg.Coin.Amount.LTE(sdk.NewInt(0)) {
-		return sdkerrors.New(DefaultCodespace, InvalidAmount, "Amount should be greater than 0")
+		return ErrInvalidAmount()
 	}
 	return nil
 }
