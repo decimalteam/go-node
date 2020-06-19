@@ -1,12 +1,9 @@
 package utils
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/utils/helpers"
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/multisig"
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"fmt"
+	"log"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -15,7 +12,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"log"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
 // Ante
@@ -26,11 +28,13 @@ func NewAnteHandler(ak keeper.AccountKeeper, vk validator.Keeper, ck coin.Keeper
 		ante.NewValidateBasicDecorator(),
 		ante.NewValidateMemoDecorator(ak),
 		ante.NewConsumeGasForTxSizeDecorator(ak),
-		ante.NewSetPubKeyDecorator(ak), // SetPubKeyDecorator must be called before all signature verification decorators
+		NewPreCreateAccountDecorator(ak), // should be before SetPubKeyDecorator
+		ante.NewSetPubKeyDecorator(ak),   // SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewValidateSigCountDecorator(ak),
 		NewFeeDecorator(ck, sk, ak, vk),
 		ante.NewSigGasConsumeDecorator(ak, consumer),
 		ante.NewSigVerificationDecorator(ak),
+		NewPostCreateAccountDecorator(ak),      // should be after SigVerificationDecorator
 		ante.NewIncrementSequenceDecorator(ak), // innermost AnteDecorator
 	)
 }
@@ -43,6 +47,83 @@ var (
 type GasTx interface {
 	sdk.Tx
 	GetGas() uint64
+}
+
+// PreCreateAccountDecorator creates account in case of check redeeming from account unknown in the blockchain.
+// Such accounts sign their first transaction with account number equal to 0. This is the reason why
+// creating account is divided in two parts (PreCreateAccountDecorator and PostCreateAccountDecorator):
+// it is necessary to create account in the beginning of the Ante chain with account number 0, but just
+// before the end of the Ante chain it is necessary to restore correct account number.
+type PreCreateAccountDecorator struct {
+	ak auth.AccountKeeper
+}
+
+// NewPreCreateAccountDecorator creates new PreCreateAccountDecorator.
+func NewPreCreateAccountDecorator(ak auth.AccountKeeper) PreCreateAccountDecorator {
+	return PreCreateAccountDecorator{ak: ak}
+}
+
+// AnteHandle implements sdk.AnteHandler function.
+func (cad PreCreateAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	if ctx.IsReCheckTx() {
+		return next(ctx, tx, simulate)
+	}
+
+	msgs := tx.GetMsgs()
+	if len(msgs) > 0 {
+		switch msgs[0].Type() {
+		case coin.RedeemCheckConst:
+			signers := msgs[0].GetSigners()
+			if len(signers) == 1 {
+				acc := cad.ak.GetAccount(ctx, signers[0])
+				if acc == nil {
+					acc = cad.ak.NewAccountWithAddress(ctx, signers[0])
+					ctx = ctx.WithValue("created_account_address", signers[0].String())
+					ctx = ctx.WithValue("created_account_number", acc.GetAccountNumber())
+					acc.SetAccountNumber(0) // necessary to validate signature
+					cad.ak.SetAccount(ctx, acc)
+				}
+			}
+		}
+	}
+
+	return next(ctx, tx, simulate)
+}
+
+// PostCreateAccountDecorator restores account number in case of check redeeming from account unknown for the blockchain.
+type PostCreateAccountDecorator struct {
+	ak auth.AccountKeeper
+}
+
+// NewPostCreateAccountDecorator creates new PostCreateAccountDecorator.
+func NewPostCreateAccountDecorator(ak auth.AccountKeeper) PostCreateAccountDecorator {
+	return PostCreateAccountDecorator{ak: ak}
+}
+
+// AnteHandle implements sdk.AnteHandler function.
+func (cad PostCreateAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	if ctx.IsReCheckTx() {
+		return next(ctx, tx, simulate)
+	}
+
+	accAddress := ctx.Value("created_account_address")
+	accNumber := ctx.Value("created_account_number")
+	if accAddress != nil && accNumber != nil {
+		ctx = ctx.WithValue("created_account_address", nil)
+		ctx = ctx.WithValue("created_account_number", nil)
+		accAddr, err := sdk.AccAddressFromBech32(accAddress.(string))
+		if err != nil {
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "invalid address of created accout")
+		}
+		acc := cad.ak.GetAccount(ctx, accAddr)
+		if acc == nil {
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "unable to find created accout")
+		}
+		acc.SetAccountNumber(accNumber.(uint64))
+		cad.ak.SetAccount(ctx, acc)
+	}
+
+	return next(ctx, tx, simulate)
 }
 
 // SetUpContextDecorator sets the GasMeter in the Context and wraps the next AnteHandler with a defer clause

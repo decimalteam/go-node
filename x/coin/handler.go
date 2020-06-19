@@ -199,7 +199,8 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 	// Retrieve the coin requested to buy
 	coinToBuy, err := k.GetCoin(ctx, msg.CoinToBuy.Denom)
 	if err != nil {
-		return nil, types.ErrCoinDoesNotExist(msg.CoinToBuy.Denom)
+		errMsg := fmt.Sprintf("Unable to retrieve coin %s requested to buy: %v", msg.CoinToBuy.Denom, err)
+		return nil, sdkerrors.New(types.DefaultCodespace, types.CoinToBuyNotExists, errMsg)
 	}
 	if coinToBuy.Symbol != msg.CoinToBuy.Denom {
 		return nil, types.ErrRetrievedAnotherCoin(msg.CoinToBuy.Denom, coinToBuy.Symbol)
@@ -510,13 +511,9 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	if err != nil {
 		return nil, types.ErrInsufficientFundsToPayCommission(commission.String())
 	}
-	err = k.UpdateBalance(ctx, coin.Symbol, amount.Neg(), issuer)
+	err = k.BankKeeper.SendCoins(ctx, issuer, msg.Sender, sdk.Coins{sdk.NewCoin(coin.Symbol, amount)})
 	if err != nil {
-		return nil, types.ErrUpdateBalance(issuer.String(), err.Error())
-	}
-	err = k.UpdateBalance(ctx, coin.Symbol, amount, msg.Sender)
-	if err != nil {
-		return nil, types.ErrUpdateBalance(msg.Sender.String(), err.Error())
+		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
 	}
 
 	// Emit event
