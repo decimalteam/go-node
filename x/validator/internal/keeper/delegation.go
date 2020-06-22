@@ -463,7 +463,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	// Validator loses all tokens due to slashing. In this case,
 	// make all future delegations invalid.
 	if validator.InvalidExRate() {
-		return types.ErrDelegatorShareExRateInvalid(k.Codespace())
+		return types.ErrDelegatorShareExRateInvalid()
 	}
 
 	// Get or create the delegation object
@@ -568,7 +568,7 @@ func (k Keeper) Undelegate(
 
 	validator, foundErr := k.GetValidator(ctx, valAddr)
 	if foundErr != nil {
-		return time.Time{}, types.ErrNoDelegatorForAddress(k.Codespace())
+		return time.Time{}, types.ErrNoDelegatorForAddress()
 	}
 
 	err := k.unbond(ctx, delAddr, valAddr, amount)
@@ -593,7 +593,7 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 	// check if a delegation object exists in the store
 	delegation, found := k.GetDelegation(ctx, delAddr, valAddr)
 	if !found {
-		return types.ErrNoDelegatorForAddress(k.Codespace())
+		return types.ErrNoDelegatorForAddress()
 	}
 
 	// call the before-delegation-modified hook
@@ -601,13 +601,13 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 
 	// ensure that we have enough shares to remove
 	if delegation.Coin.Amount.LT(coin.Amount) {
-		return types.ErrNotEnoughDelegationShares(k.Codespace(), delegation.Coin.Amount.String())
+		return types.ErrNotEnoughDelegationShares(delegation.Coin.Amount.String())
 	}
 
 	// get validator
 	validator, err := k.GetValidator(ctx, valAddr)
 	if err != nil {
-		return types.ErrNoValidatorFound(k.Codespace())
+		return types.ErrNoValidatorFound()
 	}
 
 	// subtract shares from delegation
@@ -640,7 +640,7 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 
 	ubd, found := k.GetUnbondingDelegation(ctx, delAddr, valAddr)
 	if !found {
-		return types.ErrNoUnbondingDelegation(k.Codespace())
+		return types.ErrNoUnbondingDelegation()
 	}
 
 	ctxTime := ctx.BlockHeader().Time
@@ -710,7 +710,7 @@ func (k Keeper) GetDelegatorValidators(ctx sdk.Context, delegatorAddr sdk.AccAdd
 
 		validator, err := k.GetValidator(ctx, delegation.ValidatorAddress)
 		if err != nil {
-			panic(types.ErrNoValidatorFound(types.DefaultCodespace))
+			panic(types.ErrNoValidatorFound())
 		}
 		validators[i] = validator
 		i++
@@ -727,12 +727,12 @@ func (k Keeper) GetDelegatorValidator(ctx sdk.Context, delegatorAddr sdk.AccAddr
 
 	delegation, found := k.GetDelegation(ctx, delegatorAddr, validatorAddr)
 	if !found {
-		return validator, types.ErrNoDelegation(types.DefaultCodespace)
+		return validator, types.ErrNoDelegation()
 	}
 
 	validator, err = k.GetValidator(ctx, delegation.ValidatorAddress)
 	if err != nil {
-		panic(types.ErrNoValidatorFound(types.DefaultCodespace))
+		panic(types.ErrNoValidatorFound())
 	}
 	return validator, nil
 }

@@ -177,7 +177,7 @@ func (v Validator) MarshalYAML() (interface{}, error) {
 
 func (v Validator) SharesFromTokens(tokens sdk.Int, valTokens sdk.Int, delTokens sdk.Dec) (sdk.Dec, error) {
 	if v.Tokens.IsZero() {
-		return sdk.Dec{}, ErrInsufficientShares(DefaultCodespace)
+		return sdk.Dec{}, ErrInsufficientShares()
 	}
 
 	return delTokens.MulInt(tokens).QuoInt(valTokens), nil

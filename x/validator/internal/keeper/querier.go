@@ -90,7 +90,7 @@ func queryValidator(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 
 	validator, err := k.GetValidator(ctx, params.ValidatorAddr)
 	if err != nil {
-		return nil, types.ErrNoValidatorFound(k.Codespace())
+		return nil, types.ErrNoValidatorFound()
 	}
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, validator)
@@ -249,7 +249,7 @@ func queryDelegation(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 
 	delegation, found := k.GetDelegation(ctx, params.DelegatorAddr, params.ValidatorAddr)
 	if !found {
-		return nil, types.ErrNoDelegation(k.Codespace())
+		return nil, types.ErrNoDelegation()
 	}
 
 	delegationResp, err := delegationToDelegationResponse(delegation)
@@ -275,7 +275,7 @@ func queryUnbondingDelegation(ctx sdk.Context, req abci.RequestQuery, k Keeper) 
 
 	unbond, found := k.GetUnbondingDelegation(ctx, params.DelegatorAddr, params.ValidatorAddr)
 	if !found {
-		return nil, types.ErrNoUnbondingDelegation(k.Codespace())
+		return nil, types.ErrNoUnbondingDelegation()
 	}
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, unbond)
@@ -296,7 +296,7 @@ func queryHistoricalInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 
 	hi, found := k.GetHistoricalInfo(ctx, params.Height)
 	if !found {
-		return nil, types.ErrNoHistoricalInfo(k.Codespace())
+		return nil, types.ErrNoHistoricalInfo()
 	}
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, hi)

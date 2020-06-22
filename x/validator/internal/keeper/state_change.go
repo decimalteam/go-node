@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bytes"
 	"errors"
 	"fmt"
@@ -290,7 +291,23 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator) {
 	}
 
 	sort.SliceStable(delegations, func(i, j int) bool {
-		return delegations[i].Coin.Amount.LT(delegations[j].Coin.Amount)
+		amountI := delegations[i].Coin.Amount
+		amountJ := delegations[j].Coin.Amount
+		if delegations[i].Coin.Denom != k.BondDenom(ctx) {
+			coin, err := k.GetCoin(ctx, delegations[i].Coin.Denom)
+			if err != nil {
+				panic(err)
+			}
+			amountI = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegations[i].Coin.Amount)
+		}
+		if delegations[j].Coin.Denom != k.BondDenom(ctx) {
+			coin, err := k.GetCoin(ctx, delegations[j].Coin.Denom)
+			if err != nil {
+				panic(err)
+			}
+			amountJ = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegations[j].Coin.Amount)
+		}
+		return amountI.GT(amountJ)
 	})
 
 	for i := int(k.MaxDelegations(ctx)); i < len(delegations); i++ {
@@ -311,7 +328,6 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator) {
 			panic(err)
 		}
 	}
-
 }
 
 // perform all the store operations for when a validator begins unbonding

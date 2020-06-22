@@ -41,18 +41,18 @@ func NewHandler(keeper Keeper) sdk.Handler {
 func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCandidate) (*sdk.Result, error) {
 	// check to see if the pubkey or sender has been registered before
 	if _, err := k.GetValidator(ctx, msg.ValidatorAddr); err == nil {
-		return nil, types.ErrValidatorOwnerExists(k.Codespace())
+		return nil, types.ErrValidatorOwnerExists()
 	}
 
 	if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(msg.PubKey)); err == nil {
-		return nil, types.ErrValidatorPubKeyExists(k.Codespace())
+		return nil, types.ErrValidatorPubKeyExists()
 	}
 
 	if ctx.ConsensusParams() != nil {
 		tmPubKey := tmtypes.TM2PB.PubKey(msg.PubKey)
 		if !tmstrings.StringInSlice(tmPubKey.Type, ctx.ConsensusParams().Validator.PubKeyTypes) {
 			return nil, sdkerrors.Wrapf(
-				types.ErrValidatorPubKeyTypeNotSupported(k.Codespace()),
+				types.ErrValidatorPubKeyTypeNotSupported(),
 				"got: %s, valid: %s", tmPubKey.Type, ctx.ConsensusParams().Validator.PubKeyTypes,
 			)
 		}
@@ -61,7 +61,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Commission, msg.RewardAddr, msg.Description)
 	err := k.SetValidator(ctx, val)
 	if err != nil {
-		return nil, types.ErrInvalidStruct(k.Codespace())
+		return nil, types.ErrInvalidStruct()
 	}
 	k.SetValidatorByConsAddr(ctx, val)
 	k.SetNewValidatorByPowerIndex(ctx, val)
@@ -94,11 +94,11 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.Result, error) {
 	val, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
-		return nil, types.ErrNoValidatorFound(k.Codespace())
+		return nil, types.ErrNoValidatorFound()
 	}
 
 	if !k.IsDelegatorStakeSufficient(ctx, val, msg.DelegatorAddress, msg.Coin) {
-		return nil, types.ErrDelegatorStakeIsTooLow(k.Codespace())
+		return nil, types.ErrDelegatorStakeIsTooLow()
 	}
 
 	defer func() {
@@ -146,7 +146,7 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidate) (*sdk.Result, error) {
 	validator, err := k.GetValidatorByConsAddr(ctx, sdk.ConsAddress(msg.PubKey.Address()))
 	if err != nil {
-		return nil, types.ErrNoValidatorFound(k.Codespace())
+		return nil, types.ErrNoValidatorFound()
 	}
 
 	validator.ValAddress = msg.ValidatorAddress
@@ -173,7 +173,7 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk.Result, error) {
 	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
-		return nil, types.ErrNoValidatorFound(k.Codespace())
+		return nil, types.ErrNoValidatorFound()
 	}
 
 	if validator.Online {
@@ -203,7 +203,7 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk
 func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*sdk.Result, error) {
 	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
 	if err != nil {
-		return nil, types.ErrNoValidatorFound(k.Codespace())
+		return nil, types.ErrNoValidatorFound()
 	}
 
 	if !validator.Online {

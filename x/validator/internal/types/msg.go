@@ -44,16 +44,16 @@ func (msg MsgDeclareCandidate) GetSignBytes() []byte {
 func (msg MsgDeclareCandidate) ValidateBasic() error {
 	// note that unmarshaling from bech32 ensures either empty or valid
 	if msg.ValidatorAddr.Empty() {
-		return ErrNilValidatorAddr(DefaultCodespace)
+		return ErrEmptyValidatorAddr()
 	}
 	if msg.Stake.Amount.LTE(sdk.ZeroInt()) {
-		return ErrBadDelegationAmount(DefaultCodespace)
+		return ErrBadDelegationAmount()
 	}
 	if msg.Commission.LT(sdk.ZeroDec()) {
-		return ErrCommissionNegative(DefaultCodespace)
+		return ErrCommissionNegative()
 	}
 	if msg.Commission.GT(sdk.OneDec()) {
-		return ErrCommissionHuge(DefaultCodespace)
+		return ErrCommissionHuge()
 	}
 
 	return nil
@@ -90,10 +90,10 @@ func (msg MsgDelegate) GetSignBytes() []byte {
 
 func (msg MsgDelegate) ValidateBasic() error {
 	if msg.ValidatorAddress.Empty() {
-		return ErrEmptyValidatorAddr(DefaultCodespace)
+		return ErrEmptyValidatorAddr()
 	}
 	if msg.DelegatorAddress.Empty() {
-		return ErrNilDelegatorAddr(DefaultCodespace)
+		return ErrEmptyDelegatorAddr()
 	}
 	return nil
 }
@@ -123,7 +123,7 @@ func (msg MsgSetOnline) GetSignBytes() []byte {
 
 func (msg MsgSetOnline) ValidateBasic() error {
 	if msg.ValidatorAddress.Empty() {
-		return ErrEmptyValidatorAddr(DefaultCodespace)
+		return ErrEmptyValidatorAddr()
 	}
 	return nil
 }
@@ -153,7 +153,7 @@ func (msg MsgSetOffline) GetSignBytes() []byte {
 
 func (msg MsgSetOffline) ValidateBasic() error {
 	if msg.ValidatorAddress.Empty() {
-		return ErrEmptyValidatorAddr(DefaultCodespace)
+		return ErrEmptyValidatorAddr()
 	}
 	return nil
 }
@@ -189,10 +189,10 @@ func (msg MsgUnbond) GetSignBytes() []byte {
 
 func (msg MsgUnbond) ValidateBasic() error {
 	if msg.ValidatorAddress.Empty() {
-		return ErrEmptyValidatorAddr(DefaultCodespace)
+		return ErrEmptyValidatorAddr()
 	}
 	if msg.DelegatorAddress.Empty() {
-		return ErrNilDelegatorAddr(DefaultCodespace)
+		return ErrEmptyDelegatorAddr()
 	}
 	return nil
 }
@@ -230,10 +230,10 @@ func (msg MsgEditCandidate) GetSignBytes() []byte {
 
 func (msg MsgEditCandidate) ValidateBasic() error {
 	if msg.PubKey == nil {
-		return ErrEmptyPubKey(DefaultCodespace)
+		return ErrEmptyPubKey()
 	}
 	if msg.ValidatorAddress.Empty() {
-		return ErrEmptyValidatorAddr(DefaultCodespace)
+		return ErrEmptyValidatorAddr()
 	}
 	return nil
 }
