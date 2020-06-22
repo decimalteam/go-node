@@ -128,8 +128,8 @@ func AddressFromLastValidatorPowerKey(key []byte) []byte {
 
 // gets the key for delegator bond with validator
 // VALUE: staking/Delegation
-func GetDelegationKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
-	return append(GetDelegationsKey(delAddr), valAddr.Bytes()...)
+func GetDelegationKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress, coin string) []byte {
+	return append(append(append([]byte{DelegationKey}, delAddr.Bytes()...), valAddr.Bytes()...), []byte(coin)...)
 }
 
 // gets the prefix for a delegator for all validators

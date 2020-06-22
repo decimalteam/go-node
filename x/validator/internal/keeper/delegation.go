@@ -13,11 +13,11 @@ import (
 
 // return a specific delegation
 func (k Keeper) GetDelegation(ctx sdk.Context,
-	delAddr sdk.AccAddress, valAddr sdk.ValAddress) (
+	delAddr sdk.AccAddress, valAddr sdk.ValAddress, coin string) (
 	delegation types.Delegation, found bool) {
 
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetDelegationKey(delAddr, valAddr)
+	key := types.GetDelegationKey(delAddr, valAddr, coin)
 	value := store.Get(key)
 	if value == nil {
 		return delegation, false
@@ -87,7 +87,7 @@ func (k Keeper) GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddres
 
 // set a delegation
 func (k Keeper) SetDelegation(ctx sdk.Context, delegation types.Delegation) {
-	err := k.set(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress), delegation)
+	err := k.set(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.Coin.Denom), delegation)
 	if err != nil {
 		panic(err)
 	}
@@ -97,7 +97,7 @@ func (k Keeper) SetDelegation(ctx sdk.Context, delegation types.Delegation) {
 func (k Keeper) RemoveDelegation(ctx sdk.Context, delegation types.Delegation) {
 	// TODO: Consider calling hooks outside of the store wrapper functions, it's unobvious.
 	k.BeforeDelegationRemoved(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
-	k.delete(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress))
+	k.delete(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.Coin.Denom))
 }
 
 // return a given amount of all the delegator unbonding-delegations
@@ -467,7 +467,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	}
 
 	// Get or create the delegation object
-	delegation, found := k.GetDelegation(ctx, delAddr, validator.ValAddress)
+	delegation, found := k.GetDelegation(ctx, delAddr, validator.ValAddress, bondCoin.Denom)
 	if !found {
 		delegation = types.NewDelegation(delAddr, validator.ValAddress, bondCoin)
 	}
@@ -591,7 +591,7 @@ func (k Keeper) Undelegate(
 // unbond a particular delegation and perform associated store operations
 func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, coin sdk.Coin) error {
 	// check if a delegation object exists in the store
-	delegation, found := k.GetDelegation(ctx, delAddr, valAddr)
+	delegation, found := k.GetDelegation(ctx, delAddr, valAddr, coin.Denom)
 	if !found {
 		return types.ErrNoDelegatorForAddress()
 	}
@@ -720,12 +720,12 @@ func (k Keeper) GetDelegatorValidators(ctx sdk.Context, delegatorAddr sdk.AccAdd
 
 // return a validator that a delegator is bonded to
 func (k Keeper) GetDelegatorValidator(ctx sdk.Context, delegatorAddr sdk.AccAddress,
-	validatorAddr sdk.ValAddress) (types.Validator, error) {
+	validatorAddr sdk.ValAddress, coin string) (types.Validator, error) {
 
 	var err error
 	validator := types.Validator{}
 
-	delegation, found := k.GetDelegation(ctx, delegatorAddr, validatorAddr)
+	delegation, found := k.GetDelegation(ctx, delegatorAddr, validatorAddr, coin)
 	if !found {
 		return validator, types.ErrNoDelegation()
 	}

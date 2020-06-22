@@ -351,8 +351,8 @@ func (k Keeper) LastValidatorsIterator(ctx sdk.Context) (iterator sdk.Iterator) 
 }
 
 // Delegation get the delegation interface for a particular set of delegator and validator addresses
-func (k Keeper) Delegation(ctx sdk.Context, addrDel sdk.AccAddress, addrVal sdk.ValAddress) types.Delegation {
-	bond, ok := k.GetDelegation(ctx, addrDel, addrVal)
+func (k Keeper) Delegation(ctx sdk.Context, addrDel sdk.AccAddress, addrVal sdk.ValAddress, coin string) types.Delegation {
+	bond, ok := k.GetDelegation(ctx, addrDel, addrVal, coin)
 	if !ok {
 		return types.Delegation{}
 	}

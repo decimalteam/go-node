@@ -226,7 +226,7 @@ func queryDelegatorValidator(ctx sdk.Context, req abci.RequestQuery, k Keeper) (
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	validator, err := k.GetDelegatorValidator(ctx, params.DelegatorAddr, params.ValidatorAddr)
+	validator, err := k.GetDelegatorValidator(ctx, params.DelegatorAddr, params.ValidatorAddr, params.Coin)
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +247,7 @@ func queryDelegation(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	delegation, found := k.GetDelegation(ctx, params.DelegatorAddr, params.ValidatorAddr)
+	delegation, found := k.GetDelegation(ctx, params.DelegatorAddr, params.ValidatorAddr, params.Coin)
 	if !found {
 		return nil, types.ErrNoDelegation()
 	}

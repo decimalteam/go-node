@@ -58,6 +58,7 @@ func NewQueryValidatorParams(validatorAddr sdk.ValAddress) QueryValidatorParams 
 type QueryBondsParams struct {
 	DelegatorAddr sdk.AccAddress
 	ValidatorAddr sdk.ValAddress
+	Coin          string
 }
 
 func NewQueryBondsParams(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress) QueryBondsParams {
