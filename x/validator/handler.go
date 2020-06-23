@@ -103,8 +103,19 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		}
 	}()
 
-	if !k.IsDelegatorStakeSufficient(ctx, val, msg.DelegatorAddress, msg.Coin) {
-		return nil, types.ErrDelegatorStakeIsTooLow()
+	// TODO: remove on update
+	if ctx.BlockHeight() <= 19200 {
+		if !k.IsDelegatorStakeSufficientOld(ctx, val, msg.DelegatorAddress, msg.Coin) {
+			return nil, types.ErrDelegatorStakeIsTooLow()
+		}
+	} else {
+		ok, err := k.IsDelegatorStakeSufficient(ctx, val, msg.DelegatorAddress, msg.Coin)
+		if err != nil {
+			return nil, types.ErrCoinDoesNotExist(msg.Coin.Denom)
+		}
+		if !ok {
+			return nil, types.ErrDelegatorStakeIsTooLow()
+		}
 	}
 
 	err = k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)

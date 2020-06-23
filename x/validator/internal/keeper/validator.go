@@ -470,7 +470,27 @@ func (k Keeper) GetValidators(ctx sdk.Context, maxRetrieve uint16) (validators [
 	return validators[:i] // trim if the array length < maxRetrieve
 }
 
-func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Validator, delAddr sdk.AccAddress, stake sdk.Coin) bool {
+func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Validator, delAddr sdk.AccAddress, stake sdk.Coin) (bool, error) {
+	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+	if uint16(len(delegations)) < k.MaxDelegations(ctx) {
+		return true, nil
+	}
+
+	stakeValue, err := k.CalculateBipValue(ctx, stake, true)
+	if err != nil {
+		return false, err
+	}
+
+	for _, delegation := range delegations {
+		if delegation.Coin.Amount.LT(stakeValue) || (delAddr.Equals(delegation.DelegatorAddress) && stake.Denom == delegation.Coin.Denom) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func (k Keeper) IsDelegatorStakeSufficientOld(ctx sdk.Context, validator types.Validator, delAddr sdk.AccAddress, stake sdk.Coin) bool {
 	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
 	if uint16(len(delegations)) < k.MaxDelegations(ctx) {
 		return true
@@ -517,4 +537,35 @@ func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Vali
 	}
 
 	return false
+}
+
+func (k Keeper) CalculateBipValue(ctx sdk.Context, value sdk.Coin, includeSelf bool) (sdk.Int, error) {
+	if value.Denom == k.BondDenom(ctx) {
+		return value.Amount, nil
+	}
+
+	totalAmount := sdk.ZeroInt()
+
+	if includeSelf {
+		totalAmount = totalAmount.Add(value.Amount)
+	}
+
+	validators := k.GetAllValidators(ctx)
+	for _, validator := range validators {
+		stakes := k.GetValidatorDelegations(ctx, validator.ValAddress)
+		for _, stake := range stakes {
+			if stake.Coin.Denom == value.Denom {
+				totalAmount = totalAmount.Add(stake.Coin.Amount)
+			}
+		}
+	}
+
+	coin, err := k.GetCoin(ctx, value.Denom)
+	if err != nil {
+		return sdk.Int{}, err
+	}
+
+	totalPower := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, totalAmount)
+
+	return totalPower.Mul(value.Amount).Quo(totalAmount), nil
 }

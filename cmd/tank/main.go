@@ -425,12 +425,16 @@ func (p *Provider) SellAllCoins(seller Account, coinToBuy string, coinToSell str
 	return p.SendTx([]sdk.Msg{coin.NewMsgSellAllCoin(seller.Address, sdk.NewCoin(coinToSell, sdk.NewInt(0)), sdk.NewCoin(coinToBuy, amountToBuy))}, seller)
 }
 
-func (p *Provider) SendAll(sender Account, accounts []Account, amount sdk.Int, token string) error {
-	msgs := make([]sdk.Msg, len(accounts))
+func (p *Provider) SendAll(sender Account, accounts []Account, amount sdk.Int, denom string) error {
+	sends := make([]coin.Send, len(accounts))
 	for i, account := range accounts {
-		msgs[i] = coin.NewMsgSendCoin(sender.Address, sdk.NewCoin(token, amount), account.Address)
+		sends[i] = coin.Send{
+			Coin:     sdk.NewCoin(denom, amount),
+			Receiver: account.Address,
+		}
 	}
-	return p.SendTx(msgs, sender)
+	msg := coin.NewMsgMultiSendCoin(sender.Address, sends)
+	return p.SendTx([]sdk.Msg{msg}, sender)
 }
 
 func (p *Provider) SendTx(messages []sdk.Msg, sender Account) error {

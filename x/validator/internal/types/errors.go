@@ -40,6 +40,7 @@ const (
 	CodeInsufficientFunds               CodeType = 901
 	CodeUpdateBalanceError              CodeType = 902
 	CodeErrCalculateCommission          CodeType = 903
+	CodeCoinDoesNotExist                CodeType = 904
 )
 
 func ErrEmptyPubKey() *sdkerrors.Error {
@@ -141,4 +142,8 @@ func ErrUpdateBalance(err error) *sdkerrors.Error {
 
 func ErrCalculateCommission(err error) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeErrCalculateCommission, err.Error())
+}
+
+func ErrCoinDoesNotExist(symbol string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeCoinDoesNotExist, fmt.Sprintf("coin %s does not exist", symbol))
 }

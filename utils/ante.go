@@ -24,6 +24,7 @@ import (
 func NewAnteHandler(ak keeper.AccountKeeper, vk validator.Keeper, ck coin.Keeper, sk supply.Keeper, consumer ante.SignatureVerificationGasConsumer) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+		NewCountMsgDecorator(),
 		ante.NewMempoolFeeDecorator(),
 		ante.NewValidateBasicDecorator(),
 		ante.NewValidateMemoDecorator(ak),
@@ -382,4 +383,20 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 	supplyKeeper.SetSupply(ctx, s)
 
 	return nil
+}
+
+type CountMsgDecorator struct {
+}
+
+func NewCountMsgDecorator() CountMsgDecorator {
+	return CountMsgDecorator{}
+}
+
+func (cd CountMsgDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	if ctx.BlockHeight() > 19200 {
+		if len(tx.GetMsgs()) > 1 {
+			return ctx, sdkerrors.New("ante", 100, "Too many msgs in the transaction. Max = 1")
+		}
+	}
+	return next(ctx, tx, simulate)
 }
