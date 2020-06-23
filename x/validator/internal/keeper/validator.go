@@ -483,7 +483,12 @@ func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Vali
 			panic(err)
 		}
 
-		stakeValue = formulas.CalculateSaleAmount(coin.Volume, coin.Reserve, coin.CRR, stake.Amount)
+		// TODO: remove on reset
+		if ctx.BlockHeight() <= 9700 {
+			stakeValue = formulas.CalculateSaleAmount(coin.Volume, coin.Reserve, coin.CRR, stake.Amount)
+		} else {
+			stakeValue = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, stake.Amount)
+		}
 	} else {
 		stakeValue = stake.Amount
 	}
@@ -496,7 +501,12 @@ func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Vali
 				panic(err)
 			}
 
-			delegationStakeValue = formulas.CalculateSaleAmount(coin.Volume, coin.Reserve, coin.CRR, delegation.Coin.Amount)
+			// TODO: remove on reset
+			if ctx.BlockHeight() <= 9700 {
+				delegationStakeValue = formulas.CalculateSaleAmount(coin.Volume, coin.Reserve, coin.CRR, delegation.Coin.Amount)
+			} else {
+				delegationStakeValue = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegation.Coin.Amount)
+			}
 		} else {
 			delegationStakeValue = delegation.Coin.Amount
 		}

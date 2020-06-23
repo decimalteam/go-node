@@ -2,7 +2,7 @@ package validator
 
 import (
 	"fmt"
-	"log"
+	"runtime/debug"
 	"time"
 
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
@@ -97,15 +97,15 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, types.ErrNoValidatorFound()
 	}
 
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
+		}
+	}()
+
 	if !k.IsDelegatorStakeSufficient(ctx, val, msg.DelegatorAddress, msg.Coin) {
 		return nil, types.ErrDelegatorStakeIsTooLow()
 	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println(r)
-		}
-	}()
 
 	err = k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)
 	if err != nil {
