@@ -155,17 +155,29 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 }
 
 func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidate) (*sdk.Result, error) {
-	validator, err := k.GetValidatorByConsAddr(ctx, sdk.ConsAddress(msg.PubKey.Address()))
-	if err != nil {
-		return nil, types.ErrNoValidatorFound()
+	var validator types.Validator
+
+	// TODO: remove on reset
+	if ctx.BlockHeight() < 27100 {
+		validator, err := k.GetValidatorByConsAddr(ctx, sdk.ConsAddress(msg.PubKey.Address()))
+		if err != nil {
+			return nil, types.ErrNoValidatorFound()
+		}
+
+		validator.ValAddress = msg.ValidatorAddress
+		validator.RewardAddress = msg.RewardAddress
+		validator.Description = msg.Description
+	} else {
+		validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
+		if err != nil {
+			return nil, types.ErrNoValidatorFound()
+		}
+
+		validator.RewardAddress = msg.RewardAddress
+		validator.Description = msg.Description
 	}
 
-	validator.ValAddress = msg.ValidatorAddress
-	validator.RewardAddress = msg.RewardAddress
-	validator.Description = msg.Description
-
-	k.SetValidatorByConsAddr(ctx, validator)
-	err = k.SetValidator(ctx, validator)
+	err := k.SetValidator(ctx, validator)
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
@@ -174,8 +186,12 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(validator.ValAddress).String()),
-		sdk.NewAttribute(types.AttributeKeyPubKey, msg.PubKey.Address().String()),
 		sdk.NewAttribute(types.AttributeKeyRewardAddress, msg.RewardAddress.String()),
+		sdk.NewAttribute(types.AttributeKeyDescriptionMoniker, msg.Description.Moniker),
+		sdk.NewAttribute(types.AttributeKeyDescriptionDetails, msg.Description.Details),
+		sdk.NewAttribute(types.AttributeKeyDescriptionIdentity, msg.Description.Identity),
+		sdk.NewAttribute(types.AttributeKeyDescriptionWebsite, msg.Description.Website),
+		sdk.NewAttribute(types.AttributeKeyDescriptionSecurityContact, msg.Description.SecurityContact),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

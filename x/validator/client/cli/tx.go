@@ -45,7 +45,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 // GetCmdDeclareCandidate is the CLI command for doing CreateValidator
 func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
-	command := &cobra.Command{
+	cmd := &cobra.Command{
 		Short: "Declare candidate",
 		Use:   "declare [pub_key] [coin] [commission] --from name/address",
 		Args:  cobra.ExactArgs(3),
@@ -89,7 +89,21 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-	return command
+
+	cmd.Flags().AddFlagSet(FsPk)
+	cmd.Flags().AddFlagSet(FsAmount)
+	cmd.Flags().AddFlagSet(fsDescriptionCreate)
+	cmd.Flags().AddFlagSet(FsCommissionCreate)
+
+	cmd.Flags().String(FlagIP, "", fmt.Sprintf("The node's public IP. It takes effect only when used in combination with --%s", flags.FlagGenerateOnly))
+	cmd.Flags().String(FlagNodeID, "", "The node's ID")
+
+	cmd.MarkFlagRequired(flags.FlagFrom)
+	cmd.MarkFlagRequired(FlagAmount)
+	cmd.MarkFlagRequired(FlagPubKey)
+	cmd.MarkFlagRequired(FlagMoniker)
+
+	return cmd
 }
 
 // CreateValidatorMsgHelpers returns the flagset, particular flags and a description of defaults
@@ -280,18 +294,13 @@ func GetUnbond(cdc *codec.Codec) *cobra.Command {
 
 // GetEditCandidate .
 func GetEditCandidate(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Short: "Edit candidate",
 		Use:   "edit-candidate [pub_key] [validator-address] [reward-address]",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
-
-			pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
-			if err != nil {
-				return err
-			}
 
 			valAddress, err := sdk.ValAddressFromBech32(args[1])
 			if err != nil {
@@ -311,8 +320,13 @@ func GetEditCandidate(cdc *codec.Codec) *cobra.Command {
 				viper.GetString(FlagDetails),
 			)
 
-			msg := types.NewMsgEditCandidate(pubKey, valAddress, rewardAddress, description)
+			msg := types.NewMsgEditCandidate(valAddress, rewardAddress, description)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+
+	cmd.Flags().AddFlagSet(fsDescriptionEdit)
+	cmd.Flags().AddFlagSet(fsCommissionUpdate)
+
+	return cmd
 }

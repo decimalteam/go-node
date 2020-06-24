@@ -206,9 +206,8 @@ type MsgEditCandidate struct {
 	Description      Description    `json:"description"`
 }
 
-func NewMsgEditCandidate(pubKey crypto.PubKey, validatorAddress sdk.ValAddress, rewardAddress sdk.AccAddress, description Description) MsgEditCandidate {
+func NewMsgEditCandidate(validatorAddress sdk.ValAddress, rewardAddress sdk.AccAddress, description Description) MsgEditCandidate {
 	return MsgEditCandidate{
-		PubKey:           pubKey,
 		ValidatorAddress: validatorAddress,
 		RewardAddress:    rewardAddress,
 		Description:      description,
@@ -229,9 +228,6 @@ func (msg MsgEditCandidate) GetSignBytes() []byte {
 }
 
 func (msg MsgEditCandidate) ValidateBasic() error {
-	if msg.PubKey == nil {
-		return ErrEmptyPubKey()
-	}
 	if msg.ValidatorAddress.Empty() {
 		return ErrEmptyValidatorAddr()
 	}
