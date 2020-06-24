@@ -296,18 +296,18 @@ func GetUnbond(cdc *codec.Codec) *cobra.Command {
 func GetEditCandidate(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Short: "Edit candidate",
-		Use:   "edit-candidate [pub_key] [validator-address] [reward-address]",
-		Args:  cobra.ExactArgs(3),
+		Use:   "edit-candidate [validator-address] [reward-address]",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			valAddress, err := sdk.ValAddressFromBech32(args[1])
+			valAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 
-			rewardAddress, err := sdk.AccAddressFromBech32(args[2])
+			rewardAddress, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return err
 			}
