@@ -58,9 +58,18 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	//Remove all mature unbonding delegations from the ubd queue.
 	matureUnbonds := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
 	for _, dvPair := range matureUnbonds {
+		delegation, found := k.GetUnbondingDelegation(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
+		if !found {
+			panic(types.ErrNoUnbondingDelegation())
+		}
 		err := k.CompleteUnbonding(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
 		if err != nil {
 			continue
+		}
+
+		coins := sdk.NewCoins()
+		for _, entry := range delegation.Entries {
+			coins = coins.Add(entry.Balance)
 		}
 
 		ctx.EventManager().EmitEvent(
@@ -68,6 +77,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 				types.EventTypeCompleteUnbonding,
 				sdk.NewAttribute(types.AttributeKeyValidator, dvPair.ValidatorAddress.String()),
 				sdk.NewAttribute(types.AttributeKeyDelegator, dvPair.DelegatorAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyCoin, coins.String()),
 			),
 		)
 	}
