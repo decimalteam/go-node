@@ -6,8 +6,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"time"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Cache the amino decoding of validators, as it can be the case that repeated slashing calls
