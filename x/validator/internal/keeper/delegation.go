@@ -622,6 +622,7 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 		k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 	}
 
+	k.DeleteValidatorByPowerIndex(ctx, validator)
 	if k.TotalStake(ctx, validator).IsZero() && validator.IsUnbonded() {
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
 		err = k.RemoveValidator(ctx, validator.ValAddress)

@@ -490,55 +490,6 @@ func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Vali
 	return false, nil
 }
 
-func (k Keeper) IsDelegatorStakeSufficientOld(ctx sdk.Context, validator types.Validator, delAddr sdk.AccAddress, stake sdk.Coin) bool {
-	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
-	if uint16(len(delegations)) < k.MaxDelegations(ctx) {
-		return true
-	}
-
-	stakeValue := sdk.ZeroInt()
-	if stake.Denom != k.BondDenom(ctx) {
-		coin, err := k.GetCoin(ctx, stake.Denom)
-		if err != nil {
-			panic(err)
-		}
-
-		// TODO: remove on reset
-		if ctx.BlockHeight() <= 9700 {
-			stakeValue = formulas.CalculateSaleAmount(coin.Volume, coin.Reserve, coin.CRR, stake.Amount)
-		} else {
-			stakeValue = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, stake.Amount)
-		}
-	} else {
-		stakeValue = stake.Amount
-	}
-
-	for _, delegation := range delegations {
-		delegationStakeValue := sdk.ZeroInt()
-		if delegation.Coin.Denom != k.BondDenom(ctx) {
-			coin, err := k.GetCoin(ctx, stake.Denom)
-			if err != nil {
-				panic(err)
-			}
-
-			// TODO: remove on reset
-			if ctx.BlockHeight() <= 9700 {
-				delegationStakeValue = formulas.CalculateSaleAmount(coin.Volume, coin.Reserve, coin.CRR, delegation.Coin.Amount)
-			} else {
-				delegationStakeValue = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegation.Coin.Amount)
-			}
-		} else {
-			delegationStakeValue = delegation.Coin.Amount
-		}
-
-		if delegationStakeValue.LT(stakeValue) || (delAddr.Equals(delegation.DelegatorAddress) && stake.Denom == delegation.Coin.Denom) {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (k Keeper) CalculateBipValue(ctx sdk.Context, value sdk.Coin, includeSelf bool) (sdk.Int, error) {
 	if value.Denom == k.BondDenom(ctx) {
 		return value.Amount, nil

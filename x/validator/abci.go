@@ -121,11 +121,11 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	totalPower := sdk.ZeroInt()
 
 	for _, val := range vals {
-		totalPower = totalPower.Add(k.TotalStake(ctx, val))
+		totalPower = totalPower.Add(val.Tokens)
 	}
 
 	for _, val := range vals {
-		if k.TotalStake(ctx, val).IsZero() || !val.Online {
+		if val.Tokens.IsZero() || !val.Online {
 			continue
 		}
 		r := rewards.Mul(k.TotalStake(ctx, val)).Quo(totalPower)

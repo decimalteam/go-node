@@ -237,6 +237,10 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 		amountInBaseCoin = amountToSell
 	case coinToBuy.IsBase():
 		// Buyer buys base coin for custom coin
+		if msg.CoinToBuy.Amount.GT(coinToSell.Reserve) {
+			return nil, types.ErrInsufficientCoinReserve()
+		}
+
 		amountToSell = formulas.CalculateSaleAmount(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountToBuy)
 		amountInBaseCoin = amountToBuy
 	default:

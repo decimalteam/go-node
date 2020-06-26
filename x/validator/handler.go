@@ -103,19 +103,12 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		}
 	}()
 
-	// TODO: remove on update
-	if ctx.BlockHeight() <= 19200 {
-		if !k.IsDelegatorStakeSufficientOld(ctx, val, msg.DelegatorAddress, msg.Coin) {
-			return nil, types.ErrDelegatorStakeIsTooLow()
-		}
-	} else {
-		ok, err := k.IsDelegatorStakeSufficient(ctx, val, msg.DelegatorAddress, msg.Coin)
-		if err != nil {
-			return nil, types.ErrCoinDoesNotExist(msg.Coin.Denom)
-		}
-		if !ok {
-			return nil, types.ErrDelegatorStakeIsTooLow()
-		}
+	ok, err := k.IsDelegatorStakeSufficient(ctx, val, msg.DelegatorAddress, msg.Coin)
+	if err != nil {
+		return nil, types.ErrCoinDoesNotExist(msg.Coin.Denom)
+	}
+	if !ok {
+		return nil, types.ErrDelegatorStakeIsTooLow()
 	}
 
 	err = k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)
@@ -157,27 +150,15 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidate) (*sdk.Result, error) {
 	var validator types.Validator
 
-	// TODO: remove on reset
-	if ctx.BlockHeight() < 27100 {
-		validator, err := k.GetValidatorByConsAddr(ctx, sdk.ConsAddress(msg.PubKey.Address()))
-		if err != nil {
-			return nil, types.ErrNoValidatorFound()
-		}
-
-		validator.ValAddress = msg.ValidatorAddress
-		validator.RewardAddress = msg.RewardAddress
-		validator.Description = msg.Description
-	} else {
-		validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
-		if err != nil {
-			return nil, types.ErrNoValidatorFound()
-		}
-
-		validator.RewardAddress = msg.RewardAddress
-		validator.Description = msg.Description
+	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
+	if err != nil {
+		return nil, types.ErrNoValidatorFound()
 	}
 
-	err := k.SetValidator(ctx, validator)
+	validator.RewardAddress = msg.RewardAddress
+	validator.Description = msg.Description
+
+	err = k.SetValidator(ctx, validator)
 	if err != nil {
 		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
 	}
