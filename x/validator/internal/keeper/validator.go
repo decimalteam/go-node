@@ -1,13 +1,14 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"bytes"
 	"errors"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"time"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Cache the amino decoding of validators, as it can be the case that repeated slashing calls
@@ -502,13 +503,7 @@ func (k Keeper) IsDelegatorStakeSufficientOld(ctx sdk.Context, validator types.V
 		if err != nil {
 			panic(err)
 		}
-
-		// TODO: remove on reset
-		if ctx.BlockHeight() <= 9700 {
-			stakeValue = formulas.CalculateSaleAmount(coin.Volume, coin.Reserve, coin.CRR, stake.Amount)
-		} else {
-			stakeValue = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, stake.Amount)
-		}
+		stakeValue = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, stake.Amount)
 	} else {
 		stakeValue = stake.Amount
 	}
@@ -520,13 +515,7 @@ func (k Keeper) IsDelegatorStakeSufficientOld(ctx sdk.Context, validator types.V
 			if err != nil {
 				panic(err)
 			}
-
-			// TODO: remove on reset
-			if ctx.BlockHeight() <= 9700 {
-				delegationStakeValue = formulas.CalculateSaleAmount(coin.Volume, coin.Reserve, coin.CRR, delegation.Coin.Amount)
-			} else {
-				delegationStakeValue = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegation.Coin.Amount)
-			}
+			delegationStakeValue = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegation.Coin.Amount)
 		} else {
 			delegationStakeValue = delegation.Coin.Amount
 		}
