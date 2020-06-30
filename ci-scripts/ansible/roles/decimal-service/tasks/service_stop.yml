@@ -2,8 +2,7 @@
 # tasks file for check & stop service & create it if not exist
 - name: Check if Explorer Indexer Worker Service Exists
   stat: path={{ systemd_path }}/{{ service_name_worker }}
-  when: ansible_hostname.find('explorer-node') != -1
-  register: service_status_worker
+  when: ansible_hostname.find('explorer-node') != -1  
 
 - name: Check if deccli Service Exists
   stat: path={{ systemd_path }}/{{ service_name_rest }}

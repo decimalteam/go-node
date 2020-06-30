@@ -2,7 +2,6 @@
 # tasks file for decimal explorer indexer
 - name: Stop indexer explorer process
   shell: pm2 stop all
-  notify: run service Explorer Indexer  
 
 - name: Drop schema "public" with cascade
   postgresql_schema:
@@ -21,3 +20,6 @@
     state: present
   become: yes
   become_user: postgres
+
+- name: Start indexer explorer process
+  shell: pm2 start all  
