@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+	"log"
 )
 
 // BeginBlocker check for infraction evidence or downtime of validators
@@ -125,6 +126,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	for _, val := range vals {
+		log.Println(val.Tokens)
 		if val.Tokens.IsZero() || !val.Online {
 			continue
 		}
