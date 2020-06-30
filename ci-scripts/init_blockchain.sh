@@ -26,11 +26,11 @@ do
 done
 
 # Add initial signed transactions to the genesis file
+    # --fees 11000000000000000000tdel \
 decd gentx \
     --name test-node-fra1-01 \
     --sequence 0 \
     --amount 40000000000000000000000000tdel \
-    --fees 11000000000000000000tdel \
     --pubkey dxvalconspub1zcjduepquc5nas24rhqm0l8lyte0dfx2k3uda56wdn998lyrs6mpvsk9xmks6xa0ly \
     --details "Declaring validator on test-node-fra1-01" \
     --website decimalchain.com \
@@ -40,11 +40,11 @@ decd gentx \
     --home ~/.decimal-test-node-fra1-01/daemon
 
 # Add initial signed transactions to the genesis file
+    # --fees 11000000000000000000tdel \
 decd gentx \
     --name test-node-fra1-02 \
     --sequence 0 \
     --amount 40000000000000000000000000tdel \
-    --fees 11000000000000000000tdel \
     --pubkey dxvalconspub1zcjduepq5hj3p750mves8wpmh4ywy6yjkz72sppr2kmzk7lzeedyelauwamsl3c57q \
     --details "Declaring validator on test-node-fra1-02" \
     --website decimalchain.com \
@@ -54,11 +54,11 @@ decd gentx \
     --home ~/.decimal-test-node-fra1-02/daemon
 
 # Add initial signed transactions to the genesis file
+    # --fees 11000000000000000000tdel \
 decd gentx \
     --name test-node-nyc3-01 \
     --sequence 0 \
     --amount 40000000000000000000000000tdel \
-    --fees 11000000000000000000tdel \
     --pubkey dxvalconspub1zcjduepqjwlm5xcsp60v6fgwt95zq624yjhjnpkrzm209c5f8ajz8rdvq6gsdx5y2l \
     --details "Declaring validator on test-node-nyc3-01" \
     --website decimalchain.com \
@@ -68,11 +68,11 @@ decd gentx \
     --home ~/.decimal-test-node-nyc3-01/daemon
 
 # Add initial signed transactions to the genesis file
+    # --fees 11000000000000000000tdel \
 decd gentx \
     --name test-node-sgp1-01 \
     --sequence 0 \
     --amount 40000000000000000000000000tdel \
-    --fees 11000000000000000000tdel \
     --pubkey dxvalconspub1zcjduepq73se7rmlycftjta3ydjvrjmn28rrweyxyg42tzfr5lcw6lx8zl7qc6dpss \
     --details "Declaring validator on test-node-sgp1-01" \
     --website decimalchain.com \
