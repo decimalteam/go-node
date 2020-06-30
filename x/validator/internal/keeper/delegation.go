@@ -631,6 +631,8 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 		}
 	}
 
+	k.SetValidatorByPowerIndex(ctx, validator)
+
 	return nil
 }
 

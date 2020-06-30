@@ -39,7 +39,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 
 		rewards = rewards.Sub(rewardsVal)
 		remainder := rewards
-		totalStake := k.TotalStake(ctx, val)
+		totalStake := val.Tokens
 		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
 		for _, del := range delegations {
 			reward := sdk.NewIntFromBigInt(rewards.BigInt())

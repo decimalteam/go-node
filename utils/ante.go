@@ -2,8 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"log"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -142,7 +140,6 @@ func NewSetUpContextDecorator() SetUpContextDecorator {
 // AnteHandle implements sdk.AnteHandler function.
 func (sud SetUpContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	// all transactions must implement GasTx
-	log.Println("ante")
 	gasTx, ok := tx.(GasTx)
 	if !ok {
 		// Set a gas meter with limit 0 as to prevent an infinite gas meter attack
@@ -244,8 +241,6 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 
 	commissionInBaseCoin := sdk.ZeroInt()
 	commissionInBaseCoin = commissionInBaseCoin.AddRaw(int64(len(ctx.TxBytes()) * 2))
-
-	log.Println(len(ctx.TxBytes()) * 2)
 
 	ctx = ctx.WithValue("fee", feeTx.GetFee())
 

@@ -306,7 +306,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	}
 
 	if missed {
-		log.Println(fmt.Sprintf("Missed blocks: %d", signInfo.MissedBlocksCounter))
+		log.Println(fmt.Sprintf("Missed blocks: %d", signInfo.MissedBlocksCounter), signInfo.Address.String())
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeLiveness,

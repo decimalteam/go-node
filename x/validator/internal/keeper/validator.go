@@ -280,6 +280,7 @@ func (k Keeper) RemoveValidator(ctx sdk.Context, address sdk.ValAddress) error {
 	if !validator.IsUnbonded() {
 		return errors.New("cannot call RemoveValidator on bonded or unbonding validators")
 	}
+	k.DeleteValidatorByPowerIndex(ctx, validator)
 	if !k.TotalStake(ctx, validator).IsZero() {
 		return errors.New("attempting to remove a validator which still contains tokens")
 	}
