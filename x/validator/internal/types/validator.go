@@ -62,10 +62,11 @@ func (v Validator) String() string {
   Description:                %s
   Unbonding Height:           %d
   Unbonding Completion Time:  %v
-  Commission:                 %s`, v.ValAddress, bechConsPubKey,
+  Commission:                 %s
+  Accum Rewards:              %s`, v.ValAddress, bechConsPubKey,
 		v.Jailed, v.Status, v.Tokens,
 		v.DelegatorShares, v.Description,
-		v.UnbondingHeight, v.UnbondingCompletionTime, v.Commission)
+		v.UnbondingHeight, v.UnbondingCompletionTime, v.Commission, v.AccumRewards)
 }
 
 // this is a helper struct used for JSON de- and encoding only
