@@ -131,6 +131,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 			continue
 		}
 		r := rewards.Mul(val.Tokens.Quo(totalPower))
+		log.Println(r)
 		remainder = remainder.Sub(r)
 		val = val.AddAccumReward(r)
 		err = k.SetValidator(ctx, val)
