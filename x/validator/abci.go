@@ -130,6 +130,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		if val.Tokens.IsZero() || !val.Online {
 			continue
 		}
+		log.Println(rewards, totalPower)
 		r := rewards.Mul(val.Tokens.Quo(totalPower))
 		log.Println(r)
 		remainder = remainder.Sub(r)
