@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"log"
 )
 
 // BeginBlocker check for infraction evidence or downtime of validators
@@ -118,21 +117,23 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	remainder := sdk.NewIntFromBigInt(rewards.BigInt())
 
 	vals := k.GetAllValidatorsByPowerIndex(ctx)
-	log.Println(vals)
 
 	totalPower := sdk.ZeroInt()
 
 	for _, val := range vals {
-		totalPower = totalPower.Add(k.TotalStake(ctx, val))
+		totalPower = totalPower.Add(val.Tokens)
 	}
 
 	for _, val := range vals {
 		if val.Tokens.IsZero() || !val.Online {
 			continue
 		}
-		log.Println(rewards, totalPower)
-		r := rewards.Mul(val.Tokens.Quo(totalPower))
-		log.Println(r)
+		r := sdk.ZeroInt()
+		if ctx.BlockHeight() >= 14500 {
+			r = rewards.Mul(val.Tokens).Quo(totalPower)
+		} else {
+			r = rewards.Mul(val.Tokens.Quo(totalPower))
+		}
 		remainder = remainder.Sub(r)
 		val = val.AddAccumReward(r)
 		err = k.SetValidator(ctx, val)
