@@ -118,15 +118,15 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	remainder := sdk.NewIntFromBigInt(rewards.BigInt())
 
 	vals := k.GetAllValidatorsByPowerIndex(ctx)
+	log.Println(vals)
 
 	totalPower := sdk.ZeroInt()
 
 	for _, val := range vals {
-		totalPower = totalPower.Add(val.Tokens)
+		totalPower = totalPower.Add(k.TotalStake(ctx, val))
 	}
 
 	for _, val := range vals {
-		log.Println(val.Tokens)
 		if val.Tokens.IsZero() || !val.Online {
 			continue
 		}
