@@ -32,6 +32,13 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 			k.Logger(ctx).Error(fmt.Sprintf("ignored unknown evidence type: %s", evidence.Type))
 		}
 	}
+
+	// TODO: remove on reset
+	if ctx.BlockHeight() == 31800 {
+		params := k.GetParams(ctx)
+		params.MaxDelegations = 1000
+		k.SetParams(ctx, params)
+	}
 }
 
 // EndBlocker called every block, process inflation, update validator set.
