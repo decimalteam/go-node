@@ -36,6 +36,8 @@ var (
 	RegisterCodec       = types.RegisterCodec
 	DefaultGenesisState = types.DefaultGenesisState
 
+	NewMsgDelegate = types.NewMsgDelegate
+
 	ErrCalculateCommission             = types.ErrCalculateCommission
 	ErrUpdateBalance                   = types.ErrUpdateBalance
 	ErrInsufficientFunds               = types.ErrInsufficientFunds
