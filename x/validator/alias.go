@@ -54,4 +54,6 @@ type (
 	MsgDeclareCandidate = types.MsgDeclareCandidate
 	MsgDelegate         = types.MsgDelegate
 	UnbondingDelegation = types.UnbondingDelegation
+
+	Validator = types.Validator
 )
