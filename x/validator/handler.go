@@ -186,7 +186,7 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk
 
 	if validator.Online {
 		if !validator.Jailed {
-			return nil, sdkerrors.New(k.Codespace(), 1, "Validator already online")
+			return nil, types.ErrValidatorAlreadyOnline()
 		}
 	}
 
@@ -194,7 +194,7 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk
 	validator.Jailed = false
 	err = k.SetValidator(ctx, validator)
 	if err != nil {
-		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
+		return nil, types.ErrInternal(err.Error())
 	}
 	k.SetValidatorByPowerIndex(ctx, validator)
 
@@ -215,14 +215,14 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*s
 	}
 
 	if !validator.Online {
-		return nil, sdkerrors.New(k.Codespace(), 1, "Validator already offline")
+		return nil, types.ErrValidatorAlreadyOffline()
 	}
 
 	validator.Online = false
 
 	err = k.SetValidator(ctx, validator)
 	if err != nil {
-		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
+		return nil, types.ErrInternal(err.Error())
 	}
 	//k.DeleteValidatorByPowerIndex(ctx, validator)
 

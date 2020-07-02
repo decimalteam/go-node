@@ -19,6 +19,8 @@ const (
 	CodeValidatorDoesNotExist        CodeType = 103
 	CodeCommissionNegative           CodeType = 104
 	CodeCommissionHuge               CodeType = 105
+	CodeValidatorAlreadyOnline       CodeType = 106
+	CodeValidatorAlreadyOffline      CodeType = 107
 
 	CodeInvalidStruct CodeType = 200
 
@@ -41,6 +43,8 @@ const (
 	CodeUpdateBalanceError              CodeType = 902
 	CodeErrCalculateCommission          CodeType = 903
 	CodeCoinDoesNotExist                CodeType = 904
+
+	CodeInternalError CodeType = 1000
 )
 
 func ErrEmptyPubKey() *sdkerrors.Error {
@@ -146,4 +150,16 @@ func ErrCalculateCommission(err error) *sdkerrors.Error {
 
 func ErrCoinDoesNotExist(symbol string) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeCoinDoesNotExist, fmt.Sprintf("coin %s does not exist", symbol))
+}
+
+func ErrValidatorAlreadyOnline() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeValidatorAlreadyOnline, "validator already online")
+}
+
+func ErrValidatorAlreadyOffline() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeValidatorAlreadyOffline, "validator already offline")
+}
+
+func ErrInternal(err string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInternalError, fmt.Sprintf("internal error: %s", err))
 }
