@@ -230,6 +230,10 @@ const (
 
 // AnteHandle implements sdk.AnteHandler function.
 func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	if ctx.BlockHeight() == 0 {
+		return next(ctx, tx, simulate)
+	}
+
 	feeTx, ok := tx.(FeeTx)
 	if !ok {
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")

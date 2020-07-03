@@ -200,7 +200,6 @@ func (msg MsgUnbond) ValidateBasic() error {
 // -----------------------------------------------------------------------------------------
 
 type MsgEditCandidate struct {
-	PubKey           crypto.PubKey  `json:"pub_key"`
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
 	RewardAddress    sdk.AccAddress `json:"reward_address"`
 	Description      Description    `json:"description"`
