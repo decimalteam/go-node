@@ -1,8 +1,8 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
-	"runtime/debug"
 	"time"
 
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
@@ -70,7 +70,12 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 
 	err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
 	if err != nil {
-		return nil, sdkerrors.New(k.Codespace(), types.CodeInvalidDelegation, err.Error())
+		e := sdkerrors.Error{}
+		if errors.As(err, &e) {
+			return nil, e
+		} else {
+			return nil, types.ErrInternal(err.Error())
+		}
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -97,12 +102,6 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, types.ErrNoValidatorFound()
 	}
 
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
-		}
-	}()
-
 	ok, err := k.IsDelegatorStakeSufficient(ctx, val, msg.DelegatorAddress, msg.Coin)
 	if err != nil {
 		return nil, types.ErrCoinDoesNotExist(msg.Coin.Denom)
@@ -113,7 +112,12 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 
 	err = k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)
 	if err != nil {
-		return nil, sdkerrors.New(k.Codespace(), 100, err.Error())
+		e := sdkerrors.Error{}
+		if errors.As(err, &e) {
+			return nil, e
+		} else {
+			return nil, types.ErrInternal(err.Error())
+		}
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -130,7 +134,12 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Result, error) {
 	completionTime, err := k.Undelegate(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.Coin)
 	if err != nil {
-		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
+		e := sdkerrors.Error{}
+		if errors.As(err, &e) {
+			return nil, e
+		} else {
+			return nil, types.ErrInternal(err.Error())
+		}
 	}
 
 	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
@@ -160,7 +169,7 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 
 	err = k.SetValidator(ctx, validator)
 	if err != nil {
-		return nil, sdkerrors.New(k.Codespace(), 1, err.Error())
+		return nil, types.ErrInternal(err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
