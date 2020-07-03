@@ -129,11 +129,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 			continue
 		}
 		r := sdk.ZeroInt()
-		if ctx.BlockHeight() >= 14500 {
-			r = rewards.Mul(val.Tokens).Quo(totalPower)
-		} else {
-			r = rewards.Mul(val.Tokens.Quo(totalPower))
-		}
+		r = rewards.Mul(val.Tokens).Quo(totalPower)
 		remainder = remainder.Sub(r)
 		val = val.AddAccumReward(r)
 		err = k.SetValidator(ctx, val)

@@ -392,10 +392,8 @@ func NewCountMsgDecorator() CountMsgDecorator {
 }
 
 func (cd CountMsgDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
-	if ctx.BlockHeight() > 19200 {
-		if len(tx.GetMsgs()) > 1 {
-			return ctx, sdkerrors.New("ante", 100, "Too many msgs in the transaction. Max = 1")
-		}
+	if len(tx.GetMsgs()) > 1 {
+		return ctx, sdkerrors.New("ante", 100, "Too many msgs in the transaction. Max = 1")
 	}
 	return next(ctx, tx, simulate)
 }

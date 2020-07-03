@@ -251,11 +251,8 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 		// Buyer buys custom coin for custom coin
 
 		amountInBaseCoin = formulas.CalculatePurchaseAmount(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountToBuy)
-		// TODO: add on reset
-		if ctx.BlockHeight() > 1050 {
-			if amountInBaseCoin.GT(coinToSell.Reserve) {
-				return nil, types.ErrInsufficientCoinReserve()
-			}
+		if amountInBaseCoin.GT(coinToSell.Reserve) {
+			return nil, types.ErrInsufficientCoinReserve()
 		}
 
 		amountToSell = formulas.CalculateSaleAmount(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountInBaseCoin)
