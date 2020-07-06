@@ -13,5 +13,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, k Keeper) {
-	// 	TODO: fill out if your application requires endblock, if not you can delete this function
+	if k.GetCoinsCache() == nil {
+		k.ClearCoinCache()
+	}
 }
