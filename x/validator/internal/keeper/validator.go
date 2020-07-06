@@ -167,7 +167,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 			}
 			total = total.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.Coin.Amount))
 		}
-		if ctx.BlockHeight() == 4769 {
+		if ctx.BlockHeight() == 48183 {
 			del = k.CalcTokensBase(ctx, del)
 		}
 		total = total.Add(del.TokensBase)
