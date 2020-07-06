@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -152,19 +153,23 @@ func (k Keeper) GetAllValidatorsByPowerIndexReversed(ctx sdk.Context) []types.Va
 }
 
 func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
+	t := time.Now()
 	total := sdk.ZeroInt()
+
+	coinsCache := k.CoinKeeper.GetCoinsCache()
+
 	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
 	for _, del := range delegations {
-		if del.Coin.Denom != k.BondDenom(ctx) {
+		if _, ok := coinsCache[del.Coin.Denom]; ok {
 			coin, err := k.GetCoin(ctx, del.Coin.Denom)
 			if err != nil {
 				panic(err)
 			}
 			total = total.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.Coin.Amount))
-		} else {
-			total = total.Add(del.Coin.Amount)
 		}
+		total = total.Add(del.TokensBase)
 	}
+	log.Println(time.Since(t))
 	return total
 }
 

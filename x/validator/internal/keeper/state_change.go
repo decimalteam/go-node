@@ -11,7 +11,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -286,23 +285,18 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator) {
 
 	}
 
+	delegationsInBase := types.Delegations{}
+
+	for _, delegation := range delegations {
+		if _, ok := k.CoinKeeper.GetCoinsCache()[delegation.Coin.Denom]; ok {
+			delegation = k.CalcTokensBase(ctx, delegation)
+		}
+		delegationsInBase = append(delegationsInBase, delegation)
+	}
+
 	sort.SliceStable(delegations, func(i, j int) bool {
-		amountI := delegations[i].Coin.Amount
-		amountJ := delegations[j].Coin.Amount
-		if delegations[i].Coin.Denom != k.BondDenom(ctx) {
-			coin, err := k.GetCoin(ctx, delegations[i].Coin.Denom)
-			if err != nil {
-				panic(err)
-			}
-			amountI = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegations[i].Coin.Amount)
-		}
-		if delegations[j].Coin.Denom != k.BondDenom(ctx) {
-			coin, err := k.GetCoin(ctx, delegations[j].Coin.Denom)
-			if err != nil {
-				panic(err)
-			}
-			amountJ = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegations[j].Coin.Amount)
-		}
+		amountI := delegations[i].TokensBase
+		amountJ := delegations[j].TokensBase
 		return amountI.GT(amountJ)
 	})
 

@@ -34,11 +34,11 @@ type Delegation struct {
 	DelegatorAddress sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"`
 	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
 	Coin             sdk.Coin       `json:"coin" yaml:"coin"`
+	TokensBase       sdk.Int        `json:"tokens_base" yaml:"tokens_base"`
 }
 
 // NewDelegation creates a new delegation object
 func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, coin sdk.Coin) Delegation {
-
 	return Delegation{
 		DelegatorAddress: delegatorAddr,
 		ValidatorAddress: validatorAddr,

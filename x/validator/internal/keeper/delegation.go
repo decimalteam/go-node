@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"fmt"
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"log"
 	"time"
 
@@ -87,6 +87,7 @@ func (k Keeper) GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddres
 
 // set a delegation
 func (k Keeper) SetDelegation(ctx sdk.Context, delegation types.Delegation) {
+	delegation = k.CalcTokensBase(ctx, delegation)
 	err := k.set(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.Coin.Denom), delegation)
 	if err != nil {
 		panic(err)
@@ -98,6 +99,19 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delegation types.Delegation) {
 	// TODO: Consider calling hooks outside of the store wrapper functions, it's unobvious.
 	k.BeforeDelegationRemoved(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 	k.delete(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.Coin.Denom))
+}
+
+func (k Keeper) CalcTokensBase(ctx sdk.Context, delegation types.Delegation) types.Delegation {
+	if delegation.Coin.Denom != k.BondDenom(ctx) {
+		coin, err := k.GetCoin(ctx, delegation.Coin.Denom)
+		if err != nil {
+			panic(err)
+		}
+		delegation.TokensBase = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegation.Coin.Amount)
+	} else {
+		delegation.TokensBase = delegation.Coin.Amount
+	}
+	return delegation
 }
 
 // return a given amount of all the delegator unbonding-delegations
@@ -532,12 +546,6 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	}
 
 	k.SetDelegation(ctx, delegation)
-
-	ok := k.CheckTotalStake(ctx, validator)
-	if !ok {
-		k.RemoveDelegation(ctx, delegation)
-		return fmt.Errorf("too big stake: ")
-	}
 
 	// Call the after-modification hook
 	k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)

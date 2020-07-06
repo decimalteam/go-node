@@ -26,6 +26,8 @@ type Keeper struct {
 	AccountKeeper auth.AccountKeeper
 	BankKeeper    bank.Keeper
 	Config        *config.Config
+
+	coinCache map[string]bool
 }
 
 // NewKeeper creates a coin keeper
@@ -37,6 +39,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspac
 		AccountKeeper: accountKeeper,
 		BankKeeper:    coinKeeper,
 		Config:        config,
+		coinCache:     make(map[string]bool),
 	}
 	return keeper
 }
@@ -113,6 +116,7 @@ func (k Keeper) IsCoinBase(symbol string) bool {
 }
 
 func (k Keeper) UpdateCoin(ctx sdk.Context, coin types.Coin, reserve sdk.Int, volume sdk.Int) {
+	k.SetCachedCoin(coin.Symbol)
 	coin.Reserve = reserve
 	coin.Volume = volume
 	k.SetCoin(ctx, coin)
@@ -162,4 +166,16 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 	}
 
 	return commission, feeCoin, nil
+}
+
+func (k *Keeper) SetCachedCoin(coin string) {
+	k.coinCache[coin] = true
+}
+
+func (k *Keeper) ClearCoinCache() {
+	k.coinCache = make(map[string]bool)
+}
+
+func (k Keeper) GetCoinsCache() map[string]bool {
+	return k.coinCache
 }
