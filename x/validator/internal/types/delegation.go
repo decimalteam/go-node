@@ -79,10 +79,11 @@ func (d Delegation) GetValidatorAddr() sdk.ValAddress { return d.ValidatorAddres
 // String returns a human readable string representation of a Delegation.
 func (d Delegation) String() string {
 	return fmt.Sprintf(`Delegation:
-  Delegator: %s
-  Validator: %s
-  Coin:      %s%s`, d.DelegatorAddress,
-		d.ValidatorAddress, d.Coin.Amount, d.Coin.Denom)
+  Delegator:  %s
+  Validator:  %s
+  Coin:       %s%s
+  TokensBase: %s`, d.DelegatorAddress,
+		d.ValidatorAddress, d.Coin.Amount, d.Coin.Denom, d.TokensBase)
 }
 
 // Delegations is a collection of delegations

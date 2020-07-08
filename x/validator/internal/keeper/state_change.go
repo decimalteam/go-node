@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"time"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -44,7 +45,9 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		if validator.Jailed {
 			continue
 		}
+		t := time.Now()
 		k.checkDelegations(ctx, validator)
+		log.Println("checkDelegations", time.Since(t))
 		k.DeleteValidatorByPowerIndex(ctx, validator)
 		k.SetValidatorByPowerIndex(ctx, validator)
 	}

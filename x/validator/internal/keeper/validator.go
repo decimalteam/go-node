@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -157,16 +158,25 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	coinsCache := k.CoinKeeper.GetCoinsCache()
 
 	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+	mutex := sync.Mutex{}
+	wg := sync.WaitGroup{}
+	wg.Add(len(delegations))
 	for _, del := range delegations {
-		if _, ok := coinsCache[del.Coin.Denom]; ok {
-			coin, err := k.GetCoin(ctx, del.Coin.Denom)
-			if err != nil {
-				panic(err)
+		go func(del types.Delegation) {
+			defer wg.Done()
+			if _, ok := coinsCache[del.Coin.Denom]; ok {
+				coin, err := k.GetCoin(ctx, del.Coin.Denom)
+				if err != nil {
+					panic(err)
+				}
+				del.TokensBase = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.Coin.Amount)
 			}
-			total = total.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.Coin.Amount))
-		}
-		total = total.Add(del.TokensBase)
+			mutex.Lock()
+			total = total.Add(del.TokensBase)
+			mutex.Unlock()
+		}(del)
 	}
+	wg.Wait()
 	return total
 }
 
@@ -523,4 +533,21 @@ func (k Keeper) CalculateBipValue(ctx sdk.Context, value sdk.Coin, includeSelf b
 	totalPower := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, totalAmount)
 
 	return totalPower.Mul(value.Amount).Quo(totalAmount), nil
+}
+
+func (k Keeper) DecreaseValidatorTokens(ctx sdk.Context, validator types.Validator, amount sdk.Int) sdk.Int {
+	// jailed validators are not kept in the power index
+	if validator.Jailed {
+		return sdk.ZeroInt()
+	}
+	if validator.Tokens.LT(amount) {
+		return sdk.ZeroInt()
+	}
+	validator.Tokens = validator.Tokens.Sub(amount)
+	err := k.SetValidator(ctx, validator)
+	if err != nil {
+		panic(err)
+	}
+	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), validator.ValAddress)
+	return validator.Tokens
 }

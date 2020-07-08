@@ -116,7 +116,9 @@ func (k Keeper) IsCoinBase(symbol string) bool {
 }
 
 func (k Keeper) UpdateCoin(ctx sdk.Context, coin types.Coin, reserve sdk.Int, volume sdk.Int) {
-	k.SetCachedCoin(coin.Symbol)
+	if !coin.IsBase() {
+		k.SetCachedCoin(coin.Symbol)
+	}
 	coin.Reserve = reserve
 	coin.Volume = volume
 	k.SetCoin(ctx, coin)

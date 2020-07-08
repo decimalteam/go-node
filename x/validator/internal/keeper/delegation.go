@@ -5,10 +5,8 @@ import (
 	"log"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // return a specific delegation
@@ -631,15 +629,24 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 	}
 
 	k.DeleteValidatorByPowerIndex(ctx, validator)
-	if k.TotalStake(ctx, validator).IsZero() && validator.IsUnbonded() {
+
+	amountBase := coin.Amount
+	if coin.Denom != k.BondDenom(ctx) {
+		c, err := k.GetCoin(ctx, coin.Denom)
+		if err != nil {
+			return types.ErrInternal(err.Error())
+		}
+		amountBase = formulas.CalculateSaleReturn(c.Volume, c.Reserve, c.CRR, coin.Amount)
+	}
+	decreasedTokens := k.DecreaseValidatorTokens(ctx, validator, amountBase)
+
+	if decreasedTokens.IsZero() && validator.IsUnbonded() {
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
 		err = k.RemoveValidator(ctx, validator.ValAddress)
 		if err != nil {
-			return sdkerrors.New(k.Codespace(), 1, err.Error())
+			return types.ErrInternal(err.Error())
 		}
 	}
-
-	k.SetValidatorByPowerIndex(ctx, validator)
 
 	return nil
 }
