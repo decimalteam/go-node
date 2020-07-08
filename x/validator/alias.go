@@ -55,6 +55,10 @@ type (
 
 	MsgDeclareCandidate = types.MsgDeclareCandidate
 	MsgDelegate         = types.MsgDelegate
+	MsgSetOnline        = types.MsgSetOnline
+	MsgSetOffline       = types.MsgSetOffline
+	MsgUnbond           = types.MsgUnbond
+	MsgEditCandidate    = types.MsgEditCandidate
 	UnbondingDelegation = types.UnbondingDelegation
 
 	Validator = types.Validator
