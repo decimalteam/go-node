@@ -15,6 +15,7 @@ const (
 	EventTypeEmission          = "emission"
 	EventTypeLiveness          = "liveness"
 	EventTypeUpdatesValidators = "updates_validator"
+	EventTypeCalcStake         = "calc_stake"
 
 	AttributeKeyValidator                  = "validator"
 	AttributeKeyDelegator                  = "delegator"

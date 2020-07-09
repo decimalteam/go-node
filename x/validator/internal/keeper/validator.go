@@ -159,6 +159,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 
 	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
 	mutex := sync.Mutex{}
+	eventMutex := sync.Mutex{}
 	wg := sync.WaitGroup{}
 	wg.Add(len(delegations))
 	for _, del := range delegations {
@@ -170,6 +171,15 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 					panic(err)
 				}
 				del.TokensBase = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.Coin.Amount)
+				eventMutex.Lock()
+				ctx.EventManager().EmitEvent(sdk.NewEvent(
+					types.EventTypeCalcStake,
+					sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyDelegator, del.DelegatorAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyCoin, del.Coin.String()),
+					sdk.NewAttribute(types.AttributeKeyStake, del.TokensBase.String()),
+				))
+				eventMutex.Unlock()
 			}
 			mutex.Lock()
 			total = total.Add(del.TokensBase)
