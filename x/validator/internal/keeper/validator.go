@@ -171,17 +171,15 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 					panic(err)
 				}
 				del.TokensBase = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.Coin.Amount)
-				if ctx.BlockHeight() >= 15850 {
-					eventMutex.Lock()
-					ctx.EventManager().EmitEvent(sdk.NewEvent(
-						types.EventTypeCalcStake,
-						sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
-						sdk.NewAttribute(types.AttributeKeyDelegator, del.DelegatorAddress.String()),
-						sdk.NewAttribute(types.AttributeKeyCoin, del.Coin.String()),
-						sdk.NewAttribute(types.AttributeKeyStake, del.TokensBase.String()),
-					))
-					eventMutex.Unlock()
-				}
+				eventMutex.Lock()
+				ctx.EventManager().EmitEvent(sdk.NewEvent(
+					types.EventTypeCalcStake,
+					sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyDelegator, del.DelegatorAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyCoin, del.Coin.String()),
+					sdk.NewAttribute(types.AttributeKeyStake, del.TokensBase.String()),
+				))
+				eventMutex.Unlock()
 			}
 			mutex.Lock()
 			total = total.Add(del.TokensBase)
