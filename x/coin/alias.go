@@ -39,6 +39,7 @@ var (
 	NewMsgCreateCoin    = types.NewMsgCreateCoin
 	NewMsgSellAllCoin   = types.NewMsgSellAllCoin
 	NewMsgMultiSendCoin = types.NewMsgMultiSendCoin
+	NewMsgRedeemCheck   = types.NewMsgRedeemCheck
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
@@ -57,5 +58,6 @@ type (
 	MsgCreateCoin    = types.MsgCreateCoin
 	MsgSellAllCoin   = types.MsgSellAllCoin
 	MsgMultiSendCoin = types.MsgMultiSendCoin
+	MsgRedeemCheck   = types.MsgRedeemCheck
 	Send             = types.Send
 )
