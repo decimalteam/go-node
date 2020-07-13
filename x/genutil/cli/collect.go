@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -42,6 +43,15 @@ func CollectGenTxsCmd(ctx *server.Context, cdc *codec.Codec,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			config := ctx.Config
 			config.SetRoot(viper.GetString(cli.HomeFlag))
+
+			config.Mempool.CacheSize = 100000
+			config.Mempool.Recheck = false
+			config.Mempool.Size = 10000
+
+			config.P2P.RecvRate = 15360000 // 15 mB/s
+			config.P2P.SendRate = 15360000 // 15 mB/s
+			config.P2P.FlushThrottleTimeout = 10 * time.Millisecond
+
 			name := viper.GetString(flags.FlagName)
 			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(config)
 			if err != nil {

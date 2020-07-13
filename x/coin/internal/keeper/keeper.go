@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -27,19 +28,21 @@ type Keeper struct {
 	BankKeeper    bank.Keeper
 	Config        *config.Config
 
-	coinCache map[string]bool
+	coinCache      map[string]bool
+	coinCacheMutex *sync.Mutex
 }
 
 // NewKeeper creates a coin keeper
 func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, accountKeeper auth.AccountKeeper, coinKeeper bank.Keeper, config *config.Config) Keeper {
 	keeper := Keeper{
-		storeKey:      key,
-		cdc:           cdc,
-		paramspace:    paramspace.WithKeyTable(types.ParamKeyTable()),
-		AccountKeeper: accountKeeper,
-		BankKeeper:    coinKeeper,
-		Config:        config,
-		coinCache:     make(map[string]bool),
+		storeKey:       key,
+		cdc:            cdc,
+		paramspace:     paramspace.WithKeyTable(types.ParamKeyTable()),
+		AccountKeeper:  accountKeeper,
+		BankKeeper:     coinKeeper,
+		Config:         config,
+		coinCache:      make(map[string]bool),
+		coinCacheMutex: &sync.Mutex{},
 	}
 	return keeper
 }
@@ -171,13 +174,19 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 }
 
 func (k *Keeper) SetCachedCoin(coin string) {
+	defer k.coinCacheMutex.Unlock()
+	k.coinCacheMutex.Lock()
 	k.coinCache[coin] = true
 }
 
 func (k *Keeper) ClearCoinCache() {
+	defer k.coinCacheMutex.Unlock()
+	k.coinCacheMutex.Lock()
 	k.coinCache = make(map[string]bool)
 }
 
 func (k Keeper) GetCoinsCache() map[string]bool {
+	defer k.coinCacheMutex.Unlock()
+	k.coinCacheMutex.Lock()
 	return k.coinCache
 }

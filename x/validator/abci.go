@@ -67,19 +67,20 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 			continue
 		}
 
-		coins := sdk.NewCoins()
-		for _, entry := range delegation.Entries {
-			coins = coins.Add(entry.Balance)
-		}
+		ctxTime := ctx.BlockHeader().Time
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeCompleteUnbonding,
-				sdk.NewAttribute(types.AttributeKeyValidator, dvPair.ValidatorAddress.String()),
-				sdk.NewAttribute(types.AttributeKeyDelegator, dvPair.DelegatorAddress.String()),
-				sdk.NewAttribute(types.AttributeKeyCoin, coins.String()),
-			),
-		)
+		for _, entry := range delegation.Entries {
+			if entry.IsMature(ctxTime) {
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EventTypeCompleteUnbonding,
+						sdk.NewAttribute(types.AttributeKeyValidator, dvPair.ValidatorAddress.String()),
+						sdk.NewAttribute(types.AttributeKeyDelegator, dvPair.DelegatorAddress.String()),
+						sdk.NewAttribute(types.AttributeKeyCoin, entry.Balance.String()),
+					),
+				)
+			}
+		}
 	}
 
 	rewards := types.GetRewardForBlock(uint64(height))
