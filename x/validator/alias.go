@@ -36,7 +36,12 @@ var (
 	RegisterCodec       = types.RegisterCodec
 	DefaultGenesisState = types.DefaultGenesisState
 
-	NewMsgDelegate = types.NewMsgDelegate
+	NewMsgDeclareCandidate = types.NewMsgDeclareCandidate
+	NewMsgEditCandidate    = types.NewMsgEditCandidate
+	NewMsgDelegate         = types.NewMsgDelegate
+	NewMsgUnbond           = types.NewMsgUnbond
+	NewMsgSetOnline        = types.NewMsgSetOnline
+	NewMsgSetOffline       = types.NewMsgSetOffline
 
 	ErrCalculateCommission             = types.ErrCalculateCommission
 	ErrUpdateBalance                   = types.ErrUpdateBalance
@@ -54,11 +59,12 @@ type (
 	Params       = types.Params
 
 	MsgDeclareCandidate = types.MsgDeclareCandidate
+	MsgEditCandidate    = types.MsgEditCandidate
 	MsgDelegate         = types.MsgDelegate
+	MsgUnbond           = types.MsgUnbond
 	MsgSetOnline        = types.MsgSetOnline
 	MsgSetOffline       = types.MsgSetOffline
-	MsgUnbond           = types.MsgUnbond
-	MsgEditCandidate    = types.MsgEditCandidate
+
 	UnbondingDelegation = types.UnbondingDelegation
 
 	Validator = types.Validator
