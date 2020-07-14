@@ -179,12 +179,6 @@ func (k *Keeper) SetCachedCoin(coin string) {
 	k.coinCache[coin] = true
 }
 
-func (k *Keeper) OldClearCoinCache() {
-	defer k.coinCacheMutex.Unlock()
-	k.coinCacheMutex.Lock()
-	k.coinCache = make(map[string]bool)
-}
-
 func (k *Keeper) ClearCoinCache() {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
