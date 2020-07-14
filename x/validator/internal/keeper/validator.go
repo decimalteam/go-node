@@ -154,9 +154,6 @@ func (k Keeper) GetAllValidatorsByPowerIndexReversed(ctx sdk.Context) []types.Va
 
 func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	total := sdk.ZeroInt()
-
-	coinsCache := k.CoinKeeper.GetCoinsCache()
-
 	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
 	mutex := sync.Mutex{}
 	eventMutex := sync.Mutex{}
@@ -165,7 +162,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	for _, del := range delegations {
 		go func(del types.Delegation) {
 			defer wg.Done()
-			if _, ok := coinsCache[del.Coin.Denom]; ok {
+			if k.CoinKeeper.GetCoinCache(del.Coin.Denom) {
 				coin, err := k.GetCoin(ctx, del.Coin.Denom)
 				if err != nil {
 					panic(err)

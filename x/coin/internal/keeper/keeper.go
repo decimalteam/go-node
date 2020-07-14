@@ -179,14 +179,29 @@ func (k *Keeper) SetCachedCoin(coin string) {
 	k.coinCache[coin] = true
 }
 
-func (k *Keeper) ClearCoinCache() {
+func (k *Keeper) OldClearCoinCache() {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
 	k.coinCache = make(map[string]bool)
+}
+
+func (k *Keeper) ClearCoinCache() {
+	defer k.coinCacheMutex.Unlock()
+	k.coinCacheMutex.Lock()
+	for key := range k.coinCache {
+		delete(k.coinCache, key)
+	}
 }
 
 func (k Keeper) GetCoinsCache() map[string]bool {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
 	return k.coinCache
+}
+
+func (k Keeper) GetCoinCache(symbol string) bool {
+	defer k.coinCacheMutex.Unlock()
+	k.coinCacheMutex.Lock()
+	_, ok := k.coinCache[symbol]
+	return ok
 }

@@ -8,7 +8,11 @@ import (
 // BeginBlocker check for infraction evidence or downtime of validators
 // on every begin block
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
-	k.ClearCoinCache()
+	if ctx.BlockHeight() >= 14650 {
+		k.ClearCoinCache()
+	} else {
+		k.OldClearCoinCache()
+	}
 }
 
 // EndBlocker called every block, process inflation, update validator set.
