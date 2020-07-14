@@ -60,7 +60,7 @@ decd init "$NODE_MONIKER" --chain-id "$CHAIN_ID"
 Download proper `genesis.json` from master node
 
 ```bash
-curl -s 'https://testnet-gate.decimalchain.com/api/rpc/genesis' | jq '.result.genesis' >> "$HOME/.decimal/daemon/config/genesis.json"
+curl -s 'https://testnet-gate.decimalchain.com/api/rpc/genesis' | jq '.result.genesis' > "$HOME/.decimal/daemon/config/genesis.json"
 ```
 
 Add proper `persistent_peers` to `config.toml` file
