@@ -127,6 +127,7 @@ func (k Keeper) UpdateCoin(ctx sdk.Context, coin types.Coin, reserve sdk.Int, vo
 	k.SetCoin(ctx, coin)
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeUpdateCoin,
+		sdk.NewAttribute(types.AttributeSymbol, coin.Symbol),
 		sdk.NewAttribute(types.AttributeVolume, coin.Volume.String()),
 		sdk.NewAttribute(types.AttributeReserve, coin.Reserve.String()),
 	))
