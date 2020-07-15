@@ -56,6 +56,7 @@ func (v Validator) String() string {
   Operator Address:           %s
   Validator Consensus Pubkey: %s
   Jailed:                     %v
+  Online:                     %v
   Status:                     %s
   Tokens:                     %s
   Delegator Shares:           %s
@@ -64,7 +65,7 @@ func (v Validator) String() string {
   Unbonding Completion Time:  %v
   Commission:                 %s
   Accum Rewards:              %s`, v.ValAddress, bechConsPubKey,
-		v.Jailed, v.Status, v.Tokens,
+		v.Jailed, v.Online, v.Status, v.Tokens,
 		v.DelegatorShares, v.Description,
 		v.UnbondingHeight, v.UnbondingCompletionTime, v.Commission, v.AccumRewards)
 }
