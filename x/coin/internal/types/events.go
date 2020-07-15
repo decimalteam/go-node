@@ -9,10 +9,13 @@ const (
 	EventTypeSendCoin      = "send_coin"
 	EventTypeMultiSendCoin = "multi_send_coin"
 	EventTypeRedeemCheck   = "redeem_check"
+	EventTypeUpdateCoin    = "update_coin"
 	// Create Coin
 	AttributeTitle                 = "title"
 	AttributeSymbol                = "symbol"
 	AttributeCRR                   = "crr"
+	AttributeVolume                = "volume"
+	AttributeReserve               = "reserve"
 	AttributeInitVolume            = "initial_volume"
 	AttributeInitReserve           = "initial_reserve"
 	AttributeLimitVolume           = "limit_volume"

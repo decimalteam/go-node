@@ -125,6 +125,11 @@ func (k Keeper) UpdateCoin(ctx sdk.Context, coin types.Coin, reserve sdk.Int, vo
 	coin.Reserve = reserve
 	coin.Volume = volume
 	k.SetCoin(ctx, coin)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeUpdateCoin,
+		sdk.NewAttribute(types.AttributeVolume, coin.Volume.String()),
+		sdk.NewAttribute(types.AttributeReserve, coin.Reserve.String()),
+	))
 }
 
 func (k Keeper) IsCheckRedeemed(ctx sdk.Context, check *types.Check) bool {
