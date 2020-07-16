@@ -86,8 +86,10 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 	}
 
 	walletAccount := keeper.AccountKeeper.GetAccount(ctx, wallet.Address)
-	if walletAccount == nil {
-		return nil, types.ErrWalletAccountNotFound()
+	if ctx.BlockHeight() >= 17500 {
+		if walletAccount == nil {
+			return nil, types.ErrWalletAccountNotFound()
+		}
 	}
 
 	msg.Coins.IsAllGTE(walletAccount.GetCoins())
