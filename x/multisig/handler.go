@@ -85,15 +85,17 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 	}
 
-	walletAccount := keeper.AccountKeeper.GetAccount(ctx, wallet.Address)
-	if walletAccount == nil {
-		return nil, types.ErrWalletAccountNotFound()
+	// Retrieve coins hold on the multisig wallet
+	var walletCoins sdk.Coins
+	if walletAccount := keeper.AccountKeeper.GetAccount(ctx, wallet.Address); walletAccount != nil {
+		walletCoins = walletAccount.GetCoins()
+	} else {
+		walletCoins = sdk.NewCoins()
 	}
 
-	msg.Coins.IsAllGTE(walletAccount.GetCoins())
-
+	// Ensure there are enough coins on the multisig wallet
 	for _, coin := range msg.Coins {
-		if walletAccount.GetCoins().AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
+		if walletCoins.AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
 			return nil, vtypes.ErrInsufficientFunds(coin.String())
 		}
 	}
@@ -107,6 +109,10 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 		ctx.BlockHeight(),
 		ctx.TxBytes(),
 	)
+	if err != nil {
+		msgError := "Unable to create multi-signature transaction"
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
+	}
 
 	// Save created multisig transaction to the KVStore
 	keeper.SetTransaction(ctx, *transaction)
