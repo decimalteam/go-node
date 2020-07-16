@@ -85,18 +85,43 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 	}
 
-	// Retrieve coins hold on the multisig wallet
-	var walletCoins sdk.Coins
-	if walletAccount := keeper.AccountKeeper.GetAccount(ctx, wallet.Address); walletAccount != nil {
-		walletCoins = walletAccount.GetCoins()
-	} else {
-		walletCoins = sdk.NewCoins()
-	}
+	if ctx.BlockHeight() >= 29300 {
+		// Retrieve coins hold on the multisig wallet
+		var walletCoins sdk.Coins
+		if walletAccount := keeper.AccountKeeper.GetAccount(ctx, wallet.Address); walletAccount != nil {
+			walletCoins = walletAccount.GetCoins()
+		} else {
+			walletCoins = sdk.NewCoins()
+		}
 
-	// Ensure there are enough coins on the multisig wallet
-	for _, coin := range msg.Coins {
-		if walletCoins.AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
-			return nil, vtypes.ErrInsufficientFunds(coin.String())
+		// Ensure there are enough coins on the multisig wallet
+		for _, coin := range msg.Coins {
+			if walletCoins.AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
+				return nil, vtypes.ErrInsufficientFunds(coin.String())
+			}
+		}
+	} else if ctx.BlockHeight() >= 17500 {
+		walletAccount := keeper.AccountKeeper.GetAccount(ctx, wallet.Address)
+		if walletAccount == nil {
+			return nil, types.ErrWalletAccountNotFound()
+		}
+
+		msg.Coins.IsAllGTE(walletAccount.GetCoins())
+
+		for _, coin := range msg.Coins {
+			if walletAccount.GetCoins().AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
+				return nil, vtypes.ErrInsufficientFunds(coin.String())
+			}
+		}
+	} else {
+		walletAccount := keeper.AccountKeeper.GetAccount(ctx, wallet.Address)
+
+		msg.Coins.IsAllGTE(walletAccount.GetCoins())
+
+		for _, coin := range msg.Coins {
+			if walletAccount.GetCoins().AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
+				return nil, vtypes.ErrInsufficientFunds(coin.String())
+			}
 		}
 	}
 
