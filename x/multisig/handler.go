@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	vtypes "bitbucket.org/decimalteam/go-node/x/validator"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -97,7 +95,7 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 		// Ensure there are enough coins on the multisig wallet
 		for _, coin := range msg.Coins {
 			if walletCoins.AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
-				return nil, vtypes.ErrInsufficientFunds(coin.String())
+				return nil, types.ErrInsufficientFunds(coin.String())
 			}
 		}
 	} else if ctx.BlockHeight() >= 17500 {
@@ -110,7 +108,7 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 
 		for _, coin := range msg.Coins {
 			if walletAccount.GetCoins().AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
-				return nil, vtypes.ErrInsufficientFunds(coin.String())
+				return nil, types.ErrInsufficientFunds(coin.String())
 			}
 		}
 	} else {
@@ -120,7 +118,7 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 
 		for _, coin := range msg.Coins {
 			if walletAccount.GetCoins().AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
-				return nil, vtypes.ErrInsufficientFunds(coin.String())
+				return nil, types.ErrInsufficientFunds(coin.String())
 			}
 		}
 	}

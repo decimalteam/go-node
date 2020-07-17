@@ -178,6 +178,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.coinKeeper,
 		app.accountKeeper,
 		app.supplyKeeper,
+		app.multisigKeeper,
 		auth.FeeCollectorName,
 	)
 

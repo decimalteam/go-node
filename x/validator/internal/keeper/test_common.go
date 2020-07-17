@@ -1,6 +1,7 @@
 package keeper // noalias
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bytes"
 	"encoding/hex"
 	"math/rand"
@@ -92,6 +93,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
 	keyCoin := sdk.NewKVStoreKey(coin.StoreKey)
+	keyMultisig := sdk.NewKVStoreKey(multisig.StoreKey)
 
 	db := dbm.NewMemDB()
 	ms := store.NewCommitMultiStore(db)
@@ -161,7 +163,9 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 		Volume: coinConfig.InitialVolumeBaseCoin,
 	})
 
-	keeper := NewKeeper(cdc, keyStaking, pk.Subspace(DefaultParamspace), coinKeeper, accountKeeper, supplyKeeper, auth.FeeCollectorName)
+	multisigKeeper := multisig.NewKeeper(cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), accountKeeper, coinKeeper, bk)
+
+	keeper := NewKeeper(cdc, keyStaking, pk.Subspace(DefaultParamspace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, auth.FeeCollectorName)
 	keeper.SetParams(ctx, types.DefaultParams())
 
 	// set module accounts

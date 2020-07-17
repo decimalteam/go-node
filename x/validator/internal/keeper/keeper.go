@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"container/list"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -26,6 +27,7 @@ type Keeper struct {
 	CoinKeeper       coin.Keeper
 	AccountKeeper    auth.AccountKeeper
 	supplyKeeper     supply.Keeper
+	multisigKeeper   multisig.Keeper
 	hooks            types.ValidatorHooks
 	FeeCollectorName string
 
@@ -34,7 +36,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a validator keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper, accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper, feeCollectorName string) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper, accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper, multisigKeeper multisig.Keeper, feeCollectorName string) Keeper {
 
 	// ensure bonded and not bonded module accounts are set
 	if addr := supplyKeeper.GetModuleAddress(types.BondedPoolName); addr == nil {
@@ -52,6 +54,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspac
 		CoinKeeper:         coinKeeper,
 		AccountKeeper:      accountKeeper,
 		supplyKeeper:       supplyKeeper,
+		multisigKeeper:     multisigKeeper,
 		validatorCache:     make(map[string]cachedValidator, aminoCacheSize),
 		validatorCacheList: list.New(),
 		FeeCollectorName:   feeCollectorName,

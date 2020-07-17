@@ -1,6 +1,9 @@
 package types
 
-import sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+import (
+	"fmt"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+)
 
 // CodeType defines the local code type.
 type CodeType = uint32
@@ -18,8 +21,13 @@ const (
 	InvalidCoinToSend         CodeType = 106
 	InvalidAmountToSend       CodeType = 107
 	CodeWalletAccountNotFound CodeType = 108
+	CodeInsufficientFunds     CodeType = 109
 )
 
 func ErrWalletAccountNotFound() *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeWalletAccountNotFound, "wallet account not found")
+}
+
+func ErrInsufficientFunds(funds string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInsufficientFunds, fmt.Sprintf("Insufficient funds: wanted = %s", funds))
 }
