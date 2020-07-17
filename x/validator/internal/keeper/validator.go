@@ -543,10 +543,6 @@ func (k Keeper) CalculateBipValue(ctx sdk.Context, value sdk.Coin, includeSelf b
 }
 
 func (k Keeper) DecreaseValidatorTokens(ctx sdk.Context, validator types.Validator, amount sdk.Int) sdk.Int {
-	// jailed validators are not kept in the power index
-	if validator.Jailed {
-		return sdk.ZeroInt()
-	}
 	if validator.Tokens.LT(amount) {
 		return sdk.ZeroInt()
 	}

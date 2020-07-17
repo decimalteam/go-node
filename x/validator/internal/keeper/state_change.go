@@ -6,6 +6,7 @@ import (
 	"fmt"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"log"
+	"runtime/debug"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,6 +29,12 @@ import (
 func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.ValidatorUpdate, error) {
 	var updates []abci.ValidatorUpdate
 	var err error
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
+		}
+	}()
 
 	maxValidators := k.getValidatorsCountForBlock(ctx, ctx.BlockHeight())
 	totalPower := sdk.ZeroInt()
