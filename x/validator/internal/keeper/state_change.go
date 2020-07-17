@@ -64,6 +64,8 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		validator := validators[i]
 
 		if validator.Jailed {
+			// TODO: return on reset
+			continue
 			return nil, errors.New("ApplyAndReturnValidatorSetUpdates: should never retrieve a jailed validator from the power store")
 		}
 
