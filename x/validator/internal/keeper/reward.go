@@ -30,34 +30,32 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 			),
 		)
 
-		if ctx.BlockHeight() >= 42600 {
-			daoWallet, err := k.getDAO(ctx)
-			if err != nil {
-				return err
-			}
-			developWallet, err := k.getDevelop(ctx)
-			if err != nil {
-				return err
-			}
-
-			daoVal := rewards.ToDec().Mul(DAOCommission).TruncateInt()
-			_, err = k.CoinKeeper.BankKeeper.AddCoins(ctx, daoWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), daoVal)))
-			if err != nil {
-				return err
-			}
-
-			developVal := rewards.ToDec().Mul(DevelopCommission).TruncateInt()
-			_, err = k.CoinKeeper.BankKeeper.AddCoins(ctx, developWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), developVal)))
-			if err != nil {
-				return err
-			}
-
-			rewards = rewards.Sub(daoVal)
-			rewards = rewards.Sub(developVal)
+		daoWallet, err := k.getDAO(ctx)
+		if err != nil {
+			return err
+		}
+		developWallet, err := k.getDevelop(ctx)
+		if err != nil {
+			return err
 		}
 
+		daoVal := rewards.ToDec().Mul(DAOCommission).TruncateInt()
+		_, err = k.CoinKeeper.BankKeeper.AddCoins(ctx, daoWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), daoVal)))
+		if err != nil {
+			return err
+		}
+
+		developVal := rewards.ToDec().Mul(DevelopCommission).TruncateInt()
+		_, err = k.CoinKeeper.BankKeeper.AddCoins(ctx, developWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), developVal)))
+		if err != nil {
+			return err
+		}
+
+		rewards = rewards.Sub(daoVal)
+		rewards = rewards.Sub(developVal)
+
 		rewardsVal := rewards.ToDec().Mul(val.Commission).TruncateInt()
-		err := k.CoinKeeper.UpdateBalance(ctx, k.BondDenom(ctx), rewardsVal, val.RewardAddress)
+		err = k.CoinKeeper.UpdateBalance(ctx, k.BondDenom(ctx), rewardsVal, val.RewardAddress)
 		if err != nil {
 			return err
 		}

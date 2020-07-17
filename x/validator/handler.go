@@ -236,9 +236,7 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*s
 	if err != nil {
 		return nil, types.ErrInternal(err.Error())
 	}
-	if ctx.BlockHeight() >= 17500 {
-		k.DeleteValidatorByPowerIndex(ctx, validator)
-	}
+	k.DeleteValidatorByPowerIndex(ctx, validator)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,

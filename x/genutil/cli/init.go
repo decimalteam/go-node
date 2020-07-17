@@ -73,7 +73,7 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 			genDoc.ConsensusParams = &types.ConsensusParams{
 				Block: types.BlockParams{
 					MaxBytes:   10000000,
-					MaxGas:     -1,
+					MaxGas:     100000,
 					TimeIotaMs: 1000,
 				},
 				Evidence: types.EvidenceParams{
