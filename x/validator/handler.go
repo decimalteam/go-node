@@ -3,7 +3,6 @@ package validator
 import (
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
@@ -111,7 +110,6 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, types.ErrDelegatorStakeIsTooLow()
 	}
 
-	t := time.Now()
 	err = k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)
 	if err != nil {
 		e := sdkerrors.Error{}
@@ -121,7 +119,6 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 			return nil, types.ErrInternal(err.Error())
 		}
 	}
-	log.Println(time.Since(t))
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,

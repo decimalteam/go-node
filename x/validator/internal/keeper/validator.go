@@ -551,6 +551,8 @@ func (k Keeper) DecreaseValidatorTokens(ctx sdk.Context, validator types.Validat
 	if err != nil {
 		panic(err)
 	}
-	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), validator.ValAddress)
+	if !validator.Jailed {
+		ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), validator.ValAddress)
+	}
 	return validator.Tokens
 }
