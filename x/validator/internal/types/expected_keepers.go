@@ -14,7 +14,7 @@ type ParamSubspace interface {
 	SetParamSet(ctx sdk.Context, ps params.ParamSet)
 }
 
-// SupplyKeeper defines the expected supply Keeper (noalias)
+// supplyKeeper defines the expected supply Keeper (noalias)
 type SupplyKeeper interface {
 	GetSupply(ctx sdk.Context) supplyexported.SupplyI
 
