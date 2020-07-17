@@ -14,15 +14,15 @@ do
     rm -rf ~/.decimal-$node/daemon
 
     # Initialize new blockchain
-    decd init $node --home ~/.decimal-$node/daemon --chain-id decimal-testnet-07-14-18-00
+    decd init $node --home ~/.decimal-$node/daemon --chain-id decimal-testnet-07-17-13-30
 
     # Add initial funds to the genesis file
     decd add-genesis-account dx16rr3cvdgj8jsywhx8lfteunn9uz0xg2c7ua9nl  40000000000000000000000000tdel --home ~/.decimal-$node/daemon # validator on fra1-01  ( 40,000,000 tDEL)
     decd add-genesis-account dx1ajytg8jg8ypx0rj9p792x32fuxyezga43jd3ry  40000000000000000000000000tdel --home ~/.decimal-$node/daemon # validator on fra1-02  ( 40,000,000 tDEL)
     decd add-genesis-account dx1azre0dtclv5y05ufynkhswzh0cwh4ktzlas3mp  40000000000000000000000000tdel --home ~/.decimal-$node/daemon # validator on nyc3-01  ( 40,000,000 tDEL)
     decd add-genesis-account dx1j3j2mwxnvlmsu2tkwm4z5390vq8v337wd6hmg2  40000000000000000000000000tdel --home ~/.decimal-$node/daemon # validator on sgp1-01  ( 40,000,000 tDEL)
-    decd add-genesis-account dx12k95ukkqzjhkm9d94866r4d9fwx7tsd82r8pjd 160000000000000000000000000tdel --home ~/.decimal-$node/daemon # faucet                (160,000,000 tDEL)
-    decd add-genesis-account dx1esffyu0wxk6eez77fhzdxfgvjp4646hqm9sx6c  20000000000000000000000000tdel --home ~/.decimal-$node/daemon # tanker                ( 20,000,000 tDEL)
+    decd add-genesis-account dx1twjeqjvqcznu2uqagms55e4a8rtakapddkgcsm 160000000000000000000000000tdel --home ~/.decimal-$node/daemon # faucet                (160,000,000 tDEL)
+    decd add-genesis-account dx1a0329z2gdh98mn4m6uzssan82t7vf03nv7t38g  20000000000000000000000000tdel --home ~/.decimal-$node/daemon # tanker                ( 20,000,000 tDEL)
 done
 
 # Add initial signed transactions to the genesis file
