@@ -16,6 +16,8 @@ const (
 	EventTypeLiveness          = "liveness"
 	EventTypeUpdatesValidators = "updates_validator"
 	EventTypeCalcStake         = "calc_stake"
+	EventTypeDAOReward         = "dao_reward"
+	EventTypeDevelopReward     = "develop_reward"
 
 	AttributeKeyValidator                  = "validator"
 	AttributeKeyDelegator                  = "delegator"
@@ -37,6 +39,8 @@ const (
 	AttributeKeyDescriptionWebsite         = "website"
 	AttributeKeyDescriptionSecurityContact = "security_contact"
 	AttributeKeyDescriptionDetails         = "details"
+	AttributeKeyDAOAddress                 = "dao_address"
+	AttributeKeyDevelopAddress             = "develop_address"
 
 	AttributeValueDoubleSign       = "double_sign"
 	AttributeValueMissingSignature = "missing_signature"

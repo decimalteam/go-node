@@ -45,11 +45,27 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 			return err
 		}
 
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeDAOReward,
+				sdk.NewAttribute(sdk.AttributeKeyAmount, daoVal.String()),
+				sdk.NewAttribute(types.AttributeKeyDAOAddress, daoWallet.String()),
+			),
+		)
+
 		developVal := rewards.ToDec().Mul(DevelopCommission).TruncateInt()
 		_, err = k.CoinKeeper.BankKeeper.AddCoins(ctx, developWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), developVal)))
 		if err != nil {
 			return err
 		}
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeDevelopReward,
+				sdk.NewAttribute(sdk.AttributeKeyAmount, developVal.String()),
+				sdk.NewAttribute(types.AttributeKeyDevelopAddress, developWallet.String()),
+			),
+		)
 
 		rewards = rewards.Sub(daoVal)
 		rewards = rewards.Sub(developVal)
