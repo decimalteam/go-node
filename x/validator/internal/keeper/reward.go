@@ -50,6 +50,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 				types.EventTypeDAOReward,
 				sdk.NewAttribute(sdk.AttributeKeyAmount, daoVal.String()),
 				sdk.NewAttribute(types.AttributeKeyDAOAddress, daoWallet.String()),
+				sdk.NewAttribute(types.AttributeKeyValidator, val.ValAddress.String()),
 			),
 		)
 
@@ -64,6 +65,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 				types.EventTypeDevelopReward,
 				sdk.NewAttribute(sdk.AttributeKeyAmount, developVal.String()),
 				sdk.NewAttribute(types.AttributeKeyDevelopAddress, developWallet.String()),
+				sdk.NewAttribute(types.AttributeKeyValidator, val.ValAddress.String()),
 			),
 		)
 
