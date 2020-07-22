@@ -389,24 +389,24 @@ func (v Validator) UpdateStatus(newStatus BondStatus) Validator {
 
 // get the consensus-engine power
 // a reduction of 10^6 from validator tokens is applied
-func (v Validator) ConsensusPower(power sdk.Int) int64 {
+func (v Validator) ConsensusPower() int64 {
 	if v.IsBonded() {
-		return v.PotentialConsensusPower(power)
+		return v.PotentialConsensusPower()
 	}
 	return 0
 }
 
 // potential consensus-engine power
-func (v Validator) PotentialConsensusPower(power sdk.Int) int64 {
-	return TokensToConsensusPower(power)
+func (v Validator) PotentialConsensusPower() int64 {
+	return TokensToConsensusPower(v.Tokens)
 }
 
 // ABCIValidatorUpdate returns an abci.ValidatorUpdate from a staking validator type
 // with the full validator power
-func (v Validator) ABCIValidatorUpdate(power sdk.Int) abci.ValidatorUpdate {
+func (v Validator) ABCIValidatorUpdate() abci.ValidatorUpdate {
 	return abci.ValidatorUpdate{
 		PubKey: tmtypes.TM2PB.PubKey(v.PubKey),
-		Power:  v.ConsensusPower(power),
+		Power:  v.ConsensusPower(),
 	}
 }
 

@@ -545,6 +545,22 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 
 	k.SetDelegation(ctx, delegation)
 
+	k.DeleteValidatorByPowerIndex(ctx, validator)
+	if bondCoin.Denom == k.BondDenom(ctx) {
+		validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
+	} else {
+		coin, err := k.GetCoin(ctx, bondCoin.Denom)
+		if err != nil {
+			return err
+		}
+		validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
+	}
+	err := k.SetValidator(ctx, validator)
+	if err != nil {
+		return err
+	}
+	k.SetValidatorByPowerIndexWithoutCalc(ctx, validator)
+
 	// Call the after-modification hook
 	k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 
@@ -658,7 +674,7 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 
 	ubd, found := k.GetUnbondingDelegation(ctx, delAddr, valAddr)
 	if !found {
-		return types.ErrNoUnbondingDelegation()
+		return types.ErrUnbondingDelegationNotFound()
 	}
 
 	ctxTime := ctx.BlockHeader().Time

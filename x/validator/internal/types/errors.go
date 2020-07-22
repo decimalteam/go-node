@@ -84,8 +84,8 @@ func ErrDelegatorStakeIsTooLow() *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeDelegatorStakeIsTooLow, "stake is too low")
 }
 
-func ErrNoUnbondingDelegation() *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeInvalidDelegation, "no unbonding delegation found")
+func ErrUnbondingDelegationNotFound() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInvalidDelegation, "unbonding delegation not found")
 }
 
 func ErrBadDelegationAmount() *sdkerrors.Error {

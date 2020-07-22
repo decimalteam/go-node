@@ -1,11 +1,9 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
-	"log"
-
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // GetBondedPool returns the bonded tokens pool's module account
@@ -59,12 +57,10 @@ func (k Keeper) burnNotBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	log.Println(k.GetNotBondedPool(ctx).GetCoins())
 	err := k.supplyKeeper.BurnCoins(ctx, types.NotBondedPoolName, coinsBurn)
 	if err != nil {
 		return err
 	}
-	log.Println(k.GetNotBondedPool(ctx).GetCoins())
 	return nil
 }
 

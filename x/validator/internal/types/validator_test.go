@@ -26,7 +26,7 @@ func TestValidatorTestEquivalent(t *testing.T) {
 func TestABCIValidatorUpdate(t *testing.T) {
 	validator := NewValidator(valAddr1, pk1, sdk.ZeroDec(), sdk.AccAddress(valAddr1), Description{})
 
-	abciVal := validator.ABCIValidatorUpdate(sdk.ZeroInt())
+	abciVal := validator.ABCIValidatorUpdate()
 	require.Equal(t, tmtypes.TM2PB.PubKey(validator.PubKey), abciVal.PubKey)
 	require.Equal(t, int64(0), abciVal.Power)
 }

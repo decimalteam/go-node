@@ -70,7 +70,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// if we get to a zero-power validator (which we don't bond),
 		// there are no more possible bonded validators
-		if validator.PotentialConsensusPower(validator.Tokens) == 0 {
+		if validator.PotentialConsensusPower() == 0 {
 			break
 		}
 
@@ -99,7 +99,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		oldPowerBytes, found := last[valAddrBytes]
 
 		// calculate the new power bytes
-		newPower := validator.ConsensusPower(validator.Tokens)
+		newPower := validator.ConsensusPower()
 		newPowerBytes := k.cdc.MustMarshalBinaryLengthPrefixed(newPower)
 
 		// update the validator set if power has changed
@@ -107,14 +107,14 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			if !validator.Online {
 				updates = append(updates, validator.ABCIValidatorUpdateZero())
 			} else {
-				updates = append(updates, validator.ABCIValidatorUpdate(validator.Tokens))
+				updates = append(updates, validator.ABCIValidatorUpdate())
 			}
 
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					types.EventTypeUpdatesValidators,
 					sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
-					sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower(validator.Tokens))),
+					sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower())),
 					sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
 					sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "validator"),
 				),
@@ -159,7 +159,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 				sdk.NewEvent(
 					types.EventTypeUpdatesValidators,
 					sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
-					sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower(validator.Tokens))),
+					sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower())),
 					sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
 					sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "candidate"),
 				),
@@ -171,7 +171,15 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(delegation.Coin)
 		}
 
-		validator = validator.UpdateStatus(types.Unbonded)
+		if validator.Tokens.IsZero() {
+			validator, err = k.bondedToUnbonding(ctx, validator)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			validator = validator.UpdateStatus(types.Unbonded)
+		}
+
 		err = k.SetValidator(ctx, validator)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)

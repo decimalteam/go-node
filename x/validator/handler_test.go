@@ -7,7 +7,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"log"
 	"testing"
 	"time"
 
@@ -18,23 +17,12 @@ import (
 
 //______________________________________________________________________
 
-// retrieve params which are instant
-func setInstantUnbondPeriod(keeper val.Keeper, ctx sdk.Context) types.Params {
-	params := keeper.GetParams(ctx)
-	params.UnbondingTime = 0
-	keeper.SetParams(ctx, params)
-	return params
-}
-
-//______________________________________________________________________
-
 func TestValidatorByPowerIndex(t *testing.T) {
 	validatorAddr, validatorAddr3 := sdk.ValAddress(val.Addrs[0]), sdk.ValAddress(val.Addrs[1])
 
 	initPower := int64(1000000)
-	initBond := sdk.TokensFromConsensusPower(initPower)
+	initBond := types.TokensFromConsensusPower(initPower)
 	ctx, _, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, initPower)
-	_ = setInstantUnbondPeriod(keeper, ctx)
 
 	// create validator
 	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr, val.PKs[0], initBond)
@@ -44,22 +32,18 @@ func TestValidatorByPowerIndex(t *testing.T) {
 
 	// must end-block
 	updates, err := keeper.ApplyAndReturnValidatorSetUpdates(ctx)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 	require.Equal(t, 1, len(updates))
 
 	// verify the self-delegation exists
-	bond, found := keeper.GetDelegation(ctx, sdk.AccAddress(validatorAddr), validatorAddr)
+	bond, found := keeper.GetDelegation(ctx, sdk.AccAddress(validatorAddr), validatorAddr, keeper.BondDenom(ctx))
 	require.True(t, found)
 	gotBond := bond.Coin.Amount
 	require.Equal(t, initBond, gotBond)
 
 	// verify that the by power index exists
 	validator, err := keeper.GetValidator(ctx, validatorAddr)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 	power := types.GetValidatorsByPowerIndexKey(validator, keeper.TotalStake(ctx, validator))
 	require.True(t, val.ValidatorByPowerIndexExists(ctx, keeper, power))
 
@@ -116,7 +100,7 @@ func TestValidatorByPowerIndex(t *testing.T) {
 	types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
 
 	ctx = ctx.WithBlockTime(finishTime)
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	// verify that by power key nolonger exists
 	_, err = keeper.GetValidator(ctx, validatorAddr)
@@ -130,7 +114,7 @@ func TestDuplicatesMsgCreateValidator(t *testing.T) {
 	addr1, addr2 := sdk.ValAddress(val.Addrs[0]), sdk.ValAddress(val.Addrs[1])
 	pk1, pk2 := val.PKs[0], val.PKs[1]
 
-	valTokens := sdk.TokensFromConsensusPower(10)
+	valTokens := types.TokensFromConsensusPower(10)
 	msgCreateValidator1 := NewTestMsgDeclareCandidate(addr1, pk1, valTokens)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator1)
 	require.NoError(t, err)
@@ -201,11 +185,11 @@ func TestInvalidPubKeyTypeMsgCreateValidator(t *testing.T) {
 
 func TestIncrementsMsgDelegate(t *testing.T) {
 	initPower := int64(1000)
-	initBond := sdk.TokensFromConsensusPower(initPower)
+	initBond := types.TokensFromConsensusPower(initPower)
 	ctx, accMapper, keeper, _, _ := val.CreateTestInput(t, false, initPower)
 	params := keeper.GetParams(ctx)
 
-	bondAmount := sdk.TokensFromConsensusPower(10)
+	bondAmount := types.TokensFromConsensusPower(10)
 	validatorAddr, delegatorAddr := sdk.ValAddress(val.Addrs[0]), val.Addrs[1]
 
 	// first create validator
@@ -223,15 +207,15 @@ func TestIncrementsMsgDelegate(t *testing.T) {
 	require.Equal(t, types.Bonded, validator.Status)
 	require.Equal(t, bondAmount, keeper.TotalStake(ctx, validator), "validator: %v", validator)
 
-	_, found := keeper.GetDelegation(ctx, delegatorAddr, validatorAddr)
+	_, found := keeper.GetDelegation(ctx, delegatorAddr, validatorAddr, keeper.BondDenom(ctx))
 	require.False(t, found)
 
-	bond, found := keeper.GetDelegation(ctx, sdk.AccAddress(validatorAddr), validatorAddr)
+	bond, found := keeper.GetDelegation(ctx, sdk.AccAddress(validatorAddr), validatorAddr, keeper.BondDenom(ctx))
 	require.True(t, found)
 	require.Equal(t, bondAmount, bond.Coin.Amount)
 
 	bondedTokens := keeper.TotalBondedTokens(ctx)
-	require.Equal(t, bondAmount.Int64(), bondedTokens.Int64())
+	require.Equal(t, bondAmount, bondedTokens)
 
 	// just send the same msgbond multiple times
 	msgDelegate := NewTestMsgDelegate(delegatorAddr, validatorAddr, bondAmount)
@@ -246,7 +230,7 @@ func TestIncrementsMsgDelegate(t *testing.T) {
 		//Check that the accounts and the bond account have the appropriate values
 		validator, err := keeper.GetValidator(ctx, validatorAddr)
 		require.NoError(t, err)
-		bond, found := keeper.GetDelegation(ctx, delegatorAddr, validatorAddr)
+		bond, found := keeper.GetDelegation(ctx, delegatorAddr, validatorAddr, keeper.BondDenom(ctx))
 		require.True(t, found)
 
 		expBond := bondAmount.MulRaw(i + 1)
@@ -271,7 +255,7 @@ func TestIncrementsMsgDelegate(t *testing.T) {
 
 func TestIncrementsMsgUnbond(t *testing.T) {
 	initPower := int64(1000)
-	initBond := sdk.TokensFromConsensusPower(initPower)
+	initBond := types.TokensFromConsensusPower(initPower)
 	ctx, accMapper, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, initPower)
 
 	params := keeper.GetParams(ctx)
@@ -320,12 +304,12 @@ func TestIncrementsMsgUnbond(t *testing.T) {
 		types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
 
 		ctx = ctx.WithBlockTime(finishTime)
-		EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+		EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 		// check that the accounts and the bond account have the appropriate values
 		validator, err = keeper.GetValidator(ctx, validatorAddr)
 		require.NoError(t, err)
-		bond, found := keeper.GetDelegation(ctx, delegatorAddr, validatorAddr)
+		bond, found := keeper.GetDelegation(ctx, delegatorAddr, validatorAddr, keeper.BondDenom(ctx))
 		require.True(t, found)
 
 		expBond := initBond.Sub(unbondAmt.Amount.Mul(sdk.NewInt(i + 1)))
@@ -334,15 +318,15 @@ func TestIncrementsMsgUnbond(t *testing.T) {
 
 		gotBond := bond.Coin.Amount
 		gotDelegatorShares := keeper.TotalStake(ctx, validator)
-		gotDelegatorAcc := accMapper.GetAccount(ctx, delegatorAddr).GetCoins().AmountOf(params.BondDenom).Sub(sdk.NewInt(333 / 2 * (i + 1)))
+		gotDelegatorAcc := accMapper.GetAccount(ctx, delegatorAddr).GetCoins().AmountOf(params.BondDenom)
 
-		require.Equal(t, expBond.Int64(), gotBond.Int64(),
+		require.Equal(t, expBond, gotBond,
 			"i: %v\nexpBond: %v\ngotBond: %v\nvalidator: %v\nbond: %v\n",
 			i, expBond, gotBond, validator, bond)
-		require.Equal(t, expDelegatorShares.Int64(), gotDelegatorShares.Int64(),
+		require.Equal(t, expDelegatorShares, gotDelegatorShares,
 			"i: %v\nexpDelegatorShares: %v\ngotDelegatorShares: %v\nvalidator: %v\nbond: %v\n",
 			i, expDelegatorShares, gotDelegatorShares, validator, bond)
-		require.Equal(t, expDelegatorAcc.Int64(), gotDelegatorAcc.Int64(),
+		require.Equal(t, expDelegatorAcc, gotDelegatorAcc,
 			"i: %v\nexpDelegatorAcc: %v\ngotDelegatorAcc: %v\nvalidator: %v\nbond: %v\n",
 			i, expDelegatorAcc, gotDelegatorAcc, validator, bond)
 	}
@@ -351,8 +335,8 @@ func TestIncrementsMsgUnbond(t *testing.T) {
 	errorCases := []sdk.Int{
 		//1<<64 - 1, // more than int64 power
 		//1<<63 + 1, // more than int64 power
-		sdk.TokensFromConsensusPower(1<<63 - 1),
-		sdk.TokensFromConsensusPower(1 << 31),
+		types.TokensFromConsensusPower(1<<63 - 1),
+		types.TokensFromConsensusPower(1 << 31),
 		initBond,
 	}
 
@@ -376,7 +360,7 @@ func TestIncrementsMsgUnbond(t *testing.T) {
 
 func TestMultipleMsgCreateValidator(t *testing.T) {
 	initPower := int64(1000)
-	initTokens := sdk.TokensFromConsensusPower(initPower)
+	initTokens := types.TokensFromConsensusPower(initPower)
 	ctx, accMapper, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, initPower)
 
 	params := keeper.GetParams(ctx)
@@ -396,7 +380,7 @@ func TestMultipleMsgCreateValidator(t *testing.T) {
 
 	// bond them all
 	for i, validatorAddr := range validatorAddrs {
-		valTokens := sdk.TokensFromConsensusPower(10)
+		valTokens := types.TokensFromConsensusPower(10)
 		msgCreateValidatorOnBehalfOf := NewTestMsgDeclareCandidate(validatorAddr, val.PKs[i], valTokens)
 
 		res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidatorOnBehalfOf)
@@ -416,15 +400,15 @@ func TestMultipleMsgCreateValidator(t *testing.T) {
 		require.Equal(t, balanceExpd, balanceGot, "expected account to have %d, res, err%d", balanceExpd, balanceGot)
 	}
 
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	// unbond them all by removing delegation
 	for i, validatorAddr := range validatorAddrs {
 		_, err := keeper.GetValidator(ctx, validatorAddr)
 		require.NoError(t, err)
 
-		unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), sdk.TokensFromConsensusPower(10))
-		msgUndelegate := types.NewMsgUnbond(validatorAddr, delegatorAddrs[i], unbondAmt) // remove delegation
+		unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(10))
+		msgUndelegate := types.NewMsgUnbond(validatorAddr, sdk.AccAddress(validatorAddr), unbondAmt) // remove delegation
 		res, err := handleMsgUnbond(ctx, keeper, msgUndelegate)
 		require.NoError(t, err)
 		require.NotNil(t, res)
@@ -433,20 +417,24 @@ func TestMultipleMsgCreateValidator(t *testing.T) {
 		types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
 
 		// adds validator into unbonding queue
-		EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+		EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 		// removes validator from queue and set
-		EndBlocker(ctx.WithBlockTime(blockTime.Add(params.UnbondingTime)), keeper, coinKeeper, supplyKeeper)
+		EndBlocker(ctx.WithBlockTime(blockTime.Add(params.UnbondingTime)), keeper, coinKeeper, supplyKeeper, false)
+
+		// Check that the validator is deleted from state
+		validators := keeper.GetValidators(ctx, 100)
+		require.Equal(t, len(validatorAddrs)-(i+1), len(validators),
+			"expected %d validators got %d", len(validatorAddrs)-(i+1), len(validators))
 
 		gotBalance := accMapper.GetAccount(ctx, delegatorAddrs[i]).GetCoins().AmountOf(params.BondDenom)
-		log.Println(initTokens.Int64(), gotBalance.Int64())
+		require.True(t, initTokens.Equal(gotBalance))
 	}
 }
 
 func TestMultipleMsgDelegate(t *testing.T) {
 	ctx, _, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, 1000)
 	validatorAddr, delegatorAddrs := sdk.ValAddress(val.Addrs[0]), val.Addrs[1:]
-	_ = setInstantUnbondPeriod(keeper, ctx)
 
 	// first make a validator
 	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr, val.PKs[0], sdk.NewInt(10))
@@ -462,7 +450,7 @@ func TestMultipleMsgDelegate(t *testing.T) {
 		require.NotNil(t, res)
 
 		// check that the account is bonded
-		bond, found := keeper.GetDelegation(ctx, delegatorAddr, validatorAddr)
+		bond, found := keeper.GetDelegation(ctx, delegatorAddr, validatorAddr, keeper.BondDenom(ctx))
 		require.True(t, found)
 		require.NotNil(t, bond, "expected delegatee bond %d to exist", bond)
 	}
@@ -480,17 +468,17 @@ func TestMultipleMsgDelegate(t *testing.T) {
 		types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
 
 		ctx = ctx.WithBlockTime(finishTime)
-		EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+		EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 		// check that the account is unbonded
-		_, found := keeper.GetDelegation(ctx, delegatorAddr, validatorAddr)
+		_, found := keeper.GetDelegation(ctx, delegatorAddr, validatorAddr, keeper.BondDenom(ctx))
 		require.False(t, found)
 	}
 }
 
 func TestValidatorQueue(t *testing.T) {
 	ctx, _, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, 1000)
-	validatorAddr, delegatorAddr := sdk.ValAddress(val.Addrs[0]), val.Addrs[1]
+	validatorAddr := sdk.ValAddress(val.Addrs[0])
 
 	// set the unbonding time
 	params := keeper.GetParams(ctx)
@@ -498,29 +486,17 @@ func TestValidatorQueue(t *testing.T) {
 	keeper.SetParams(ctx, params)
 
 	// create the validator
-	valTokens := sdk.TokensFromConsensusPower(10)
+	valTokens := types.TokensFromConsensusPower(10)
 	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr, val.PKs[0], valTokens)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	// bond a delegator
-	delTokens := sdk.TokensFromConsensusPower(10)
-	msgDelegate := NewTestMsgDelegate(delegatorAddr, validatorAddr, delTokens)
-	res, err = handleMsgDelegate(ctx, keeper, msgDelegate)
-	require.NoError(t, err)
-	require.NotNil(t, res)
-
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	// unbond the all self-delegation to put validator in unbonding state
-	unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), delTokens)
+	unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), valTokens)
 	msgUndelegateValidator := types.NewMsgUnbond(validatorAddr, sdk.AccAddress(validatorAddr), unbondAmt)
-	res, err = handleMsgUnbond(ctx, keeper, msgUndelegateValidator)
-	require.NoError(t, err)
-	require.NotNil(t, res)
-
-	msgUndelegateValidator = types.NewMsgUnbond(validatorAddr, delegatorAddr, unbondAmt)
 	res, err = handleMsgUnbond(ctx, keeper, msgUndelegateValidator)
 	require.NoError(t, err)
 	require.NotNil(t, res)
@@ -529,29 +505,28 @@ func TestValidatorQueue(t *testing.T) {
 	types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
 
 	ctx = ctx.WithBlockTime(finishTime)
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	origHeader := ctx.BlockHeader()
 
 	validator, err := keeper.GetValidator(ctx, validatorAddr)
 	require.NoError(t, err)
-	require.True(t, validator.IsUnbonded(), "%v", validator)
+	require.True(t, validator.IsUnbonding(), "%v", validator)
 
 	// should still be unbonding at time 6 seconds later
 	ctx = ctx.WithBlockTime(origHeader.Time.Add(time.Second * 6))
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	validator, err = keeper.GetValidator(ctx, validatorAddr)
 	require.NoError(t, err)
-	require.True(t, validator.IsUnbonded(), "%v", validator)
+	require.True(t, validator.IsUnbonding(), "%v", validator)
 
 	// should be in unbonded state at time 7 seconds later
 	ctx = ctx.WithBlockTime(origHeader.Time.Add(time.Second * 7))
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	validator, err = keeper.GetValidator(ctx, validatorAddr)
-	require.NoError(t, err)
-	require.True(t, validator.IsUnbonded(), "%v", validator)
+	require.Error(t, err)
 }
 
 func TestUnbondingPeriod(t *testing.T) {
@@ -564,16 +539,16 @@ func TestUnbondingPeriod(t *testing.T) {
 	keeper.SetParams(ctx, params)
 
 	// create the validator
-	valTokens := sdk.TokensFromConsensusPower(10)
+	valTokens := types.TokensFromConsensusPower(10)
 	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr, val.PKs[0], valTokens)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	// begin unbonding
-	unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), sdk.TokensFromConsensusPower(10))
+	unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(10))
 	msgUndelegate := types.NewMsgUnbond(validatorAddr, sdk.AccAddress(validatorAddr), unbondAmt)
 	res, err = handleMsgUnbond(ctx, keeper, msgUndelegate)
 	require.NoError(t, err)
@@ -585,21 +560,20 @@ func TestUnbondingPeriod(t *testing.T) {
 	require.True(t, found, "should not have unbonded")
 
 	// cannot complete unbonding at same time
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 	_, found = keeper.GetUnbondingDelegation(ctx, sdk.AccAddress(validatorAddr), validatorAddr)
 	require.True(t, found, "should not have unbonded")
 
 	// cannot complete unbonding at time 6 seconds later
 	ctx = ctx.WithBlockTime(origHeader.Time.Add(time.Second * 6))
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 	_, found = keeper.GetUnbondingDelegation(ctx, sdk.AccAddress(validatorAddr), validatorAddr)
 	require.True(t, found, "should not have unbonded")
 
 	// can complete unbonding at time 7 seconds later
 	ctx = ctx.WithBlockTime(origHeader.Time.Add(time.Second * 7))
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
-	a, found := keeper.GetUnbondingDelegation(ctx, sdk.AccAddress(validatorAddr), validatorAddr)
-	log.Println(a)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
+	_, found = keeper.GetUnbondingDelegation(ctx, sdk.AccAddress(validatorAddr), validatorAddr)
 	require.False(t, found, "should have unbonded")
 }
 
@@ -640,7 +614,7 @@ func TestUnbondingFromUnbondingValidator(t *testing.T) {
 	ctx = ctx.WithBlockTime(ctx.BlockHeader().Time.Add(keeper.UnbondingTime(ctx)))
 
 	// Run the EndBlocker
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	// Check to make sure that the unbonding delegation is no longer in state
 	// (meaning it was deleted in the above EndBlocker)
@@ -658,14 +632,14 @@ func TestMultipleUnbondingDelegationAtSameTime(t *testing.T) {
 	keeper.SetParams(ctx, params)
 
 	// create the validator
-	valTokens := sdk.TokensFromConsensusPower(10)
+	valTokens := types.TokensFromConsensusPower(10)
 	msgCreateValidator := NewTestMsgDeclareCandidate(valAddr, val.PKs[0], valTokens)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
 	// end block to bond
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	// begin an unbonding delegation
 	selfDelAddr := sdk.AccAddress(valAddr) // (the validator is it's own delegator)
@@ -692,7 +666,7 @@ func TestMultipleUnbondingDelegationAtSameTime(t *testing.T) {
 
 	// move forwaubd in time, should complete both ubds
 	ctx = ctx.WithBlockTime(ctx.BlockHeader().Time.Add(1 * time.Second))
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	ubd, found = keeper.GetUnbondingDelegation(ctx, selfDelAddr, valAddr)
 	require.False(t, found)
@@ -708,14 +682,14 @@ func TestMultipleUnbondingDelegationAtUniqueTimes(t *testing.T) {
 	keeper.SetParams(ctx, params)
 
 	// create the validator
-	valTokens := sdk.TokensFromConsensusPower(10)
+	valTokens := types.TokensFromConsensusPower(10)
 	msgCreateValidator := NewTestMsgDeclareCandidate(valAddr, val.PKs[0], valTokens)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
 	// end block to bond
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	// begin an unbonding delegation
 	selfDelAddr := sdk.AccAddress(valAddr) // (the validator is it's own delegator)
@@ -743,14 +717,14 @@ func TestMultipleUnbondingDelegationAtUniqueTimes(t *testing.T) {
 
 	// move forwaubd in time, should complete the first redelegation, but not the second
 	ctx = ctx.WithBlockTime(ctx.BlockHeader().Time.Add(5 * time.Second))
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 	ubd, found = keeper.GetUnbondingDelegation(ctx, selfDelAddr, valAddr)
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
 
 	// move forwaubd in time, should complete the second redelegation
 	ctx = ctx.WithBlockTime(ctx.BlockHeader().Time.Add(5 * time.Second))
-	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 	ubd, found = keeper.GetUnbondingDelegation(ctx, selfDelAddr, valAddr)
 	require.False(t, found)
 }
@@ -763,12 +737,11 @@ func TestUnbondingWhenExcessValidators(t *testing.T) {
 
 	// set the unbonding time
 	params := keeper.GetParams(ctx)
-	params.UnbondingTime = 0
 	params.MaxValidators = 2
 	keeper.SetParams(ctx, params)
 
 	// add three validators
-	valTokens1 := sdk.TokensFromConsensusPower(50)
+	valTokens1 := types.TokensFromConsensusPower(50)
 	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr1, val.PKs[0], valTokens1)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -778,7 +751,7 @@ func TestUnbondingWhenExcessValidators(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(keeper.GetLastValidators(ctx)))
 
-	valTokens2 := sdk.TokensFromConsensusPower(30)
+	valTokens2 := types.TokensFromConsensusPower(30)
 	msgCreateValidator = NewTestMsgDeclareCandidate(validatorAddr2, val.PKs[1], valTokens2)
 	res, err = handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -788,7 +761,7 @@ func TestUnbondingWhenExcessValidators(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(keeper.GetLastValidators(ctx)))
 
-	valTokens3 := sdk.TokensFromConsensusPower(10)
+	valTokens3 := types.TokensFromConsensusPower(10)
 	msgCreateValidator = NewTestMsgDeclareCandidate(validatorAddr3, val.PKs[2], valTokens3)
 	res, err = handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -813,7 +786,7 @@ func TestUnbondingWhenExcessValidators(t *testing.T) {
 	// validator (aka. validator-1) should make it into the bonded group, thus
 	// the total number of validators should stay the same
 	vals := keeper.GetLastValidators(ctx)
-	require.Equal(t, 1, len(vals), "vals %v", vals)
+	require.Equal(t, 2, len(vals), "vals %v", vals)
 	val1, err := keeper.GetValidator(ctx, validatorAddr1)
 	require.NoError(t, err)
 	require.Equal(t, types.Bonded, val1.Status, "%v", val1)

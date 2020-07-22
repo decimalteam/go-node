@@ -165,7 +165,7 @@ func TestSlashValidatorAtCurrentHeight(t *testing.T) {
 	validator, err = keeper.GetValidator(ctx, validator.ValAddress)
 	require.NoError(t, err)
 	// power decreased
-	require.Equal(t, int64(5), validator.ConsensusPower(validator.Tokens))
+	require.Equal(t, int64(5), validator.ConsensusPower())
 	// pool bonded shares decreased
 	diffTokens := oldBondedPool.GetCoins().Sub(newBondedPool.GetCoins()).AmountOf(keeper.BondDenom(ctx))
 	require.Equal(t, sdk.TokensFromConsensusPower(5), diffTokens)

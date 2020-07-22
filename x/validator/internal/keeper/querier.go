@@ -275,7 +275,7 @@ func queryUnbondingDelegation(ctx sdk.Context, req abci.RequestQuery, k Keeper) 
 
 	unbond, found := k.GetUnbondingDelegation(ctx, params.DelegatorAddr, params.ValidatorAddr)
 	if !found {
-		return nil, types.ErrNoUnbondingDelegation()
+		return nil, types.ErrUnbondingDelegationNotFound()
 	}
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, unbond)

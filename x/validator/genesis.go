@@ -78,9 +78,9 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 
 		switch validator.Status {
 		case types.Bonded:
-			bondedTokens.Add(delegation.Coin)
+			bondedTokens = bondedTokens.Add(delegation.Coin)
 		case types.Unbonding, types.Unbonded:
-			notBondedTokens.Add(delegation.Coin)
+			notBondedTokens = notBondedTokens.Add(delegation.Coin)
 		default:
 			log.Println("Init genesis error: invalid validator status")
 		}
@@ -132,7 +132,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 			if err != nil {
 				panic(fmt.Sprintf("validator %s not found", lv.Address))
 			}
-			update := validator.ABCIValidatorUpdate(keeper.TotalStake(ctx, validator))
+			update := validator.ABCIValidatorUpdate()
 			update.Power = lv.Power // keep the next-val-set offset, use the last power for the first block
 			updates = append(updates, update)
 		}
@@ -181,7 +181,7 @@ func WriteValidators(ctx sdk.Context, keeper Keeper) (vals []tmtypes.GenesisVali
 	keeper.IterateLastValidators(ctx, func(_ int64, validator types.Validator) (stop bool) {
 		vals = append(vals, tmtypes.GenesisValidator{
 			PubKey: validator.PubKey,
-			Power:  validator.ConsensusPower(keeper.TotalStake(ctx, validator)),
+			Power:  validator.ConsensusPower(),
 			Name:   validator.Description.Moniker,
 		})
 

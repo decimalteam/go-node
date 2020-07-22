@@ -116,6 +116,15 @@ func (k Keeper) SetValidatorByPowerIndex(ctx sdk.Context, validator types.Valida
 }
 
 // validator index
+func (k Keeper) SetValidatorByPowerIndexWithoutCalc(ctx sdk.Context, validator types.Validator) {
+	// jailed validators are not kept in the power index
+	if validator.Jailed {
+		return
+	}
+	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), validator.ValAddress)
+}
+
+// validator index
 func (k Keeper) SetNewValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) {
 	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, k.TotalStake(ctx, validator)), validator.ValAddress)
 }

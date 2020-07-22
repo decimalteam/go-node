@@ -18,7 +18,7 @@ import (
 func TestInitGenesis(t *testing.T) {
 	ctx, _, keeper, supplyKeeper, _ := val.CreateTestInput(t, false, 1000)
 
-	valTokens := sdk.TokensFromConsensusPower(1)
+	valTokens := types.TokensFromConsensusPower(1)
 
 	params := keeper.GetParams(ctx)
 	validators := make([]types.Validator, 2)
@@ -28,18 +28,22 @@ func TestInitGenesis(t *testing.T) {
 	validators[0].ValAddress = sdk.ValAddress(val.Addrs[0])
 	validators[0].PubKey = val.PKs[0]
 	validators[0].Status = types.Bonded
+	validators[0].Online = true
 	validators[0].Tokens = valTokens
 	validators[1].ValAddress = sdk.ValAddress(val.Addrs[1])
 	validators[1].PubKey = val.PKs[1]
 	validators[1].Status = types.Bonded
+	validators[1].Online = true
 	validators[1].Tokens = valTokens
 
 	delegations[0].ValidatorAddress = validators[0].ValAddress
 	delegations[0].DelegatorAddress = sdk.AccAddress(validators[0].ValAddress)
 	delegations[0].Coin = sdk.NewCoin(keeper.BondDenom(ctx), valTokens)
+	delegations[0].TokensBase = valTokens
 	delegations[1].ValidatorAddress = validators[1].ValAddress
 	delegations[1].DelegatorAddress = sdk.AccAddress(validators[1].ValAddress)
 	delegations[1].Coin = sdk.NewCoin(keeper.BondDenom(ctx), valTokens)
+	delegations[1].TokensBase = valTokens
 
 	genesisState := types.NewGenesisState(params, validators, delegations)
 	vals := InitGenesis(ctx, keeper, supplyKeeper, genesisState)
@@ -58,41 +62,10 @@ func TestInitGenesis(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, types.Bonded, resVal.Status)
 
+	require.Equal(t, len(vals), len(validators))
 	abcivals := make([]abci.ValidatorUpdate, len(vals))
 	for i, validator := range validators {
-		abcivals[i] = validator.ABCIValidatorUpdate(validator.Tokens)
-	}
-
-	require.Equal(t, abcivals, vals)
-}
-
-func TestInitGenesisLargeValidatorSet(t *testing.T) {
-	size := 200
-
-	ctx, _, keeper, supplyKeeper, _ := val.CreateTestInput(t, false, 1000)
-
-	params := keeper.GetParams(ctx)
-	delegations := make([]types.Delegation, size)
-	validators := make([]types.Validator, size)
-
-	for i := range validators {
-		validators[i] = types.NewValidator(sdk.ValAddress(val.Addrs[i]), val.PKs[i], sdk.ZeroDec(), val.Addrs[i], types.Description{})
-
-		validators[i].Status = types.Bonded
-
-		tokens := sdk.TokensFromConsensusPower(1)
-		if i < 100 {
-			tokens = sdk.TokensFromConsensusPower(2)
-		}
-		delegations[i] = types.NewDelegation(sdk.AccAddress(validators[i].ValAddress), validators[i].ValAddress, sdk.NewCoin(keeper.BondDenom(ctx), tokens))
-	}
-
-	genesisState := types.NewGenesisState(params, validators, delegations)
-	vals := InitGenesis(ctx, keeper, supplyKeeper, genesisState)
-
-	abcivals := make([]abci.ValidatorUpdate, 16)
-	for i, validator := range validators[:16] {
-		abcivals[i] = validator.ABCIValidatorUpdate(keeper.TotalStake(ctx, validator))
+		abcivals[i] = validator.ABCIValidatorUpdate()
 	}
 
 	require.Equal(t, abcivals, vals)
