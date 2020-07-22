@@ -1,10 +1,9 @@
 #!/bin/bash
 
 nodes=(
-    "test-node-fra1-01"
-    "test-node-fra1-02"
-    "test-node-nyc3-01"
-    "test-node-sgp1-01"
+    "dev-node-fra1-01"
+    "dev-node-fra1-02"
+    "dev-node-tor1-01"
 )
 
 # Prepare all nodes
@@ -14,68 +13,54 @@ do
     rm -rf ~/.decimal-$node/daemon
 
     # Initialize new blockchain
-    decd init $node --home ~/.decimal-$node/daemon --chain-id decimal-testnet-07-17-17-30
+    decd init $node --home ~/.decimal-$node/daemon --chain-id decimal-devnet-07-22-13-30
 
     # Add initial funds to the genesis file
-    decd add-genesis-account dx16rr3cvdgj8jsywhx8lfteunn9uz0xg2c7ua9nl  40000000000000000000000000tdel --home ~/.decimal-$node/daemon # validator on fra1-01  ( 40,000,000 tDEL)
-    decd add-genesis-account dx1ajytg8jg8ypx0rj9p792x32fuxyezga43jd3ry  40000000000000000000000000tdel --home ~/.decimal-$node/daemon # validator on fra1-02  ( 40,000,000 tDEL)
-    decd add-genesis-account dx1azre0dtclv5y05ufynkhswzh0cwh4ktzlas3mp  40000000000000000000000000tdel --home ~/.decimal-$node/daemon # validator on nyc3-01  ( 40,000,000 tDEL)
-    decd add-genesis-account dx1j3j2mwxnvlmsu2tkwm4z5390vq8v337wd6hmg2  40000000000000000000000000tdel --home ~/.decimal-$node/daemon # validator on sgp1-01  ( 40,000,000 tDEL)
-    decd add-genesis-account dx1twjeqjvqcznu2uqagms55e4a8rtakapddkgcsm 160000000000000000000000000tdel --home ~/.decimal-$node/daemon # faucet                (160,000,000 tDEL)
-    decd add-genesis-account dx1a0329z2gdh98mn4m6uzssan82t7vf03nv7t38g  20000000000000000000000000tdel --home ~/.decimal-$node/daemon # tanker                ( 20,000,000 tDEL)
+    decd add-genesis-account dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v  40000000000000000000000000tdel --home ~/.decimal-$node/daemon # validator on fra1-01  ( 40,000,000 tDEL)
+    decd add-genesis-account dx1mvqrrrlcd0gdt256jxg7n68e4neppu5t24e8h6  40000000000000000000000000tdel --home ~/.decimal-$node/daemon # validator on fra1-02  ( 40,000,000 tDEL)
+    decd add-genesis-account dx1nrr6er27mmcufmaqm4dyu6c5r6489cfm35m4ft  40000000000000000000000000tdel --home ~/.decimal-$node/daemon # validator on tor1-01  ( 40,000,000 tDEL)
+    decd add-genesis-account dx1tvqxh4x7pedyqpzqp9tdf068k4q9j2hm3lmghl 200000000000000000000000000tdel --home ~/.decimal-$node/daemon # faucet                (200,000,000 tDEL)
+    decd add-genesis-account dx1mtlnpmwf8zr6pek6gq25nv45x2890sne2ap0cc  20000000000000000000000000tdel --home ~/.decimal-$node/daemon # tanker                ( 20,000,000 tDEL)
 done
 
 # Add initial signed transactions to the genesis file
 decd gentx \
-    --name test-node-fra1-01 \
+    --name dev-node-fra1-01 \
     --sequence 0 \
     --amount 40000000000000000000000000tdel \
-    --pubkey dxvalconspub1zcjduepquc5nas24rhqm0l8lyte0dfx2k3uda56wdn998lyrs6mpvsk9xmks6xa0ly \
-    --details "Declaring validator on test-node-fra1-01" \
+    --pubkey dxvalconspub1zcjduepqwwrzqe9dg6tq2s0ps9sl0pqu42x3ypqjyykfaems3stnhpg30agqjczlcj \
+    --details "Declaring validator on dev-node-fra1-01" \
     --website decimalchain.com \
-    --node-id bf7a6b366e3c451a3c12b3a6c01af7230fb92fc7 \
-    --ip 139.59.133.148 \
+    --node-id 8a2cc38f5264e9699abb8db91c9b4a4a061f000d \
+    --ip 46.101.127.241 \
     --keyring-backend test \
-    --home ~/.decimal-test-node-fra1-01/daemon
+    --home ~/.decimal-dev-node-fra1-01/daemon
 
 # Add initial signed transactions to the genesis file
 decd gentx \
-    --name test-node-fra1-02 \
+    --name dev-node-fra1-02 \
     --sequence 0 \
     --amount 40000000000000000000000000tdel \
-    --pubkey dxvalconspub1zcjduepq5hj3p750mves8wpmh4ywy6yjkz72sppr2kmzk7lzeedyelauwamsl3c57q \
-    --details "Declaring validator on test-node-fra1-02" \
+    --pubkey dxvalconspub1zcjduepquhdcn6578xh37gpmwn89vlq8cu402gm5nvnkels3kpnz9a3gcyxqgexz4q \
+    --details "Declaring validator on dev-node-fra1-02" \
     --website decimalchain.com \
-    --node-id c0b9b6c9a0f95e3d2f4aed890806739fc77faefd \
-    --ip 64.225.110.228 \
+    --node-id e0e7a88de0b39bd2adceb3516d353582ff94ec15 \
+    --ip 164.90.211.234 \
     --keyring-backend test \
-    --home ~/.decimal-test-node-fra1-02/daemon
+    --home ~/.decimal-dev-node-fra1-02/daemon
 
 # Add initial signed transactions to the genesis file
 decd gentx \
-    --name test-node-nyc3-01 \
+    --name dev-node-tor1-01 \
     --sequence 0 \
     --amount 40000000000000000000000000tdel \
-    --pubkey dxvalconspub1zcjduepqjwlm5xcsp60v6fgwt95zq624yjhjnpkrzm209c5f8ajz8rdvq6gsdx5y2l \
-    --details "Declaring validator on test-node-nyc3-01" \
+    --pubkey dxvalconspub1zcjduepqcl2c373fljlpm0lfut5c4adq4x08fsd9ufqm6fsq3e6p4fqg7xeqkx0m98 \
+    --details "Declaring validator on dev-node-tor1-01" \
     --website decimalchain.com \
-    --node-id 76b81a4b817b39d63a3afe1f3a294f2a8f5c55b0 \
-    --ip 64.225.56.107 \
+    --node-id 27fcfef145b3717c5d639ec72fb12f9c43da98f0 \
+    --ip 167.99.182.218 \
     --keyring-backend test \
-    --home ~/.decimal-test-node-nyc3-01/daemon
-
-# Add initial signed transactions to the genesis file
-decd gentx \
-    --name test-node-sgp1-01 \
-    --sequence 0 \
-    --amount 40000000000000000000000000tdel \
-    --pubkey dxvalconspub1zcjduepq73se7rmlycftjta3ydjvrjmn28rrweyxyg42tzfr5lcw6lx8zl7qc6dpss \
-    --details "Declaring validator on test-node-sgp1-01" \
-    --website decimalchain.com \
-    --node-id 29e566c41d51be90fa53340ba4edccefbebe8cb2 \
-    --ip 139.59.192.48 \
-    --keyring-backend test \
-    --home ~/.decimal-test-node-sgp1-01/daemon
+    --home ~/.decimal-dev-node-tor1-01/daemon
 
 # Finish all nodes
 for node in "${nodes[@]}"
