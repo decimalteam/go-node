@@ -61,10 +61,11 @@ type QueryBondsParams struct {
 	Coin          string
 }
 
-func NewQueryBondsParams(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress) QueryBondsParams {
+func NewQueryBondsParams(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, coin string) QueryBondsParams {
 	return QueryBondsParams{
 		DelegatorAddr: delegatorAddr,
 		ValidatorAddr: validatorAddr,
+		Coin:          coin,
 	}
 }
 

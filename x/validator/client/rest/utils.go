@@ -40,6 +40,7 @@ func queryBonds(cliCtx context.CLIContext, endpoint string) http.HandlerFunc {
 		vars := mux.Vars(r)
 		bech32delegator := vars["delegatorAddr"]
 		bech32validator := vars["validatorAddr"]
+		coin := vars["coin"]
 
 		delegatorAddr, err := sdk.AccAddressFromBech32(bech32delegator)
 		if err != nil {
@@ -58,7 +59,7 @@ func queryBonds(cliCtx context.CLIContext, endpoint string) http.HandlerFunc {
 			return
 		}
 
-		params := types.NewQueryBondsParams(delegatorAddr, validatorAddr)
+		params := types.NewQueryBondsParams(delegatorAddr, validatorAddr, coin)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
