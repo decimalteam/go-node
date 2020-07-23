@@ -13,7 +13,7 @@ do
     rm -rf ~/.decimal-$node/daemon
 
     # Initialize new blockchain
-    decd init $node --home ~/.decimal-$node/daemon --chain-id decimal-devnet-07-22-19-00
+    decd init $node --home ~/.decimal-$node/daemon --chain-id decimal-devnet-07-23-20-55
 
     # Add initial funds to the genesis file
     decd add-genesis-account dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v  40000000000000000000000000del --home ~/.decimal-$node/daemon # validator on fra1-01  ( 40,000,000 DEL)

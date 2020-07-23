@@ -9,7 +9,7 @@ echo "Step 1. Clear current state."
 rm $HOME/.decimal -r
 
 echo "Create basic configs."
-decd init $(hostname) --chain-id=decimal-devnet-07-22-19-00
+decd init $(hostname) --chain-id=decimal-devnet-07-23-20-55
 rm -r $HOME/.decimal/daemon/data
 shopt -s extglob
 cd $HOME/.decimal/daemon/config/
