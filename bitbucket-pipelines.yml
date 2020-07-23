@@ -15,6 +15,7 @@ definitions:
           - export GO111MODULE=on
           - cd "${PACKAGE_PATH}"
           - go get ./...
+          - go test ./...
           - make all
           - mkdir ${BITBUCKET_CLONE_DIR}/build
           - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
