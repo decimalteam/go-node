@@ -124,7 +124,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.
 				return err
 			}
 
-			lineBreaker := "================================================================"
+			lineBreaker := "================================================================================================================================"
 			txJSON, err := cdc.MarshalJSONIndent(signedTx, "", "  ")
 			if err != nil {
 				return err
