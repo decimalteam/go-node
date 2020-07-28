@@ -1,5 +1,13 @@
 ---
 # tasks file for decimal-update
+- name: Install required packages (leveldb, snappy)
+  dnf:
+    name:
+      - leveldb
+      - snappy
+    state: latest
+  become: yes
+
 - name: Create binary dir with parent directories if it not exists
   file:
     path: '{{ decimal_bin }}'

@@ -1,5 +1,20 @@
 ---
-# tasks file for clear data and update binary files
+# tasks file 
+- name: Install epel-release (need for leveldb)
+  dnf:
+    name:
+      - epel-release  
+    state: latest
+  become: yes
+
+- name: Install required packages (leveldb, snappy)
+  dnf:
+    name:
+      - leveldb
+      - snappy
+    state: latest
+  become: yes
+
 - name: Clear current blockchain state (remove keys and data dir)
   file:
     path: '{{ decimal_data }}'

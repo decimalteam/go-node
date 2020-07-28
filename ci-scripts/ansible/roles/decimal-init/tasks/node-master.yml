@@ -1,7 +1,7 @@
 ---
 # tasks file for decimal validator nodes
 - name: Include tasks for clear data and update binary files
-  include: node-common-clear.yml
+  include: node-common-at-first.yml
 
 - name: Initialize private validator, p2p, genesis, and application configuration files
   shell: '{{ decimal_bin }}/decd init $(hostname) --chain-id={{ chain_id }}'
