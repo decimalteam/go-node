@@ -552,9 +552,6 @@ func (k Keeper) CalculateBipValue(ctx sdk.Context, value sdk.Coin, includeSelf b
 }
 
 func (k Keeper) DecreaseValidatorTokens(ctx sdk.Context, validator types.Validator, amount sdk.Int) sdk.Int {
-	if validator.Tokens.LT(amount) {
-		return sdk.ZeroInt()
-	}
 	validator.Tokens = validator.Tokens.Sub(amount)
 	err := k.SetValidator(ctx, validator)
 	if err != nil {

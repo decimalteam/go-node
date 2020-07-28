@@ -305,7 +305,13 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		if err != nil {
 			return ctx, err
 		}
-		ctx.GasMeter().ConsumeGas(helpers.PipToUnit(commissionInBaseCoin).Uint64(), "commission")
+		if len(msgs) == 1 {
+			if msgs[0].Type() == validator.DelegateConst {
+				ctx.GasMeter().ConsumeGas(helpers.PipToUnit(commissionInBaseCoin).Uint64()*10, "commission")
+			} else {
+				ctx.GasMeter().ConsumeGas(helpers.PipToUnit(commissionInBaseCoin).Uint64(), "commission")
+			}
+		}
 		return next(ctx, tx, simulate)
 	}
 

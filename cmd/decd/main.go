@@ -64,6 +64,10 @@ func main() {
 			ctx, cdc, app.ModuleBasics, validator.AppModuleBasic{},
 			auth.GenesisAccountIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
+		genutilcli.GenDeclareCandidateTxCmd(
+			ctx, cdc, app.ModuleBasics, validator.AppModuleBasic{},
+			auth.GenesisAccountIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
+		),
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
 		// AddGenesisAccountCmd allows users to add accounts to the genesis file
 		addGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome),

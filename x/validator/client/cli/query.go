@@ -164,7 +164,7 @@ $ %s query validator unbonding-delegations-from cosmosvaloper1gghjut3ccd8ay0zduz
 // GetCmdQueryDelegation the query delegation command.
 func GetCmdQueryDelegation(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "delegation [delegator-addr] [validator-addr]",
+		Use:   "delegation [delegator-addr] [validator-addr] [coin]",
 		Short: "Query a delegation based on address and validator address",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query delegations for an individual delegator on an individual validator.
@@ -175,7 +175,7 @@ $ %s query validator delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p co
 				version.ClientName,
 			),
 		),
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
@@ -189,7 +189,9 @@ $ %s query validator delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p co
 				return err
 			}
 
-			bz, err := cdc.MarshalJSON(types.NewQueryBondsParams(delAddr, valAddr))
+			coin := args[2]
+
+			bz, err := cdc.MarshalJSON(types.NewQueryBondsParams(delAddr, valAddr, coin))
 			if err != nil {
 				return err
 			}
@@ -329,7 +331,7 @@ $ %s query validator unbonding-delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9l
 				return err
 			}
 
-			bz, err := cdc.MarshalJSON(types.NewQueryBondsParams(delAddr, valAddr))
+			bz, err := cdc.MarshalJSON(types.NewQueryBondsParams(delAddr, valAddr, ""))
 			if err != nil {
 				return err
 			}

@@ -92,7 +92,7 @@ func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
 
 	cmd.Flags().AddFlagSet(FsPk)
 	cmd.Flags().AddFlagSet(FsAmount)
-	cmd.Flags().AddFlagSet(fsDescriptionCreate)
+	cmd.Flags().AddFlagSet(FsDescriptionCreate)
 	cmd.Flags().AddFlagSet(FsCommissionCreate)
 
 	cmd.Flags().String(FlagIP, "", fmt.Sprintf("The node's public IP. It takes effect only when used in combination with --%s", flags.FlagGenerateOnly))
@@ -113,9 +113,13 @@ func CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, 
 	fsCreateValidator := flag.NewFlagSet("", flag.ContinueOnError)
 	fsCreateValidator.String(FlagIP, ipDefault, "The node's public IP")
 	fsCreateValidator.String(FlagNodeID, "", "The node's NodeID")
+	fsCreateValidator.String(FlagMoniker, "", "The validator's (optional) moniker")
 	fsCreateValidator.String(FlagWebsite, "", "The validator's (optional) website")
 	fsCreateValidator.String(FlagDetails, "", "The validator's (optional) details")
+	fsCreateValidator.String(FlagSecurityContact, "", "The (optional) security contract")
 	fsCreateValidator.String(FlagIdentity, "", "The (optional) identity signature (ex. UPort or Keybase)")
+	fsCreateValidator.String(FlagRewardAddress, "", "Address of account receiving validator's rewards (optional)")
+
 	fsCreateValidator.AddFlagSet(FsCommissionCreate)
 	fsCreateValidator.AddFlagSet(FsAmount)
 	fsCreateValidator.AddFlagSet(FsPk)
@@ -135,6 +139,7 @@ func PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string
 	securityContact := viper.GetString(FlagSecurityContact)
 	details := viper.GetString(FlagDetails)
 	identity := viper.GetString(FlagIdentity)
+	rewardAddr := viper.GetString(FlagRewardAddress)
 
 	viper.Set(flags.FlagChainID, chainID)
 	viper.Set(flags.FlagFrom, viper.GetString(flags.FlagName))
@@ -146,6 +151,7 @@ func PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string
 	viper.Set(FlagSecurityContact, securityContact)
 	viper.Set(FlagDetails, details)
 	viper.Set(FlagIdentity, identity)
+	viper.Set(FlagRewardAddress, rewardAddr)
 
 	if config.Moniker == "" {
 		viper.Set(FlagMoniker, viper.GetString(flags.FlagName))
@@ -167,6 +173,14 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 	}
 
 	valAddr := cliCtx.GetFromAddress()
+	rewardAddr := valAddr
+	rewardAddrStr := viper.GetString(FlagRewardAddress)
+	if len(rewardAddrStr) > 0 {
+		rewardAddr, err = sdk.AccAddressFromBech32(rewardAddrStr)
+		if err != nil {
+			return txBldr, nil, err
+		}
+	}
 	pkStr := viper.GetString(FlagPubKey)
 
 	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
@@ -189,7 +203,7 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 		return txBldr, nil, err
 	}
 
-	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, description, valAddr)
+	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, description, rewardAddr)
 
 	ip := viper.GetString(FlagIP)
 	nodeID := viper.GetString(FlagNodeID)
@@ -325,8 +339,8 @@ func GetEditCandidate(cdc *codec.Codec) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(fsDescriptionEdit)
-	cmd.Flags().AddFlagSet(fsCommissionUpdate)
+	cmd.Flags().AddFlagSet(FsDescriptionEdit)
+	cmd.Flags().AddFlagSet(FsCommissionUpdate)
 
 	return cmd
 }

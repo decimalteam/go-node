@@ -203,7 +203,7 @@ func TestQueryDelegation(t *testing.T) {
 	keeper.SetValidator(ctx, val2)
 	keeper.SetValidatorByPowerIndex(ctx, val2)
 
-	delTokens := sdk.TokensFromConsensusPower(20)
+	delTokens := types.TokensFromConsensusPower(20)
 	err := keeper.Delegate(ctx, addrAcc2, sdk.NewCoin(keeper.BondDenom(ctx), delTokens), types.Unbonded, val1, true)
 	require.NoError(t, err)
 
@@ -240,7 +240,7 @@ func TestQueryDelegation(t *testing.T) {
 	require.Error(t, err)
 
 	// Query bonded validator
-	queryBondParams := types.NewQueryBondsParams(addrAcc2, addrVal1)
+	queryBondParams := types.NewQueryBondsParams(addrAcc2, addrVal1, keeper.BondDenom(ctx))
 	bz, errRes = cdc.MarshalJSON(queryBondParams)
 	require.NoError(t, errRes)
 
@@ -271,7 +271,7 @@ func TestQueryDelegation(t *testing.T) {
 		Data: bz,
 	}
 
-	delegation, found := keeper.GetDelegation(ctx, addrAcc2, addrVal1)
+	delegation, found := keeper.GetDelegation(ctx, addrAcc2, addrVal1, keeper.BondDenom(ctx))
 	require.True(t, found)
 
 	res, err = queryDelegation(ctx, query, keeper)
@@ -330,11 +330,11 @@ func TestQueryDelegation(t *testing.T) {
 	require.Equal(t, delegation.Coin, delegationsRes[0].Coin)
 
 	// Query unbonging delegation
-	unbondingTokens := sdk.TokensFromConsensusPower(10)
+	unbondingTokens := types.TokensFromConsensusPower(10)
 	_, err = keeper.Undelegate(ctx, addrAcc2, val1.ValAddress, sdk.NewCoin(keeper.BondDenom(ctx), unbondingTokens))
 	require.NoError(t, err)
 
-	queryBondParams = types.NewQueryBondsParams(addrAcc2, addrVal1)
+	queryBondParams = types.NewQueryBondsParams(addrAcc2, addrVal1, keeper.BondDenom(ctx))
 	bz, errRes = cdc.MarshalJSON(queryBondParams)
 	require.NoError(t, errRes)
 
@@ -393,14 +393,14 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	require.NoError(t, err)
 
 	// delegate
-	delAmount := sdk.TokensFromConsensusPower(100)
+	delAmount := types.TokensFromConsensusPower(100)
 	err = keeper.Delegate(ctx, addrAcc1, sdk.NewCoin(keeper.BondDenom(ctx), delAmount), types.Unbonded, val1, true)
 	require.NoError(t, err)
 	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
 	require.NoError(t, err)
 
 	// undelegate
-	undelAmount := sdk.TokensFromConsensusPower(20)
+	undelAmount := types.TokensFromConsensusPower(20)
 	_, err = keeper.Undelegate(ctx, addrAcc1, val1.GetOperator(), sdk.NewCoin(keeper.BondDenom(ctx), undelAmount))
 	require.NoError(t, err)
 	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
@@ -412,7 +412,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	//
 	// found: query unbonding delegation by delegator and validator
 	//
-	queryValidatorParams := types.NewQueryBondsParams(addrAcc1, val1.GetOperator())
+	queryValidatorParams := types.NewQueryBondsParams(addrAcc1, val1.GetOperator(), keeper.BondDenom(ctx))
 	bz, errRes := cdc.MarshalJSON(queryValidatorParams)
 	require.NoError(t, errRes)
 	query := abci.RequestQuery{
@@ -431,7 +431,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	//
 	// not found: query unbonding delegation by delegator and validator
 	//
-	queryValidatorParams = types.NewQueryBondsParams(addrAcc2, val1.GetOperator())
+	queryValidatorParams = types.NewQueryBondsParams(addrAcc2, val1.GetOperator(), keeper.BondDenom(ctx))
 	bz, errRes = cdc.MarshalJSON(queryValidatorParams)
 	require.NoError(t, errRes)
 	query = abci.RequestQuery{
