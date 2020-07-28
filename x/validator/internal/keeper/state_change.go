@@ -104,9 +104,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
-			if !validator.Online {
-				updates = append(updates, validator.ABCIValidatorUpdateZero())
-			} else {
+			if validator.Online {
 				updates = append(updates, validator.ABCIValidatorUpdate())
 			}
 
