@@ -129,10 +129,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.
 			if err != nil {
 				return err
 			}
-			fmt.Printf(
-				"%s\nPlease, copy following JSON object AS IS to be used in genesis.json file:\n%s\n%s\n%s\n",
-				lineBreaker, lineBreaker, string(txJSON), lineBreaker,
-			)
+			fmt.Println(string(txJSON))
 			return nil
 
 		},
