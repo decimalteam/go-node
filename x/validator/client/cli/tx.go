@@ -205,11 +205,12 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 
 	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, description, rewardAddr)
 
-	ip := viper.GetString(FlagIP)
-	nodeID := viper.GetString(FlagNodeID)
-	if nodeID != "" && ip != "" {
-		txBldr = txBldr.WithMemo(fmt.Sprintf("%s@%s:26656", nodeID, ip))
-	}
+	// NOTE: No need to show public IP of the node
+	// ip := viper.GetString(FlagIP)
+	// nodeID := viper.GetString(FlagNodeID)
+	// if nodeID != "" && ip != "" {
+	// 	txBldr = txBldr.WithMemo(fmt.Sprintf("%s@%s:26656", nodeID, ip))
+	// }
 
 	return txBldr, msg, nil
 }
