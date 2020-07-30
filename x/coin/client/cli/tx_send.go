@@ -1,16 +1,18 @@
 package cli
 
 import (
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-	"fmt"
+	"strings"
+
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/spf13/cobra"
-	"strings"
+
+	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
@@ -20,13 +22,15 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			coin := args[0]
 			amount, _ := sdk.NewIntFromString(args[1])
 			receiver, err := sdk.AccAddressFromBech32(args[2])
-			print(err)
-			msg := types.NewMsgSendCoin(cliCtx.GetFromAddress(), coin, amount, receiver)
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgSendCoin(cliCtx.GetFromAddress(), sdk.NewCoin(coin, amount), receiver)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -34,16 +38,18 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 
 			// Check if coin exists
 			existsCoin, _ := cliUtils.ExistsCoin(cliCtx, coin)
-			print(err)
 			if !existsCoin {
-				return sdk.NewError(types.DefaultCodespace, types.CoinToBuyNotExists, fmt.Sprintf("Coin to sent with symbol %s does not exist", coin))
+				return types.ErrCoinDoesNotExist(coin)
 			}
 
 			// Check if enough balance
-			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+			acc, err := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
 			balance := acc.GetCoins()
 			if balance.AmountOf(strings.ToLower(coin)).LT(amount) {
-				return sdk.NewError(types.DefaultCodespace, types.InsufficientCoinToSell, "Not enough coin to send")
+				return types.ErrInsufficientFunds(amount.String(), balance.AmountOf(strings.ToLower(coin)).String())
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},

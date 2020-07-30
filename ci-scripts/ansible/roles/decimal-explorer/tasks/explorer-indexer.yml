@@ -1,0 +1,25 @@
+---
+# tasks file for decimal explorer indexer
+- name: Stop indexer explorer process
+  shell: pm2 stop all
+
+- name: Drop schema "public" with cascade
+  postgresql_schema:
+    db: orderer
+    name: public
+    state: absent
+    cascade_drop: yes
+  become: yes
+  become_user: postgres
+
+- name: Create schema "public"
+  postgresql_schema:
+    db: orderer
+    name: public
+    owner: orderer
+    state: present
+  become: yes
+  become_user: postgres
+
+- name: Start indexer explorer process
+  shell: pm2 start all  

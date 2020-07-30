@@ -1,0 +1,47 @@
+---
+# tasks file for check & stop service & create it if not exist
+- name: Check if Explorer Indexer Worker Service Exists
+  stat: path={{ systemd_path }}/{{ service_name_worker }}
+  when: ansible_hostname.find('explorer-node') != -1  
+
+- name: Check if deccli Service Exists
+  stat: path={{ systemd_path }}/{{ service_name_rest }}
+  register: service_status_rest
+
+- name: Check if decd Service Exists
+  stat: path={{ systemd_path }}/{{ service_name_decd }}
+  register: service_status_decd
+
+- name: Stop service Explorer Indexer Worker, if started
+  service:
+    name: '{{ service_name_worker }}'
+    state: stopped
+  when: ansible_hostname.find('explorer-node') != -1
+  become: yes
+  notify: run service Explorer Indexer Worker
+
+- name: Stop service decd rest, if started
+  service:
+    name: '{{ service_name_rest }}'
+    state: stopped
+  when: service_status_rest.stat.exists
+  become: yes
+
+- name: Stop service decd, if started
+  service:
+    name: '{{ service_name_decd }}'
+    state: stopped
+  when: service_status_decd.stat.exists
+  become: yes
+
+- name: Register or update decd service
+  template:
+    src: ./{{ service_name_decd }}.j2
+    dest: '{{ systemd_path }}/{{ service_name_decd }}'
+  become: yes
+
+- name: Register or update decd rest service
+  template:
+    src: ./{{ service_name_rest }}.j2
+    dest: '{{ systemd_path }}/{{ service_name_rest }}'
+  become: yes

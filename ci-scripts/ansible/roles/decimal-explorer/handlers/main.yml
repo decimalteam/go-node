@@ -1,0 +1,11 @@
+---
+- name: reload systemctl
+  command: systemctl daemon-reload
+  become: yes
+
+- name: run service Explorer Indexer Worker
+  service:
+    name: '{{ service_name_worker }}'
+    state: started
+    enabled: yes
+  become: yes

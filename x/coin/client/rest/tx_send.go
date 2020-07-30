@@ -1,15 +1,16 @@
 package rest
 
 import (
+	"fmt"
+	"net/http"
+	"strings"
+
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"net/http"
-	"strings"
 )
 
 type CoinSendReq struct {
@@ -42,7 +43,7 @@ func CoinSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgSendCoin(addr, coin, amount, receiver)
+		msg := types.NewMsgSendCoin(addr, sdk.NewCoin(coin, amount), receiver)
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -58,7 +59,11 @@ func CoinSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Check if enough balance
-		acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+		acc, err := cliUtils.GetAccount(cliCtx, addr)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 		balance := acc.GetCoins()
 		if balance.AmountOf(strings.ToLower(coin)).LT(amount) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "Not enough coin to send")

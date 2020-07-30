@@ -1,15 +1,16 @@
 package rest
 
 import (
+	"fmt"
+	"net/http"
+	"strconv"
+
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"net/http"
-	"strconv"
 )
 
 type CoinCreateReq struct {
@@ -49,10 +50,20 @@ func CoinCreateRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		var initVolume, _ = sdk.NewIntFromString(req.LimitVolume)
 		var limitVolume, _ = sdk.NewIntFromString(req.LimitVolume)
 
-		msg := types.NewMsgCreateCoin(title, uint(crr), symbol, initVolume, initReserve, limitVolume, addr)
+		msg := types.NewMsgCreateCoin(addr, title, symbol, uint(crr), initVolume, initReserve, limitVolume)
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		acc, err := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		balance := acc.GetCoins()
+		if balance.AmountOf(cliUtils.GetBaseCoin()).LT(initReserve) {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "Not enough coin to reserve")
 			return
 		}
 		// Check if coin does not exist yet

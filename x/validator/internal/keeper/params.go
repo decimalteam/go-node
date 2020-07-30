@@ -1,23 +1,74 @@
 package keeper
 
-/*
-// TODO: Define if your module needs Parameters, if not this can be deleted
-
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
-// GetParams returns the total set of validator parameters.
-func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	k.paramspace.GetParamSet(ctx, &params)
-	return params
+// Default parameter namespace
+const (
+	DefaultParamspace = types.ModuleName
+)
+
+// ParamTable for staking module
+func ParamKeyTable() params.KeyTable {
+	return params.NewKeyTable().RegisterParamSet(&types.Params{})
 }
 
-// SetParams sets the validator parameters to the param space.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramspace.SetParamSet(ctx, &params)
+// UnbondingTime
+func (k Keeper) UnbondingTime(ctx sdk.Context) (res time.Duration) {
+	k.paramSpace.Get(ctx, types.KeyUnbondingTime, &res)
+	return
 }
-*/
+
+// MaxValidators - Maximum number of validators
+func (k Keeper) MaxValidators(ctx sdk.Context) (res uint16) {
+	k.paramSpace.Get(ctx, types.KeyMaxValidators, &res)
+	return
+}
+
+// MaxEntries - Maximum number of simultaneous unbonding
+// delegations or redelegations (per pair/trio)
+func (k Keeper) MaxEntries(ctx sdk.Context) (res uint16) {
+	k.paramSpace.Get(ctx, types.KeyMaxEntries, &res)
+	return
+}
+
+// BondDenom - Bondable coin denomination
+func (k Keeper) BondDenom(ctx sdk.Context) (res string) {
+	k.paramSpace.Get(ctx, types.KeyBondDenom, &res)
+	return
+}
+
+// HistoricalEntries = number of historical info entries
+// to persist in store
+func (k Keeper) HistoricalEntries(ctx sdk.Context) (res uint16) {
+	k.paramSpace.Get(ctx, types.KeyHistoricalEntries, &res)
+	return
+}
+
+// MaxDelegations = maximum number of delegations per validator
+func (k Keeper) MaxDelegations(ctx sdk.Context) (res uint16) {
+	k.paramSpace.Get(ctx, types.KeyMaxDelegations, &res)
+	return
+}
+
+// Get all parameteras as types.Params
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	return types.NewParams(
+		k.UnbondingTime(ctx),
+		k.MaxValidators(ctx),
+		k.MaxEntries(ctx),
+		k.HistoricalEntries(ctx),
+		k.BondDenom(ctx),
+		k.MaxDelegations(ctx),
+	)
+}
+
+// set the params
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	k.paramSpace.SetParamSet(ctx, &params)
+}

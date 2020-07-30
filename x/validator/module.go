@@ -5,18 +5,25 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/crypto"
 
-	"bitbucket.org/decimalteam/go-node/x/validator/client/cli"
-	"bitbucket.org/decimalteam/go-node/x/validator/client/rest"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/validator/client/cli"
+	"bitbucket.org/decimalteam/go-node/x/validator/client/rest"
 )
 
+// Type check to ensure the interface is properly implemented
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
@@ -25,11 +32,9 @@ var (
 // AppModuleBasic defines the basic application module used by the validator module.
 type AppModuleBasic struct{}
 
-var _ module.AppModuleBasic = AppModuleBasic{}
-
 // Name returns the validator module's name.
 func (AppModuleBasic) Name() string {
-	return types.ModuleName
+	return ModuleName
 }
 
 // RegisterCodec registers the validator module's types for the given codec.
@@ -68,22 +73,43 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(StoreKey, cdc)
 }
 
-//____________________________________________________________________________
+//_____________________________________
+// extra helpers
+
+// CreateValidatorMsgHelpers - used for gen-tx
+func (AppModuleBasic) CreateValidatorMsgHelpers(ipDefault string) (
+	fs *flag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string) {
+	return cli.CreateValidatorMsgHelpers(ipDefault)
+}
+
+// PrepareFlagsForTxCreateValidator - used for gen-tx
+func (AppModuleBasic) PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID,
+	chainID string, valPubKey crypto.PubKey) {
+	cli.PrepareFlagsForTxCreateValidator(config, nodeID, chainID, valPubKey)
+}
+
+// BuildCreateValidatorMsg - used for gen-tx
+func (AppModuleBasic) BuildCreateValidatorMsg(cliCtx context.CLIContext,
+	txBldr authtypes.TxBuilder) (authtypes.TxBuilder, sdk.Msg, error) {
+	return cli.BuildCreateValidatorMsg(cliCtx, txBldr)
+}
 
 // AppModule implements an application module for the validator module.
 type AppModule struct {
 	AppModuleBasic
 
-	keeper Keeper
-	// TODO: Add keepers that your application depends on
+	keeper       Keeper
+	supplyKeeper supply.Keeper
+	coinKeeper   coin.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper /*TODO: Add Keepers that your application depends on*/) AppModule {
+func NewAppModule(k Keeper, supplyKeeper supply.Keeper, coinKeeper coin.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
-		// TODO: Add keepers that your application depends on
+		supplyKeeper:   supplyKeeper,
+		coinKeeper:     coinKeeper,
 	}
 }
 
@@ -120,8 +146,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.stakingKeeper, genesisState)
-	return []abci.ValidatorUpdate{}
+	return InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the validator
@@ -138,6 +163,6 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 
 // EndBlock returns the end blocker for the validator module. It returns no validator
 // updates.
-func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
+func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return EndBlocker(ctx, am.keeper, am.coinKeeper, am.supplyKeeper, true)
 }

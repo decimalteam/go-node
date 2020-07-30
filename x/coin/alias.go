@@ -15,6 +15,14 @@ const (
 	DefaultCodespace  = types.DefaultCodespace
 	//QueryParams       = types.QueryParams
 	QuerierRoute = types.QuerierRoute
+
+	BuyCoinConst       = types.BuyCoinConst
+	SellCoinConst      = types.SellCoinConst
+	MultiSendCoinConst = types.MultiSendCoinConst
+	RedeemCheckConst   = types.RedeemCheckConst
+	SellAllConst       = types.SellAllCoinConst
+	CreateCoinConst    = types.CreateCoinConst
+	SendCoinConst      = types.SendCoinConst
 )
 
 var (
@@ -25,7 +33,13 @@ var (
 	NewGenesisState     = types.NewGenesisState
 	DefaultGenesisState = types.DefaultGenesisState
 	ValidateGenesis     = types.ValidateGenesis
-	// TODO: Fill out function aliases
+	NewMsgSendCoin      = types.NewMsgSendCoin
+	NewMsgBuyCoin       = types.NewMsgBuyCoin
+	NewMsgSellCoin      = types.NewMsgSellCoin
+	NewMsgCreateCoin    = types.NewMsgCreateCoin
+	NewMsgSellAllCoin   = types.NewMsgSellAllCoin
+	NewMsgMultiSendCoin = types.NewMsgMultiSendCoin
+	NewMsgRedeemCheck   = types.NewMsgRedeemCheck
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
@@ -33,9 +47,17 @@ var (
 )
 
 type (
-	Keeper       = keeper.Keeper
-	CodeType     = types.CodeType
-	GenesisState = types.GenesisState
-	Params       = types.Params
-	Coin         = types.Coin
+	Keeper           = keeper.Keeper
+	CodeType         = types.CodeType
+	GenesisState     = types.GenesisState
+	Params           = types.Params
+	Coin             = types.Coin
+	MsgSendCoin      = types.MsgSendCoin
+	MsgBuyCoin       = types.MsgBuyCoin
+	MsgSellCoin      = types.MsgSellCoin
+	MsgCreateCoin    = types.MsgCreateCoin
+	MsgSellAllCoin   = types.MsgSellAllCoin
+	MsgMultiSendCoin = types.MsgMultiSendCoin
+	MsgRedeemCheck   = types.MsgRedeemCheck
+	Send             = types.Send
 )

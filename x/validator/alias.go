@@ -11,10 +11,22 @@ const (
 	ModuleName        = types.ModuleName
 	RouterKey         = types.RouterKey
 	StoreKey          = types.StoreKey
-	DefaultParamspace = types.DefaultParamspace
+	TStoreKey         = types.TStoreKey
+	DefaultParamSpace = keeper.DefaultParamspace
 	DefaultCodespace  = types.DefaultCodespace
-	QueryParams       = types.QueryParams
 	QuerierRoute      = types.QuerierRoute
+	NotBondedPoolName = types.NotBondedPoolName
+	BondedPoolName    = types.BondedPoolName
+	DefaultBondDenom  = types.DefaultBondDenom
+
+	ValidatorsKey = types.ValidatorsKey
+
+	DeclareCandidateConst = types.DeclareCandidateConst
+	DelegateConst         = types.DelegateConst
+	SetOnlineConst        = types.SetOnlineConst
+	SetOfflineConst       = types.SetOfflineConst
+	UnbondConst           = types.UnbondConst
+	EditCandidateConst    = types.EditCandidateConst
 )
 
 var (
@@ -22,14 +34,22 @@ var (
 	NewKeeper           = keeper.NewKeeper
 	NewQuerier          = keeper.NewQuerier
 	RegisterCodec       = types.RegisterCodec
-	NewGenesisState     = types.NewGenesisState
 	DefaultGenesisState = types.DefaultGenesisState
-	ValidateGenesis     = types.ValidateGenesis
-	// TODO: Fill out function aliases
+
+	NewMsgDeclareCandidate = types.NewMsgDeclareCandidate
+	NewMsgEditCandidate    = types.NewMsgEditCandidate
+	NewMsgDelegate         = types.NewMsgDelegate
+	NewMsgUnbond           = types.NewMsgUnbond
+	NewMsgSetOnline        = types.NewMsgSetOnline
+	NewMsgSetOffline       = types.NewMsgSetOffline
+
+	ErrCalculateCommission             = types.ErrCalculateCommission
+	ErrUpdateBalance                   = types.ErrUpdateBalance
+	ErrInsufficientFunds               = types.ErrInsufficientFunds
+	ErrInsufficientCoinToPayCommission = types.ErrInsufficientCoinToPayCommission
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
-	// TODO: Fill out variable aliases
 )
 
 type (
@@ -38,5 +58,14 @@ type (
 	GenesisState = types.GenesisState
 	Params       = types.Params
 
-	// TODO: Fill out module types
+	MsgDeclareCandidate = types.MsgDeclareCandidate
+	MsgEditCandidate    = types.MsgEditCandidate
+	MsgDelegate         = types.MsgDelegate
+	MsgUnbond           = types.MsgUnbond
+	MsgSetOnline        = types.MsgSetOnline
+	MsgSetOffline       = types.MsgSetOffline
+
+	UnbondingDelegation = types.UnbondingDelegation
+
+	Validator = types.Validator
 )

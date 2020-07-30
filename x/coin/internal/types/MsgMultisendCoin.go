@@ -6,25 +6,24 @@ import (
 
 var _ sdk.Msg = &MsgMultiSendCoin{}
 
-type SendCoin struct {
-	Coin     string         `json:"coin" yaml:"coin"`
-	Amount   sdk.Int        `json:"amount" yaml:"amount"`
+type Send struct {
+	Coin     sdk.Coin       `json:"coin" yaml:"coin"`
 	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
 }
 
 type MsgMultiSendCoin struct {
 	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
-	Coins  []SendCoin     `json:"send_coin"`
+	Sends  []Send         `json:"sends"`
 }
 
-func NewMsgMultiSendCoin(sender sdk.AccAddress, coins []SendCoin) MsgMultiSendCoin {
+func NewMsgMultiSendCoin(sender sdk.AccAddress, sends []Send) MsgMultiSendCoin {
 	return MsgMultiSendCoin{
 		Sender: sender,
-		Coins:  coins,
+		Sends:  sends,
 	}
 }
 
-const MultiSendCoinConst = "MultiSendCoin"
+const MultiSendCoinConst = "multi_send_coin"
 
 func (msg MsgMultiSendCoin) Route() string { return RouterKey }
 func (msg MsgMultiSendCoin) Type() string  { return MultiSendCoinConst }
@@ -37,13 +36,12 @@ func (msg MsgMultiSendCoin) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgMultiSendCoin) ValidateBasic() sdk.Error {
-	for i := range msg.Coins {
-		err := ValidateSendCoin(MsgSendCoin{
+func (msg MsgMultiSendCoin) ValidateBasic() error {
+	for i := range msg.Sends {
+		err := ValidateSend(MsgSendCoin{
 			Sender:   msg.Sender,
-			Coin:     msg.Coins[i].Coin,
-			Amount:   msg.Coins[i].Amount,
-			Receiver: msg.Coins[i].Receiver,
+			Coin:     msg.Sends[i].Coin,
+			Receiver: msg.Sends[i].Receiver,
 		})
 
 		if err != nil {

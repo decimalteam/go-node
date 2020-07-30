@@ -1,16 +1,17 @@
 package rest
 
 import (
+	"fmt"
+	"net/http"
+	"strings"
+
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"net/http"
-	"strings"
 )
 
 type CoinSellReq struct {
@@ -55,10 +56,10 @@ func CoinSellRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 		// TODO: Validate limits and check if sufficient balance (formulas)
 
-		valueSell := formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.ConstantReserveRatio, amountToSell)
+		valueSell := formulas.CalculateSaleReturn(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountToSell)
 
 		// Do basic validating
-		msg := types.NewMsgSellCoin(addr, coinToBuySymbol, coinToSellSymbol, valueSell, amountToSell)
+		msg := types.NewMsgSellCoin(addr, sdk.NewCoin(coinToSellSymbol, valueSell), sdk.NewCoin(coinToBuySymbol, amountToSell))
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

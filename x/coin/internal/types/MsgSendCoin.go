@@ -8,21 +8,19 @@ var _ sdk.Msg = &MsgSendCoin{}
 
 type MsgSendCoin struct {
 	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`
-	Coin     string         `json:"coin" yaml:"coin"`
-	Amount   sdk.Int        `json:"amount" yaml:"amount"`
+	Coin     sdk.Coin       `json:"coin" yaml:"coin"`
 	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
 }
 
-func NewMsgSendCoin(sender sdk.AccAddress, coin string, amount sdk.Int, receiver sdk.AccAddress) MsgSendCoin {
+func NewMsgSendCoin(sender sdk.AccAddress, coin sdk.Coin, receiver sdk.AccAddress) MsgSendCoin {
 	return MsgSendCoin{
 		Sender:   sender,
 		Coin:     coin,
-		Amount:   amount,
 		Receiver: receiver,
 	}
 }
 
-const SendCoinConst = "SendCoin"
+const SendCoinConst = "send_coin"
 
 func (msg MsgSendCoin) Route() string { return RouterKey }
 func (msg MsgSendCoin) Type() string  { return SendCoinConst }
@@ -35,13 +33,13 @@ func (msg MsgSendCoin) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgSendCoin) ValidateBasic() sdk.Error {
-	return ValidateSendCoin(msg)
+func (msg MsgSendCoin) ValidateBasic() error {
+	return ValidateSend(msg)
 }
 
-func ValidateSendCoin(msg MsgSendCoin) sdk.Error {
-	if msg.Amount.LTE(sdk.NewInt(0)) {
-		return sdk.NewError(DefaultCodespace, InvalidAmount, "Amount should be greater than 0")
+func ValidateSend(msg MsgSendCoin) error {
+	if msg.Coin.Amount.LTE(sdk.NewInt(0)) {
+		return ErrInvalidAmount()
 	}
 	return nil
 }
