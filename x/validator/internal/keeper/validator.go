@@ -391,36 +391,15 @@ func (k Keeper) Delegation(ctx sdk.Context, addrDel sdk.AccAddress, addrVal sdk.
 }
 
 // Update the tokens of an existing validator, update the validators power index key
-func (k Keeper) AddValidatorTokensAndShares(ctx sdk.Context, validator types.Validator,
-	tokens sdk.Coins) (valOut types.Validator, addedShares sdk.Dec) {
-
-	k.DeleteValidatorByPowerIndex(ctx, validator)
-	for _, token := range tokens {
-		validator, addedShares = validator.AddTokensFromDel(token, validator.Tokens)
-	}
-	k.SetValidator(ctx, validator)
-	k.SetValidatorByPowerIndex(ctx, validator)
-	return validator, addedShares
-}
-
-// Update the tokens of an existing validator, update the validators power index key
-//func (k Keeper) RemoveValidatorTokensAndShares(ctx sdk.Context, validator types.Validator,
-//	sharesToRemove sdk.Dec) (valOut types.Validator, removedTokens sdk.Int) {
-//
-//	k.DeleteValidatorByPowerIndex(ctx, validator)
-//	validator, removedTokens = validator.RemoveDelShares(sharesToRemove)
-//	k.SetValidator(ctx, validator)
-//	k.SetValidatorByPowerIndex(ctx, validator)
-//	return validator, removedTokens
-//}
-
-// Update the tokens of an existing validator, update the validators power index key
 func (k Keeper) RemoveValidatorTokens(ctx sdk.Context,
 	validator types.Validator, tokensToRemove sdk.Int) types.Validator {
 
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 	validator = validator.RemoveTokens(tokensToRemove)
-	k.SetValidator(ctx, validator)
+	err := k.SetValidator(ctx, validator)
+	if err != nil {
+		panic(err)
+	}
 	k.SetValidatorByPowerIndex(ctx, validator)
 	return validator
 }

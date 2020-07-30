@@ -35,7 +35,6 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 			var initReserve, _ = sdk.NewIntFromString(args[3])
 			var initVolume, _ = sdk.NewIntFromString(args[4])
 			var limitVolume, _ = sdk.NewIntFromString(args[5])
-			// TODO: take reserve from creator and give it initial volume
 
 			msg := types.NewMsgCreateCoin(cliCtx.GetFromAddress(), title, symbol, uint(crr), initVolume, initReserve, limitVolume)
 			err = msg.ValidateBasic()

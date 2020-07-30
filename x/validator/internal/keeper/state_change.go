@@ -50,8 +50,8 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		if validator.Jailed {
 			continue
 		}
-		k.checkDelegations(ctx, validator)
 		k.DeleteValidatorByPowerIndex(ctx, validator)
+		k.checkDelegations(ctx, validator)
 		k.SetValidatorByPowerIndex(ctx, validator)
 	}
 

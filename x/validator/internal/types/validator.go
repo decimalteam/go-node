@@ -29,7 +29,6 @@ type Validator struct {
 	ValAddress              sdk.ValAddress `json:"val_address" yaml:"val_address"`
 	PubKey                  crypto.PubKey  `json:"pub_key" yaml:"pub_key"`
 	Tokens                  sdk.Int        `json:"stake_coins" yaml:"stake_coins"`
-	DelegatorShares         sdk.Dec        `json:"delegator_shares" yaml:"delegator_shares"`
 	Status                  BondStatus     `json:"status" yaml:"status"`
 	Commission              sdk.Dec        `json:"commission" yaml:"commission"`
 	Jailed                  bool           `json:"jailed" yaml:"jailed"`
@@ -59,14 +58,13 @@ func (v Validator) String() string {
   Online:                     %v
   Status:                     %s
   Tokens:                     %s
-  Delegator Shares:           %s
   Description:                %s
   Unbonding Height:           %d
   Unbonding Completion Time:  %v
   Commission:                 %s
   Accum Rewards:              %s`, v.ValAddress, bechConsPubKey,
 		v.Jailed, v.Online, v.Status, v.Tokens,
-		v.DelegatorShares, v.Description,
+		v.Description,
 		v.UnbondingHeight, v.UnbondingCompletionTime, v.Commission, v.AccumRewards)
 }
 
@@ -75,7 +73,6 @@ type bechValidator struct {
 	ValAddress              sdk.ValAddress `json:"val_address" yaml:"val_address"`
 	PubKey                  string         `json:"pub_key" yaml:"pub_key"`
 	Tokens                  sdk.Int        `json:"stake_coins" yaml:"stake_coins"`
-	DelegatorShares         sdk.Dec        `json:"delegator_shares" yaml:"delegator_shares"`
 	Status                  BondStatus     `json:"status" yaml:"status"`
 	Commission              sdk.Dec        `json:"commission" yaml:"commission"`
 	Jailed                  bool           `json:"jailed" yaml:"jailed"`
@@ -100,7 +97,6 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 		Jailed:                  v.Jailed,
 		Status:                  v.Status,
 		Tokens:                  v.Tokens,
-		DelegatorShares:         v.DelegatorShares,
 		Description:             v.Description,
 		UnbondingHeight:         v.UnbondingHeight,
 		UnbondingCompletionTime: v.UnbondingCompletionTime,
@@ -127,7 +123,6 @@ func (v *Validator) UnmarshalJSON(data []byte) error {
 		Jailed:                  bv.Jailed,
 		Tokens:                  bv.Tokens,
 		Status:                  bv.Status,
-		DelegatorShares:         bv.DelegatorShares,
 		Description:             bv.Description,
 		UnbondingHeight:         bv.UnbondingHeight,
 		UnbondingCompletionTime: bv.UnbondingCompletionTime,
@@ -148,7 +143,6 @@ func (v Validator) MarshalYAML() (interface{}, error) {
 		Jailed                  bool
 		Status                  BondStatus
 		Tokens                  sdk.Int
-		DelegatorShares         sdk.Dec
 		Description             Description
 		UnbondingHeight         int64
 		UnbondingCompletionTime time.Time
@@ -162,7 +156,6 @@ func (v Validator) MarshalYAML() (interface{}, error) {
 		Jailed:                  v.Jailed,
 		Status:                  v.Status,
 		Tokens:                  v.Tokens,
-		DelegatorShares:         v.DelegatorShares,
 		Description:             v.Description,
 		UnbondingHeight:         v.UnbondingHeight,
 		UnbondingCompletionTime: v.UnbondingCompletionTime,
@@ -194,7 +187,6 @@ func (v Validator) GetConsAddr() sdk.ConsAddress { return sdk.ConsAddress(v.PubK
 func (v Validator) GetTokens() sdk.Int           { return v.Tokens }
 func (v Validator) GetBondedTokens() sdk.Int     { return v.BondedTokens() }
 func (v Validator) GetCommission() sdk.Dec       { return v.Commission }
-func (v Validator) GetDelegatorShares() sdk.Dec  { return v.DelegatorShares }
 
 type Validators []Validator
 
@@ -342,7 +334,6 @@ func NewValidator(valAddress sdk.ValAddress, pubKey crypto.PubKey, commission sd
 		Description:             description,
 		Status:                  Unbonded,
 		Commission:              commission,
-		DelegatorShares:         sdk.ZeroDec(),
 		RewardAddress:           rewardAddress,
 		UnbondingCompletionTime: time.Unix(0, 0).UTC(),
 		AccumRewards:            sdk.ZeroInt(),
@@ -427,34 +418,11 @@ func (v Validator) BondedTokens() sdk.Int {
 	return sdk.ZeroInt()
 }
 
-// AddTokensFromDel adds tokens to a validator
-func (v Validator) AddTokensFromDel(token sdk.Coin, totalVal sdk.Int) (Validator, sdk.Dec) {
-
-	// calculate the shares to issue
-	issuedShares := sdk.ZeroDec()
-	if v.DelegatorShares.IsZero() {
-		// the first delegation to a validator sets the exchange rate to one
-		issuedShares = token.Amount.ToDec()
-	} else {
-		shares, err := v.SharesFromTokens(token.Amount, totalVal, v.DelegatorShares)
-		if err != nil {
-			panic(err)
-		}
-
-		issuedShares = shares
-	}
-
-	v.Tokens = v.Tokens.Add(token.Amount)
-	v.DelegatorShares = v.DelegatorShares.Add(issuedShares)
-
-	return v, issuedShares
-}
-
 // In some situations, the exchange rate becomes invalid, e.g. if
 // Validator loses all tokens due to slashing. In this case,
 // make all future delegations invalid.
 func (v Validator) InvalidExRate() bool {
-	return v.Tokens.IsZero() && v.DelegatorShares.IsPositive()
+	return v.Tokens.IsZero()
 }
 
 // RemoveTokens removes tokens from a validator
@@ -479,7 +447,6 @@ func (v Validator) TestEquivalent(v2 Validator) bool {
 		bytes.Equal(v.ValAddress, v2.ValAddress) &&
 		v.Status.Equal(v2.Status) &&
 		v.Tokens.Equal(v2.Tokens) &&
-		v.DelegatorShares.Equal(v2.DelegatorShares) &&
 		v.Description == v2.Description &&
 		v.Commission.Equal(v2.Commission)
 }
