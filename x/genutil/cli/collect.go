@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -129,14 +127,11 @@ func GenAppStateFromConfig(cdc *codec.Codec, config *cfg.Config,
 ) (appState json.RawMessage, err error) {
 
 	// process genesis transactions, else create default genesis.json
-	appGenTxs, persistentPeers, err := CollectStdTxs(
+	appGenTxs, err := CollectStdTxs(
 		cdc, config.Moniker, initCfg.GenTxsDir, genDoc, genAccIterator)
 	if err != nil {
 		return appState, err
 	}
-
-	config.P2P.PersistentPeers = persistentPeers
-	cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 
 	// if there are no gen txs to be processed, return the default empty state
 	if len(appGenTxs) == 0 {
@@ -167,19 +162,19 @@ func GenAppStateFromConfig(cdc *codec.Codec, config *cfg.Config,
 // the list of appGenTxs, and persistent peers required to generate genesis.json.
 func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 	genDoc tmtypes.GenesisDoc, genAccIterator types.GenesisAccountsIterator,
-) (appGenTxs []authtypes.StdTx, persistentPeers string, err error) {
+) (appGenTxs []authtypes.StdTx, err error) {
 
 	var fos []os.FileInfo
 	fos, err = ioutil.ReadDir(genTxsDir)
 	if err != nil {
-		return appGenTxs, persistentPeers, err
+		return appGenTxs, err
 	}
 
 	// prepare a map of all accounts in genesis state to then validate
 	// against the validators addresses
 	var appState map[string]json.RawMessage
 	if err := cdc.UnmarshalJSON(genDoc.AppState, &appState); err != nil {
-		return appGenTxs, persistentPeers, err
+		return appGenTxs, err
 	}
 
 	addrMap := make(map[string]authexported.Account)
@@ -190,9 +185,6 @@ func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 		},
 	)
 
-	// addresses and IPs (and port) validator server info
-	var addressesIPs []string
-
 	for _, fo := range fos {
 		filename := filepath.Join(genTxsDir, fo.Name())
 		if !fo.IsDir() && (filepath.Ext(filename) != ".json") {
@@ -202,27 +194,18 @@ func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 		// get the genStdTx
 		var jsonRawTx []byte
 		if jsonRawTx, err = ioutil.ReadFile(filename); err != nil {
-			return appGenTxs, persistentPeers, err
+			return appGenTxs, err
 		}
 		var genStdTx authtypes.StdTx
 		if err = cdc.UnmarshalJSON(jsonRawTx, &genStdTx); err != nil {
-			return appGenTxs, persistentPeers, err
+			return appGenTxs, err
 		}
 		appGenTxs = append(appGenTxs, genStdTx)
-
-		// the memo flag is used to store
-		// the ip and node-id, for example this may be:
-		// "528fd3df22b31f4969b05652bfe8f0fe921321d5@192.168.2.37:26656"
-		nodeAddrIP := genStdTx.GetMemo()
-		if len(nodeAddrIP) == 0 {
-			return appGenTxs, persistentPeers, fmt.Errorf(
-				"couldn't find node's address and IP in %s", fo.Name())
-		}
 
 		// genesis transactions must be single-message
 		msgs := genStdTx.GetMsgs()
 		if len(msgs) != 1 {
-			return appGenTxs, persistentPeers, errors.New(
+			return appGenTxs, errors.New(
 				"each genesis transaction must provide a single genesis message")
 		}
 
@@ -233,33 +216,25 @@ func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 
 		delAcc, delOk := addrMap[delAddr]
 		if !delOk {
-			return appGenTxs, persistentPeers, fmt.Errorf(
+			return appGenTxs, fmt.Errorf(
 				"account %v not in genesis.json: %+v", delAddr, addrMap)
 		}
 
 		_, valOk := addrMap[valAddr]
 		if !valOk {
-			return appGenTxs, persistentPeers, fmt.Errorf(
+			return appGenTxs, fmt.Errorf(
 				"account %v not in genesis.json: %+v", valAddr, addrMap)
 		}
 
 		if delAcc.GetCoins().AmountOf(msg.Stake.Denom).LT(msg.Stake.Amount) {
-			return appGenTxs, persistentPeers, fmt.Errorf(
+			return appGenTxs, fmt.Errorf(
 				"insufficient fund for delegation %v: %v < %v",
 				delAcc.GetAddress(), delAcc.GetCoins().AmountOf(msg.Stake.Denom), msg.Stake.Amount,
 			)
 		}
-
-		// exclude itself from persistent peers
-		if msg.Description.Moniker != moniker {
-			addressesIPs = append(addressesIPs, nodeAddrIP)
-		}
 	}
 
-	sort.Strings(addressesIPs)
-	persistentPeers = strings.Join(addressesIPs, ",")
-
-	return appGenTxs, persistentPeers, nil
+	return appGenTxs, nil
 }
 
 // ExportGenesisFile creates and writes the genesis configuration to disk. An
