@@ -2,8 +2,8 @@ package cli
 
 const testNetGenesis = `
 {
-  "genesis_time": "2020-07-28T11:30:00.000000Z",
-  "chain_id": "decimal-testnet-07-28-18-30",
+  "genesis_time": "2020-07-31T15:30:00.000000Z",
+  "chain_id": "decimal-testnet-07-31-22-30",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -76,10 +76,10 @@ const testNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "Ann34HTQiiPi/Ht/2eSaDWVwoov2ycuYjpL2eMMpNQl0"
                 },
-                "signature": "jtew4RO2QP8GU4xs89kIk/b2CY9X/SuzEEOWWdhtQ9QpZBqcK9/W/OIjoygf4Qv5iGG5HTodMRUegdO0thmAgA=="
+                "signature": "Kc9WsuDL9j4SRC0EyIXITnZXRixYyh7f9E0ocA3giDcURsKS/0PwcYm6wJiiJkSUJIPohDyi3oiOofTqEX3t/g=="
               }
             ],
-            "memo": "bf7a6b366e3c451a3c12b3a6c01af7230fb92fc7@139.59.133.148:26656"
+            "memo": ""
           }
         },
         {
@@ -120,10 +120,10 @@ const testNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A+0Sm90CYEkcknXu/cvYx9eKpau17Yyd54mzDdtSG9bZ"
                 },
-                "signature": "w9nwHWSIloqIXQg54gzOycgvgkBX/Y1P3QwVCtuN2T0Zh1ObKcq3wRUWC5K52u6PdhdUm9i0HKy0pPL42SPVlw=="
+                "signature": "4FSytBvKZcnUF9M4uCZICtmdPdX6Rr9UTXU0lCg82Jt6SvDwV1bNMo+sXCh79+uicJ2GBUxgAMPlHm7J/x1bkg=="
               }
             ],
-            "memo": "c0b9b6c9a0f95e3d2f4aed890806739fc77faefd@64.225.110.228:26656"
+            "memo": ""
           }
         },
         {
@@ -164,10 +164,10 @@ const testNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "Ax72b3e3Tz8Wx7Iq9FXaM1sbTit+1AujjKHRsTafhrtE"
                 },
-                "signature": "egnSsqoPqYUp3O/IRIRhYzaPqyFCrt2hnl4gxd4gEYdxyBXUFFEHvA6yd/SZhTAuEVMmiOE+32Cddy3cQk5E0w=="
+                "signature": "xAQxy6Bm1CCOdQzg49HA7xSpohweytWDwDrHFLhmbUMns2dRqiIbp99G0Wy1TCtiVjg50HQkRynAyGB73Y3+Ng=="
               }
             ],
-            "memo": "76b81a4b817b39d63a3afe1f3a294f2a8f5c55b0@64.225.56.107:26656"
+            "memo": ""
           }
         },
         {
@@ -208,10 +208,10 @@ const testNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AtKn3ANbRqsIg8zpF0/03t9kvEuUtd7ZS9VnPu/8zF5z"
                 },
-                "signature": "oLYlwAdAX3avgwdlyr+gZfXvev7JTrABbVVj3ttjHtF6i3iiV01rbdmmM2bOQXC/jsw6j4SNFJIKEBhY3WdpGg=="
+                "signature": "aMSlXt5csFVIIFUBUyX2oeXyAZiTtetpx46t+AI7pgRxAwEoXWFKlcCxmkUaNRq62mgTvL1/lDko7w3c42p6UQ=="
               }
             ],
-            "memo": "29e566c41d51be90fa53340ba4edccefbebe8cb2@139.59.192.48:26656"
+            "memo": ""
           }
         }
       ]
