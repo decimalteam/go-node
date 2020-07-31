@@ -8,11 +8,12 @@ import (
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorUpdate {
-	var coin = Coin{
-		Title:  k.Config.TitleBaseCoin,
-		Symbol: k.Config.SymbolBaseCoin,
-		Volume: k.Config.InitialVolumeBaseCoin,
+	coin := Coin{
+		Title:  data.Title,
+		Symbol: data.Symbol,
+		Volume: data.InitialVolume,
 	}
+
 	k.SetCoin(ctx, coin)
 	return []abci.ValidatorUpdate{}
 }

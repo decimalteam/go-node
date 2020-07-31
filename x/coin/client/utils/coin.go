@@ -1,12 +1,9 @@
 package utils
 
 import (
-	"fmt"
-	"strings"
-
-	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
+	"fmt"
 
 	clientctx "github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -126,12 +123,4 @@ func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wants
 	}
 
 	return amountBuy, wantsSell, nil
-}
-
-func GetBaseCoin() string {
-	if strings.HasPrefix(config.ChainID, "decimal-testnet") {
-		return config.SymbolTestBaseCoin
-	} else {
-		return config.SymbolBaseCoin
-	}
 }

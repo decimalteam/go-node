@@ -50,15 +50,17 @@ func CollectGenTxsCmd(ctx *server.Context, cdc *codec.Codec,
 			config.P2P.SendRate = 15360000 // 15 mB/s
 			config.P2P.FlushThrottleTimeout = 10 * time.Millisecond
 
-			switch viper.GetString("network") {
-			case "mainnet":
-				config.P2P.Seeds = "0906b583daebe8951226e56cf75e1d2175f19671@decimal-node-1.mainnet.decimalchain.com:26656,1e9a5adb32f39a62849c94dbec95f251f5ebd728@decimal-node-2.mainnet.decimalchain.com:26656"
-			case "testnet":
-				config.P2P.Seeds = "bf7a6b366e3c451a3c12b3a6c01af7230fb92fc7@decimal-node-1.testnet.decimalchain.com:26656,76b81a4b817b39d63a3afe1f3a294f2a8f5c55b0@decimal-node-2.testnet.decimalchain.com:26656"
-			case "devnet":
-				config.P2P.Seeds = "8a2cc38f5264e9699abb8db91c9b4a4a061f000d@decimal-node-1.devnet.decimalchain.com:26656,27fcfef145b3717c5d639ec72fb12f9c43da98f0@decimal-node-2.devnet.decimalchain.com:26656"
-			default:
-				return fmt.Errorf("invalid network")
+			if viper.GetString("network") != "" {
+				switch viper.GetString("network") {
+				case "mainnet":
+					config.P2P.Seeds = "0906b583daebe8951226e56cf75e1d2175f19671@decimal-node-1.mainnet.decimalchain.com:26656,1e9a5adb32f39a62849c94dbec95f251f5ebd728@decimal-node-2.mainnet.decimalchain.com:26656"
+				case "testnet":
+					config.P2P.Seeds = "bf7a6b366e3c451a3c12b3a6c01af7230fb92fc7@decimal-node-1.testnet.decimalchain.com:26656,76b81a4b817b39d63a3afe1f3a294f2a8f5c55b0@decimal-node-2.testnet.decimalchain.com:26656"
+				case "devnet":
+					config.P2P.Seeds = "8a2cc38f5264e9699abb8db91c9b4a4a061f000d@decimal-node-1.devnet.decimalchain.com:26656,27fcfef145b3717c5d639ec72fb12f9c43da98f0@decimal-node-2.devnet.decimalchain.com:26656"
+				default:
+					return fmt.Errorf("invalid network")
+				}
 			}
 
 			name := viper.GetString(flags.FlagName)
