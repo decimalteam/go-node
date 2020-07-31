@@ -21,7 +21,6 @@ import (
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
@@ -112,7 +111,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balance := acc.GetCoins()
-	if balance.AmountOf(cliUtils.GetBaseCoin()).LT(msg.InitialReserve) {
+	if balance.AmountOf(k.GetBaseCoin()).LT(msg.InitialReserve) {
 		return nil, types.ErrInsufficientCoinReserve()
 	}
 
@@ -120,13 +119,13 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		return nil, types.ErrInsufficientFundsToPayCommission(commission.String())
 	}
 
-	if feeCoin == cliUtils.GetBaseCoin() {
-		if balance.AmountOf(cliUtils.GetBaseCoin()).LT(commission.Add(msg.InitialReserve)) {
-			return nil, types.ErrInsufficientFunds(commission.Add(msg.InitialReserve).String(), balance.AmountOf(cliUtils.GetBaseCoin()).String())
+	if feeCoin == k.GetBaseCoin() {
+		if balance.AmountOf(k.GetBaseCoin()).LT(commission.Add(msg.InitialReserve)) {
+			return nil, types.ErrInsufficientFunds(commission.Add(msg.InitialReserve).String(), balance.AmountOf(k.GetBaseCoin()).String())
 		}
 	}
 
-	err = k.UpdateBalance(ctx, cliUtils.GetBaseCoin(), msg.InitialReserve.Neg(), msg.Sender)
+	err = k.UpdateBalance(ctx, k.GetBaseCoin(), msg.InitialReserve.Neg(), msg.Sender)
 	if err != nil {
 		return nil, types.ErrUpdateBalance(msg.Sender.String(), err.Error())
 	}
@@ -455,7 +454,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		return nil, types.ErrRetrievedAnotherCoin(check.Coin, coin.Symbol)
 	}
 
-	feeCoin := cliUtils.GetBaseCoin()
+	feeCoin := k.GetBaseCoin()
 	commission := helpers.UnitToPip(sdk.NewIntFromUint64(30))
 
 	// Ensure that check issuer account holds enough coins
