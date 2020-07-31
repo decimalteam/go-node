@@ -76,7 +76,6 @@ func TestValidateGenesis(t *testing.T) {
 	pk := ed25519.GenPrivKey().PubKey()
 	genValidators1[0] = types.NewValidator(sdk.ValAddress(pk.Address()), pk, sdk.ZeroDec(), sdk.AccAddress(pk.Address()), types.Description{})
 	genValidators1[0].Tokens = sdk.OneInt()
-	genValidators1[0].DelegatorShares = sdk.OneDec()
 
 	tests := []struct {
 		name    string
@@ -88,10 +87,6 @@ func TestValidateGenesis(t *testing.T) {
 		{"duplicate validator", func(data *types.GenesisState) {
 			data.Validators = genValidators1
 			data.Validators = append(data.Validators, genValidators1[0])
-		}, true},
-		{"no delegator shares", func(data *types.GenesisState) {
-			data.Validators = genValidators1
-			data.Validators[0].DelegatorShares = sdk.ZeroDec()
 		}, true},
 		{"jailed and bonded validator", func(data *types.GenesisState) {
 			data.Validators = genValidators1

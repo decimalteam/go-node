@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -51,6 +49,17 @@ func CollectGenTxsCmd(ctx *server.Context, cdc *codec.Codec,
 			config.P2P.RecvRate = 15360000 // 15 mB/s
 			config.P2P.SendRate = 15360000 // 15 mB/s
 			config.P2P.FlushThrottleTimeout = 10 * time.Millisecond
+
+			switch viper.GetString("network") {
+			case "mainnet":
+				config.P2P.Seeds = "0906b583daebe8951226e56cf75e1d2175f19671@decimal-node-1.mainnet.decimalchain.com:26656,1e9a5adb32f39a62849c94dbec95f251f5ebd728@decimal-node-2.mainnet.decimalchain.com:26656"
+			case "testnet":
+				config.P2P.Seeds = "bf7a6b366e3c451a3c12b3a6c01af7230fb92fc7@decimal-node-1.testnet.decimalchain.com:26656,76b81a4b817b39d63a3afe1f3a294f2a8f5c55b0@decimal-node-2.testnet.decimalchain.com:26656"
+			case "devnet":
+				config.P2P.Seeds = "8a2cc38f5264e9699abb8db91c9b4a4a061f000d@decimal-node-1.devnet.decimalchain.com:26656,27fcfef145b3717c5d639ec72fb12f9c43da98f0@decimal-node-2.devnet.decimalchain.com:26656"
+			default:
+				return fmt.Errorf("invalid network")
+			}
 
 			name := viper.GetString(flags.FlagName)
 			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(config)
@@ -127,14 +136,11 @@ func GenAppStateFromConfig(cdc *codec.Codec, config *cfg.Config,
 ) (appState json.RawMessage, err error) {
 
 	// process genesis transactions, else create default genesis.json
-	appGenTxs, persistentPeers, err := CollectStdTxs(
+	appGenTxs, err := CollectStdTxs(
 		cdc, config.Moniker, initCfg.GenTxsDir, genDoc, genAccIterator)
 	if err != nil {
 		return appState, err
 	}
-
-	config.P2P.PersistentPeers = persistentPeers
-	cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 
 	// if there are no gen txs to be processed, return the default empty state
 	if len(appGenTxs) == 0 {
@@ -165,19 +171,19 @@ func GenAppStateFromConfig(cdc *codec.Codec, config *cfg.Config,
 // the list of appGenTxs, and persistent peers required to generate genesis.json.
 func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 	genDoc tmtypes.GenesisDoc, genAccIterator types.GenesisAccountsIterator,
-) (appGenTxs []authtypes.StdTx, persistentPeers string, err error) {
+) (appGenTxs []authtypes.StdTx, err error) {
 
 	var fos []os.FileInfo
 	fos, err = ioutil.ReadDir(genTxsDir)
 	if err != nil {
-		return appGenTxs, persistentPeers, err
+		return appGenTxs, err
 	}
 
 	// prepare a map of all accounts in genesis state to then validate
 	// against the validators addresses
 	var appState map[string]json.RawMessage
 	if err := cdc.UnmarshalJSON(genDoc.AppState, &appState); err != nil {
-		return appGenTxs, persistentPeers, err
+		return appGenTxs, err
 	}
 
 	addrMap := make(map[string]authexported.Account)
@@ -188,9 +194,6 @@ func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 		},
 	)
 
-	// addresses and IPs (and port) validator server info
-	var addressesIPs []string
-
 	for _, fo := range fos {
 		filename := filepath.Join(genTxsDir, fo.Name())
 		if !fo.IsDir() && (filepath.Ext(filename) != ".json") {
@@ -200,27 +203,18 @@ func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 		// get the genStdTx
 		var jsonRawTx []byte
 		if jsonRawTx, err = ioutil.ReadFile(filename); err != nil {
-			return appGenTxs, persistentPeers, err
+			return appGenTxs, err
 		}
 		var genStdTx authtypes.StdTx
 		if err = cdc.UnmarshalJSON(jsonRawTx, &genStdTx); err != nil {
-			return appGenTxs, persistentPeers, err
+			return appGenTxs, err
 		}
 		appGenTxs = append(appGenTxs, genStdTx)
-
-		// the memo flag is used to store
-		// the ip and node-id, for example this may be:
-		// "528fd3df22b31f4969b05652bfe8f0fe921321d5@192.168.2.37:26656"
-		nodeAddrIP := genStdTx.GetMemo()
-		if len(nodeAddrIP) == 0 {
-			return appGenTxs, persistentPeers, fmt.Errorf(
-				"couldn't find node's address and IP in %s", fo.Name())
-		}
 
 		// genesis transactions must be single-message
 		msgs := genStdTx.GetMsgs()
 		if len(msgs) != 1 {
-			return appGenTxs, persistentPeers, errors.New(
+			return appGenTxs, errors.New(
 				"each genesis transaction must provide a single genesis message")
 		}
 
@@ -231,33 +225,25 @@ func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 
 		delAcc, delOk := addrMap[delAddr]
 		if !delOk {
-			return appGenTxs, persistentPeers, fmt.Errorf(
+			return appGenTxs, fmt.Errorf(
 				"account %v not in genesis.json: %+v", delAddr, addrMap)
 		}
 
 		_, valOk := addrMap[valAddr]
 		if !valOk {
-			return appGenTxs, persistentPeers, fmt.Errorf(
+			return appGenTxs, fmt.Errorf(
 				"account %v not in genesis.json: %+v", valAddr, addrMap)
 		}
 
 		if delAcc.GetCoins().AmountOf(msg.Stake.Denom).LT(msg.Stake.Amount) {
-			return appGenTxs, persistentPeers, fmt.Errorf(
+			return appGenTxs, fmt.Errorf(
 				"insufficient fund for delegation %v: %v < %v",
 				delAcc.GetAddress(), delAcc.GetCoins().AmountOf(msg.Stake.Denom), msg.Stake.Amount,
 			)
 		}
-
-		// exclude itself from persistent peers
-		if msg.Description.Moniker != moniker {
-			addressesIPs = append(addressesIPs, nodeAddrIP)
-		}
 	}
 
-	sort.Strings(addressesIPs)
-	persistentPeers = strings.Join(addressesIPs, ",")
-
-	return appGenTxs, persistentPeers, nil
+	return appGenTxs, nil
 }
 
 // ExportGenesisFile creates and writes the genesis configuration to disk. An

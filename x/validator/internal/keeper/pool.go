@@ -39,7 +39,7 @@ func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		if !coin.Amount.IsPositive() {
 			continue
 		}
-		coinsBurn.Add(sdk.NewCoins(coin)...)
+		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
 	err := k.supplyKeeper.BurnCoins(ctx, types.BondedPoolName, coinsBurn)
 	if err != nil {
@@ -55,7 +55,7 @@ func (k Keeper) burnNotBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		if !coin.Amount.IsPositive() {
 			continue
 		}
-		coinsBurn.Add(sdk.NewCoins(coin)...)
+		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
 	err := k.supplyKeeper.BurnCoins(ctx, types.NotBondedPoolName, coinsBurn)
 	if err != nil {

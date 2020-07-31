@@ -186,7 +186,7 @@ func TestSlashToZeroPowerRemoved(t *testing.T) {
 
 	// slash the validator by 100%
 	consAddr0 := sdk.ConsAddress(PKs[0].Address())
-	keeper.Slash(ctx, consAddr0, 0, 100, sdk.OneDec())
+	keeper.Slash(ctx, consAddr0, 0, sdk.OneDec())
 	// apply TM updates
 	keeper.ApplyAndReturnValidatorSetUpdates(ctx)
 	// validator should be unbonding
@@ -246,7 +246,6 @@ func TestValidatorBasics(t *testing.T) {
 	// modify a records, save, and retrieve
 	validators[0].Status = types.Bonded
 	validators[0].Tokens = types.TokensFromConsensusPower(10)
-	validators[0].DelegatorShares = validators[0].Tokens.ToDec()
 	validators[0] = TestingUpdateValidator(keeper, ctx, validators[0], true)
 	resVal, err = keeper.GetValidator(ctx, addrVals[0])
 	require.Nil(t, err)

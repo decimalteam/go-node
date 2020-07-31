@@ -196,15 +196,17 @@ func TestQueryDelegation(t *testing.T) {
 
 	// Create Validators and Delegation
 	val1 := types.NewValidator(addrVal1, pk1, sdk.ZeroDec(), sdk.AccAddress(addrVal1), types.Description{})
-	keeper.SetValidator(ctx, val1)
+	err := keeper.SetValidator(ctx, val1)
+	require.NoError(t, err)
 	keeper.SetValidatorByPowerIndex(ctx, val1)
 
 	val2 := types.NewValidator(addrVal2, pk2, sdk.ZeroDec(), sdk.AccAddress(addrVal2), types.Description{})
-	keeper.SetValidator(ctx, val2)
+	err = keeper.SetValidator(ctx, val2)
+	require.NoError(t, err)
 	keeper.SetValidatorByPowerIndex(ctx, val2)
 
 	delTokens := types.TokensFromConsensusPower(20)
-	err := keeper.Delegate(ctx, addrAcc2, sdk.NewCoin(keeper.BondDenom(ctx), delTokens), types.Unbonded, val1, true)
+	err = keeper.Delegate(ctx, addrAcc2, sdk.NewCoin(keeper.BondDenom(ctx), delTokens), types.Unbonded, val1, true)
 	require.NoError(t, err)
 
 	// apply TM updates

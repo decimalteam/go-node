@@ -60,7 +60,7 @@ func TestValidatorByPowerIndex(t *testing.T) {
 
 	// slash and jail the first validator
 	consAddr0 := sdk.ConsAddress(val.PKs[0].Address())
-	keeper.Slash(ctx, consAddr0, 0, initPower, sdk.NewDecWithPrec(5, 1))
+	keeper.Slash(ctx, consAddr0, 0, sdk.NewDecWithPrec(5, 1))
 	keeper.Jail(ctx, consAddr0)
 	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
 	require.NoError(t, err)
