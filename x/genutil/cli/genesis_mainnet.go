@@ -2,8 +2,8 @@ package cli
 
 const mainNetGenesis = `
 {
-  "genesis_time": "2020-07-31T12:00:00.000000Z",
-  "chain_id": "decimal-mainnet-07-30",
+  "genesis_time": "2020-08-01T09:00:00.000000Z",
+  "chain_id": "decimal-mainnet-08-01",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -61,9 +61,9 @@ const mainNetGenesis = `
                   "description": {
                     "moniker": "BitTeam",
                     "identity": "",
-                    "website": "about:blank",
-                    "security_contact": "email: empty",
-                    "details": "The test validator ever"
+                    "website": "https://bit.team/",
+                    "security_contact": "email: support@bit.team",
+                    "details": ""
                   }
                 }
               }
@@ -78,10 +78,10 @@ const mainNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A9STcqOqpRAtz68XADSe3tdFc064LHeruMcNwJ4oizc1"
                 },
-                "signature": "ZxQ8Tbf+ZH+5j8c7NNYGTAK4x0ytlpnPqIlSV6CDLjMNYFjRwD7kDUiv72XTx2S6BwVxCm+mc8JAH2aKIQ+vbA=="
+                "signature": "RyfC9trGP54bUNDsgfYK47Wd0QjCe/z7IRLevpIgEd1qvUooMgCFCbhufF6iGzno26f8rAa1M/he0LWqKBX/fQ=="
               }
             ],
-            "memo": "e221e380920b9b42bba268b6b644eb6ae81587af@81.89.56.52:26656"
+            "memo": ""
           }
         },
         {
@@ -91,7 +91,7 @@ const mainNetGenesis = `
               {
                 "type": "validator/declare_candidate",
                 "value": {
-                  "commission": "0.100000000000000000",
+                  "commission": "0.050000000000000000",
                   "validator_addr": "dxvaloper1eu9juhlsa4svhdhh4w2mknqtarnemvf3x93qll",
                   "reward_addr": "dx1eu9juhlsa4svhdhh4w2mknqtarnemvf36hkd25",
                   "pub_key": {
@@ -103,11 +103,11 @@ const mainNetGenesis = `
                     "amount": "100000000000000000000000"
                   },
                   "description": {
-                    "moniker": "Tank",
+                    "moniker": "Main Node",
                     "identity": "",
                     "website": "about:blank",
-                    "security_contact": "email: empty",
-                    "details": "The test validator ever"
+                    "security_contact": "",
+                    "details": ""
                   }
                 }
               }
@@ -122,10 +122,10 @@ const mainNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A8DlwOt+vGis0Asv2BygA+RVpNfBTHVsF2kQSjE9/7dg"
                 },
-                "signature": "1Emi6b3DjZ55C8S3yVVkVsqw2PMrq6EGVzKG29GgcugBFFGHxC6b6GDYoHPVKI5twQUzxZe0qN1W3wI50miXPw=="
+                "signature": "K4t8T2w4fDuZe88nO3mo35Np4l/1xgB5bawqpH+3p8Mr926lxB29Igt3VKbl8NapsEVvdgiMelj1lrnaCTcoTQ=="
               }
             ],
-            "memo": "f67f2ae52e8687eb9816a1dd246261118e869336@171.25.221.204:26656"
+            "memo": ""
           }
         },
         {
@@ -135,7 +135,7 @@ const mainNetGenesis = `
               {
                 "type": "validator/declare_candidate",
                 "value": {
-                  "commission": "0.100000000000000000",
+                  "commission": "0.080000000000000000",
                   "validator_addr": "dxvaloper1r9hdv2p89yyekxcmvgpud6wgg2xpln0nz3rf0q",
                   "reward_addr": "dx1r9hdv2p89yyekxcmvgpud6wgg2xpln0n7ryy6t",
                   "pub_key": {
@@ -147,11 +147,11 @@ const mainNetGenesis = `
                     "amount": "100000000000000000000000"
                   },
                   "description": {
-                    "moniker": "Main",
+                    "moniker": "Turing",
                     "identity": "",
                     "website": "about:blank",
-                    "security_contact": "email: empty",
-                    "details": "The test validator ever"
+                    "security_contact": "",
+                    "details": ""
                   }
                 }
               }
@@ -166,10 +166,10 @@ const mainNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A3CznhbVm2bV7buF8gbBIr5UMa2S9DZTUwP5mYg1IrsA"
                 },
-                "signature": "v+69t3fFTrfe7B0b3C5ucy3uY3Kau9AZGPlxtorNdaFA2gLcmlCy6Hzky40YwGEs/GkRIzBQXCQuuw3tQljNag=="
+                "signature": "at79Fj7ah12tLxAEKZd9MUwyx3EvHW/uniBnCayruVondcy3RhT2JD/PjZdsCzwYj74iT/fV6kGnO1C1uqdRbQ=="
               }
             ],
-            "memo": "c09aee9eb6e1ac84e22cab9b53d57b7898755980@171.25.221.205:26656"
+            "memo": ""
           }
         },
         {
@@ -191,7 +191,7 @@ const mainNetGenesis = `
                     "amount": "100000000000000000000000"
                   },
                   "description": {
-                    "moniker": "crypton",
+                    "moniker": "Crypton",
                     "identity": "",
                     "website": "https://crypton.studio",
                     "security_contact": "email: security@crypton.studio",
@@ -210,12 +210,12 @@ const mainNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AkwYGJxv6TvP/VQchZCLopLy5xN6/oLgyQI8ZPkBsA6B"
                 },
-                "signature": "YtIiTcPhBL5EZTxCoIUZBtFsukIHPw1P/uNlsFuG3wYLycYP++1O5vIh/A8DxvZOlkSNdfJMVTkCFaJCoKb30A=="
+                "signature": "ocohyP9fPK2FlGdS6f/vKdC59WErcsqA62iHlcLgy3JbncID7GUD1qAp97/9VOUihMAgyAkdoI7G4XtA2L8rzA=="
               }
             ],
-            "memo": "a1ca88f09330204fd8d96e7a55da0964399cf6de@135.181.5.158:26656"
+            "memo": ""
           }
-        }        
+        }
       ]
     },
     "auth": {
@@ -230,7 +230,7 @@ const mainNetGenesis = `
         {
           "type": "cosmos-sdk/Account",
           "value": {
-            "address": "dx1hh2mqw4xan5n52df0lprcj5nw3hwr95aqvw3mp",
+            "address": "dx15ljaa3yyqg5mhlf4q8vsdamudfthanc9gj7dr6",
             "coins": [
               {
                 "denom": "del",
