@@ -2,7 +2,7 @@ package cli
 
 const mainNetGenesis = `
 {
-  "genesis_time": "2020-08-01T09:00:00.000000Z",
+  "genesis_time": "2020-08-01T15:00:00.000000Z",
   "chain_id": "decimal-mainnet-08-01",
   "consensus_params": {
     "block": {
