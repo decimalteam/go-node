@@ -2,12 +2,13 @@ package cli
 
 import (
 	"fmt"
-	"github.com/tendermint/tendermint/types"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -126,8 +127,8 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 
 const devNetGenesis = `
 {
-  "genesis_time": "2020-07-22T11:50:00.000000Z",
-  "chain_id": "decimal-devnet-07-23-20-55",
+  "genesis_time": "2020-08-03T09:30:00.000000Z",
+  "chain_id": "decimal-devnet-08-03-16-30",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -200,10 +201,10 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AyXteacATBJVsNGhTGUwgHfLO4mJTXhvK/H/2MLOTylo"
                 },
-                "signature": "Bp7Ergky/TonbvNyJo26Tfp+VhZLu93ZCI3UrXPI5HBbkzM6eYTxAm7/89pT8BigO72bduE9Skl+xRCe7kuOuA=="
+                "signature": "XUBH971OqrwlsvbNgiC3jpVwzon75oOG0oy3bDcsvKssNcowU8lvihPhhhkLPyEHHdux6pjSJYkgrNR3wyAfRQ=="
               }
             ],
-            "memo": "8a2cc38f5264e9699abb8db91c9b4a4a061f000d@46.101.127.241:26656"
+            "memo": ""
           }
         },
         {
@@ -244,10 +245,10 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A8s6NPtmz3ywH2LGxNnRjjsEIdt53ZuRQy7q6Mof0iA9"
                 },
-                "signature": "bLd92//oiK0B2cwCRr9XTuymyqN/orxzyKSW4yDVm3khGla3TKM8Ic/p+o2iZVS1VEW9ENrWbUGM0Z2kr5R/fA=="
+                "signature": "JHU+T8kc8Slog3rtUERI/ZrLYQflNJQRwe0I32ml/7AipeoXyu1G8UDZpMfRqZczEI+SyvNbTpz7AN9t33vffw=="
               }
             ],
-            "memo": "e0e7a88de0b39bd2adceb3516d353582ff94ec15@164.90.211.234:26656"
+            "memo": ""
           }
         },
         {
@@ -288,10 +289,10 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A/jGezwfhOzAyTaRbg3off9HYzvtUO4CxaRrBJzdHGlw"
                 },
-                "signature": "g4L04c6+v2SmtpFL8aP0Yz9y2RVpq5ka1E7Vkvt7+SRGJ3FTjzfmcEW2PU5gKoSLv70JhCTxBLCvQv+6MUh/jg=="
+                "signature": "OhUQhNk2H4g7cm7qlUjT2Mph5Nuv4eHDjWYTio0cZip2UOYsBgZvqRa3K4L2LxsT3B6OXoJgODBhzJ30C6Rq8Q=="
               }
             ],
-            "memo": "27fcfef145b3717c5d639ec72fb12f9c43da98f0@167.99.182.218:26656"
+            "memo": ""
           }
         }
       ]
