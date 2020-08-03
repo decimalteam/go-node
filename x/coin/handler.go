@@ -469,7 +469,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		}
 	} else {
 		// TODO: Keep this correct behavior on next blockchain update
-		if ctx.BlockHeight() >= 31000 {
+		if ctx.BlockHeight() >= 32000 {
 			feeBalance := account.GetCoins().AmountOf(feeCoin)
 			if feeBalance.LT(commission) {
 				return nil, types.ErrInsufficientFunds(commission.String()+feeCoin, feeBalance.String()+feeCoin)
