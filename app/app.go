@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"strings"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -85,6 +86,8 @@ type newApp struct {
 	mm *module.Manager
 }
 
+var cfg = &config.Config{}
+
 // Newgo-nodeApp is a constructor function for go-nodeApp
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
@@ -110,7 +113,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
-	config := config.GetDefaultConfig(config.ChainID)
+	cfg = config.GetDefaultConfig(config.ChainID)
 
 	// Here you initialize your application with the store keys it requires
 	var app = &newApp{
@@ -159,7 +162,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coinSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		config,
+		cfg,
 	)
 
 	app.multisigKeeper = multisig.NewKeeper(
@@ -252,6 +255,17 @@ func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 	err := app.cdc.UnmarshalJSON(req.AppStateBytes, &genesisState)
 	if err != nil {
 		panic(err)
+	}
+
+	config.ChainID = req.ChainId
+	if strings.HasPrefix(config.ChainID, "decimal-testnet") {
+		cfg.TitleBaseCoin = config.TitleTestBaseCoin
+		cfg.SymbolBaseCoin = config.SymbolTestBaseCoin
+		cfg.InitialVolumeBaseCoin = config.InitialVolumeTestBaseCoin
+	} else if strings.HasPrefix(config.ChainID, "decimal") {
+		cfg.TitleBaseCoin = config.TitleBaseCoin
+		cfg.SymbolBaseCoin = config.SymbolBaseCoin
+		cfg.InitialVolumeBaseCoin = config.InitialVolumeBaseCoin
 	}
 
 	return app.mm.InitGenesis(ctx, genesisState)

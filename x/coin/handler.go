@@ -111,7 +111,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balance := acc.GetCoins()
-	if balance.AmountOf(k.GetBaseCoin()).LT(msg.InitialReserve) {
+	if balance.AmountOf(k.GetBaseCoin(ctx)).LT(msg.InitialReserve) {
 		return nil, types.ErrInsufficientCoinReserve()
 	}
 
@@ -119,13 +119,13 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		return nil, types.ErrInsufficientFundsToPayCommission(commission.String())
 	}
 
-	if feeCoin == k.GetBaseCoin() {
-		if balance.AmountOf(k.GetBaseCoin()).LT(commission.Add(msg.InitialReserve)) {
-			return nil, types.ErrInsufficientFunds(commission.Add(msg.InitialReserve).String(), balance.AmountOf(k.GetBaseCoin()).String())
+	if feeCoin == k.GetBaseCoin(ctx) {
+		if balance.AmountOf(k.GetBaseCoin(ctx)).LT(commission.Add(msg.InitialReserve)) {
+			return nil, types.ErrInsufficientFunds(commission.Add(msg.InitialReserve).String(), balance.AmountOf(k.GetBaseCoin(ctx)).String())
 		}
 	}
 
-	err = k.UpdateBalance(ctx, k.GetBaseCoin(), msg.InitialReserve.Neg(), msg.Sender)
+	err = k.UpdateBalance(ctx, k.GetBaseCoin(ctx), msg.InitialReserve.Neg(), msg.Sender)
 	if err != nil {
 		return nil, types.ErrUpdateBalance(msg.Sender.String(), err.Error())
 	}
@@ -454,7 +454,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		return nil, types.ErrRetrievedAnotherCoin(check.Coin, coin.Symbol)
 	}
 
-	feeCoin := k.GetBaseCoin()
+	feeCoin := k.GetBaseCoin(ctx)
 	commission := helpers.UnitToPip(sdk.NewIntFromUint64(30))
 
 	// Ensure that check issuer account holds enough coins
@@ -466,6 +466,14 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	if feeCoin == strings.ToLower(check.Coin) {
 		if balance.LT(amount.Add(commission)) {
 			return nil, types.ErrInsufficientFunds(amount.String()+coin.Symbol, balance.String()+coin.Symbol)
+		}
+	} else {
+		// TODO: Keep this correct behavior on next blockchain update
+		if ctx.BlockHeight() >= 31000 {
+			feeBalance := account.GetCoins().AmountOf(feeCoin)
+			if feeBalance.LT(commission) {
+				return nil, types.ErrInsufficientFunds(commission.String()+feeCoin, feeBalance.String()+feeCoin)
+			}
 		}
 	}
 

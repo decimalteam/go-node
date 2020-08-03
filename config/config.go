@@ -36,9 +36,6 @@ const (
 	// DecimalPrefixConsPub defines the Decimal prefix of a consensus node public key.
 	DecimalPrefixConsPub = DecimalMainPrefix + PrefixValidator + PrefixConsensus + PrefixPublic
 
-	// ChainID is the Decimal chain identifier.
-	ChainID = "decimal-testnet-07-31-22-30"
-
 	TitleTestBaseCoin  = "Test decimal coin"
 	SymbolTestBaseCoin = "tdel"
 	TitleBaseCoin      = "Decimal coin"
@@ -49,6 +46,8 @@ var (
 	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("340000000000000000000000000")
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("340000000000000000000000000")
 )
+
+var ChainID = "decimal-testnet-07-31-22-30"
 
 type Config struct {
 	TitleBaseCoin         string  `json:"title" yaml:"title"`   // Full coin title (Bitcoin)
