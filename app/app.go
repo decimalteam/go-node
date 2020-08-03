@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -91,6 +92,7 @@ var cfg = &config.Config{}
 // Newgo-nodeApp is a constructor function for go-nodeApp
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
+	fmt.Printf("decd version: %s\n", config.DecimalVersion)
 
 	// First define the top level codec that will be shared by the different modules
 	cdc := MakeCodec()
@@ -257,21 +259,28 @@ func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 		panic(err)
 	}
 
-	config.ChainID = req.ChainId
-	if strings.HasPrefix(config.ChainID, "decimal-testnet") {
-		cfg.TitleBaseCoin = config.TitleTestBaseCoin
-		cfg.SymbolBaseCoin = config.SymbolTestBaseCoin
-		cfg.InitialVolumeBaseCoin = config.InitialVolumeTestBaseCoin
-	} else if strings.HasPrefix(config.ChainID, "decimal") {
-		cfg.TitleBaseCoin = config.TitleBaseCoin
-		cfg.SymbolBaseCoin = config.SymbolBaseCoin
-		cfg.InitialVolumeBaseCoin = config.InitialVolumeBaseCoin
-	}
-
 	return app.mm.InitGenesis(ctx, genesisState)
 }
 
 func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	// TODO: Keep this correct behavior on next blockchain update
+	if ctx.BlockHeight() >= 33000 {
+		if !cfg.Initialized {
+			fmt.Println("Initialized")
+			config.ChainID = ctx.ChainID()
+			if strings.HasPrefix(config.ChainID, "decimal-testnet") {
+				cfg.TitleBaseCoin = config.TitleTestBaseCoin
+				cfg.SymbolBaseCoin = config.SymbolTestBaseCoin
+				cfg.InitialVolumeBaseCoin = config.InitialVolumeTestBaseCoin
+			} else if strings.HasPrefix(config.ChainID, "decimal") {
+				cfg.TitleBaseCoin = config.TitleBaseCoin
+				cfg.SymbolBaseCoin = config.SymbolBaseCoin
+				cfg.InitialVolumeBaseCoin = config.InitialVolumeBaseCoin
+			}
+			cfg.Initialized = true
+		}
+	}
+
 	return app.mm.BeginBlock(ctx, req)
 }
 func (app *newApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
