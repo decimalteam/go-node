@@ -266,7 +266,6 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 	// TODO: Keep this correct behavior on next blockchain update
 	if ctx.BlockHeight() >= 33000 {
 		if !cfg.Initialized {
-			fmt.Println("Initialized")
 			config.ChainID = ctx.ChainID()
 			if strings.HasPrefix(config.ChainID, "decimal-testnet") {
 				cfg.TitleBaseCoin = config.TitleTestBaseCoin
