@@ -313,14 +313,16 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		}
 		if len(msgs) == 1 {
 			if msgs[0].Type() == validator.DelegateConst {
-				stdTx.Fee.Gas = helpers.PipToUnit(commissionInBaseCoin).Uint64() * 10
-				//tx = stdTx
-				ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
+				if ctx.BlockHeight() > 59000 {
+					stdTx.Fee.Gas = helpers.PipToUnit(commissionInBaseCoin).Uint64() * 10
+					ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
+				}
 				ctx.GasMeter().ConsumeGas(helpers.PipToUnit(commissionInBaseCoin).Uint64()*10, "commission")
 			} else {
-				stdTx.Fee.Gas = helpers.PipToUnit(commissionInBaseCoin).Uint64()
-				//tx = stdTx
-				ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
+				if ctx.BlockHeight() > 59000 {
+					stdTx.Fee.Gas = helpers.PipToUnit(commissionInBaseCoin).Uint64()
+					ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
+				}
 				ctx.GasMeter().ConsumeGas(helpers.PipToUnit(commissionInBaseCoin).Uint64(), "commission")
 			}
 		}
@@ -358,15 +360,17 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	if err != nil {
 		return ctx, err
 	}
-	if msgs[0].Type() == validator.DelegateConst {
-		stdTx.Fee.Gas = helpers.PipToUnit(feeInBaseCoin).Uint64() * 10
-		//tx = stdTx
-		ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
-		ctx.GasMeter().ConsumeGas(helpers.PipToUnit(feeInBaseCoin).Uint64()*10, "commission")
+	if ctx.BlockHeight() > 59000 {
+		if msgs[0].Type() == validator.DelegateConst {
+			stdTx.Fee.Gas = helpers.PipToUnit(feeInBaseCoin).Uint64() * 10
+			ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
+			ctx.GasMeter().ConsumeGas(helpers.PipToUnit(feeInBaseCoin).Uint64()*10, "commission")
+		} else {
+			stdTx.Fee.Gas = helpers.PipToUnit(feeInBaseCoin).Uint64()
+			ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
+			ctx.GasMeter().ConsumeGas(helpers.PipToUnit(feeInBaseCoin).Uint64(), "commission")
+		}
 	} else {
-		stdTx.Fee.Gas = helpers.PipToUnit(feeInBaseCoin).Uint64()
-		//tx = stdTx
-		ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
 		ctx.GasMeter().ConsumeGas(helpers.PipToUnit(feeInBaseCoin).Uint64(), "commission")
 	}
 
