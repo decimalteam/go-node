@@ -243,6 +243,12 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		panic(fmt.Sprintf("%s module account has not been set", types.FeeCollectorName))
 	}
 
+	// all transactions must implement GasTx
+	stdTx, ok := tx.(auth.StdTx)
+	if !ok {
+		return newCtx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be StdTx")
+	}
+
 	commissionInBaseCoin := sdk.ZeroInt()
 	commissionInBaseCoin = commissionInBaseCoin.AddRaw(int64(len(ctx.TxBytes()) * 2))
 
@@ -307,8 +313,14 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		}
 		if len(msgs) == 1 {
 			if msgs[0].Type() == validator.DelegateConst {
+				stdTx.Fee.Gas = helpers.PipToUnit(commissionInBaseCoin).Uint64() * 10
+				//tx = stdTx
+				ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
 				ctx.GasMeter().ConsumeGas(helpers.PipToUnit(commissionInBaseCoin).Uint64()*10, "commission")
 			} else {
+				stdTx.Fee.Gas = helpers.PipToUnit(commissionInBaseCoin).Uint64()
+				//tx = stdTx
+				ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
 				ctx.GasMeter().ConsumeGas(helpers.PipToUnit(commissionInBaseCoin).Uint64(), "commission")
 			}
 		}
@@ -346,7 +358,17 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	if err != nil {
 		return ctx, err
 	}
-	ctx.GasMeter().ConsumeGas(helpers.PipToUnit(feeInBaseCoin).Uint64(), "commission")
+	if msgs[0].Type() == validator.DelegateConst {
+		stdTx.Fee.Gas = helpers.PipToUnit(feeInBaseCoin).Uint64() * 10
+		//tx = stdTx
+		ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
+		ctx.GasMeter().ConsumeGas(helpers.PipToUnit(feeInBaseCoin).Uint64()*10, "commission")
+	} else {
+		stdTx.Fee.Gas = helpers.PipToUnit(feeInBaseCoin).Uint64()
+		//tx = stdTx
+		ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
+		ctx.GasMeter().ConsumeGas(helpers.PipToUnit(feeInBaseCoin).Uint64(), "commission")
+	}
 
 	return next(ctx, tx, simulate)
 }
