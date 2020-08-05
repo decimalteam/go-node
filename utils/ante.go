@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -313,13 +314,13 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		}
 		if len(msgs) == 1 {
 			if msgs[0].Type() == validator.DelegateConst {
-				if ctx.BlockHeight() > 59000 {
+				if ctx.BlockHeight() > 61500 {
 					stdTx.Fee.Gas = helpers.PipToUnit(commissionInBaseCoin).Uint64() * 10
 					ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
 				}
 				ctx.GasMeter().ConsumeGas(helpers.PipToUnit(commissionInBaseCoin).Uint64()*10, "commission")
 			} else {
-				if ctx.BlockHeight() > 59000 {
+				if ctx.BlockHeight() > 61500 {
 					stdTx.Fee.Gas = helpers.PipToUnit(commissionInBaseCoin).Uint64()
 					ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
 				}
@@ -360,7 +361,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	if err != nil {
 		return ctx, err
 	}
-	if ctx.BlockHeight() > 59000 {
+	if ctx.BlockHeight() > 61500 {
 		if msgs[0].Type() == validator.DelegateConst {
 			stdTx.Fee.Gas = helpers.PipToUnit(feeInBaseCoin).Uint64() * 10
 			ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
