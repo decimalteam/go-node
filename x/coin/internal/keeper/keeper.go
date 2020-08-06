@@ -93,6 +93,9 @@ func Abs(x sdk.Int) sdk.Int {
 func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int, address sdk.AccAddress) error {
 	// Get account instance
 	acc := k.AccountKeeper.GetAccount(ctx, address)
+	if acc == nil {
+		acc = k.AccountKeeper.NewAccountWithAddress(ctx, address)
+	}
 	// Get account coins information
 	coins := acc.GetCoins()
 	updAmount := Abs(amount)

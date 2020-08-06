@@ -262,6 +262,11 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
 	height := ctx.BlockHeight()
+
+	if height >= 66120 && height <= 70320 {
+		return
+	}
+
 	consAddr := sdk.ConsAddress(addr)
 	pubkey, err := k.getPubkey(ctx, addr)
 	if err != nil {
