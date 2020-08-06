@@ -127,8 +127,8 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 
 const devNetGenesis = `
 {
-  "genesis_time": "2020-08-03T09:30:00.000000Z",
-  "chain_id": "decimal-devnet-08-03-16-30",
+  "genesis_time": "2020-08-06T13:30:00.000000Z",
+  "chain_id": "decimal-devnet-08-06-20-30",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -201,7 +201,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AyXteacATBJVsNGhTGUwgHfLO4mJTXhvK/H/2MLOTylo"
                 },
-                "signature": "XUBH971OqrwlsvbNgiC3jpVwzon75oOG0oy3bDcsvKssNcowU8lvihPhhhkLPyEHHdux6pjSJYkgrNR3wyAfRQ=="
+                "signature": "bQz4IFcg9bR5/UNjWyghjq+zNxryODRmYAwUq4nc6rkdY5a5BMuoh5rt2BmvN4Qq8CfaHh4KHiP8hLbVbNgdyw=="
               }
             ],
             "memo": ""
@@ -245,7 +245,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A8s6NPtmz3ywH2LGxNnRjjsEIdt53ZuRQy7q6Mof0iA9"
                 },
-                "signature": "JHU+T8kc8Slog3rtUERI/ZrLYQflNJQRwe0I32ml/7AipeoXyu1G8UDZpMfRqZczEI+SyvNbTpz7AN9t33vffw=="
+                "signature": "gUvWrNQIv2y6168SzxKVGg+GdZaxYDtDZsJT+k/HIjBwlI30wz/UcKFdfNenYgZc/sfh/KLSEJ4oPEAvZAuebw=="
               }
             ],
             "memo": ""
@@ -289,7 +289,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A/jGezwfhOzAyTaRbg3off9HYzvtUO4CxaRrBJzdHGlw"
                 },
-                "signature": "OhUQhNk2H4g7cm7qlUjT2Mph5Nuv4eHDjWYTio0cZip2UOYsBgZvqRa3K4L2LxsT3B6OXoJgODBhzJ30C6Rq8Q=="
+                "signature": "KowFD4ydIPBjcXYcLyPXVcmpMnC7h7d3Ah8TBGhYmxUrOnI3+h+iVZaYPs3MUNcW1IngWxXEdGDGQwv2joNMLA=="
               }
             ],
             "memo": ""
