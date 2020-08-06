@@ -2,8 +2,8 @@ package cli
 
 const testNetGenesis = `
 {
-  "genesis_time": "2020-07-31T15:30:00.000000Z",
-  "chain_id": "decimal-testnet-07-31-22-30",
+  "genesis_time": "2020-08-06T06:00:00.000000Z",
+  "chain_id": "decimal-testnet-08-06-14-00",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -76,7 +76,7 @@ const testNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "Ann34HTQiiPi/Ht/2eSaDWVwoov2ycuYjpL2eMMpNQl0"
                 },
-                "signature": "Kc9WsuDL9j4SRC0EyIXITnZXRixYyh7f9E0ocA3giDcURsKS/0PwcYm6wJiiJkSUJIPohDyi3oiOofTqEX3t/g=="
+                "signature": "wB5HppMhn46N3fXtEhSctPxZAFsWyJSKlKNbgp6DgBFSYyVetJEQmj2/a5PI9LeuIWNJevfxLXP4fXm6N7Wmhw=="
               }
             ],
             "memo": ""
@@ -120,7 +120,7 @@ const testNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A+0Sm90CYEkcknXu/cvYx9eKpau17Yyd54mzDdtSG9bZ"
                 },
-                "signature": "4FSytBvKZcnUF9M4uCZICtmdPdX6Rr9UTXU0lCg82Jt6SvDwV1bNMo+sXCh79+uicJ2GBUxgAMPlHm7J/x1bkg=="
+                "signature": "aDo/I4ItXz6hcUCElrjbHk7Ov+GHOTwmo5zM41hJusk1ueA4dnljyA2qbRApu7n3ThJl1EbLOxknT2cQAtOHqA=="
               }
             ],
             "memo": ""
@@ -164,7 +164,7 @@ const testNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "Ax72b3e3Tz8Wx7Iq9FXaM1sbTit+1AujjKHRsTafhrtE"
                 },
-                "signature": "xAQxy6Bm1CCOdQzg49HA7xSpohweytWDwDrHFLhmbUMns2dRqiIbp99G0Wy1TCtiVjg50HQkRynAyGB73Y3+Ng=="
+                "signature": "JS/dn7RKJpDqxyCdD/F1FJVbSwwYrU4On2xFrsWrhuwazmbGigZ+KOaTuRL5dmivEhZeEiZHEX2PhJ2Wq1xOtw=="
               }
             ],
             "memo": ""
@@ -208,7 +208,7 @@ const testNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AtKn3ANbRqsIg8zpF0/03t9kvEuUtd7ZS9VnPu/8zF5z"
                 },
-                "signature": "aMSlXt5csFVIIFUBUyX2oeXyAZiTtetpx46t+AI7pgRxAwEoXWFKlcCxmkUaNRq62mgTvL1/lDko7w3c42p6UQ=="
+                "signature": "ePtnU+BuI2xDwdih89Yz3hllHdBLybRKbYUoQ0Ieb6VQ/kUA7FrC7IvOhu0RODPj27bKWLdHf+NeLHiLc3QQxQ=="
               }
             ],
             "memo": ""

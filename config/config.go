@@ -47,7 +47,7 @@ var (
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("340000000000000000000000000")
 )
 
-var ChainID = "decimal-testnet-07-31-22-30"
+var ChainID = "decimal-testnet-08-06-14-00"
 
 type Config struct {
 	Initialized           bool    `json:"initialized" yaml:"initialized"`
