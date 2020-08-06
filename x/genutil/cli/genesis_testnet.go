@@ -2,7 +2,7 @@ package cli
 
 const testNetGenesis = `
 {
-  "genesis_time": "2020-08-06T06:00:00.000000Z",
+  "genesis_time": "2020-08-06T07:00:00.000000Z",
   "chain_id": "decimal-testnet-08-06-14-00",
   "consensus_params": {
     "block": {
