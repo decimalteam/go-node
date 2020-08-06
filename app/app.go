@@ -2,8 +2,10 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -85,9 +87,12 @@ type newApp struct {
 	mm *module.Manager
 }
 
+var cfg = &config.Config{}
+
 // Newgo-nodeApp is a constructor function for go-nodeApp
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
+	fmt.Printf("decd version: %s\n", config.DecimalVersion)
 
 	// First define the top level codec that will be shared by the different modules
 	cdc := MakeCodec()
@@ -110,7 +115,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
-	config := config.GetDefaultConfig(config.ChainID)
+	cfg = config.GetDefaultConfig(config.ChainID)
 
 	// Here you initialize your application with the store keys it requires
 	var app = &newApp{
@@ -159,7 +164,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coinSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		config,
+		cfg,
 	)
 
 	app.multisigKeeper = multisig.NewKeeper(
@@ -258,6 +263,20 @@ func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 }
 
 func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	if !cfg.Initialized {
+		config.ChainID = ctx.ChainID()
+		if strings.HasPrefix(config.ChainID, "decimal-testnet") {
+			cfg.TitleBaseCoin = config.TitleTestBaseCoin
+			cfg.SymbolBaseCoin = config.SymbolTestBaseCoin
+			cfg.InitialVolumeBaseCoin = config.InitialVolumeTestBaseCoin
+		} else if strings.HasPrefix(config.ChainID, "decimal") {
+			cfg.TitleBaseCoin = config.TitleBaseCoin
+			cfg.SymbolBaseCoin = config.SymbolBaseCoin
+			cfg.InitialVolumeBaseCoin = config.InitialVolumeBaseCoin
+		}
+		cfg.Initialized = true
+	}
+
 	return app.mm.BeginBlock(ctx, req)
 }
 func (app *newApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {

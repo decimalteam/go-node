@@ -93,6 +93,9 @@ func Abs(x sdk.Int) sdk.Int {
 func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int, address sdk.AccAddress) error {
 	// Get account instance
 	acc := k.AccountKeeper.GetAccount(ctx, address)
+	if acc == nil {
+		acc = k.AccountKeeper.NewAccountWithAddress(ctx, address)
+	}
 	// Get account coins information
 	coins := acc.GetCoins()
 	updAmount := Abs(amount)
@@ -151,7 +154,7 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 	var feeCoin string
 	fee, ok := ctx.Value("fee").(sdk.Coins)
 	if !ok || fee == nil {
-		feeCoin = k.GetBaseCoin()
+		feeCoin = k.GetBaseCoin(ctx)
 		return commissionInBaseCoin, feeCoin, nil
 	}
 
@@ -160,7 +163,7 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 	coin := fee[0]
 
 	feeCoin = coin.Denom
-	if feeCoin != k.GetBaseCoin() {
+	if feeCoin != k.GetBaseCoin(ctx) {
 		coinInfo, err := k.GetCoin(ctx, feeCoin)
 		if err != nil {
 			return sdk.Int{}, "", err
@@ -205,6 +208,6 @@ func (k Keeper) GetCoinCache(symbol string) bool {
 	return ok
 }
 
-func (k Keeper) GetBaseCoin() string {
+func (k Keeper) GetBaseCoin(ctx sdk.Context) string {
 	return k.Config.SymbolBaseCoin
 }

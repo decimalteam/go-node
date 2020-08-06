@@ -9,7 +9,7 @@ import (
 const (
 
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "0.9.10"
+	DecimalVersion = "1.0.4"
 
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
@@ -36,9 +36,6 @@ const (
 	// DecimalPrefixConsPub defines the Decimal prefix of a consensus node public key.
 	DecimalPrefixConsPub = DecimalMainPrefix + PrefixValidator + PrefixConsensus + PrefixPublic
 
-	// ChainID is the Decimal chain identifier.
-	ChainID = "decimal-testnet-07-31-22-30"
-
 	TitleTestBaseCoin  = "Test decimal coin"
 	SymbolTestBaseCoin = "tdel"
 	TitleBaseCoin      = "Decimal coin"
@@ -50,7 +47,10 @@ var (
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("340000000000000000000000000")
 )
 
+var ChainID = "decimal-testnet-07-31-22-30"
+
 type Config struct {
+	Initialized           bool    `json:"initialized" yaml:"initialized"`
 	TitleBaseCoin         string  `json:"title" yaml:"title"`   // Full coin title (Bitcoin)
 	SymbolBaseCoin        string  `json:"symbol" yaml:"symbol"` // Short coin title (BTC)
 	InitialVolumeBaseCoin sdk.Int `json:"initial_volume" yaml:"initial_volume"`
