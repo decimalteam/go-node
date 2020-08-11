@@ -125,8 +125,8 @@ func ErrTxBreaksVolumeLimit(volume, limitVolume string) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeTxBreaksVolumeLimit, fmt.Sprintf("tx breaks LimitVolume rule: %s > %s", volume, limitVolume))
 }
 
-func ErrTxBreaksMinReserveRule(volume string) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeTxBreaksMinReserveLimit, fmt.Sprintf("tx breaks MinReserveLimit rule: %s < %s", volume, MinCoinReserve.String()))
+func ErrTxBreaksMinReserveRule(reserve string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeTxBreaksMinReserveLimit, fmt.Sprintf("tx breaks MinReserveLimit rule: %s < %s", reserve, MinCoinReserve.String()))
 }
 
 func ErrMaximumValueToSellReached(amount, max string) *sdkerrors.Error {
