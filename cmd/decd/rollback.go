@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
@@ -12,14 +15,14 @@ import (
 	"time"
 )
 
-func fixAppHashError() *cobra.Command {
+func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "fix-app-hash-error",
 		Short: "",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(_ *cobra.Command, args []string) error {
 			cfg := config.DefaultConfig()
-			cfg.RootDir = ".\\.decimal\\daemon\\"
+			cfg.SetRoot(viper.GetString(cli.HomeFlag))
 			blockStoreDB, err := node.DefaultDBProvider(&node.DBContext{ID: "blockstore", Config: cfg})
 			if err != nil {
 				return err
@@ -54,6 +57,9 @@ func fixAppHashError() *cobra.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().String(cli.HomeFlag, defaultNodeHome, "node's home directory")
+
 	return cmd
 }
 
