@@ -2,8 +2,8 @@ package cli
 
 const devNetGenesis = `
 {
-  "genesis_time": "2020-07-22T11:50:00.000000Z",
-  "chain_id": "decimal-devnet-07-23-20-55",
+  "genesis_time": "2020-09-08T03:30:00.000000Z",
+  "chain_id": "decimal-devnet-09-08-13-30",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -76,10 +76,10 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AyXteacATBJVsNGhTGUwgHfLO4mJTXhvK/H/2MLOTylo"
                 },
-                "signature": "Bp7Ergky/TonbvNyJo26Tfp+VhZLu93ZCI3UrXPI5HBbkzM6eYTxAm7/89pT8BigO72bduE9Skl+xRCe7kuOuA=="
+                "signature": "Ov1L6UCgbWuwtWmxxXqjL1zIWARnTU7OX13eROzavoQPv5qk0+eXONNny93h+pPV6NRIEni6Nbvbd2LqbWNXBg=="
               }
             ],
-            "memo": "8a2cc38f5264e9699abb8db91c9b4a4a061f000d@46.101.127.241:26656"
+            "memo": ""
           }
         },
         {
@@ -120,10 +120,10 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A8s6NPtmz3ywH2LGxNnRjjsEIdt53ZuRQy7q6Mof0iA9"
                 },
-                "signature": "bLd92//oiK0B2cwCRr9XTuymyqN/orxzyKSW4yDVm3khGla3TKM8Ic/p+o2iZVS1VEW9ENrWbUGM0Z2kr5R/fA=="
+                "signature": "yRixWnxwj/y8LsFvizYmPPEZo9sFgYZskXwvZRm91U1EUUdnN/Yq8UuchtY0QIPqpNXOUWYIJiSJzsUu9MvqTA=="
               }
             ],
-            "memo": "e0e7a88de0b39bd2adceb3516d353582ff94ec15@164.90.211.234:26656"
+            "memo": ""
           }
         },
         {
@@ -164,10 +164,10 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A/jGezwfhOzAyTaRbg3off9HYzvtUO4CxaRrBJzdHGlw"
                 },
-                "signature": "g4L04c6+v2SmtpFL8aP0Yz9y2RVpq5ka1E7Vkvt7+SRGJ3FTjzfmcEW2PU5gKoSLv70JhCTxBLCvQv+6MUh/jg=="
+                "signature": "EYev0JrhN1REPiqmj7YVWr4EY2upYvfzRlFWpKJWDXsg2JFqOZE90CNPERQYz15F6lU0Jp7wN87joaeVw1GHaA=="
               }
             ],
-            "memo": "27fcfef145b3717c5d639ec72fb12f9c43da98f0@167.99.182.218:26656"
+            "memo": ""
           }
         }
       ]
