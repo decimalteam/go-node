@@ -2,7 +2,7 @@
 
 # Add initial signed transactions to the genesis file
 decd gen-declare-candidate-tx \
-    --chain-id decimal-devnet-09-08-13-30 \
+    --chain-id decimal-devnet-09-08-15-45 \
     --name dev-node-fra1-01 \
     --sequence 0 \
     --amount 40000000000000000000000000del \
@@ -15,7 +15,7 @@ decd gen-declare-candidate-tx \
 
 # Add initial signed transactions to the genesis file
 decd gen-declare-candidate-tx \
-    --chain-id decimal-devnet-09-08-13-30 \
+    --chain-id decimal-devnet-09-08-15-45 \
     --name dev-node-fra1-02 \
     --sequence 0 \
     --amount 40000000000000000000000000del \
@@ -28,7 +28,7 @@ decd gen-declare-candidate-tx \
 
 # Add initial signed transactions to the genesis file
 decd gen-declare-candidate-tx \
-    --chain-id decimal-devnet-09-08-13-30 \
+    --chain-id decimal-devnet-09-08-15-45 \
     --name dev-node-tor1-01 \
     --sequence 0 \
     --amount 40000000000000000000000000del \
