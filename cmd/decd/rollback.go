@@ -12,17 +12,28 @@ import (
 	"github.com/tendermint/tendermint/store"
 	"github.com/tendermint/tendermint/types"
 	db "github.com/tendermint/tm-db"
+	"strconv"
 	"time"
 )
 
 func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "fix-app-hash-error",
+		Use:   "rollback [100]",
 		Short: "",
-		Args:  cobra.ExactArgs(0),
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			cfg := config.DefaultConfig()
 			cfg.SetRoot(viper.GetString(cli.HomeFlag))
+
+			var countBlocks int64
+			var err error
+			if len(args) == 1 {
+				countBlocks, err = strconv.ParseInt(args[0], 10, 64)
+				if err != nil {
+					return err
+				}
+			}
+
 			blockStoreDB, err := node.DefaultDBProvider(&node.DBContext{ID: "blockstore", Config: cfg})
 			if err != nil {
 				return err
@@ -37,15 +48,23 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 
 			height := st.LastBlockHeight
 
-			blockStore := store.NewBlockStore(blockStoreDB)
-			block := blockStore.LoadBlock(height)
-
-			err = DeleteBlock(blockStoreDB, blockStore, block)
-			if err != nil {
-				return err
+			if countBlocks > (st.LastBlockHeight - st.LastBlockHeight/100*100) {
+				countBlocks = st.LastBlockHeight - st.LastBlockHeight/100*100
 			}
 
-			block = blockStore.LoadBlock(height - 1)
+			blockStore := store.NewBlockStore(blockStoreDB)
+			for i := int64(0); i < countBlocks; i++ {
+				block := blockStore.LoadBlock(height)
+
+				err = DeleteBlock(blockStoreDB, blockStore, block)
+				if err != nil {
+					return err
+				}
+
+				height--
+			}
+
+			block := blockStore.LoadBlock(height - 1)
 
 			st.LastBlockHeight = height - 2
 			st.LastBlockID = block.LastBlockID
