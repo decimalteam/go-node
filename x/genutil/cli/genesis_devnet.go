@@ -2,8 +2,8 @@ package cli
 
 const devNetGenesis = `
 {
-  "genesis_time": "2020-10-02T06:30:00.000000Z",
-  "chain_id": "decimal-devnet-10-02-13-30",
+  "genesis_time": "2020-10-05T11:00:00.000000Z",
+  "chain_id": "decimal-devnet-10-05-18-00",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -76,7 +76,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AyXteacATBJVsNGhTGUwgHfLO4mJTXhvK/H/2MLOTylo"
                 },
-                "signature": "pKYNyYR5obypKoWFF6wtzp7BaXG1YvJ4Bn3AUGjJ+acAtzziLlrV5GFVQXX61yvQVVwkwPbv2ua2lYTZhLFZLQ=="
+                "signature": "vVPVLa1ti3hFRixVggiD9h2y3XAPyUpebUUb/0K47eJtE5sJdz5uFsE63q6f2vtEoCP6MgKj7SrghveVeD2LHQ=="
               }
             ],
             "memo": ""
@@ -120,7 +120,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A8s6NPtmz3ywH2LGxNnRjjsEIdt53ZuRQy7q6Mof0iA9"
                 },
-                "signature": "29vuPJAFiiCfSiRF4PLUb1vA/7CmNQE++o8QmzoGXx8N/TNy+My4rqY8ANzo4UPc6S1ZAReM8AibJSH2nv1/xw=="
+                "signature": "vG5VxpO70upnih9KBI0oCl3dRJV4YLI3/XjYD4jJWLIUFhqBaorrpxMfnZ/DBFtMHlrOZZFTW8/gt1pWQ0MOtA=="
               }
             ],
             "memo": ""
@@ -164,7 +164,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A/jGezwfhOzAyTaRbg3off9HYzvtUO4CxaRrBJzdHGlw"
                 },
-                "signature": "H+ysmKljGTNfIakxMAG2+By+puEZUHMFfMjl65v8dNM1zP16hAZteJsO9FrBR+oWrigZ1yrzk7FE/V6p2yuEtg=="
+                "signature": "qKPO0OI+R9j1SikmFwXD4Q5P1cfTKIu+p90pdzs+oJVunCtOqV3nOMeyv2z/yhZz0aqJzZ4wFfT8NpRuRT0Jcw=="
               }
             ],
             "memo": ""
@@ -270,7 +270,17 @@ const devNetGenesis = `
       "symbol": "del",
       "initial_volume": "340000000000000000000000000"
     },
-    "check": {}
+    "check": {},
+    "multisig": {},
+    "gov": {
+      "starting_proposal_id": "1",
+      "votes": null,
+      "proposals": null,
+      "tally_params": {
+        "quorum": "0.334000000000000000",
+        "threshold": "0.500000000000000000"
+      }
+    }
   }
 }
 `
