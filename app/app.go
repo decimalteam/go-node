@@ -132,7 +132,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	coinSubspace := app.paramsKeeper.Subspace(coin.DefaultParamspace)
 	multisigSubspace := app.paramsKeeper.Subspace(multisig.DefaultParamspace)
 	validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
-	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace)
+	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(

@@ -27,6 +27,7 @@ var (
 	RegisterCodec       = types.RegisterCodec
 	ModuleCdc           = types.ModuleCdc
 	NewQuerier          = keeper.NewQuerier
+	ParamKeyTable       = types.ParamKeyTable
 )
 
 type (
