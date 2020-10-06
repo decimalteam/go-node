@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -139,4 +140,31 @@ func (keeper Keeper) ActiveProposalQueueIterator(ctx sdk.Context, endBlock uint6
 func (keeper Keeper) InactiveProposalQueueIterator(ctx sdk.Context, endBlock uint64) sdk.Iterator {
 	store := ctx.KVStore(keeper.storeKey)
 	return store.Iterator(types.InactiveProposalQueuePrefix, sdk.PrefixEndBytes(types.InactiveProposalByTimeKey(endBlock)))
+}
+
+func (keeper Keeper) CheckValidator(ctx sdk.Context, address sdk.AccAddress) error {
+	if !keeper.vk.HasValidator(ctx, sdk.ValAddress(address)) {
+		return fmt.Errorf("voter is not a validator")
+	}
+
+	var val exported.ValidatorI
+
+	keeper.vk.IterateBondedValidatorsByPower(ctx, func(index int64, validator exported.ValidatorI) bool {
+		if index == 10 {
+			return true
+		}
+
+		if validator.GetOperator().Equals(address) {
+			val = validator
+			return true
+		}
+
+		return false
+	})
+
+	if val == nil {
+		return fmt.Errorf("voter doesn't have enough power voting")
+	}
+
+	return nil
 }

@@ -38,6 +38,8 @@ type ValidatorKeeper interface {
 		ctx sdk.Context, delegator sdk.AccAddress,
 		fn func(index int64, delegation valexported.DelegationI) (stop bool),
 	)
+
+	HasValidator(sdk.Context, sdk.ValAddress) bool
 }
 
 // AccountKeeper defines the expected account keeper (noalias)

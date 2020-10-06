@@ -51,7 +51,12 @@ func handleMsgSubmitProposal(ctx sdk.Context, keeper Keeper, msg types.MsgSubmit
 }
 
 func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types.MsgVote) (*sdk.Result, error) {
-	err := keeper.AddVote(ctx, msg.ProposalID, msg.Voter, msg.Option)
+	err := keeper.CheckValidator(ctx, msg.Voter)
+	if err != nil {
+		return nil, err
+	}
+
+	err = keeper.AddVote(ctx, msg.ProposalID, msg.Voter, msg.Option)
 	if err != nil {
 		return nil, err
 	}

@@ -72,11 +72,5 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 		return false, tallyResults
 	}
 
-	// If more than 1/2 of non-abstaining voters vote Yes, proposal passes
-	if results[types.OptionYes].Quo(totalVotingPower.Sub(results[types.OptionAbstain])).GT(tallyParams.Threshold) {
-		return true, tallyResults
-	}
-
-	// If more than 1/2 of non-abstaining voters vote No, proposal fails
 	return false, tallyResults
 }
