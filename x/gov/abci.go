@@ -15,6 +15,8 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 		if proposal.VotingStartBlock == uint64(ctx.BlockHeight()+1) {
 			keeper.RemoveFromInactiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingStartBlock)
 			keeper.InsertActiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingStartBlock)
+			proposal.Status = StatusVotingPeriod
+			keeper.SetProposal(ctx, proposal)
 
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
