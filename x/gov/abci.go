@@ -10,61 +10,68 @@ import (
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
 	logger := keeper.Logger(ctx)
 
-	// delete inactive proposal from store
-	keeper.IterateInactiveProposalsQueue(ctx, uint64(ctx.BlockHeight()), func(proposal Proposal) bool {
-		keeper.RemoveFromInactiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingStartBlock)
-		keeper.InsertActiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingEndBlock)
-		proposal.Status = StatusVotingPeriod
-		keeper.SetProposal(ctx, proposal)
+	fmt.Println("end block")
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeInactiveProposal,
-				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
-			),
-		)
+	// delete inactive proposal from store
+	keeper.IterateAllInactiveProposalsQueue(ctx, func(proposal Proposal) bool {
+		if ctx.BlockHeight() == int64(proposal.VotingStartBlock) {
+			keeper.RemoveFromInactiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingStartBlock)
+			keeper.InsertActiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingEndBlock)
+			proposal.Status = StatusVotingPeriod
+			keeper.SetProposal(ctx, proposal)
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeInactiveProposal,
+					sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
+				),
+			)
+		}
 
 		return false
 	})
 
 	// fetch active proposals whose voting periods have ended (are passed the block time)
-	keeper.IterateActiveProposalsQueue(ctx, uint64(ctx.BlockHeight()), func(proposal Proposal) bool {
-		var tagValue, logMsg string
+	keeper.IterateAllActiveProposalsQueue(ctx, func(proposal Proposal) bool {
+		if int64(proposal.VotingEndBlock) == ctx.BlockHeight() {
+			var tagValue, logMsg string
 
-		passes, tallyResults := keeper.Tally(ctx, proposal)
+			passes, tallyResults := keeper.Tally(ctx, proposal)
 
-		if passes {
-			proposal.Status = StatusPassed
-			tagValue = types.AttributeValueProposalPassed
-			logMsg = "passed"
-		} else {
-			proposal.Status = StatusRejected
-			tagValue = types.AttributeValueProposalRejected
-			logMsg = "rejected"
+			if passes {
+				proposal.Status = StatusPassed
+				tagValue = types.AttributeValueProposalPassed
+				logMsg = "passed"
+			} else {
+				proposal.Status = StatusRejected
+				tagValue = types.AttributeValueProposalRejected
+				logMsg = "rejected"
+			}
+
+			proposal.FinalTallyResult = tallyResults
+
+			keeper.SetProposal(ctx, proposal)
+			keeper.RemoveFromActiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingEndBlock)
+
+			logger.Info(
+				fmt.Sprintf(
+					"proposal %d (%s) tallied; result: %s",
+					proposal.ProposalID, proposal.GetTitle(), logMsg,
+				),
+			)
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeActiveProposal,
+					sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
+					sdk.NewAttribute(types.AttributeKeyProposalResult, tagValue),
+					sdk.NewAttribute(types.AttributeKeyResultVoteYes, tallyResults.Yes.String()),
+					sdk.NewAttribute(types.AttributeKeyResultVoteAbstain, tallyResults.Abstain.String()),
+					sdk.NewAttribute(types.AttributeKeyResultVoteNo, tallyResults.No.String()),
+				),
+			)
 		}
 
-		proposal.FinalTallyResult = tallyResults
-
-		keeper.SetProposal(ctx, proposal)
-		keeper.RemoveFromActiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingEndBlock)
-
-		logger.Info(
-			fmt.Sprintf(
-				"proposal %d (%s) tallied; result: %s",
-				proposal.ProposalID, proposal.GetTitle(), logMsg,
-			),
-		)
-
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeActiveProposal,
-				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
-				sdk.NewAttribute(types.AttributeKeyProposalResult, tagValue),
-				sdk.NewAttribute(types.AttributeKeyResultVoteYes, tallyResults.Yes.String()),
-				sdk.NewAttribute(types.AttributeKeyResultVoteAbstain, tallyResults.Abstain.String()),
-				sdk.NewAttribute(types.AttributeKeyResultVoteNo, tallyResults.No.String()),
-			),
-		)
 		return false
 	})
 }

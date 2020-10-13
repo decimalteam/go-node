@@ -135,12 +135,12 @@ func SplitKeyVote(key []byte) (proposalID uint64, voterAddr sdk.AccAddress) {
 // private functions
 
 func splitKeyWithTime(key []byte) (proposalID uint64, endBlock uint64) {
-	if len(key) != 16 {
-		panic(fmt.Sprintf("unexpected key length %d", 16))
+	if len(key) != 17 {
+		panic(fmt.Sprintf("unexpected key length %d %v", len(key), key))
 	}
 
-	endBlock = GetUint64FromBytes(key[1:])
-	proposalID = GetProposalIDFromBytes(key[:1])
+	endBlock = GetUint64FromBytes(key[1:9])
+	proposalID = GetProposalIDFromBytes(key[9:])
 
 	return
 }

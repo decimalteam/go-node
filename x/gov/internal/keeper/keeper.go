@@ -111,6 +111,26 @@ func (keeper Keeper) IterateActiveProposalsQueue(ctx sdk.Context, endBlock uint6
 	}
 }
 
+func (keeper Keeper) IterateAllActiveProposalsQueue(ctx sdk.Context, cb func(proposal types.Proposal) (stop bool)) {
+	iterator := keeper.ActiveAllProposalQueueIterator(ctx)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		if len(iterator.Key()) != 17 {
+			continue
+		}
+		proposalID, _ := types.SplitActiveProposalQueueKey(iterator.Key())
+		proposal, found := keeper.GetProposal(ctx, proposalID)
+		if !found {
+			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
+		}
+
+		if cb(proposal) {
+			break
+		}
+	}
+}
+
 // IterateInactiveProposalsQueue iterates over the proposals in the inactive proposal queue
 // and performs a callback function
 func (keeper Keeper) IterateInactiveProposalsQueue(ctx sdk.Context, endBlock uint64, cb func(proposal types.Proposal) (stop bool)) {
@@ -130,16 +150,48 @@ func (keeper Keeper) IterateInactiveProposalsQueue(ctx sdk.Context, endBlock uin
 	}
 }
 
+func (keeper Keeper) IterateAllInactiveProposalsQueue(ctx sdk.Context, cb func(proposal types.Proposal) (stop bool)) {
+	iterator := keeper.InactiveAllProposalQueueIterator(ctx)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		if len(iterator.Key()) != 17 {
+			continue
+		}
+		proposalID, _ := types.SplitInactiveProposalQueueKey(iterator.Key())
+		proposal, found := keeper.GetProposal(ctx, proposalID)
+		if !found {
+			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
+		}
+
+		if cb(proposal) {
+			break
+		}
+	}
+}
+
 // ActiveProposalQueueIterator returns an sdk.Iterator for all the proposals in the Active Queue that expire by endTime
 func (keeper Keeper) ActiveProposalQueueIterator(ctx sdk.Context, endBlock uint64) sdk.Iterator {
 	store := ctx.KVStore(keeper.storeKey)
 	return store.Iterator(types.ActiveProposalQueuePrefix, sdk.PrefixEndBytes(types.ActiveProposalByTimeKey(endBlock)))
 }
 
+// ActiveAllProposalQueueIterator returns an sdk.Iterator for all the proposals in the Active Queue
+func (keeper Keeper) ActiveAllProposalQueueIterator(ctx sdk.Context) sdk.Iterator {
+	store := ctx.KVStore(keeper.storeKey)
+	return store.Iterator(types.ActiveProposalQueuePrefix, nil)
+}
+
 // InactiveProposalQueueIterator returns an sdk.Iterator for all the proposals in the Inactive Queue that expire by endTime
 func (keeper Keeper) InactiveProposalQueueIterator(ctx sdk.Context, endBlock uint64) sdk.Iterator {
 	store := ctx.KVStore(keeper.storeKey)
 	return store.Iterator(types.InactiveProposalQueuePrefix, sdk.PrefixEndBytes(types.InactiveProposalByTimeKey(endBlock)))
+}
+
+// InactiveAllProposalQueueIterator returns an sdk.Iterator for all the proposals in the Inactive Queue
+func (keeper Keeper) InactiveAllProposalQueueIterator(ctx sdk.Context) sdk.Iterator {
+	store := ctx.KVStore(keeper.storeKey)
+	return store.Iterator(types.InactiveProposalQueuePrefix, nil)
 }
 
 func (keeper Keeper) CheckValidator(ctx sdk.Context, address sdk.AccAddress) error {

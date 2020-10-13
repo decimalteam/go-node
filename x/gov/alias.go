@@ -20,14 +20,15 @@ const (
 )
 
 var (
-	DefaultGenesisState = types.DefaultGenesisState
-	ValidateGenesis     = types.ValidateGenesis
-	NewKeeper           = keeper.NewKeeper
-	NewRouter           = types.NewRouter
-	RegisterCodec       = types.RegisterCodec
-	ModuleCdc           = types.ModuleCdc
-	NewQuerier          = keeper.NewQuerier
-	ParamKeyTable       = types.ParamKeyTable
+	DefaultGenesisState  = types.DefaultGenesisState
+	ValidateGenesis      = types.ValidateGenesis
+	NewKeeper            = keeper.NewKeeper
+	NewRouter            = types.NewRouter
+	RegisterCodec        = types.RegisterCodec
+	ModuleCdc            = types.ModuleCdc
+	NewQuerier           = keeper.NewQuerier
+	ParamKeyTable        = types.ParamKeyTable
+	NewMsgSubmitProposal = types.NewMsgSubmitProposal
 )
 
 type (

@@ -68,4 +68,6 @@ type (
 	UnbondingDelegation = types.UnbondingDelegation
 
 	Validator = types.Validator
+
+	Description = types.Description
 )
