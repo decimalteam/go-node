@@ -39,7 +39,7 @@ func TestTickPassedVotingPeriod(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	ctx = ctx.WithBlockHeight(4)
+	ctx = ctx.WithBlockHeight(5)
 
 	EndBlocker(ctx, input.keeper)
 
