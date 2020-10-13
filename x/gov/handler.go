@@ -41,7 +41,7 @@ func handleMsgSubmitProposal(ctx sdk.Context, keeper Keeper, msg types.MsgSubmit
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeSubmitProposal,
+			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Proposer.String()),
 			sdk.NewAttribute(types.AttributeKeyProposalTitle, msg.Content.Title),
@@ -70,9 +70,9 @@ func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types.MsgVote) (*sdk.Resu
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeProposalVote,
+			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, sdk.ValAddress(msg.Voter).String()),
 			sdk.NewAttribute(types.AttributeKeyProposalID, strconv.FormatUint(msg.ProposalID, 10)),
 			sdk.NewAttribute(types.AttributeKeyOption, msg.Option.String()),
 		),
