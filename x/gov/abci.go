@@ -36,7 +36,7 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 		if int64(proposal.VotingEndBlock) == ctx.BlockHeight() {
 			var tagValue, logMsg string
 
-			passes, tallyResults := keeper.Tally(ctx, proposal)
+			passes, tallyResults, totalVotingPower := keeper.Tally(ctx, proposal)
 
 			if passes {
 				proposal.Status = StatusPassed
@@ -68,6 +68,7 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 					sdk.NewAttribute(types.AttributeKeyResultVoteYes, tallyResults.Yes.String()),
 					sdk.NewAttribute(types.AttributeKeyResultVoteAbstain, tallyResults.Abstain.String()),
 					sdk.NewAttribute(types.AttributeKeyResultVoteNo, tallyResults.No.String()),
+					sdk.NewAttribute(types.AttributeKeyTotalVotingPower, totalVotingPower.String()),
 				),
 			)
 		}

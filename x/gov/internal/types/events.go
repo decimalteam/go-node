@@ -24,4 +24,5 @@ const (
 	AttributeKeyResultVoteYes     = "result_vote_yes"
 	AttributeKeyResultVoteAbstain = "result_vote_abstain"
 	AttributeKeyResultVoteNo      = "result_vote_no"
+	AttributeKeyTotalVotingPower  = "total_voting_power"
 )
