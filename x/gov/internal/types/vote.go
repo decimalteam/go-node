@@ -9,12 +9,12 @@ import (
 // Vote
 type Vote struct {
 	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"` //  proposalID of the proposal
-	Voter      sdk.AccAddress `json:"voter" yaml:"voter"`             //  address of the voter
+	Voter      sdk.ValAddress `json:"voter" yaml:"voter"`             //  address of the voter
 	Option     VoteOption     `json:"option" yaml:"option"`           //  option from OptionSet chosen by the voter
 }
 
 // NewVote creates a new Vote instance
-func NewVote(proposalID uint64, voter sdk.AccAddress, option VoteOption) Vote {
+func NewVote(proposalID uint64, voter sdk.ValAddress, option VoteOption) Vote {
 	return Vote{proposalID, voter, option}
 }
 

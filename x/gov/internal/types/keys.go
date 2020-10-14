@@ -97,7 +97,7 @@ func VotesKey(proposalID uint64) []byte {
 }
 
 // VoteKey key of a specific vote from the store
-func VoteKey(proposalID uint64, voterAddr sdk.AccAddress) []byte {
+func VoteKey(proposalID uint64, voterAddr sdk.ValAddress) []byte {
 	return append(VotesKey(proposalID), voterAddr.Bytes()...)
 }
 

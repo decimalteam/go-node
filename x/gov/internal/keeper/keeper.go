@@ -194,8 +194,8 @@ func (keeper Keeper) InactiveAllProposalQueueIterator(ctx sdk.Context) sdk.Itera
 	return store.Iterator(types.InactiveProposalQueuePrefix, nil)
 }
 
-func (keeper Keeper) CheckValidator(ctx sdk.Context, address sdk.AccAddress) error {
-	if !keeper.vk.HasValidator(ctx, sdk.ValAddress(address)) {
+func (keeper Keeper) CheckValidator(ctx sdk.Context, address sdk.ValAddress) error {
+	if !keeper.vk.HasValidator(ctx, address) {
 		return fmt.Errorf("voter is not a validator")
 	}
 

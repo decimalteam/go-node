@@ -73,12 +73,12 @@ func (msg MsgSubmitProposal) GetSigners() []sdk.AccAddress {
 // MsgVote defines a message to cast a vote
 type MsgVote struct {
 	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"` // ID of the proposal
-	Voter      sdk.AccAddress `json:"voter" yaml:"voter"`             //  address of the voter
+	Voter      sdk.ValAddress `json:"voter" yaml:"voter"`             //  address of the voter
 	Option     VoteOption     `json:"option" yaml:"option"`           //  option from OptionSet chosen by the voter
 }
 
 // NewMsgVote creates a message to cast a vote on an active proposal
-func NewMsgVote(voter sdk.AccAddress, proposalID uint64, option VoteOption) MsgVote {
+func NewMsgVote(voter sdk.ValAddress, proposalID uint64, option VoteOption) MsgVote {
 	return MsgVote{proposalID, voter, option}
 }
 
@@ -116,5 +116,5 @@ func (msg MsgVote) GetSignBytes() []byte {
 
 // GetSigners implements Msg
 func (msg MsgVote) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Voter}
+	return []sdk.AccAddress{sdk.AccAddress(msg.Voter)}
 }
