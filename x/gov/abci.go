@@ -10,8 +10,6 @@ import (
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
 	logger := keeper.Logger(ctx)
 
-	fmt.Println("end block")
-
 	// delete inactive proposal from store
 	keeper.IterateAllInactiveProposalsQueue(ctx, func(proposal Proposal) bool {
 		if ctx.BlockHeight() == int64(proposal.VotingStartBlock) {
