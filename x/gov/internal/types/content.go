@@ -13,7 +13,7 @@ const (
 )
 
 type Content struct {
-	Title       string `json:"content" yaml:"content"`         // Proposal title
+	Title       string `json:"title" yaml:"title"`             // Proposal title
 	Description string `json:"description" yaml:"description"` // Proposal description
 	Route       string `json:"route"`                          // Proposal router
 }
