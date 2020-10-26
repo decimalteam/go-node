@@ -38,7 +38,7 @@ func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
-		votingEndBlock, ok := rest.ParseUint64OrReturnBadRequest(w, req.VotingStartBlock)
+		votingEndBlock, ok := rest.ParseUint64OrReturnBadRequest(w, req.VotingEndBlock)
 		if !ok {
 			return
 		}

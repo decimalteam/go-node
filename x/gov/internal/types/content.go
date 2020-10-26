@@ -15,12 +15,10 @@ const (
 type Content struct {
 	Title       string `json:"title" yaml:"title"`             // Proposal title
 	Description string `json:"description" yaml:"description"` // Proposal description
-	Route       string `json:"route"`                          // Proposal router
 }
 
 func (c *Content) GetTitle() string       { return c.Title }
 func (c *Content) GetDescription() string { return c.Description }
-func (c *Content) GetRoute() string       { return c.Route }
 
 // Handler defines a function that handles a proposal after it has passed the
 // governance process.
