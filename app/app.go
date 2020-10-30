@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/swap"
 	"encoding/json"
 	"io"
 	"os"
@@ -48,12 +49,14 @@ var (
 		multisig.AppModuleBasic{},
 		validator.AppModuleBasic{},
 		gov.AppModuleBasic{},
+		swap.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
 		auth.FeeCollectorName:       {supply.Burner, supply.Minter},
 		validator.BondedPoolName:    {supply.Burner, supply.Staking},
 		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
+		swap.PoolName:               {supply.Minter, supply.Burner},
 	}
 )
 
@@ -83,6 +86,7 @@ type newApp struct {
 	multisigKeeper  multisig.Keeper
 	validatorKeeper validator.Keeper
 	govKeeper       gov.Keeper
+	swapKeeper      swap.Keeper
 
 	// Module Manager
 	mm *module.Manager
@@ -110,6 +114,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		multisig.StoreKey,
 		validator.StoreKey,
 		gov.StoreKey,
+		swap.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
@@ -133,6 +138,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	multisigSubspace := app.paramsKeeper.Subspace(multisig.DefaultParamspace)
 	validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
 	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
+	swapSubspace := app.paramsKeeper.Subspace(swap.DefaultParamspace)
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -198,6 +204,15 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		govRouter,
 	)
 
+	app.swapKeeper = swap.NewKeeper(
+		app.cdc,
+		keys[swap.StoreKey],
+		swapSubspace,
+		app.coinKeeper,
+		app.accountKeeper,
+		app.supplyKeeper,
+	)
+
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
@@ -207,6 +222,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		swap.NewAppModule(app.swapKeeper),
 	)
 
 	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
@@ -224,6 +240,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		multisig.ModuleName,
 		genutil.ModuleName,
 		gov.ModuleName,
+		swap.ModuleName,
 	)
 
 	// register all module routes and module queriers
