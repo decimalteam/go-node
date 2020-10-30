@@ -95,7 +95,7 @@ func GetCmdHTLT(cdc *codec.Codec) *cobra.Command {
 func GetCmdRedeem(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "redeem [secret] --from",
-		Short: "Create swap",
+		Short: "Redeem swap",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)

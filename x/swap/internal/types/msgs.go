@@ -39,12 +39,12 @@ type MsgHTLT struct {
 	TransferType TransferType   `json:"transfer_type"`
 	From         sdk.AccAddress `json:"from"`
 	Recipient    string         `json:"recipient"`
-	Hash         Hash           `json:"hash"`
+	HashedSecret Hash           `json:"hashed_secret"`
 	Amount       sdk.Coins      `json:"amount"`
 }
 
-func NewMsgHTLT(transferType TransferType, from sdk.AccAddress, recipient string, hash [32]byte, amount sdk.Coins) MsgHTLT {
-	return MsgHTLT{TransferType: transferType, From: from, Recipient: recipient, Hash: hash, Amount: amount}
+func NewMsgHTLT(transferType TransferType, from sdk.AccAddress, recipient string, hashedSecret Hash, amount sdk.Coins) MsgHTLT {
+	return MsgHTLT{TransferType: transferType, From: from, Recipient: recipient, HashedSecret: hashedSecret, Amount: amount}
 }
 
 func (msg MsgHTLT) Route() string { return RouterKey }
@@ -102,12 +102,12 @@ func (msg MsgRedeem) GetSigners() []sdk.AccAddress {
 }
 
 type MsgRefund struct {
-	From sdk.AccAddress `json:"from"`
-	Hash Hash           `json:"hash"`
+	From         sdk.AccAddress `json:"from"`
+	HashedSecret Hash           `json:"hashed_secret"`
 }
 
 func NewMsgRefund(from sdk.AccAddress, hash [32]byte) MsgRefund {
-	return MsgRefund{From: from, Hash: hash}
+	return MsgRefund{From: from, HashedSecret: hash}
 }
 
 func (msg MsgRefund) Route() string { return RouterKey }

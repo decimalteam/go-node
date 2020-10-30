@@ -13,10 +13,11 @@ type Swap struct {
 	Amount       sdk.Coins      `json:"amount"`
 	Timestamp    uint64         `json:"timestamp"`
 	Claimed      bool           `json:"claimed"`
+	Refunded     bool           `json:"refunded"`
 }
 
 func NewSwap(transferType TransferType, hash Hash, from sdk.AccAddress, recipient string, amount sdk.Coins, timestamp uint64) Swap {
-	return Swap{TransferType: transferType, Hash: hash, From: from, Recipient: recipient, Amount: amount, Timestamp: timestamp, Claimed: false}
+	return Swap{TransferType: transferType, Hash: hash, From: from, Recipient: recipient, Amount: amount, Timestamp: timestamp, Claimed: false, Refunded: false}
 }
 
 type Swaps []Swap

@@ -11,5 +11,5 @@ var (
 )
 
 func init() {
-	FsHash.String(FlagHash, "", "Hash of secret. If not specified, it will be random")
+	FsHash.String(FlagHash, "", "HashedSecret of secret. If not specified, it will be random")
 }

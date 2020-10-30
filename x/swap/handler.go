@@ -35,8 +35,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, error) {
-	if k.HasSwap(ctx, msg.Hash) {
-		return nil, types.ErrSwapAlreadyExist(msg.Hash)
+	if k.HasSwap(ctx, msg.HashedSecret) {
+		return nil, types.ErrSwapAlreadyExist(msg.HashedSecret)
 	}
 
 	ok, err := k.CheckBalance(ctx, msg.From, msg.Amount)
@@ -49,7 +49,7 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 
 	swap := types.NewSwap(
 		msg.TransferType,
-		msg.Hash,
+		msg.HashedSecret,
 		msg.From,
 		msg.Recipient,
 		msg.Amount,
@@ -119,7 +119,7 @@ func handleMsgClaim(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Result
 }
 
 func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Result, error) {
-	swap, ok := k.GetSwap(ctx, msg.Hash)
+	swap, ok := k.GetSwap(ctx, msg.HashedSecret)
 	if !ok {
 		return nil, types.ErrSwapNotFound()
 	}
@@ -130,6 +130,10 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Resul
 
 	if !swap.From.Equals(msg.From) {
 		return nil, errors.New("'from' field not equal")
+	}
+
+	if swap.Refunded {
+
 	}
 
 	err := k.UnlockFunds(ctx, swap.From, swap.Amount)
