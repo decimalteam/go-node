@@ -97,7 +97,7 @@ func handleMsgClaim(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Result
 		return nil, errors.New("expired")
 	}
 
-	if sha256.Sum256(msg.Secret[:]) != swap.Hash {
+	if getHash(msg.Secret) != swap.Hash {
 		return nil, errors.New("wrong secret")
 	}
 

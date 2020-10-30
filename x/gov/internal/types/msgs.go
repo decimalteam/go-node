@@ -48,6 +48,10 @@ func (msg MsgSubmitProposal) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Proposer.String())
 	}
 
+	if msg.VotingStartBlock >= msg.VotingEndBlock {
+		return ErrInvalidStartEndBlocks
+	}
+
 	return nil
 }
 

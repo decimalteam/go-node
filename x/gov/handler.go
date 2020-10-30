@@ -34,9 +34,13 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgSubmitProposal(ctx sdk.Context, keeper Keeper, msg types.MsgSubmitProposal) (*sdk.Result, error) {
+	if int64(msg.VotingStartBlock) <= ctx.BlockHeight() {
+		return nil, types.ErrStartBlock
+	}
+
 	proposal, err := keeper.SubmitProposal(ctx, msg.Content, msg.VotingStartBlock, msg.VotingEndBlock)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(types.ErrSubmitProposal, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -72,7 +76,7 @@ func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types.MsgVote) (*sdk.Resu
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, sdk.ValAddress(msg.Voter).String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter.String()),
 			sdk.NewAttribute(types.AttributeKeyProposalID, strconv.FormatUint(msg.ProposalID, 10)),
 			sdk.NewAttribute(types.AttributeKeyOption, msg.Option.String()),
 		),
