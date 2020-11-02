@@ -3,7 +3,7 @@ package swap
 import (
 	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
 	"crypto/sha256"
-	"errors"
+	"encoding/hex"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -24,7 +24,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		case types.MsgHTLT:
 			return handleMsgHTLT(ctx, keeper, msg)
 		case types.MsgRedeem:
-			return handleMsgClaim(ctx, keeper, msg)
+			return handleMsgRedeem(ctx, keeper, msg)
 		case types.MsgRefund:
 			return handleMsgRefund(ctx, keeper, msg)
 		default:
@@ -74,10 +74,23 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 		}
 	}
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+			sdk.NewAttribute(types.AttributeKeyTimeLocked, time.Unix(0, int64(swap.Timestamp)).String()),
+			sdk.NewAttribute(types.AttributeKeyHashedSecret, hex.EncodeToString(swap.Hash[:])),
+			sdk.NewAttribute(types.AttributeKeyRecipient, swap.Recipient),
+			sdk.NewAttribute(types.AttributeKeyAmount, swap.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyTransferType, swap.TransferType.String()),
+		),
+	)
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgClaim(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Result, error) {
+func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Result, error) {
 	hash := sha256.Sum256(msg.Secret[:])
 
 	swap, ok := k.GetSwap(ctx, hash)
@@ -90,15 +103,15 @@ func handleMsgClaim(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Result
 	}
 
 	if swap.Claimed {
-		return nil, errors.New("already claimed")
+		return nil, types.ErrAlreadyClaimed()
 	}
 
 	if ctx.BlockTime().Sub(time.Unix(0, int64(swap.Timestamp))) >= k.LockedTime(ctx) {
-		return nil, errors.New("expired")
+		return nil, types.ErrExpired()
 	}
 
 	if getHash(msg.Secret) != swap.Hash {
-		return nil, errors.New("wrong secret")
+		return nil, types.ErrWrongSecret()
 	}
 
 	if swap.TransferType == types.TransferTypeIn {
@@ -115,6 +128,15 @@ func handleMsgClaim(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Result
 	swap.Claimed = true
 	k.SetSwap(ctx, swap)
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+			sdk.NewAttribute(types.AttributeKeySecret, hex.EncodeToString(msg.Secret[:])),
+		),
+	)
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
@@ -125,21 +147,30 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Resul
 	}
 
 	if ctx.BlockTime().Sub(time.Unix(0, int64(swap.Timestamp))) < k.LockedTime(ctx) {
-		return nil, errors.New("swap not expired")
+		return nil, types.ErrNotExpired()
 	}
 
 	if !swap.From.Equals(msg.From) {
-		return nil, errors.New("'from' field not equal")
+		return nil, types.ErrFromFieldNotEqual(msg.From, swap.From)
 	}
 
 	if swap.Refunded {
-
+		return nil, types.ErrAlreadyRedeem()
 	}
 
 	err := k.UnlockFunds(ctx, swap.From, swap.Amount)
 	if err != nil {
 		return nil, err
 	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+			sdk.NewAttribute(types.AttributeKeyHashedSecret, hex.EncodeToString(msg.HashedSecret[:])),
+		),
+	)
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

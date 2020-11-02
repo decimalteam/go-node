@@ -18,6 +18,10 @@ const (
 	CodeSwapAlreadyExist  = 101
 	CodeFromFieldNotEqual = 102
 	CodeAlreadyRedeem     = 103
+	CodeAlreadyClaimed    = 104
+	CodeNotExpired        = 105
+	CodeExpired           = 106
+	CodeWrongSecret       = 107
 )
 
 func ErrSwapNotFound() *sdkerrors.Error {
@@ -34,4 +38,20 @@ func ErrFromFieldNotEqual(fromMsg, fromSwap sdk.AccAddress) *sdkerrors.Error {
 
 func ErrAlreadyRedeem() *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeAlreadyRedeem, "already redeem")
+}
+
+func ErrAlreadyClaimed() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeAlreadyClaimed, "already claimed")
+}
+
+func ErrNotExpired() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeNotExpired, "swap not expired")
+}
+
+func ErrExpired() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeExpired, "swap expired")
+}
+
+func ErrWrongSecret() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeWrongSecret, "wrong secret")
 }

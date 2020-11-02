@@ -35,6 +35,17 @@ func TransferTypeFromString(transferType string) (TransferType, error) {
 	}
 }
 
+func (t TransferType) String() string {
+	switch t {
+	case TransferTypeOut:
+		return "out"
+	case TransferTypeIn:
+		return "in"
+	default:
+		return fmt.Sprintf("'%d' is not a valid transfer type", t)
+	}
+}
+
 type MsgHTLT struct {
 	TransferType TransferType   `json:"transfer_type"`
 	From         sdk.AccAddress `json:"from"`

@@ -72,5 +72,5 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 		return false, tallyResults, totalVotingPower
 	}
 
-	return false, tallyResults, totalVotingPower
+	return true, tallyResults, totalVotingPower
 }
