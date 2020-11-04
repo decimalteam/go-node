@@ -8,15 +8,15 @@ import (
 func (k Keeper) SetSwap(ctx sdk.Context, swap types.Swap) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(swap)
-	store.Set(types.GetSwapKey(swap.Hash), bz)
+	store.Set(types.GetSwapKey(swap.HashedSecret), bz)
 }
 
-func (k Keeper) HasSwap(ctx sdk.Context, hash [32]byte) bool {
+func (k Keeper) HasSwap(ctx sdk.Context, hash types.Hash) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetSwapKey(hash))
 }
 
-func (k Keeper) GetSwap(ctx sdk.Context, hash [32]byte) (types.Swap, bool) {
+func (k Keeper) GetSwap(ctx sdk.Context, hash types.Hash) (types.Swap, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetSwapKey(hash))
 	if bz == nil {

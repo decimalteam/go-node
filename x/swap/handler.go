@@ -80,7 +80,7 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 			sdk.NewAttribute(types.AttributeKeyTimeLocked, time.Unix(0, int64(swap.Timestamp)).String()),
-			sdk.NewAttribute(types.AttributeKeyHashedSecret, hex.EncodeToString(swap.Hash[:])),
+			sdk.NewAttribute(types.AttributeKeyHashedSecret, hex.EncodeToString(swap.HashedSecret[:])),
 			sdk.NewAttribute(types.AttributeKeyRecipient, swap.Recipient),
 			sdk.NewAttribute(types.AttributeKeyAmount, swap.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyTransferType, swap.TransferType.String()),
@@ -110,7 +110,7 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Resul
 		return nil, types.ErrExpired()
 	}
 
-	if getHash(msg.Secret) != swap.Hash {
+	if getHash(msg.Secret) != swap.HashedSecret {
 		return nil, types.ErrWrongSecret()
 	}
 

@@ -6,8 +6,8 @@ import (
 )
 
 type Swap struct {
-	TransferType TransferType   `json:"transfer_type"s`
-	Hash         Hash           `json:"hash"`
+	TransferType TransferType   `json:"transfer_type"`
+	HashedSecret Hash           `json:"hashed_secret"`
 	From         sdk.AccAddress `json:"from"`
 	Recipient    string         `json:"recipient"`
 	Amount       sdk.Coins      `json:"amount"`
@@ -17,7 +17,7 @@ type Swap struct {
 }
 
 func NewSwap(transferType TransferType, hash Hash, from sdk.AccAddress, recipient string, amount sdk.Coins, timestamp uint64) Swap {
-	return Swap{TransferType: transferType, Hash: hash, From: from, Recipient: recipient, Amount: amount, Timestamp: timestamp, Claimed: false, Refunded: false}
+	return Swap{TransferType: transferType, HashedSecret: hash, From: from, Recipient: recipient, Amount: amount, Timestamp: timestamp, Claimed: false, Refunded: false}
 }
 
 type Swaps []Swap
@@ -29,7 +29,7 @@ func (h Hash) MarshalJSON() ([]byte, error) {
 }
 
 func (h *Hash) UnmarshalJSON(b []byte) error {
-	decoded, err := hex.DecodeString(string(b))
+	decoded, err := hex.DecodeString(string(b[1 : len(b)-2]))
 	if err != nil {
 		return err
 	}
