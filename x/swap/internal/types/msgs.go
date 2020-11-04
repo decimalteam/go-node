@@ -85,7 +85,7 @@ func (msg MsgHTLT) GetSigners() []sdk.AccAddress {
 
 type MsgRedeem struct {
 	From   sdk.AccAddress `json:"from"`
-	Secret [32]byte       `json:"secret"`
+	Secret Hash           `json:"secret"`
 }
 
 func NewMsgRedeem(from sdk.AccAddress, secret [32]byte) MsgRedeem {

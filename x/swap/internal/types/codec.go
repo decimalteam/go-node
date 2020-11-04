@@ -5,8 +5,8 @@ import "github.com/cosmos/cosmos-sdk/codec"
 // RegisterCodec registers concrete types on codec
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgHTLT{}, "swap/msg_htlt", nil)
-	cdc.RegisterConcrete(MsgRedeem{}, "swap/claim", nil)
-	cdc.RegisterConcrete(MsgRefund{}, "swap/refund", nil)
+	cdc.RegisterConcrete(MsgRedeem{}, "swap/msg_redeem", nil)
+	cdc.RegisterConcrete(MsgRefund{}, "swap/msg_refund", nil)
 }
 
 // ModuleCdc defines the module codec
