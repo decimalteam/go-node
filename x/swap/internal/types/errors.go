@@ -17,8 +17,8 @@ const (
 	CodeSwapNotFound      = 100
 	CodeSwapAlreadyExist  = 101
 	CodeFromFieldNotEqual = 102
-	CodeAlreadyRedeem     = 103
-	CodeAlreadyClaimed    = 104
+	CodeAlreadyRefunded   = 103
+	CodeAlreadyRedeemed   = 104
 	CodeNotExpired        = 105
 	CodeExpired           = 106
 	CodeWrongSecret       = 107
@@ -36,12 +36,12 @@ func ErrFromFieldNotEqual(fromMsg, fromSwap sdk.AccAddress) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeFromFieldNotEqual, fmt.Sprintf(`'from' field not equal: %s != %s`, fromMsg.String(), fromSwap.String()))
 }
 
-func ErrAlreadyRedeem() *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeAlreadyRedeem, "already redeem")
+func ErrAlreadyRefunded() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeAlreadyRefunded, "already refunded")
 }
 
-func ErrAlreadyClaimed() *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeAlreadyClaimed, "already claimed")
+func ErrAlreadyRedeemed() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeAlreadyRedeemed, "already redeemed")
 }
 
 func ErrNotExpired() *sdkerrors.Error {

@@ -102,8 +102,8 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Resul
 		return nil, types.ErrFromFieldNotEqual(msg.From, swap.From)
 	}
 
-	if swap.Claimed {
-		return nil, types.ErrAlreadyClaimed()
+	if swap.Redeemed {
+		return nil, types.ErrAlreadyRedeemed()
 	}
 
 	if ctx.BlockTime().Sub(time.Unix(0, int64(swap.Timestamp))) >= k.LockedTime(ctx) {
@@ -125,7 +125,7 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Resul
 		}
 	}
 
-	swap.Claimed = true
+	swap.Redeemed = true
 	k.SetSwap(ctx, swap)
 
 	ctx.EventManager().EmitEvent(
@@ -155,7 +155,7 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Resul
 	}
 
 	if swap.Refunded {
-		return nil, types.ErrAlreadyRedeem()
+		return nil, types.ErrAlreadyRefunded()
 	}
 
 	err := k.UnlockFunds(ctx, swap.From, swap.Amount)
@@ -175,6 +175,6 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Resul
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func getHash(secret [32]byte) [32]byte {
+func getHash(secret []byte) [32]byte {
 	return sha256.Sum256(secret[:])
 }

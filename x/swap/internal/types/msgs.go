@@ -85,10 +85,10 @@ func (msg MsgHTLT) GetSigners() []sdk.AccAddress {
 
 type MsgRedeem struct {
 	From   sdk.AccAddress `json:"from"`
-	Secret Hash           `json:"secret"`
+	Secret Secret         `json:"secret"`
 }
 
-func NewMsgRedeem(from sdk.AccAddress, secret [32]byte) MsgRedeem {
+func NewMsgRedeem(from sdk.AccAddress, secret Secret) MsgRedeem {
 	return MsgRedeem{From: from, Secret: secret}
 }
 

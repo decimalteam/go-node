@@ -103,7 +103,7 @@ func GetCmdRedeem(cdc *codec.Codec) *cobra.Command {
 
 			from := cliCtx.GetFromAddress()
 
-			var secret [32]byte
+			var secret []byte
 			secretStr := args[0]
 			h, err := hex.DecodeString(secretStr)
 			if err != nil {
