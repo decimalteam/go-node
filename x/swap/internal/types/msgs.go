@@ -9,7 +9,7 @@ import (
 // Swap message types and routes
 const (
 	TypeMsgHTLT   = "htlt"
-	TypeMsgClaim  = "claim"
+	TypeMsgRedeem = "redeem"
 	TypeMsgRefund = "refund"
 )
 
@@ -94,7 +94,7 @@ func NewMsgRedeem(from sdk.AccAddress, secret [32]byte) MsgRedeem {
 
 func (msg MsgRedeem) Route() string { return RouterKey }
 
-func (msg MsgRedeem) Type() string { return TypeMsgClaim }
+func (msg MsgRedeem) Type() string { return TypeMsgRedeem }
 
 func (msg MsgRedeem) ValidateBasic() error {
 	if msg.From.Empty() {
