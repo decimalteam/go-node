@@ -133,7 +133,8 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Resul
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
-			sdk.NewAttribute(types.AttributeKeySecret, hex.EncodeToString(msg.Secret[:])),
+			sdk.NewAttribute(types.AttributeKeySecret, hex.EncodeToString(msg.Secret)),
+			sdk.NewAttribute(types.AttributeKeyHashedSecret, hex.EncodeToString(swap.HashedSecret[:])),
 		),
 	)
 

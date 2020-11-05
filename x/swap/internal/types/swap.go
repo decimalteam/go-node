@@ -40,7 +40,7 @@ func (h *Hash) UnmarshalJSON(b []byte) error {
 type Secret []byte
 
 func (s Secret) MarshalJSON() ([]byte, error) {
-	return []byte("\"" + hex.EncodeToString(s[:]) + "\""), nil
+	return []byte("\"" + hex.EncodeToString(s) + "\""), nil
 }
 
 func (s *Secret) UnmarshalJSON(b []byte) error {
@@ -48,6 +48,6 @@ func (s *Secret) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	copy(b[:], decoded)
+	*s = decoded
 	return nil
 }
