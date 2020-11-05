@@ -91,7 +91,7 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 }
 
 func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Result, error) {
-	hash := sha256.Sum256(msg.Secret[:])
+	hash := sha256.Sum256(msg.Secret)
 
 	swap, ok := k.GetSwap(ctx, hash)
 	if !ok {
@@ -176,5 +176,5 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Resul
 }
 
 func getHash(secret []byte) [32]byte {
-	return sha256.Sum256(secret[:])
+	return sha256.Sum256(secret)
 }
