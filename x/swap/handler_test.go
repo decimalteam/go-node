@@ -9,15 +9,15 @@ import (
 
 func Test_getHash(t *testing.T) {
 	type args struct {
-		secret [32]byte
+		secret []byte
 	}
 
-	var secret [32]byte
+	var secret []byte
 	d, _ := hex.DecodeString("927c1ac33100bdbb001de19c626a05a7c3c11304fc825f5eabb22e741507711b")
 	copy(secret[:], d)
 
 	var want [32]byte
-	w, _ := hex.DecodeString("5efc1cee17257e9f9e34827bce9f827fa305bc39e80fd77081e4b7780f2b0ca7")
+	w, _ := hex.DecodeString("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
 	copy(want[:], w)
 
 	tests := []struct {
