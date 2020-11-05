@@ -48,13 +48,18 @@ func GetCmdQuerySwap(storeName string, cdc *codec.Codec) *cobra.Command {
 			var hash types.Hash
 			copy(hash[:], hashRaw)
 
-			res, _, err := cliCtx.QueryStore(types.GetSwapKey(hash), storeName)
-
-			var swap types.Swap
-			cdc.MustUnmarshalJSON(res, &swap)
+			bz, err := cdc.MarshalJSON(types.NewQuerySwapParams(hash))
 			if err != nil {
 				return err
 			}
+
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types.QuerySwap), bz)
+			if err != nil {
+				return err
+			}
+
+			var swap types.Swap
+			cdc.MustUnmarshalJSON(res, &swap)
 
 			return cliCtx.PrintOutput(swap)
 		},

@@ -68,7 +68,7 @@ func (msg MsgHTLT) ValidateBasic() error {
 	}
 
 	if msg.Amount.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "out amount is empty")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "amount is empty")
 	}
 
 	return nil
