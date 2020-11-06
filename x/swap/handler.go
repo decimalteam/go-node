@@ -53,7 +53,7 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 		msg.From,
 		msg.Recipient,
 		msg.Amount,
-		uint64(ctx.BlockTime().UnixNano()),
+		uint64(ctx.BlockTime().Add(k.LockedTime(ctx)).UnixNano()),
 	)
 
 	k.SetSwap(ctx, swap)
@@ -106,7 +106,7 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Resul
 		return nil, types.ErrAlreadyRedeemed()
 	}
 
-	if ctx.BlockTime().Sub(time.Unix(0, int64(swap.Timestamp))) >= k.LockedTime(ctx) {
+	if ctx.BlockTime().UnixNano() >= int64(swap.Timestamp) {
 		return nil, types.ErrExpired()
 	}
 
@@ -147,7 +147,7 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Resul
 		return nil, types.ErrSwapNotFound()
 	}
 
-	if ctx.BlockTime().Sub(time.Unix(0, int64(swap.Timestamp))) < k.LockedTime(ctx) {
+	if ctx.BlockTime().UnixNano() < int64(swap.Timestamp) {
 		return nil, types.ErrNotExpired()
 	}
 
