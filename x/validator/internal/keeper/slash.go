@@ -269,14 +269,15 @@ const WithoutSlashPeriod2End = WithoutSlashPeriod2Start + 4200
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
 	height := ctx.BlockHeight()
-	fmt.Println("height=", height)
 
 	if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
 		return
 	}
-	//if height >= WithoutSlashPeriod2Start && height <= WithoutSlashPeriod2End {
-	//	return
-	//}
+	if height >= WithoutSlashPeriod2Start && height <= WithoutSlashPeriod2End {
+		return
+	}
+
+	fmt.Println("height=", height)
 
 	consAddr := sdk.ConsAddress(addr)
 	pubkey, err := k.getPubkey(ctx, addr)
