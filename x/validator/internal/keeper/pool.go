@@ -2,8 +2,9 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 )
 
@@ -42,8 +43,7 @@ func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	fmt.Println("coinsBurn", coinsBurn)
-	err := k.supplyKeeper.BurnCoins(ctx, types.BondedPoolName, coinsBurn)
+	err := k.burnCoins(ctx, types.BondedPoolName, coinsBurn)
 	if err != nil {
 		return err
 	}
@@ -63,6 +63,24 @@ func (k Keeper) burnNotBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (k Keeper) burnCoins(ctx sdk.Context, moduleAccount string, coins sdk.Coins) error {
+	acc := k.supplyKeeper.GetModuleAccount(ctx, types.BondedPoolName)
+	if acc == nil {
+		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", moduleAccount))
+	}
+
+	if !acc.HasPermission(supply.Burner) {
+		panic(sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to burn tokens", moduleAccount))
+	}
+
+	_, err := k.CoinKeeper.BankKeeper.SubtractCoins(ctx, acc.GetAddress(), coins)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
