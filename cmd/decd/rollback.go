@@ -55,6 +55,9 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			blockStore := store.NewBlockStore(blockStoreDB)
 			for i := int64(0); i < countBlocks; i++ {
 				block := blockStore.LoadBlock(height)
+				if block == nil {
+					break
+				}
 
 				err = DeleteBlock(blockStoreDB, blockStore, block)
 				if err != nil {
