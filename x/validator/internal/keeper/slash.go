@@ -251,6 +251,10 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 	for _, coin := range burnedAmount {
 		tokensToBurn = tokensToBurn.Add(sdk.NewCoin(coin.Denom, sdk.MaxInt(coin.Amount, sdk.ZeroInt()))) // defensive.
 	}
+	fmt.Println(k.GetBondedPool(ctx))
+	fmt.Println()
+	fmt.Println(tokensToBurn)
+
 	if err := k.burnBondedTokens(ctx, tokensToBurn); err != nil {
 		panic(err)
 	}
