@@ -42,7 +42,7 @@ func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	fmt.Println(coinsBurn)
+	fmt.Println("coinsBurn", coinsBurn)
 	err := k.supplyKeeper.BurnCoins(ctx, types.BondedPoolName, coinsBurn)
 	if err != nil {
 		return err
