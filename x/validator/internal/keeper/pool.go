@@ -34,6 +34,8 @@ func (k Keeper) notBondedTokensToBonded(ctx sdk.Context, coins sdk.Coins) {
 	}
 }
 
+const UpdateBlock1 = 1582112
+
 // burnBondedTokens removes coins from the bonded pool module account
 func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 	coinsBurn := sdk.NewCoins()
@@ -43,10 +45,18 @@ func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	err := k.burnCoins(ctx, types.BondedPoolName, coinsBurn)
-	if err != nil {
-		return err
+	if ctx.BlockHeight() >= UpdateBlock1 {
+		err := k.burnCoins(ctx, types.BondedPoolName, coinsBurn)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := k.supplyKeeper.BurnCoins(ctx, types.BondedPoolName, coinsBurn)
+		if err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
@@ -59,9 +69,16 @@ func (k Keeper) burnNotBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	err := k.supplyKeeper.BurnCoins(ctx, types.NotBondedPoolName, coinsBurn)
-	if err != nil {
-		return err
+	if ctx.BlockHeight() >= UpdateBlock1 {
+		err := k.burnCoins(ctx, types.NotBondedPoolName, coinsBurn)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := k.supplyKeeper.BurnCoins(ctx, types.NotBondedPoolName, coinsBurn)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -259,12 +259,21 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 	return tokensToBurn
 }
 
+const WithoutSlashPeriod1Start = 66120
+const WithoutSlashPeriod1End = 70320
+
+const WithoutSlashPeriod2Start = UpdateBlock1
+const WithoutSlashPeriod2End = WithoutSlashPeriod2Start + 4200
+
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
 	height := ctx.BlockHeight()
 
-	if height >= 66120 && height <= 70320 {
+	if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
+		return
+	}
+	if height >= WithoutSlashPeriod2Start && height <= WithoutSlashPeriod2End {
 		return
 	}
 
