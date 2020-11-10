@@ -254,7 +254,7 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 	fmt.Println(k.GetBondedPool(ctx))
 	fmt.Println(k.GetBondedPool(ctx).GetCoins().Sub(tokensToBurn))
 	fmt.Println(tokensToBurn)
-	fmt.Println(k.supplyKeeper.GetSupply(ctx).GetTotal())
+	fmt.Println(k.supplyKeeper.GetSupply(ctx).Deflate(tokensToBurn))
 
 	if err := k.burnBondedTokens(ctx, tokensToBurn); err != nil {
 		panic(err)
