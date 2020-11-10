@@ -34,7 +34,7 @@ func (k Keeper) notBondedTokensToBonded(ctx sdk.Context, coins sdk.Coins) {
 	}
 }
 
-const UpdateBlock1 = 1582114
+const UpdateBlock1 = 1000000000
 
 // burnBondedTokens removes coins from the bonded pool module account
 func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
