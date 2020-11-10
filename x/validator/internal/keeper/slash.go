@@ -252,7 +252,7 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 		tokensToBurn = tokensToBurn.Add(sdk.NewCoin(coin.Denom, sdk.MaxInt(coin.Amount, sdk.ZeroInt()))) // defensive.
 	}
 	fmt.Println(k.GetBondedPool(ctx))
-	fmt.Println()
+	fmt.Println(k.GetBondedPool(ctx).GetCoins().Sub(tokensToBurn))
 	fmt.Println(tokensToBurn)
 
 	if err := k.burnBondedTokens(ctx, tokensToBurn); err != nil {
