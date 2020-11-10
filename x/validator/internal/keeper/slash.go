@@ -273,11 +273,9 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
 		return
 	}
-	//if height >= WithoutSlashPeriod2Start && height <= WithoutSlashPeriod2End {
-	//	return
-	//}
-
-	fmt.Println("height=", height)
+	if height >= WithoutSlashPeriod2Start && height <= WithoutSlashPeriod2End {
+		return
+	}
 
 	consAddr := sdk.ConsAddress(addr)
 	pubkey, err := k.getPubkey(ctx, addr)
