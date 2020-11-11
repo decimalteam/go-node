@@ -69,7 +69,7 @@ func TestProposalPassedEndblocker(t *testing.T) {
 	SortAddresses(input.addrs)
 
 	handler := NewHandler(input.keeper)
-	stakingHandler := staking.NewHandler(input.sk)
+	stakingHandler := validator.NewHandler(input.vk)
 
 	header := abci.Header{Height: input.mApp.LastBlockHeight() + 1}
 	input.mApp.BeginBlock(abci.RequestBeginBlock{Header: header})
@@ -78,25 +78,10 @@ func TestProposalPassedEndblocker(t *testing.T) {
 	valAddr := sdk.ValAddress(input.addrs[0])
 
 	createValidators(t, stakingHandler, ctx, []sdk.ValAddress{valAddr}, []int64{10})
-	staking.EndBlocker(ctx, input.sk)
+	validator.EndBlocker(ctx, input.vk, input.ck, input.sk, false)
 
-	macc := input.keeper.GetGovernanceAccount(ctx)
-	require.NotNil(t, macc)
-	initialModuleAccCoins := macc.GetCoins()
-
-	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal)
+	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, keep.TestProposal.VotingStartBlock, keep.TestProposal.VotingEndBlock)
 	require.NoError(t, err)
-
-	proposalCoins := sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdk.TokensFromConsensusPower(10))}
-	newDepositMsg := NewMsgDeposit(input.addrs[0], proposal.ProposalID, proposalCoins)
-
-	res, err := handler(ctx, newDepositMsg)
-	require.NoError(t, err)
-	require.NotNil(t, res)
-
-	macc = input.keeper.GetGovernanceAccount(ctx)
-	require.NotNil(t, macc)
-	moduleAccCoins := macc.GetCoins()
 
 	deposits := initialModuleAccCoins.Add(proposal.TotalDeposit...).Add(proposalCoins...)
 	require.True(t, moduleAccCoins.IsEqual(deposits))
@@ -121,7 +106,7 @@ func TestEndBlockerProposalHandlerFailed(t *testing.T) {
 	SortAddresses(input.addrs)
 
 	handler := NewHandler(input.keeper)
-	stakingHandler := staking.NewHandler(input.sk)
+	stakingHandler := staking.NewHandler(input.vk)
 
 	header := abci.Header{Height: input.mApp.LastBlockHeight() + 1}
 	input.mApp.BeginBlock(abci.RequestBeginBlock{Header: header})
@@ -130,7 +115,7 @@ func TestEndBlockerProposalHandlerFailed(t *testing.T) {
 	valAddr := sdk.ValAddress(input.addrs[0])
 
 	createValidators(t, stakingHandler, ctx, []sdk.ValAddress{valAddr}, []int64{10})
-	staking.EndBlocker(ctx, input.sk)
+	staking.EndBlocker(ctx, input.vk)
 
 	// Create a proposal where the handler will pass for the test proposal
 	// because the value of contextKeyBadProposal is true.

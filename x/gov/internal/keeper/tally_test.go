@@ -1,5 +1,12 @@
 package keeper
 
+import (
+	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+	"testing"
+)
+
 /*
 func TestTallyNoOneVotes(t *testing.T) {
 	ctx, _, keeper, sk, _ := createTestInput(t, false, 100)
@@ -41,31 +48,30 @@ func TestTallyNoQuorum(t *testing.T) {
 	require.False(t, passes)
 	require.True(t, burnDeposits)
 }
-
+*/
 func TestTallyOnlyValidatorsAllYes(t *testing.T) {
-	ctx, _, keeper, sk, _ := createTestInput(t, false, 100)
-	createValidators(ctx, sk, []int64{5, 5, 5})
+	ctx, _, keeper, vk, sk, ck := createTestInput(t, false, 100)
+	createValidators(ctx, vk, ck, sk, []int64{5, 5, 5})
 
 	tp := TestProposal
-	proposal, err := keeper.SubmitProposal(ctx, tp)
+	proposal, err := keeper.SubmitProposal(ctx, tp.Content, tp.VotingStartBlock, tp.VotingEndBlock)
 	require.NoError(t, err)
 	proposalID := proposal.ProposalID
 	proposal.Status = types.StatusVotingPeriod
 	keeper.SetProposal(ctx, proposal)
 
-	require.NoError(t, keeper.AddVote(ctx, proposalID, valAccAddr1, types.OptionYes))
-	require.NoError(t, keeper.AddVote(ctx, proposalID, valAccAddr2, types.OptionYes))
-	require.NoError(t, keeper.AddVote(ctx, proposalID, valAccAddr3, types.OptionYes))
+	require.NoError(t, keeper.AddVote(ctx, proposalID, sdk.ValAddress(valAccAddr1), types.OptionYes))
+	require.NoError(t, keeper.AddVote(ctx, proposalID, sdk.ValAddress(valAccAddr2), types.OptionYes))
+	require.NoError(t, keeper.AddVote(ctx, proposalID, sdk.ValAddress(valAccAddr3), types.OptionYes))
 
 	proposal, ok := keeper.GetProposal(ctx, proposalID)
 	require.True(t, ok)
-	passes, burnDeposits, tallyResults := keeper.Tally(ctx, proposal)
+	passes, _, _ := keeper.Tally(ctx, proposal)
 
 	require.True(t, passes)
-	require.False(t, burnDeposits)
-	require.False(t, tallyResults.Equals(types.EmptyTallyResult()))
 }
 
+/*
 func TestTallyOnlyValidators51No(t *testing.T) {
 	ctx, _, keeper, sk, _ := createTestInput(t, false, 100)
 	createValidators(ctx, sk, []int64{5, 6, 0})

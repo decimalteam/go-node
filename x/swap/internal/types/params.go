@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"time"
 )
@@ -9,6 +10,8 @@ import (
 const (
 	DefaultLockedTime = time.Hour * 12
 )
+
+var SwapServiceAddress, _ = sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
 
 var (
 	KeyLockedTime = []byte("LockedTime")

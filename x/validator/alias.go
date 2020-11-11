@@ -27,6 +27,10 @@ const (
 	SetOfflineConst       = types.SetOfflineConst
 	UnbondConst           = types.UnbondConst
 	EditCandidateConst    = types.EditCandidateConst
+
+	Unbonded  = types.Unbonded
+	Unbonding = types.Unbonding
+	Bonded    = types.Bonded
 )
 
 var (
@@ -43,10 +47,17 @@ var (
 	NewMsgSetOnline        = types.NewMsgSetOnline
 	NewMsgSetOffline       = types.NewMsgSetOffline
 
+	NewValidator = types.NewValidator
+
 	ErrCalculateCommission             = types.ErrCalculateCommission
 	ErrUpdateBalance                   = types.ErrUpdateBalance
 	ErrInsufficientFunds               = types.ErrInsufficientFunds
 	ErrInsufficientCoinToPayCommission = types.ErrInsufficientCoinToPayCommission
+
+	DefaultParams = types.DefaultParams
+
+	TokensFromConsensusPower = types.TokensFromConsensusPower
+	TokensToConsensusPower   = types.TokensToConsensusPower
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc

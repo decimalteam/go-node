@@ -60,6 +60,8 @@ var (
 	emptyDelAddr sdk.AccAddress
 	emptyValAddr sdk.ValAddress
 	emptyPubkey  crypto.PubKey
+
+	TestProposal = types.NewProposal(types.Content{Title: "Title", Description: "Description"}, 1, 1, 10)
 )
 
 // TODO move to common testing framework
@@ -86,13 +88,14 @@ func makeTestCodec() *codec.Codec {
 	return cdc
 }
 
-func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context, auth.AccountKeeper, Keeper, validator.Keeper, types.SupplyKeeper) {
+func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context, auth.AccountKeeper, Keeper, validator.Keeper, supply.Keeper, coin.Keeper) {
 
-	initTokens := sdk.TokensFromConsensusPower(initPower)
+	initTokens := validator.TokensFromConsensusPower(initPower)
 
 	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
 	keyGov := sdk.NewKVStoreKey(types.StoreKey)
 	keyStaking := sdk.NewKVStoreKey(validator.StoreKey)
+	tkeyStaking := sdk.NewTransientStoreKey(validator.TStoreKey)
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
 	keyParams := sdk.NewKVStoreKey(params.StoreKey)
 	tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
@@ -106,8 +109,10 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	ms.MountStoreWithDB(keySupply, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(keyGov, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(keyStaking, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(tkeyStaking, sdk.StoreTypeTransient, nil)
 	ms.MountStoreWithDB(keyParams, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(tkeyParams, sdk.StoreTypeTransient, db)
+	ms.MountStoreWithDB(keyCoin, sdk.StoreTypeIAVL, db)
 	require.Nil(t, ms.LoadLatestVersion())
 
 	ctx := sdk.NewContext(ms, abci.Header{ChainID: "gov-chain"}, isCheckTx, log.NewNopLogger())
@@ -121,14 +126,14 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	cdc := makeTestCodec()
 
 	maccPerms := map[string][]string{
-		auth.FeeCollectorName:       nil,
+		auth.FeeCollectorName:       {supply.Burner},
 		types.ModuleName:            nil,
 		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
 		validator.BondedPoolName:    {supply.Burner, supply.Staking},
 	}
 
 	// create module accounts
-	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName)
+	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName, supply.Burner, supply.Minter)
 	govAcc := supply.NewEmptyModuleAccount(types.ModuleName, supply.Burner)
 	notBondedPool := supply.NewEmptyModuleAccount(validator.NotBondedPoolName, supply.Burner, supply.Staking)
 	bondPool := supply.NewEmptyModuleAccount(validator.BondedPoolName, supply.Burner, supply.Staking)
@@ -144,9 +149,18 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	bankKeeper := bank.NewBaseKeeper(accountKeeper, pk.Subspace(bank.DefaultParamspace), blacklistedAddrs)
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bankKeeper, maccPerms)
 	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bankKeeper, config.GetDefaultConfig(config.ChainID))
+
+	coinConfig := config.GetDefaultConfig(config.ChainID)
+	coinKeeper.SetCoin(ctx, coin.Coin{
+		Title:  coinConfig.TitleBaseCoin,
+		Symbol: coinConfig.SymbolBaseCoin,
+		Volume: coinConfig.InitialVolumeBaseCoin,
+	})
+
 	multisigKeeper := multisig.NewKeeper(cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), accountKeeper, coinKeeper, bankKeeper)
 
 	sk := validator.NewKeeper(cdc, keyStaking, pk.Subspace(validator.DefaultParamSpace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, auth.FeeCollectorName)
+	sk.SetParams(ctx, validator.DefaultParams())
 
 	rtr := types.NewRouter()
 
@@ -157,8 +171,8 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	keeper.SetProposalID(ctx, types.DefaultStartingProposalID)
 	keeper.SetTallyParams(ctx, types.DefaultTallyParams())
 
-	initCoins := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), initTokens))
-	totalSupply := sdk.NewCoins(sdk.NewCoin(sk.BondDenom(ctx), initTokens.MulRaw(int64(len(TestAddrs)))))
+	initCoins := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens))
+	totalSupply := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens.MulRaw(int64(len(TestAddrs)))))
 	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 
 	for _, addr := range TestAddrs {
@@ -171,7 +185,7 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	keeper.supplyKeeper.SetModuleAccount(ctx, bondPool)
 	keeper.supplyKeeper.SetModuleAccount(ctx, notBondedPool)
 
-	return ctx, accountKeeper, keeper, sk, supplyKeeper
+	return ctx, accountKeeper, keeper, sk, supplyKeeper, coinKeeper
 }
 
 // ProposalEqual checks if two proposals are equal (note: slow, for tests only)
@@ -180,16 +194,45 @@ func ProposalEqual(proposalA types.Proposal, proposalB types.Proposal) bool {
 		types.ModuleCdc.MustMarshalBinaryBare(proposalB))
 }
 
-func createValidators(t *testing.T, ctx sdk.Context, stakingHandler sdk.Handler, sk validator.Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, powers []int64) {
-	valTokens := sdk.TokensFromConsensusPower(powers[0])
+func createValidators(ctx sdk.Context, vk validator.Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, powers []int64) {
+	//val1 := validator.NewValidator(valOpAddr1, valOpPk1, sdk.ZeroDec(), sdk.AccAddress(valOpAddr1), validator.Description{})
+	//val2 := validator.NewValidator(valOpAddr2, valOpPk2, sdk.ZeroDec(), sdk.AccAddress(valOpAddr2), validator.Description{})
+	//val3 := validator.NewValidator(valOpAddr3, valOpPk3, sdk.ZeroDec(), sdk.AccAddress(valOpAddr3), validator.Description{})
+
+	handler := validator.NewHandler(vk)
+
+	valTokens := validator.TokensFromConsensusPower(powers[0])
 	valCreateMsg := validator.NewMsgDeclareCandidate(
-		valOpAddr1, valOpPk1, sdk.ZeroDec(), sdk.NewCoin(sdk.DefaultBondDenom, valTokens),
+		valOpAddr1, valOpPk1, sdk.ZeroDec(), sdk.NewCoin(vk.BondDenom(ctx), valTokens),
 		validator.Description{}, sdk.AccAddress(valOpAddr1),
 	)
 
-	res, err := stakingHandler(ctx, valCreateMsg)
-	require.NoError(t, err)
-	require.NotNil(t, res)
+	_, err := handler(ctx, valCreateMsg)
+	if err != nil {
+		panic(err)
+	}
 
-	_ = validator.EndBlocker(ctx, sk, coinKeeper, supplyKeeper, false)
+	valTokens = validator.TokensFromConsensusPower(powers[1])
+	valCreateMsg = validator.NewMsgDeclareCandidate(
+		valOpAddr2, valOpPk2, sdk.ZeroDec(), sdk.NewCoin(vk.BondDenom(ctx), valTokens),
+		validator.Description{}, sdk.AccAddress(valOpAddr2),
+	)
+
+	_, err = handler(ctx, valCreateMsg)
+	if err != nil {
+		panic(err)
+	}
+
+	valTokens = validator.TokensFromConsensusPower(powers[2])
+	valCreateMsg = validator.NewMsgDeclareCandidate(
+		valOpAddr3, valOpPk3, sdk.ZeroDec(), sdk.NewCoin(vk.BondDenom(ctx), valTokens),
+		validator.Description{}, sdk.AccAddress(valOpAddr3),
+	)
+
+	_, err = handler(ctx, valCreateMsg)
+	if err != nil {
+		panic(err)
+	}
+
+	_ = validator.EndBlocker(ctx, vk, coinKeeper, supplyKeeper, false)
 }

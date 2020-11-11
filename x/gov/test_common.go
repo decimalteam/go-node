@@ -39,7 +39,9 @@ type testInput struct {
 	mApp     *mock.App
 	keeper   keep.Keeper
 	router   types.Router
-	sk       validator.Keeper
+	vk       validator.Keeper
+	ck       coin.Keeper
+	sk       supply.Keeper
 	addrs    []sdk.AccAddress
 	pubKeys  []crypto.PubKey
 	privKeys []crypto.PrivKey
@@ -111,7 +113,7 @@ func getMockApp(t *testing.T, numGenAccs int, genState types.GenesisState, genAc
 
 	mock.SetGenesis(mApp, genAccs)
 
-	return testInput{mApp, keeper, rtr, sk, addrs, pubKeys, privKeys}
+	return testInput{mApp, keeper, rtr, sk, coinKeeper, supplyKeeper, addrs, pubKeys, privKeys}
 }
 
 // gov and staking endblocker

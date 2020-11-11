@@ -98,10 +98,6 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Resul
 		return nil, types.ErrSwapNotFound()
 	}
 
-	if !swap.From.Equals(msg.From) {
-		return nil, types.ErrFromFieldNotEqual(msg.From, swap.From)
-	}
-
 	if swap.Redeemed {
 		return nil, types.ErrAlreadyRedeemed()
 	}
@@ -149,10 +145,6 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Resul
 
 	if ctx.BlockTime().UnixNano() < int64(swap.Timestamp) {
 		return nil, types.ErrNotExpired()
-	}
-
-	if !swap.From.Equals(msg.From) {
-		return nil, types.ErrFromFieldNotEqual(msg.From, swap.From)
 	}
 
 	if swap.Refunded {
