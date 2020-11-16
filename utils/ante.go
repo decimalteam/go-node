@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/swap"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -227,6 +228,8 @@ const (
 	createWalletFee      = 100
 	createTransactionFee = 100
 	signTransactionFee   = 100
+
+	htltFee = 33000
 )
 
 // AnteHandle implements sdk.AnteHandler function.
@@ -291,6 +294,8 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(signTransactionFee)
 		case coin.CreateCoinConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(createCoinFee)
+		case swap.MsgHTLTConst:
+			commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
 		}
 	}
 

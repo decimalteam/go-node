@@ -39,12 +39,22 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 		return nil, types.ErrSwapAlreadyExist(msg.HashedSecret)
 	}
 
-	ok, err := k.CheckBalance(ctx, msg.From, msg.Amount)
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, sdkerrors.ErrInsufficientFunds
+	if msg.TransferType == types.TransferTypeOut {
+		ok, err := k.CheckBalance(ctx, msg.From, msg.Amount)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, sdkerrors.ErrInsufficientFunds
+		}
+	} else if msg.TransferType == types.TransferTypeIn {
+		ok, err := k.CheckPoolFunds(ctx, msg.Amount)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, sdkerrors.ErrInsufficientFunds
+		}
 	}
 
 	swap := types.NewSwap(
@@ -59,18 +69,16 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 	k.SetSwap(ctx, swap)
 
 	if msg.TransferType == types.TransferTypeOut {
-		err = k.LockFunds(ctx, swap.From, swap.Amount)
+		err := k.LockFunds(ctx, swap.From, swap.Amount)
 		if err != nil {
 			return nil, err
 		}
 	} else if msg.TransferType == types.TransferTypeIn {
-		recipient, err := sdk.AccAddressFromBech32(swap.Recipient)
-		if err != nil {
-			return nil, sdkerrors.ErrInvalidAddress
-		}
-		err = k.LockFunds(ctx, recipient, swap.Amount)
-		if err != nil {
-			return nil, err
+		if swap.Recipient != "" {
+			_, err := sdk.AccAddressFromBech32(swap.Recipient)
+			if err != nil {
+				return nil, sdkerrors.ErrInvalidAddress
+			}
 		}
 	}
 
@@ -110,12 +118,18 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Resul
 		return nil, types.ErrWrongSecret()
 	}
 
+	var err error
 	if swap.TransferType == types.TransferTypeIn {
-		recipient, err := sdk.AccAddressFromBech32(swap.Recipient)
-		if err != nil {
-			return nil, sdkerrors.ErrInvalidAddress
+		var recipientAddr sdk.AccAddress
+		if swap.Recipient == "" {
+			recipientAddr = msg.From
+		} else {
+			recipientAddr, err = sdk.AccAddressFromBech32(swap.Recipient)
+			if err != nil {
+				return nil, sdkerrors.ErrInvalidAddress
+			}
 		}
-		err = k.UnlockFunds(ctx, recipient, swap.Amount)
+		err = k.UnlockFunds(ctx, recipientAddr, swap.Amount)
 		if err != nil {
 			return nil, err
 		}

@@ -55,3 +55,21 @@ func (k Keeper) UnlockFunds(ctx sdk.Context, address sdk.AccAddress, coins sdk.C
 func (k Keeper) LockFunds(ctx sdk.Context, address sdk.AccAddress, coins sdk.Coins) error {
 	return k.supplyKeeper.SendCoinsFromAccountToModule(ctx, address, types.PoolName, coins)
 }
+
+func (k Keeper) CheckPoolFunds(ctx sdk.Context, coins sdk.Coins) (bool, error) {
+	accountAddr := k.supplyKeeper.GetModuleAddress(types.PoolName)
+	if accountAddr.Empty() {
+		return false, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "account not found")
+	}
+
+	account := k.accountKeeper.GetAccount(ctx, accountAddr)
+	if account == nil {
+		return false, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "account not found")
+	}
+
+	if !account.GetCoins().IsAllGTE(coins) {
+		return false, nil
+	}
+
+	return true, nil
+}

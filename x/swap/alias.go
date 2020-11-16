@@ -12,6 +12,10 @@ const (
 	QuerierRoute      = types.QuerierRoute
 	DefaultParamspace = keeper.DefaultParamspace
 
+	MsgHTLTConst   = types.TypeMsgHTLT
+	MsgRedeemConst = types.TypeMsgRedeem
+	MsgRefundConst = types.TypeMsgRefund
+
 	PoolName = types.PoolName
 )
 
