@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -111,7 +111,9 @@ $ %s query swap pool
 				return err
 			}
 
-			var pool exported.ModuleAccountI
+			fmt.Println(string(bz))
+
+			var pool authexported.Account
 			if err := cdc.UnmarshalJSON(bz, &pool); err != nil {
 				return err
 			}
