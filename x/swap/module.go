@@ -139,7 +139,7 @@ func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 // EndBlock returns the end blocker for the gov module. It returns no validator
 // updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	if ctx.BlockHeight() == 298900 {
+	if ctx.BlockHeight() == 301450 {
 		am.keeper.SetParams(ctx, types.Params{LockedTime: time.Minute * 2})
 	}
 	return []abci.ValidatorUpdate{}
