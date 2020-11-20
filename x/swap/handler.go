@@ -57,13 +57,20 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 		}
 	}
 
+	var lockedTime int64
+	if msg.TransferType == types.TransferTypeOut {
+		lockedTime = ctx.BlockTime().Add(k.LockedTimeOut(ctx)).UnixNano()
+	} else if msg.TransferType == types.TransferTypeIn {
+		lockedTime = ctx.BlockTime().Add(k.LockedTimeIn(ctx)).UnixNano()
+	}
+
 	swap := types.NewSwap(
 		msg.TransferType,
 		msg.HashedSecret,
 		msg.From,
 		msg.Recipient,
 		msg.Amount,
-		uint64(ctx.BlockTime().Add(k.LockedTime(ctx)).UnixNano()),
+		uint64(lockedTime),
 	)
 
 	k.SetSwap(ctx, swap)

@@ -50,7 +50,7 @@ func queryActiveSwaps(ctx sdk.Context, k Keeper) ([]byte, error) {
 	var activeSwaps types.Swaps
 	swaps := k.GetAllSwaps(ctx)
 	for _, swap := range swaps {
-		if ctx.BlockTime().Sub(time.Unix(0, int64(swap.Timestamp))) <= k.LockedTime(ctx) {
+		if ctx.BlockTime().Sub(time.Unix(0, int64(swap.Timestamp))) <= k.LockedTimeOut(ctx) {
 			activeSwaps = append(activeSwaps, swap)
 		}
 	}

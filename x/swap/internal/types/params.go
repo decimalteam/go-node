@@ -14,7 +14,7 @@ const (
 var SwapServiceAddress, _ = sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
 
 var (
-	KeyLockedTime = []byte("LockedTime")
+	KeyLockedTime = []byte("LockedTimeOut")
 )
 
 type Params struct {
