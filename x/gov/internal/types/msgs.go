@@ -52,6 +52,10 @@ func (msg MsgSubmitProposal) ValidateBasic() error {
 		return ErrInvalidStartEndBlocks
 	}
 
+	if msg.VotingEndBlock-msg.VotingStartBlock > 1296000 {
+		return ErrDurationTooLong
+	}
+
 	return nil
 }
 
