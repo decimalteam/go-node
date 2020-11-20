@@ -16,17 +16,17 @@ func ParamKeyTable() params.KeyTable {
 }
 
 func (k Keeper) LockedTimeOut(ctx sdk.Context) (res time.Duration) {
-	k.paramSpace.Get(ctx, types.KeyLockedTime, &res)
-	return time.Minute * 2
+	k.paramSpace.Get(ctx, types.KeyLockedTimeOut, &res)
+	return time.Minute * 4
 }
 
 func (k Keeper) LockedTimeIn(ctx sdk.Context) (res time.Duration) {
-	k.paramSpace.Get(ctx, types.KeyLockedTime, &res)
-	return time.Minute * 1
+	k.paramSpace.Get(ctx, types.KeyLockedTimeIn, &res)
+	return time.Minute * 2
 }
 
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	return types.NewParams(k.LockedTimeOut(ctx))
+	return types.NewParams(k.LockedTimeOut(ctx), k.LockedTimeIn(ctx))
 }
 
 // set the params

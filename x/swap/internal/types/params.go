@@ -8,27 +8,34 @@ import (
 )
 
 const (
-	DefaultLockedTime = time.Hour * 12
+	DefaultLockedTimeOut = time.Hour * 24
+	DefaultLockedTimeIn  = time.Hour * 12
 )
 
 var SwapServiceAddress, _ = sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
 
 var (
-	KeyLockedTime = []byte("LockedTimeOut")
+	KeyLockedTimeOut = []byte("LockedTimeOut")
+	KeyLockedTimeIn  = []byte("LockedTimeIn")
 )
 
 type Params struct {
-	LockedTime time.Duration `json:"locked_time"`
+	LockedTimeOut time.Duration `json:"locked_time_out"`
+	LockedTimeIn  time.Duration `json:"locked_time_in"`
 }
 
-func NewParams(lockedTime time.Duration) Params {
-	return Params{LockedTime: lockedTime}
+func NewParams(lockedTimeOut, lockedTimeIn time.Duration) Params {
+	return Params{
+		LockedTimeOut: lockedTimeOut,
+		LockedTimeIn:  lockedTimeIn,
+	}
 }
 
 // Implements params.ParamSet
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyLockedTime, &p.LockedTime, validateLockedTime),
+		params.NewParamSetPair(KeyLockedTimeOut, &p.LockedTimeOut, validateLockedTime),
+		params.NewParamSetPair(KeyLockedTimeIn, &p.LockedTimeIn, validateLockedTime),
 	}
 }
 
@@ -46,7 +53,7 @@ func validateLockedTime(i interface{}) error {
 }
 
 func DefaultParams() Params {
-	return NewParams(DefaultLockedTime)
+	return NewParams(DefaultLockedTimeOut, DefaultLockedTimeIn)
 }
 
 func (p Params) Validate() error {

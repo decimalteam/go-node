@@ -2,8 +2,8 @@ package cli
 
 const devNetGenesis = `
 {
-  "genesis_time": "2020-10-30T08:00:00.000000Z",
-  "chain_id": "decimal-devnet-10-30-16-00",
+  "genesis_time": "2020-11-20T10:00:00.000000Z",
+  "chain_id": "decimal-devnet-11-20-18-00",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -76,7 +76,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AyXteacATBJVsNGhTGUwgHfLO4mJTXhvK/H/2MLOTylo"
                 },
-                "signature": "zM54GYhk++blFIZ9u91gPsUJEIwdwFjyTZxs9rdAs1Qzf0eKstk+kMlzZp4vR064pVfjtNGcD40t+pJyXeM1mA=="
+                "signature": "AinT+GH/9kWW6V8bMfJpG8qmrTI0/gtBvUEXe4KvSnItomOW5R3KCf1tsgka+gD/B7QMyj/e8sVn7gRtCZwsMg=="
               }
             ],
             "memo": ""
@@ -120,7 +120,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A8s6NPtmz3ywH2LGxNnRjjsEIdt53ZuRQy7q6Mof0iA9"
                 },
-                "signature": "UMYc1nfKvsxgzr3a/7AW1VLJOPimWGnGEn2pLtCjSS4f2dyIe9oDpZzcND4Qc8YmXvVuQRxY6LTFkLyato0FAw=="
+                "signature": "7qJZRUmI5Qr2fNE69GiLPFowr8kOwlgpEIKqz5Z5pVd2ht8Gb3Y5teNhH9TuTFV83WNAthe/7u/Qz5xMMigeHg=="
               }
             ],
             "memo": ""
@@ -164,7 +164,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A/jGezwfhOzAyTaRbg3off9HYzvtUO4CxaRrBJzdHGlw"
                 },
-                "signature": "gDjG1k+wxs4kPUfelH9OkBe0f4o7m3yXlZ45+BrZtwYu6gW/wcLhjQKHJD1z+m4Njf8o2o939BusHFC1tl2QHQ=="
+                "signature": "MvLQ7EmUtPaTkf8kgGwrOwRzZoX27fP1uQrp7H8YGL0ay7w/7BsXo/fWL+CQ4Om/A2VP1DadESYiRmlGJ/JZeA=="
               }
             ],
             "memo": ""
@@ -280,6 +280,14 @@ const devNetGenesis = `
         "quorum": "0.334000000000000000",
         "threshold": "0.500000000000000000"
       }
+    },
+    "swap": {
+      "params":
+        {
+          "locked_time_in": "43200000000000",
+          "locked_time_out": "86400000000000"
+        },
+      "swaps": null
     }
   }
 }
