@@ -397,8 +397,8 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 
 	if ctx.BlockHeight() > 79350 {
 		if !coinKeeper.IsCoinBase(fee.Denom) {
-			if feeCoin.Reserve.Sub(fee.Amount).LT(coin.MinCoinReserve) {
-				return coin.ErrTxBreaksMinReserveRule(feeCoin.Reserve.Sub(fee.Amount).String())
+			if feeCoin.Reserve.Sub(fee.Amount).LT(coin.MinCoinReserve(ctx)) {
+				return coin.ErrTxBreaksMinReserveRule(ctx, feeCoin.Reserve.Sub(fee.Amount).String())
 			}
 		}
 	}

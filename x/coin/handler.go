@@ -91,6 +91,10 @@ func getCreateCoinCommission(symbol string) sdk.Int {
 }
 
 func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*sdk.Result, error) {
+	if msg.InitialReserve.LT(MinCoinReserve(ctx)) {
+		return nil, types.ErrInvalidCoinInitialReserve(ctx)
+	}
+
 	var coin = types.Coin{
 		Title:       msg.Title,
 		CRR:         msg.ConstantReserveRatio,
@@ -272,8 +276,8 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 
 	// Ensure reserve of the coin to sell does not underflow
 	if !coinToSell.IsBase() {
-		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types.MinCoinReserve) {
-			return nil, types.ErrTxBreaksMinReserveRule(amountInBaseCoin.String())
+		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types.MinCoinReserve(ctx)) {
+			return nil, types.ErrTxBreaksMinReserveRule(ctx, amountInBaseCoin.String())
 		}
 	}
 
@@ -370,8 +374,8 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 
 	// Ensure reserve of the coin to sell does not underflow
 	if !coinToSell.IsBase() {
-		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types.MinCoinReserve) {
-			return nil, types.ErrTxBreaksMinReserveRule(amountInBaseCoin.String())
+		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types.MinCoinReserve(ctx)) {
+			return nil, types.ErrTxBreaksMinReserveRule(ctx, amountInBaseCoin.String())
 		}
 	}
 
