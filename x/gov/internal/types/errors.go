@@ -16,4 +16,5 @@ var (
 	ErrSubmitProposal          = sdkerrors.Register(ModuleName, 1000, "error submit proposal")
 	ErrStartBlock              = sdkerrors.Register(ModuleName, 1100, "start block must greater then current block height")
 	ErrDurationTooLong         = sdkerrors.Register(ModuleName, 1200, "duration too long. Max duration = 3 month (1296000 blocks)")
+	ErrNotAllowed              = sdkerrors.Register(ModuleName, 1300, "not allowed to create the proposal from this address")
 )

@@ -1,13 +1,33 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
 )
 
 // DefaultStartingProposalID is 1
 const DefaultStartingProposalID uint64 = 1
+
+var AllowedAddresses = []string{
+	validator.DAOAddress1,
+	validator.DAOAddress2,
+	validator.DAOAddress3,
+	validator.DevelopAddress1,
+	validator.DevelopAddress2,
+	validator.DevelopAddress3,
+}
+
+func CheckProposalAddress(address sdk.AccAddress) bool {
+	for _, allowedAddress := range AllowedAddresses {
+		if allowedAddress == address.String() {
+			return true
+		}
+	}
+	return false
+}
 
 // Proposal defines a struct used by the governance module to allow for voting
 // on network changes.

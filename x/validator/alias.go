@@ -28,6 +28,14 @@ const (
 	UnbondConst           = types.UnbondConst
 	EditCandidateConst    = types.EditCandidateConst
 
+	DAOAddress1 = keeper.DAOAddress1
+	DAOAddress2 = keeper.DAOAddress2
+	DAOAddress3 = keeper.DAOAddress3
+
+	DevelopAddress1 = keeper.DevelopAddress1
+	DevelopAddress2 = keeper.DevelopAddress2
+	DevelopAddress3 = keeper.DevelopAddress3
+
 	Unbonded  = types.Unbonded
 	Unbonding = types.Unbonding
 	Bonded    = types.Bonded
