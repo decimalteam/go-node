@@ -387,6 +387,11 @@ func (v Validator) ConsensusPower() int64 {
 	return 0
 }
 
+// for exported
+func (v Validator) GetConsensusPower() int64 {
+	return v.ConsensusPower()
+}
+
 // potential consensus-engine power
 func (v Validator) PotentialConsensusPower() int64 {
 	return TokensToConsensusPower(v.Tokens)

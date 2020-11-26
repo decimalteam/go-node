@@ -27,6 +27,18 @@ const (
 	SetOfflineConst       = types.SetOfflineConst
 	UnbondConst           = types.UnbondConst
 	EditCandidateConst    = types.EditCandidateConst
+
+	DAOAddress1 = keeper.DAOAddress1
+	DAOAddress2 = keeper.DAOAddress2
+	DAOAddress3 = keeper.DAOAddress3
+
+	DevelopAddress1 = keeper.DevelopAddress1
+	DevelopAddress2 = keeper.DevelopAddress2
+	DevelopAddress3 = keeper.DevelopAddress3
+
+	Unbonded  = types.Unbonded
+	Unbonding = types.Unbonding
+	Bonded    = types.Bonded
 )
 
 var (
@@ -43,10 +55,17 @@ var (
 	NewMsgSetOnline        = types.NewMsgSetOnline
 	NewMsgSetOffline       = types.NewMsgSetOffline
 
+	NewValidator = types.NewValidator
+
 	ErrCalculateCommission             = types.ErrCalculateCommission
 	ErrUpdateBalance                   = types.ErrUpdateBalance
 	ErrInsufficientFunds               = types.ErrInsufficientFunds
 	ErrInsufficientCoinToPayCommission = types.ErrInsufficientCoinToPayCommission
+
+	DefaultParams = types.DefaultParams
+
+	TokensFromConsensusPower = types.TokensFromConsensusPower
+	TokensToConsensusPower   = types.TokensToConsensusPower
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
@@ -68,4 +87,6 @@ type (
 	UnbondingDelegation = types.UnbondingDelegation
 
 	Validator = types.Validator
+
+	Description = types.Description
 )

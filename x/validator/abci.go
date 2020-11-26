@@ -94,7 +94,9 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	if err != nil {
 		panic(err)
 	}
-	coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
+	if ctx.BlockHeight() <= 79350 {
+		coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
+	}
 
 	feeCollector := supplyKeeper.GetModuleAccount(ctx, k.FeeCollectorName)
 	feesCollectedInt := feeCollector.GetCoins()
@@ -113,6 +115,9 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	err = supplyKeeper.BurnCoins(ctx, k.FeeCollectorName, feesCollectedInt)
 	if err != nil {
 		panic(err)
+	}
+	if ctx.BlockHeight() > 79350 {
+		coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
 	}
 
 	remainder := sdk.NewIntFromBigInt(rewards.BigInt())

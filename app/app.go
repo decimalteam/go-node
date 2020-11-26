@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/swap"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,6 +26,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
+	"bitbucket.org/decimalteam/go-node/x/gov"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 )
@@ -48,12 +50,15 @@ var (
 		coin.AppModuleBasic{},
 		multisig.AppModuleBasic{},
 		validator.AppModuleBasic{},
+		gov.AppModuleBasic{},
+		swap.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
 		auth.FeeCollectorName:       {supply.Burner, supply.Minter},
 		validator.BondedPoolName:    {supply.Burner, supply.Staking},
 		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
+		swap.PoolName:               {supply.Minter, supply.Burner},
 	}
 )
 
@@ -82,6 +87,8 @@ type newApp struct {
 	coinKeeper      coin.Keeper
 	multisigKeeper  multisig.Keeper
 	validatorKeeper validator.Keeper
+	govKeeper       gov.Keeper
+	swapKeeper      swap.Keeper
 
 	// Module Manager
 	mm *module.Manager
@@ -111,6 +118,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.StoreKey,
 		multisig.StoreKey,
 		validator.StoreKey,
+		gov.StoreKey,
+		swap.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
@@ -133,6 +142,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	coinSubspace := app.paramsKeeper.Subspace(coin.DefaultParamspace)
 	multisigSubspace := app.paramsKeeper.Subspace(multisig.DefaultParamspace)
 	validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
+	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
+	swapSubspace := app.paramsKeeper.Subspace(swap.DefaultParamspace)
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -187,6 +198,26 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		auth.FeeCollectorName,
 	)
 
+	// register the proposal types
+	govRouter := gov.NewRouter()
+	app.govKeeper = gov.NewKeeper(
+		app.cdc,
+		keys[gov.StoreKey],
+		govSubspace,
+		app.supplyKeeper,
+		&app.validatorKeeper,
+		govRouter,
+	)
+
+	app.swapKeeper = swap.NewKeeper(
+		app.cdc,
+		keys[swap.StoreKey],
+		swapSubspace,
+		app.coinKeeper,
+		app.accountKeeper,
+		app.supplyKeeper,
+	)
+
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
@@ -195,10 +226,12 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		swap.NewAppModule(app.swapKeeper),
 	)
 
 	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
-	app.mm.SetOrderEndBlockers(validator.ModuleName)
+	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
 	// NOTE: The genutils moodule must occur after staking so that pools are
@@ -211,6 +244,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		supply.ModuleName,
 		multisig.ModuleName,
 		genutil.ModuleName,
+		gov.ModuleName,
+		swap.ModuleName,
 	)
 
 	// register all module routes and module queriers

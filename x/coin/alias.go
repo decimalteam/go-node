@@ -41,6 +41,10 @@ var (
 	NewMsgMultiSendCoin = types.NewMsgMultiSendCoin
 	NewMsgRedeemCheck   = types.NewMsgRedeemCheck
 
+	MinCoinReserve = types.MinCoinReserve
+
+	ErrTxBreaksMinReserveRule = types.ErrTxBreaksMinReserveRule
+
 	// variable aliases
 	ModuleCdc = types.ModuleCdc
 	// TODO: Fill out variable aliases

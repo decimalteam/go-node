@@ -2,8 +2,8 @@ package cli
 
 const devNetGenesis = `
 {
-  "genesis_time": "2020-07-22T11:50:00.000000Z",
-  "chain_id": "decimal-devnet-07-23-20-55",
+  "genesis_time": "2020-11-20T10:00:00.000000Z",
+  "chain_id": "decimal-devnet-11-20-18-00",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -76,10 +76,10 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AyXteacATBJVsNGhTGUwgHfLO4mJTXhvK/H/2MLOTylo"
                 },
-                "signature": "Bp7Ergky/TonbvNyJo26Tfp+VhZLu93ZCI3UrXPI5HBbkzM6eYTxAm7/89pT8BigO72bduE9Skl+xRCe7kuOuA=="
+                "signature": "AinT+GH/9kWW6V8bMfJpG8qmrTI0/gtBvUEXe4KvSnItomOW5R3KCf1tsgka+gD/B7QMyj/e8sVn7gRtCZwsMg=="
               }
             ],
-            "memo": "8a2cc38f5264e9699abb8db91c9b4a4a061f000d@46.101.127.241:26656"
+            "memo": ""
           }
         },
         {
@@ -120,10 +120,10 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A8s6NPtmz3ywH2LGxNnRjjsEIdt53ZuRQy7q6Mof0iA9"
                 },
-                "signature": "bLd92//oiK0B2cwCRr9XTuymyqN/orxzyKSW4yDVm3khGla3TKM8Ic/p+o2iZVS1VEW9ENrWbUGM0Z2kr5R/fA=="
+                "signature": "7qJZRUmI5Qr2fNE69GiLPFowr8kOwlgpEIKqz5Z5pVd2ht8Gb3Y5teNhH9TuTFV83WNAthe/7u/Qz5xMMigeHg=="
               }
             ],
-            "memo": "e0e7a88de0b39bd2adceb3516d353582ff94ec15@164.90.211.234:26656"
+            "memo": ""
           }
         },
         {
@@ -164,10 +164,10 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A/jGezwfhOzAyTaRbg3off9HYzvtUO4CxaRrBJzdHGlw"
                 },
-                "signature": "g4L04c6+v2SmtpFL8aP0Yz9y2RVpq5ka1E7Vkvt7+SRGJ3FTjzfmcEW2PU5gKoSLv70JhCTxBLCvQv+6MUh/jg=="
+                "signature": "MvLQ7EmUtPaTkf8kgGwrOwRzZoX27fP1uQrp7H8YGL0ay7w/7BsXo/fWL+CQ4Om/A2VP1DadESYiRmlGJ/JZeA=="
               }
             ],
-            "memo": "27fcfef145b3717c5d639ec72fb12f9c43da98f0@167.99.182.218:26656"
+            "memo": ""
           }
         }
       ]
@@ -270,7 +270,25 @@ const devNetGenesis = `
       "symbol": "del",
       "initial_volume": "340000000000000000000000000"
     },
-    "check": {}
+    "check": {},
+    "multisig": {},
+    "gov": {
+      "starting_proposal_id": "1",
+      "votes": null,
+      "proposals": null,
+      "tally_params": {
+        "quorum": "0.334000000000000000",
+        "threshold": "0.500000000000000000"
+      }
+    },
+    "swap": {
+      "params":
+        {
+          "locked_time_in": "43200000000000",
+          "locked_time_out": "86400000000000"
+        },
+      "swaps": null
+    }
   }
 }
 `
