@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/swap"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/store/types"
 	"io"
 	"os"
 	"strings"
@@ -32,6 +33,7 @@ import (
 )
 
 const appName = "decimal"
+const Update1Block = 1780000
 
 var (
 	// default home directories for the application CLI
@@ -50,8 +52,8 @@ var (
 		coin.AppModuleBasic{},
 		multisig.AppModuleBasic{},
 		validator.AppModuleBasic{},
-		gov.AppModuleBasic{},
-		swap.AppModuleBasic{},
+		//gov.AppModuleBasic{},
+		//swap.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
@@ -109,7 +111,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	bApp.SetAppVersion(config.DecimalVersion)
 
-	// TODO: Add the keys that module requires
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey,
 		auth.StoreKey,
@@ -142,8 +143,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	coinSubspace := app.paramsKeeper.Subspace(coin.DefaultParamspace)
 	multisigSubspace := app.paramsKeeper.Subspace(multisig.DefaultParamspace)
 	validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
-	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
-	swapSubspace := app.paramsKeeper.Subspace(swap.DefaultParamspace)
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -198,26 +197,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		auth.FeeCollectorName,
 	)
 
-	// register the proposal types
-	govRouter := gov.NewRouter()
-	app.govKeeper = gov.NewKeeper(
-		app.cdc,
-		keys[gov.StoreKey],
-		govSubspace,
-		app.supplyKeeper,
-		&app.validatorKeeper,
-		govRouter,
-	)
-
-	app.swapKeeper = swap.NewKeeper(
-		app.cdc,
-		keys[swap.StoreKey],
-		swapSubspace,
-		app.coinKeeper,
-		app.accountKeeper,
-		app.supplyKeeper,
-	)
-
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
@@ -226,12 +205,10 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
-		swap.NewAppModule(app.swapKeeper),
 	)
 
-	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
-	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName)
+	app.mm.SetOrderBeginBlockers([]string{}...)
+	app.mm.SetOrderEndBlockers(validator.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
 	// NOTE: The genutils moodule must occur after staking so that pools are
@@ -244,8 +221,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		supply.ModuleName,
 		multisig.ModuleName,
 		genutil.ModuleName,
-		gov.ModuleName,
-		swap.ModuleName,
 	)
 
 	// register all module routes and module queriers
@@ -310,6 +285,63 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 			cfg.InitialVolumeBaseCoin = config.InitialVolumeBaseCoin
 		}
 		cfg.Initialized = true
+	}
+
+	if ctx.BlockHeight() == Update1Block {
+		app.keys[gov.StoreKey] = types.NewKVStoreKey(gov.StoreKey)
+		app.keys[swap.StoreKey] = types.NewKVStoreKey(swap.StoreKey)
+
+		govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
+		swapSubspace := app.paramsKeeper.Subspace(swap.DefaultParamspace)
+
+		govRouter := gov.NewRouter()
+		app.govKeeper = gov.NewKeeper(
+			app.cdc,
+			app.keys[gov.StoreKey],
+			govSubspace,
+			app.supplyKeeper,
+			&app.validatorKeeper,
+			govRouter,
+		)
+
+		app.swapKeeper = swap.NewKeeper(
+			app.cdc,
+			app.keys[swap.StoreKey],
+			swapSubspace,
+			app.coinKeeper,
+			app.accountKeeper,
+			app.supplyKeeper,
+		)
+
+		govAppModule := gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper)
+
+		app.mm.Modules[govAppModule.Name()] = govAppModule
+		app.mm.OrderEndBlockers = append(app.mm.OrderEndBlockers, govAppModule.Name())
+		app.mm.OrderInitGenesis = append(app.mm.OrderInitGenesis, govAppModule.Name())
+		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, govAppModule.Name())
+
+		swapAppModule := swap.NewAppModule(app.swapKeeper)
+
+		app.mm.Modules[govAppModule.Name()] = govAppModule
+		app.mm.OrderInitGenesis = append(app.mm.OrderInitGenesis, swapAppModule.Name())
+		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, swapAppModule.Name())
+
+		router := app.Router()
+		queryRouter := app.QueryRouter()
+
+		if govAppModule.Route() != "" {
+			router.AddRoute(govAppModule.Route(), govAppModule.NewHandler())
+		}
+		if govAppModule.QuerierRoute() != "" {
+			queryRouter.AddRoute(govAppModule.QuerierRoute(), govAppModule.NewQuerierHandler())
+		}
+
+		if swapAppModule.Route() != "" {
+			router.AddRoute(swapAppModule.Route(), swapAppModule.NewHandler())
+		}
+		if swapAppModule.QuerierRoute() != "" {
+			queryRouter.AddRoute(swapAppModule.QuerierRoute(), swapAppModule.NewQuerierHandler())
+		}
 	}
 
 	return app.mm.BeginBlock(ctx, req)
