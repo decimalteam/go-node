@@ -1,6 +1,7 @@
 package gov
 
 import (
+	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -8,6 +9,10 @@ import (
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
+	if ctx.BlockHeight() < app.Update1Block {
+		return
+	}
+
 	logger := keeper.Logger(ctx)
 
 	// delete inactive proposal from store
