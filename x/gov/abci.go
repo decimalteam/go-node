@@ -1,15 +1,16 @@
 package gov
 
 import (
-	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const Update1Block = 1780000
+
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
-	if ctx.BlockHeight() < app.Update1Block {
+	if ctx.BlockHeight() < Update1Block {
 		return
 	}
 
