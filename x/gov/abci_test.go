@@ -2,6 +2,8 @@ package gov
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	"bitbucket.org/decimalteam/go-node/x/validator"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"testing"
 
@@ -18,6 +20,8 @@ func TestTickPassedVotingPeriod(t *testing.T) {
 	ctx := input.mApp.BaseApp.NewContext(false, abci.Header{})
 	govHandler := NewHandler(input.keeper)
 
+	ctx = ctx.WithBlockHeight(Update1Block)
+
 	inactiveQueue := input.keeper.InactiveProposalQueueIterator(ctx, uint64(ctx.BlockHeight()))
 	require.False(t, inactiveQueue.Valid())
 	inactiveQueue.Close()
@@ -25,21 +29,23 @@ func TestTickPassedVotingPeriod(t *testing.T) {
 	require.False(t, activeQueue.Valid())
 	activeQueue.Close()
 
+	proposer, err := sdk.AccAddressFromBech32(validator.DAOAddress1)
+	require.NoError(t, err)
 	newProposalMsg := NewMsgSubmitProposal(
 		types.Content{
 			Title:       "title",
 			Description: "desc",
 		},
-		input.addrs[0],
-		5,
-		10,
+		proposer,
+		Update1Block+5,
+		Update1Block+10,
 	)
 
 	res, err := govHandler(ctx, newProposalMsg)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	ctx = ctx.WithBlockHeight(5)
+	ctx = ctx.WithBlockHeight(Update1Block + 5)
 
 	EndBlocker(ctx, input.keeper)
 

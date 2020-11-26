@@ -49,6 +49,11 @@ type testInput struct {
 
 func getMockApp(t *testing.T, numGenAccs int, genState types.GenesisState, genAccs []authexported.Account) testInput {
 
+	_config := sdk.GetConfig()
+	_config.SetBech32PrefixForAccount(config.DecimalPrefixAccAddr, config.DecimalPrefixAccPub)
+	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
+	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
+
 	mApp := mock.NewApp()
 
 	validator.RegisterCodec(mApp.Cdc)
