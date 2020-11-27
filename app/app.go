@@ -33,7 +33,7 @@ import (
 )
 
 const appName = "decimal"
-const Update1Block = 1780000
+const Update1Block = 10
 
 var (
 	// default home directories for the application CLI
@@ -205,7 +205,10 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
 	)
 
-	app.mm.SetOrderBeginBlockers([]string{}...)
+	govAppModule := gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper)
+	swapAppModule := swap.NewAppModule(app.swapKeeper)
+
+	app.mm.SetOrderBeginBlockers(validator.ModuleName)
 	app.mm.SetOrderEndBlockers(validator.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
@@ -223,6 +226,22 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// register all module routes and module queriers
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
+	router := app.Router()
+	queryRouter := app.QueryRouter()
+
+	if govAppModule.Route() != "" {
+		router.AddRoute(govAppModule.Route(), govAppModule.NewHandler())
+	}
+	if govAppModule.QuerierRoute() != "" {
+		queryRouter.AddRoute(govAppModule.QuerierRoute(), govAppModule.NewQuerierHandler())
+	}
+
+	if swapAppModule.Route() != "" {
+		router.AddRoute(swapAppModule.Route(), swapAppModule.NewHandler())
+	}
+	if swapAppModule.QuerierRoute() != "" {
+		queryRouter.AddRoute(swapAppModule.QuerierRoute(), swapAppModule.NewQuerierHandler())
+	}
 
 	// The initChainer handles translating the genesis.json file into initial state for the network
 	app.SetInitChainer(app.InitChainer)
@@ -324,22 +343,8 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 		app.mm.OrderInitGenesis = append(app.mm.OrderInitGenesis, swapAppModule.Name())
 		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, swapAppModule.Name())
 
-		router := app.Router()
-		queryRouter := app.QueryRouter()
-
-		if govAppModule.Route() != "" {
-			router.AddRoute(govAppModule.Route(), govAppModule.NewHandler())
-		}
-		if govAppModule.QuerierRoute() != "" {
-			queryRouter.AddRoute(govAppModule.QuerierRoute(), govAppModule.NewQuerierHandler())
-		}
-
-		if swapAppModule.Route() != "" {
-			router.AddRoute(swapAppModule.Route(), swapAppModule.NewHandler())
-		}
-		if swapAppModule.QuerierRoute() != "" {
-			queryRouter.AddRoute(swapAppModule.QuerierRoute(), swapAppModule.NewQuerierHandler())
-		}
+		govAppModule.RegisterCodec(app.cdc)
+		swapAppModule.RegisterCodec(app.cdc)
 	}
 
 	return app.mm.BeginBlock(ctx, req)
