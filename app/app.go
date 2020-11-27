@@ -52,8 +52,8 @@ var (
 		coin.AppModuleBasic{},
 		multisig.AppModuleBasic{},
 		validator.AppModuleBasic{},
-		//gov.AppModuleBasic{},
-		//swap.AppModuleBasic{},
+		gov.AppModuleBasic{},
+		swap.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
@@ -94,6 +94,9 @@ type newApp struct {
 
 	// Module Manager
 	mm *module.Manager
+
+	updated   bool
+	initChain bool
 }
 
 var cfg = &config.Config{}
@@ -279,6 +282,9 @@ func NewDefaultGenesisState() GenesisState {
 }
 
 func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+	if app.initChain {
+		return abci.ResponseInitChain{}
+	}
 	var genesisState GenesisState
 
 	err := app.cdc.UnmarshalJSON(req.AppStateBytes, &genesisState)
@@ -304,9 +310,14 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 		cfg.Initialized = true
 	}
 
-	if ctx.BlockHeight() == Update1Block {
+	if !app.updated && ctx.BlockHeight() >= Update1Block {
 		app.keys[gov.StoreKey] = types.NewKVStoreKey(gov.StoreKey)
 		app.keys[swap.StoreKey] = types.NewKVStoreKey(swap.StoreKey)
+
+		app.BaseApp.MountStores(types.NewKVStoreKey(gov.StoreKey), types.NewKVStoreKey(swap.StoreKey))
+		app.initChain = true
+		app.InitChain(abci.RequestInitChain{})
+		app.initChain = false
 
 		govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
 		swapSubspace := app.paramsKeeper.Subspace(swap.DefaultParamspace)
@@ -343,8 +354,7 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 		app.mm.OrderInitGenesis = append(app.mm.OrderInitGenesis, swapAppModule.Name())
 		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, swapAppModule.Name())
 
-		govAppModule.RegisterCodec(app.cdc)
-		swapAppModule.RegisterCodec(app.cdc)
+		app.updated = true
 	}
 
 	return app.mm.BeginBlock(ctx, req)
