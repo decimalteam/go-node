@@ -33,7 +33,7 @@ import (
 )
 
 const appName = "decimal"
-const Update1Block = 10
+const Update1Block = 1_779_000
 
 var (
 	// default home directories for the application CLI
