@@ -1,7 +1,6 @@
 package gov
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,7 +20,7 @@ func TestTickPassedVotingPeriod(t *testing.T) {
 	ctx := input.mApp.BaseApp.NewContext(false, abci.Header{})
 	govHandler := NewHandler(input.keeper)
 
-	ctx = ctx.WithBlockHeight(updates.Update1Block)
+	ctx = ctx.WithBlockHeight(1000000000000)
 
 	inactiveQueue := input.keeper.InactiveProposalQueueIterator(ctx, uint64(ctx.BlockHeight()))
 	require.False(t, inactiveQueue.Valid())
@@ -38,15 +37,15 @@ func TestTickPassedVotingPeriod(t *testing.T) {
 			Description: "desc",
 		},
 		proposer,
-		updates.Update1Block+5,
-		updates.Update1Block+10,
+		1000000000000+5,
+		1000000000000+10,
 	)
 
 	res, err := govHandler(ctx, newProposalMsg)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	ctx = ctx.WithBlockHeight(updates.Update1Block + 5)
+	ctx = ctx.WithBlockHeight(1000000000000 + 5)
 
 	EndBlocker(ctx, input.keeper)
 
