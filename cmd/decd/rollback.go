@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/cli"
@@ -17,6 +18,8 @@ import (
 )
 
 func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command {
+	const flagSetStateHeight = "state-height"
+
 	cmd := &cobra.Command{
 		Use:   "rollback [100]",
 		Short: "",
@@ -25,8 +28,27 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			cfg := config.DefaultConfig()
 			cfg.SetRoot(viper.GetString(cli.HomeFlag))
 
+			stateDB, err := node.DefaultDBProvider(&node.DBContext{ID: "state", Config: cfg})
+			if err != nil {
+				return err
+			}
+
+			st := state.LoadState(stateDB)
+
+			stateHeightFlag := viper.GetString(flagSetStateHeight)
+			if stateHeightFlag != "" {
+				stateHeight, err := strconv.ParseInt(stateHeightFlag, 10, 64)
+				if err != nil {
+					return err
+				}
+
+				st.LastBlockHeight = stateHeight
+
+				state.SaveState(stateDB, st)
+				return nil
+			}
+
 			var countBlocks int64
-			var err error
 			if len(args) == 1 {
 				countBlocks, err = strconv.ParseInt(args[0], 10, 64)
 				if err != nil {
@@ -38,13 +60,6 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			if err != nil {
 				return err
 			}
-
-			stateDB, err := node.DefaultDBProvider(&node.DBContext{ID: "state", Config: cfg})
-			if err != nil {
-				return err
-			}
-
-			st := state.LoadState(stateDB)
 
 			height := st.LastBlockHeight
 
@@ -81,7 +96,11 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 		},
 	}
 
+	FsSetStateHeight := flag.NewFlagSet("", flag.ContinueOnError)
+	FsSetStateHeight.String(flagSetStateHeight, "", "Set state height")
+
 	cmd.Flags().String(cli.HomeFlag, defaultNodeHome, "node's home directory")
+	cmd.Flags().AddFlagSet(FsSetStateHeight)
 
 	return cmd
 }
