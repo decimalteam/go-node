@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/swap"
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/store/types"
 	"io"
 	"os"
 	"strings"
@@ -310,52 +309,52 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 		cfg.Initialized = true
 	}
 
-	if !app.updated && ctx.BlockHeight() >= Update1Block {
-		app.keys[gov.StoreKey] = types.NewKVStoreKey(gov.StoreKey)
-		app.keys[swap.StoreKey] = types.NewKVStoreKey(swap.StoreKey)
-
-		app.BaseApp.MountStores(types.NewKVStoreKey(gov.StoreKey), types.NewKVStoreKey(swap.StoreKey))
-		app.initChain = true
-		app.InitChain(abci.RequestInitChain{})
-		app.initChain = false
-
-		govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
-		swapSubspace := app.paramsKeeper.Subspace(swap.DefaultParamspace)
-
-		govRouter := gov.NewRouter()
-		app.govKeeper = gov.NewKeeper(
-			app.cdc,
-			app.keys[gov.StoreKey],
-			govSubspace,
-			app.supplyKeeper,
-			&app.validatorKeeper,
-			govRouter,
-		)
-
-		app.swapKeeper = swap.NewKeeper(
-			app.cdc,
-			app.keys[swap.StoreKey],
-			swapSubspace,
-			app.coinKeeper,
-			app.accountKeeper,
-			app.supplyKeeper,
-		)
-
-		govAppModule := gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper)
-
-		app.mm.Modules[govAppModule.Name()] = govAppModule
-		app.mm.OrderEndBlockers = append(app.mm.OrderEndBlockers, govAppModule.Name())
-		app.mm.OrderInitGenesis = append(app.mm.OrderInitGenesis, govAppModule.Name())
-		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, govAppModule.Name())
-
-		swapAppModule := swap.NewAppModule(app.swapKeeper)
-
-		app.mm.Modules[govAppModule.Name()] = govAppModule
-		app.mm.OrderInitGenesis = append(app.mm.OrderInitGenesis, swapAppModule.Name())
-		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, swapAppModule.Name())
-
-		app.updated = true
-	}
+	//if !app.updated && ctx.BlockHeight() >= Update1Block {
+	//	app.keys[gov.StoreKey] = types.NewKVStoreKey(gov.StoreKey)
+	//	app.keys[swap.StoreKey] = types.NewKVStoreKey(swap.StoreKey)
+	//
+	//	app.BaseApp.MountStores(types.NewKVStoreKey(gov.StoreKey), types.NewKVStoreKey(swap.StoreKey))
+	//	app.initChain = true
+	//	app.InitChain(abci.RequestInitChain{})
+	//	app.initChain = false
+	//
+	//	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
+	//	swapSubspace := app.paramsKeeper.Subspace(swap.DefaultParamspace)
+	//
+	//	govRouter := gov.NewRouter()
+	//	app.govKeeper = gov.NewKeeper(
+	//		app.cdc,
+	//		app.keys[gov.StoreKey],
+	//		govSubspace,
+	//		app.supplyKeeper,
+	//		&app.validatorKeeper,
+	//		govRouter,
+	//	)
+	//
+	//	app.swapKeeper = swap.NewKeeper(
+	//		app.cdc,
+	//		app.keys[swap.StoreKey],
+	//		swapSubspace,
+	//		app.coinKeeper,
+	//		app.accountKeeper,
+	//		app.supplyKeeper,
+	//	)
+	//
+	//	govAppModule := gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper)
+	//
+	//	app.mm.Modules[govAppModule.Name()] = govAppModule
+	//	app.mm.OrderEndBlockers = append(app.mm.OrderEndBlockers, govAppModule.Name())
+	//	app.mm.OrderInitGenesis = append(app.mm.OrderInitGenesis, govAppModule.Name())
+	//	app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, govAppModule.Name())
+	//
+	//	swapAppModule := swap.NewAppModule(app.swapKeeper)
+	//
+	//	app.mm.Modules[govAppModule.Name()] = govAppModule
+	//	app.mm.OrderInitGenesis = append(app.mm.OrderInitGenesis, swapAppModule.Name())
+	//	app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, swapAppModule.Name())
+	//
+	//	app.updated = true
+	//}
 
 	return app.mm.BeginBlock(ctx, req)
 }

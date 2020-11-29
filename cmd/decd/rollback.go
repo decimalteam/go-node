@@ -35,6 +35,13 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 
 			st := state.LoadState(stateDB)
 
+			blockStoreDB, err := node.DefaultDBProvider(&node.DBContext{ID: "blockstore", Config: cfg})
+			if err != nil {
+				return err
+			}
+
+			blockStore := store.NewBlockStore(blockStoreDB)
+
 			stateHeightFlag := viper.GetString(flagSetStateHeight)
 			if stateHeightFlag != "" {
 				stateHeight, err := strconv.ParseInt(stateHeightFlag, 10, 64)
@@ -56,18 +63,12 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 				}
 			}
 
-			blockStoreDB, err := node.DefaultDBProvider(&node.DBContext{ID: "blockstore", Config: cfg})
-			if err != nil {
-				return err
-			}
-
 			height := st.LastBlockHeight
 
 			if countBlocks > (st.LastBlockHeight - st.LastBlockHeight/100*100) {
 				countBlocks = st.LastBlockHeight - st.LastBlockHeight/100*100
 			}
 
-			blockStore := store.NewBlockStore(blockStoreDB)
 			for i := int64(0); i < countBlocks; i++ {
 				block := blockStore.LoadBlock(height)
 				if block == nil {
