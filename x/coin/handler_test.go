@@ -212,7 +212,7 @@ func TestBuyCoinReserveUnderflow(t *testing.T) {
 
 	buyCoinMsg := NewMsgBuyCoin(keep.Addrs[0], sdk.NewCoin(keeper.GetBaseCoin(ctx), toBuy), sdk.NewCoin(coin.Symbol, maxValToSell))
 	_, err = handleMsgBuyCoin(ctx, keeper, buyCoinMsg)
-	require.EqualError(t, err, types.ErrTxBreaksMinReserveRule(ctx, toBuy.String()).Error())
+	require.EqualError(t, err, types.ErrTxBreaksMinReserveRule(toBuy.String()).Error())
 }
 
 func TestSellCoinTxBaseToCustom(t *testing.T) {

@@ -3,7 +3,6 @@ package validator
 import (
 	"errors"
 	"fmt"
-	"runtime/debug"
 	"time"
 
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
@@ -18,11 +17,6 @@ import (
 // NewHandler creates an sdk.Handler for all the validator type messages
 func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		defer func() {
-			if r := recover(); r != nil {
-				fmt.Printf("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
-			}
-		}()
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		case types.MsgDeclareCandidate:

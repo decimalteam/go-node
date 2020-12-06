@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -78,8 +77,8 @@ func ErrInvalidCoinInitialVolume(initialVolume string) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeInvalidCoinInitialVolume, fmt.Sprintf("coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), initialVolume))
 }
 
-func ErrInvalidCoinInitialReserve(ctx sdk.Context) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeInvalidCoinInitialReserve, fmt.Sprintf("coin initial reserve should be greater than or equal to %s", MinCoinReserve(ctx).String()))
+func ErrInvalidCoinInitialReserve() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInvalidCoinInitialReserve, fmt.Sprintf("coin initial reserve should be greater than or equal to %s", MinCoinReserve.String()))
 }
 
 func ErrInternal(err string) *sdkerrors.Error {
@@ -126,8 +125,8 @@ func ErrTxBreaksVolumeLimit(volume, limitVolume string) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeTxBreaksVolumeLimit, fmt.Sprintf("tx breaks LimitVolume rule: %s > %s", volume, limitVolume))
 }
 
-func ErrTxBreaksMinReserveRule(ctx sdk.Context, reserve string) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeTxBreaksMinReserveLimit, fmt.Sprintf("tx breaks MinReserveLimit rule: %s < %s", reserve, MinCoinReserve(ctx).String()))
+func ErrTxBreaksMinReserveRule(volume string) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeTxBreaksMinReserveLimit, fmt.Sprintf("tx breaks MinReserveLimit rule: %s < %s", volume, MinCoinReserve.String()))
 }
 
 func ErrMaximumValueToSellReached(amount, max string) *sdkerrors.Error {

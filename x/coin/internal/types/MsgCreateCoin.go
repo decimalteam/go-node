@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"regexp"
 	"strings"
 
@@ -42,13 +41,7 @@ const allowedCoinSymbols = "^[a-zA-Z][a-zA-Z0-9]{2,9}$"
 var minCoinSupply = sdk.NewInt(1)
 var maxCoinSupply = helpers.BipToPip(sdk.NewInt(1000000000000000))
 
-func MinCoinReserve(ctx sdk.Context) sdk.Int {
-	if ctx.BlockHeight() >= updates.Update1Block {
-		return helpers.BipToPip(sdk.NewInt(1000))
-	} else {
-		return helpers.BipToPip(sdk.NewInt(10000))
-	}
-}
+var MinCoinReserve = helpers.BipToPip(sdk.NewInt(10000))
 
 func (msg MsgCreateCoin) Route() string { return RouterKey }
 func (msg MsgCreateCoin) Type() string  { return CreateCoinConst }
@@ -83,6 +76,10 @@ func (msg MsgCreateCoin) ValidateBasic() error {
 	// Check coin initial volume to be correct
 	if msg.InitialVolume.LT(minCoinSupply) || msg.InitialVolume.GT(maxCoinSupply) {
 		return ErrInvalidCoinInitialVolume(msg.InitialVolume.String())
+	}
+	// Check coin initial reserve to be correct
+	if msg.InitialReserve.LT(MinCoinReserve) {
+		return ErrInvalidCoinInitialReserve()
 	}
 
 	if msg.InitialVolume.GT(msg.LimitVolume) {
