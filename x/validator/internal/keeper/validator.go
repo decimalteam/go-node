@@ -79,6 +79,11 @@ func (k Keeper) GetAllValidators(ctx sdk.Context) (validators []types.Validator)
 	return validators
 }
 
+func (k Keeper) HasValidator(ctx sdk.Context, addr sdk.ValAddress) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.GetValidatorKey(addr))
+}
+
 func (k Keeper) SetValidator(ctx sdk.Context, validator types.Validator) error {
 	return k.set(ctx, types.GetValidatorKey(validator.ValAddress), validator)
 }

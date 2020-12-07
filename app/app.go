@@ -1,6 +1,8 @@
 package app
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/swap"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,6 +27,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
+	"bitbucket.org/decimalteam/go-node/x/gov"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 )
@@ -48,12 +51,15 @@ var (
 		coin.AppModuleBasic{},
 		multisig.AppModuleBasic{},
 		validator.AppModuleBasic{},
+		gov.AppModuleBasic{},
+		swap.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
 		auth.FeeCollectorName:       {supply.Burner, supply.Minter},
 		validator.BondedPoolName:    {supply.Burner, supply.Staking},
 		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
+		swap.PoolName:               {supply.Minter, supply.Burner},
 	}
 )
 
@@ -82,9 +88,14 @@ type newApp struct {
 	coinKeeper      coin.Keeper
 	multisigKeeper  multisig.Keeper
 	validatorKeeper validator.Keeper
+	govKeeper       gov.Keeper
+	swapKeeper      swap.Keeper
 
 	// Module Manager
 	mm *module.Manager
+
+	updated   bool
+	initChain bool
 }
 
 var cfg = &config.Config{}
@@ -102,7 +113,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	bApp.SetAppVersion(config.DecimalVersion)
 
-	// TODO: Add the keys that module requires
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey,
 		auth.StoreKey,
@@ -133,6 +143,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	coinSubspace := app.paramsKeeper.Subspace(coin.DefaultParamspace)
 	multisigSubspace := app.paramsKeeper.Subspace(multisig.DefaultParamspace)
 	validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
+	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
+	swapSubspace := app.paramsKeeper.Subspace(swap.DefaultParamspace)
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -187,6 +199,25 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		auth.FeeCollectorName,
 	)
 
+	govRouter := gov.NewRouter()
+	app.govKeeper = gov.NewKeeper(
+		app.cdc,
+		app.keys[gov.StoreKey],
+		govSubspace,
+		app.supplyKeeper,
+		&app.validatorKeeper,
+		govRouter,
+	)
+
+	app.swapKeeper = swap.NewKeeper(
+		app.cdc,
+		app.keys[swap.StoreKey],
+		swapSubspace,
+		app.coinKeeper,
+		app.accountKeeper,
+		app.supplyKeeper,
+	)
+
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
@@ -195,9 +226,11 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
+		swap.NewAppModule(app.swapKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
-	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
+	app.mm.SetOrderBeginBlockers(validator.ModuleName)
 	app.mm.SetOrderEndBlockers(validator.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
@@ -211,6 +244,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		supply.ModuleName,
 		multisig.ModuleName,
 		genutil.ModuleName,
+		swap.ModuleName,
+		gov.ModuleName,
 	)
 
 	// register all module routes and module queriers
@@ -252,6 +287,9 @@ func NewDefaultGenesisState() GenesisState {
 }
 
 func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+	if app.initChain {
+		return abci.ResponseInitChain{}
+	}
 	var genesisState GenesisState
 
 	err := app.cdc.UnmarshalJSON(req.AppStateBytes, &genesisState)
@@ -275,6 +313,21 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 			cfg.InitialVolumeBaseCoin = config.InitialVolumeBaseCoin
 		}
 		cfg.Initialized = true
+	}
+
+	if !app.updated && ctx.BlockHeight() >= updates.Update1Block {
+		govAppModule := app.mm.Modules[gov.ModuleName].(gov.AppModule)
+		gov.InitGenesis(ctx, app.govKeeper, gov.InitialGenesisState)
+
+		app.mm.OrderEndBlockers = append(app.mm.OrderEndBlockers, govAppModule.Name())
+		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, govAppModule.Name())
+
+		swapAppModule := app.mm.Modules[swap.ModuleName].(swap.AppModule)
+		swap.InitGenesis(ctx, app.swapKeeper, swap.InitialGenesisState)
+
+		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, swapAppModule.Name())
+
+		app.updated = true
 	}
 
 	return app.mm.BeginBlock(ctx, req)
