@@ -1,9 +1,9 @@
 package cli
 
-const testNetGenesis = `
+const TestNetGenesis = `
 {
-  "genesis_time": "2020-08-06T07:00:00.000000Z",
-  "chain_id": "decimal-testnet-08-06-14-00",
+  "genesis_time": "2020-12-06T20:00:00.000000Z",
+  "chain_id": "decimal-testnet-12-07-03-00",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -76,7 +76,7 @@ const testNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "Ann34HTQiiPi/Ht/2eSaDWVwoov2ycuYjpL2eMMpNQl0"
                 },
-                "signature": "wB5HppMhn46N3fXtEhSctPxZAFsWyJSKlKNbgp6DgBFSYyVetJEQmj2/a5PI9LeuIWNJevfxLXP4fXm6N7Wmhw=="
+                "signature": "XVuH7OKLuEdn5KZExLUKdbktTVBp4AVEOsj2CP43Jw0ptQF2xSvaS38bwPe72n668AcGS6I3nlCBmzkjJrwbQA=="
               }
             ],
             "memo": ""
@@ -120,7 +120,7 @@ const testNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A+0Sm90CYEkcknXu/cvYx9eKpau17Yyd54mzDdtSG9bZ"
                 },
-                "signature": "aDo/I4ItXz6hcUCElrjbHk7Ov+GHOTwmo5zM41hJusk1ueA4dnljyA2qbRApu7n3ThJl1EbLOxknT2cQAtOHqA=="
+                "signature": "T5mk/LvWztbyOC/ARLOuSobAWPu24CZ1JiiN+WHgED1HAzpMLhu9QQ2JjIoOdV8KEjuanun12mXNWDTmPBaaCQ=="
               }
             ],
             "memo": ""
@@ -164,7 +164,7 @@ const testNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "Ax72b3e3Tz8Wx7Iq9FXaM1sbTit+1AujjKHRsTafhrtE"
                 },
-                "signature": "JS/dn7RKJpDqxyCdD/F1FJVbSwwYrU4On2xFrsWrhuwazmbGigZ+KOaTuRL5dmivEhZeEiZHEX2PhJ2Wq1xOtw=="
+                "signature": "6IC13g0bFQK+29ruCesuFzG18iWoJdgRhvevRIWRg6M/rN0m7p+5z0t+DT2rCI0rXDrpDdOolbNxqwDJYhSaBw=="
               }
             ],
             "memo": ""
@@ -208,7 +208,7 @@ const testNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AtKn3ANbRqsIg8zpF0/03t9kvEuUtd7ZS9VnPu/8zF5z"
                 },
-                "signature": "ePtnU+BuI2xDwdih89Yz3hllHdBLybRKbYUoQ0Ieb6VQ/kUA7FrC7IvOhu0RODPj27bKWLdHf+NeLHiLc3QQxQ=="
+                "signature": "ph5sdDu0YDXtNfA4FxvUlLbSul7a/8s1JvpJWQ0vALETtTU0fsFok+xJivb3lLiTzzflZZDil2qNVc+UytWgNw=="
               }
             ],
             "memo": ""
@@ -329,7 +329,24 @@ const testNetGenesis = `
       "symbol": "tdel",
       "initial_volume": "340000000000000000000000000"
     },
-    "check": {}
+    "check": {},
+    "gov": {
+      "starting_proposal_id": "1",
+      "votes": null,
+      "proposals": null,
+      "tally_params": {
+        "quorum": "0.334000000000000000",
+        "threshold": "0.500000000000000000"
+      }
+    },
+    "swap": {
+      "params":
+      {
+        "locked_time_in": "43200000000000",
+        "locked_time_out": "86400000000000"
+      },
+      "swaps": null
+    }
   }
 }
 `

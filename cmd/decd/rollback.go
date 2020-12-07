@@ -62,7 +62,6 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 					return err
 				}
 			}
-
 			height := st.LastBlockHeight
 
 			if countBlocks > (st.LastBlockHeight - st.LastBlockHeight/100*100) {

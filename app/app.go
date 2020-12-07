@@ -2,9 +2,11 @@ package app
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/updates"
+	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
 	"bitbucket.org/decimalteam/go-node/x/swap"
 	"encoding/json"
 	"fmt"
+	tmtypes "github.com/tendermint/tendermint/types"
 	"io"
 	"os"
 	"strings"
@@ -287,6 +289,7 @@ func NewDefaultGenesisState() GenesisState {
 }
 
 func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+	fmt.Println("Init chainer")
 	if app.initChain {
 		return abci.ResponseInitChain{}
 	}
@@ -316,13 +319,28 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 	}
 
 	if !app.updated && ctx.BlockHeight() >= updates.Update1Block {
+		genesis := genutilcli.TestNetGenesis
+		var err error
+
+		var genDoc *tmtypes.GenesisDoc
+		if genDoc, err = tmtypes.GenesisDocFromJSON([]byte(genesis)); err != nil {
+			panic(err)
+		}
+
+		var genState map[string]json.RawMessage
+		if err = app.cdc.UnmarshalJSON(genDoc.AppState, &genState); err != nil {
+			panic(err)
+		}
+
 		govAppModule := app.mm.Modules[gov.ModuleName].(gov.AppModule)
+		govAppModule.InitGenesis(ctx, genState[gov.ModuleName])
 		gov.InitGenesis(ctx, app.govKeeper, gov.InitialGenesisState)
 
 		app.mm.OrderEndBlockers = append(app.mm.OrderEndBlockers, govAppModule.Name())
 		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, govAppModule.Name())
 
 		swapAppModule := app.mm.Modules[swap.ModuleName].(swap.AppModule)
+		swapAppModule.InitGenesis(ctx, genState[swap.ModuleName])
 		swap.InitGenesis(ctx, app.swapKeeper, swap.InitialGenesisState)
 
 		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, swapAppModule.Name())

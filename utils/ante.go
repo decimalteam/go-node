@@ -352,7 +352,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 				commissionInBaseCoin.String())
 		}
 
-		if ctx.BlockHeight() < 977000 {
+		if ctx.BlockHeight() < updates.Update1Block {
 			feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
 		} else {
 			feeInBaseCoin = formulas.CalculateSaleReturn(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
