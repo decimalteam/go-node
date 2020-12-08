@@ -32,7 +32,7 @@ func GetCoin(cliCtx clientctx.CLIContext, symbol string) (types.Coin, error) {
 
 // Calculate amountToSell and amountToBuy for BuyCoin TX
 // In CLI part amountToSell is maxAmountToSell
-func BuyCoinCalculateAmounts(ctx sdk.Context, coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err *sdkerrors.Error) {
+func BuyCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err *sdkerrors.Error) {
 	var amountSellInBaseCoin sdk.Int
 	var amountBuyInBaseCoin sdk.Int
 	if coinToSell.IsBase() {
@@ -86,14 +86,14 @@ func BuyCoinCalculateAmounts(ctx sdk.Context, coinToBuy types.Coin, coinToSell t
 
 	coinToSellMinReserve := formulas.GetReserveLimitFromCRR(coinToSell.CRR)
 	if coinToSell.Reserve.Sub(amountSellInBaseCoin).LT(coinToSellMinReserve) && !coinToSell.IsBase() {
-		return sdk.Int{}, sdk.Int{}, types.ErrTxBreaksMinReserveRule(ctx, coinToSell.Reserve.Sub(amountSellInBaseCoin).String())
+		return sdk.Int{}, sdk.Int{}, types.ErrTxBreaksMinReserveRule(coinToSell.Reserve.Sub(amountSellInBaseCoin).String())
 	}
 	return amountBuy, amountSell, nil
 }
 
 // Calculate amountToSell and amountToBuy for SellCoin TX
 // In CLI part amountToBuy is minAmountToBuy
-func SellCoinCalculateAmounts(ctx sdk.Context, coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err *sdkerrors.Error) {
+func SellCoinCalculateAmounts(coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err *sdkerrors.Error) {
 	var amountSellInBase sdk.Int
 
 	if coinToSell.IsBase() {
@@ -114,7 +114,7 @@ func SellCoinCalculateAmounts(ctx sdk.Context, coinToBuy types.Coin, coinToSell 
 
 	coinToSellMinReserve := formulas.GetReserveLimitFromCRR(coinToSell.CRR)
 	if coinToSell.Reserve.Sub(amountSellInBase).LT(coinToSellMinReserve) && !coinToSell.IsBase() {
-		return sdk.Int{}, sdk.Int{}, types.ErrTxBreaksMinReserveRule(ctx, coinToSell.Reserve.Sub(amountSellInBase).String())
+		return sdk.Int{}, sdk.Int{}, types.ErrTxBreaksMinReserveRule(coinToSell.Reserve.Sub(amountSellInBase).String())
 	}
 
 	// Limit minAmountToBuy in CLI

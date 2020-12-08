@@ -799,38 +799,3 @@ func TestInvalidMsg(t *testing.T) {
 	_, err := h(sdk.NewContext(nil, abci.Header{}, false, nil), sdk.NewTestMsg())
 	require.Errorf(t, err, "unrecognized staking message type")
 }
-
-func TestEditCandidate(t *testing.T) {
-	ctx, _, keeper, _, _ := val.CreateTestInput(t, false, 1000)
-	validatorAddr1 := sdk.ValAddress(val.Addrs[0])
-	rewardAddr1 := val.Addrs[1]
-
-	valTokens1 := types.TokensFromConsensusPower(50)
-	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr1, val.PKs[0], valTokens1)
-	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
-	require.NoError(t, err)
-	require.NotNil(t, res)
-
-	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
-	require.NoError(t, err)
-	require.Equal(t, 1, len(keeper.GetLastValidators(ctx)))
-
-	msgEditValidator := NewMsgEditCandidate(validatorAddr1, rewardAddr1, types.Description{})
-	res, err = handleMsgEditCandidate(ctx, keeper, msgEditValidator)
-	require.NoError(t, err)
-	require.NotNil(t, res)
-
-	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
-	require.NoError(t, err)
-
-	validator, err := keeper.GetValidator(ctx, validatorAddr1)
-	require.NoError(t, err)
-
-	validator.AccumRewards = valTokens1
-
-	err = keeper.SetValidator(ctx, validator)
-	require.NoError(t, err)
-
-	err = keeper.PayRewards(ctx)
-	require.NoError(t, err)
-}

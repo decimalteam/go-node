@@ -134,10 +134,6 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 	return nil
 }
 
-const DAOAddress1 = "dx18tay9ayumxjun9sexlq4t3nvt7zts5typnyjdr"
-const DAOAddress2 = "dx1w54s4wq8atjmmu4snv0tt72qpvtg38megw5ngn"
-const DAOAddress3 = "dx19ws36j00axpk0ytumc20l9wyv0ae26zygk2z0f"
-
 func (k Keeper) getDAO(ctx sdk.Context) (sdk.AccAddress, error) {
 	address, err := sdk.AccAddressFromBech32("dx1pk2rurh73er88p032qrd6kq5xmu53thjylflsr")
 	if err != nil {
@@ -149,15 +145,15 @@ func (k Keeper) getDAO(ctx sdk.Context) (sdk.AccAddress, error) {
 		return address, nil
 	}
 
-	owner1, err := sdk.AccAddressFromBech32(DAOAddress1)
+	owner1, err := sdk.AccAddressFromBech32("dx18tay9ayumxjun9sexlq4t3nvt7zts5typnyjdr")
 	if err != nil {
 		return nil, err
 	}
-	owner2, err := sdk.AccAddressFromBech32(DAOAddress2)
+	owner2, err := sdk.AccAddressFromBech32("dx1w54s4wq8atjmmu4snv0tt72qpvtg38megw5ngn")
 	if err != nil {
 		return nil, err
 	}
-	owner3, err := sdk.AccAddressFromBech32(DAOAddress3)
+	owner3, err := sdk.AccAddressFromBech32("dx19ws36j00axpk0ytumc20l9wyv0ae26zygk2z0f")
 	if err != nil {
 		return nil, err
 	}
@@ -176,10 +172,6 @@ func (k Keeper) getDAO(ctx sdk.Context) (sdk.AccAddress, error) {
 	return address, nil
 }
 
-const DevelopAddress1 = "dx1fpjhs2wlaz6dd95d0lmxj5tfrmncwg437jh0y3"
-const DevelopAddress2 = "dx1lfleqkc39pt2jkyhr7m845x207kh5d9av3423z"
-const DevelopAddress3 = "dx1f46tyn4wmnvuxfj9cu5yn6vn939spfzt3yhxey"
-
 func (k Keeper) getDevelop(ctx sdk.Context) (sdk.AccAddress, error) {
 	address, err := sdk.AccAddressFromBech32("dx1gsa4w0cuyjqwt9j7qtc32m6n0lkyxfanphfaug")
 	if err != nil {
@@ -191,15 +183,15 @@ func (k Keeper) getDevelop(ctx sdk.Context) (sdk.AccAddress, error) {
 		return address, nil
 	}
 
-	owner1, err := sdk.AccAddressFromBech32(DevelopAddress1)
+	owner1, err := sdk.AccAddressFromBech32("dx1fpjhs2wlaz6dd95d0lmxj5tfrmncwg437jh0y3")
 	if err != nil {
 		return nil, err
 	}
-	owner2, err := sdk.AccAddressFromBech32(DevelopAddress2)
+	owner2, err := sdk.AccAddressFromBech32("dx1lfleqkc39pt2jkyhr7m845x207kh5d9av3423z")
 	if err != nil {
 		return nil, err
 	}
-	owner3, err := sdk.AccAddressFromBech32(DevelopAddress3)
+	owner3, err := sdk.AccAddressFromBech32("dx1f46tyn4wmnvuxfj9cu5yn6vn939spfzt3yhxey")
 	if err != nil {
 		return nil, err
 	}
