@@ -97,7 +97,8 @@ type newApp struct {
 	// Module Manager
 	mm *module.Manager
 
-	updated   bool
+	updated1  bool
+	updated2  bool
 	initChain bool
 }
 
@@ -318,7 +319,7 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 		cfg.Initialized = true
 	}
 
-	if !app.updated && ctx.BlockHeight() >= updates.Update1Block {
+	if !app.updated1 && ctx.BlockHeight() >= updates.Update1Block {
 		genesis := genutilcli.TestNetGenesis
 		var err error
 
@@ -345,18 +346,20 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 
 		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, swapAppModule.Name())
 
+		app.updated1 = true
+	}
+
+	if !app.updated2 && ctx.BlockHeight() >= updates.Update2Block {
 		moduleAddress := app.supplyKeeper.GetModuleAddress(swap.PoolName)
 		moduleAccount := app.accountKeeper.GetAccount(ctx, moduleAddress)
 
-		if ctx.BlockHeight() >= updates.Update2Block {
-			if moduleAccount != nil {
-				if _, ok := moduleAccount.(exported.ModuleAccountI); !ok {
-					app.accountKeeper.RemoveAccount(ctx, moduleAccount)
-				}
+		if moduleAccount != nil {
+			if _, ok := moduleAccount.(exported.ModuleAccountI); !ok {
+				app.accountKeeper.RemoveAccount(ctx, moduleAccount)
 			}
 		}
 
-		app.updated = true
+		app.updated2 = true
 	}
 
 	return app.mm.BeginBlock(ctx, req)
