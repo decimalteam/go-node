@@ -6,6 +6,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/swap"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 	tmtypes "github.com/tendermint/tendermint/types"
 	"io"
 	"os"
@@ -289,7 +290,6 @@ func NewDefaultGenesisState() GenesisState {
 }
 
 func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
-	fmt.Println("Init chainer")
 	if app.initChain {
 		return abci.ResponseInitChain{}
 	}
@@ -341,9 +341,20 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 
 		swapAppModule := app.mm.Modules[swap.ModuleName].(swap.AppModule)
 		swapAppModule.InitGenesis(ctx, genState[swap.ModuleName])
-		swap.InitGenesis(ctx, app.swapKeeper, swap.InitialGenesisState)
+		swap.InitGenesis(ctx, app.swapKeeper, app.supplyKeeper, swap.InitialGenesisState)
 
 		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, swapAppModule.Name())
+
+		moduleAddress := app.supplyKeeper.GetModuleAddress(swap.PoolName)
+		moduleAccount := app.accountKeeper.GetAccount(ctx, moduleAddress)
+
+		if ctx.BlockHeight() >= updates.Update2Block {
+			if moduleAccount != nil {
+				if _, ok := moduleAccount.(exported.ModuleAccountI); !ok {
+					app.accountKeeper.RemoveAccount(ctx, moduleAccount)
+				}
+			}
+		}
 
 		app.updated = true
 	}
