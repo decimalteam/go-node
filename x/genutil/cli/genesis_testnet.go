@@ -1,6 +1,6 @@
 package cli
 
-const testNetGenesis = `
+const TestNetGenesis = `
 {
   "genesis_time": "2020-12-09T05:00:00.000000Z",
   "chain_id": "decimal-testnet-12-09-13-00",
@@ -329,7 +329,24 @@ const testNetGenesis = `
       "symbol": "tdel",
       "initial_volume": "340000000000000000000000000"
     },
-    "check": {}
+    "check": {},
+    "gov": {
+      "starting_proposal_id": "1",
+      "votes": null,
+      "proposals": null,
+      "tally_params": {
+        "quorum": "0.334000000000000000",
+        "threshold": "0.500000000000000000"
+      }
+    },
+    "swap": {
+      "params":
+      {
+        "locked_time_in": "43200000000000",
+        "locked_time_out": "86400000000000"
+      },
+      "swaps": null
+    }
   }
 }
 `

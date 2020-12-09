@@ -1,3 +1,3 @@
 package updates
 
-const Update1Block = 500
+const Update1Block = 850

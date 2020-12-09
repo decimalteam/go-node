@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/swap"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	"strings"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
@@ -227,6 +230,8 @@ const (
 	createWalletFee      = 100
 	createTransactionFee = 100
 	signTransactionFee   = 100
+
+	htltFee = 33000
 )
 
 // AnteHandle implements sdk.AnteHandler function.
@@ -291,6 +296,11 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(signTransactionFee)
 		case coin.CreateCoinConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(createCoinFee)
+		case swap.MsgHTLTConst:
+			if msg.(swap.MsgHTLT).From.Equals(swap.SwapServiceAddress) {
+				return next(ctx, tx, simulate)
+			}
+			commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
 		}
 	}
 
@@ -308,7 +318,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		if commissionInBaseCoin.IsZero() {
 			return next(ctx, tx, simulate)
 		}
-		err = DeductFees(fd.sk, ctx, feePayerAcc, sdk.NewCoins(sdk.NewCoin(fd.vk.BondDenom(ctx), commissionInBaseCoin)))
+		err = DeductFees(fd.sk, ctx, feePayerAcc, fd.ck, sdk.NewCoin(fd.vk.BondDenom(ctx), commissionInBaseCoin), commissionInBaseCoin)
 		if err != nil {
 			return ctx, err
 		}
@@ -342,7 +352,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 				commissionInBaseCoin.String())
 		}
 
-		if ctx.BlockHeight() < 977000 {
+		if ctx.BlockHeight() < updates.Update1Block {
 			feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
 		} else {
 			feeInBaseCoin = formulas.CalculateSaleReturn(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
@@ -357,7 +367,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	}
 
 	// deduct the fees
-	err = DeductFees(fd.sk, ctx, feePayerAcc, feeTx.GetFee())
+	err = DeductFees(fd.sk, ctx, feePayerAcc, fd.ck, f, feeInBaseCoin)
 	if err != nil {
 		return ctx, err
 	}
@@ -378,37 +388,59 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 //
 // NOTE: We could use the BankKeeper (in addition to the AccountKeeper, because
 // the BankKeeper doesn't give us accounts), but it seems easier to do this.
-func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Account, fees sdk.Coins) error {
+func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Account, coinKeeper coin.Keeper, fee sdk.Coin, feeInBaseCoin sdk.Int) error {
 	blockTime := ctx.BlockHeader().Time
 	coins := acc.GetCoins()
 
-	if !fees.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "invalid fee amount: %s", fees)
+	feeCoin, err := coinKeeper.GetCoin(ctx, strings.ToLower(fee.Denom))
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "coin not exist: %s", fee.Denom)
 	}
 
-	// verify the account has enough funds to pay for fees
-	_, hasNeg := coins.SafeSub(fees)
+	if ctx.BlockHeight() >= updates.Update1Block {
+		if !coinKeeper.IsCoinBase(fee.Denom) {
+			if feeCoin.Reserve.Sub(fee.Amount).LT(coin.MinCoinReserve(ctx)) {
+				return coin.ErrTxBreaksMinReserveRule(ctx, feeCoin.Reserve.Sub(fee.Amount).String())
+			}
+		}
+	}
+
+	if !fee.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "invalid fee amount: %s", fee)
+	}
+
+	// verify the account has enough funds to pay for fee
+	_, hasNeg := coins.SafeSub(sdk.NewCoins(fee))
 	if hasNeg {
 		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds,
-			"insufficient funds to pay for fees; %s < %s", coins, fees)
+			"insufficient funds to pay for fee; %s < %s", coins, fee)
 	}
 
 	// Validate the account has enough "spendable" coins as this will cover cases
 	// such as vesting accounts.
 	spendableCoins := acc.SpendableCoins(blockTime)
-	if _, hasNeg := spendableCoins.SafeSub(fees); hasNeg {
+	if _, hasNeg := spendableCoins.SafeSub(sdk.NewCoins(fee)); hasNeg {
 		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds,
-			"insufficient funds to pay for fees; %s < %s", spendableCoins, fees)
+			"insufficient funds to pay for fee; %s < %s", spendableCoins, fee)
 	}
 
-	err := supplyKeeper.SendCoinsFromAccountToModule(ctx, acc.GetAddress(), types.FeeCollectorName, fees)
+	err = supplyKeeper.SendCoinsFromAccountToModule(ctx, acc.GetAddress(), types.FeeCollectorName, sdk.NewCoins(fee))
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, err.Error())
 	}
 
 	s := supplyKeeper.GetSupply(ctx)
-	s = s.Inflate(fees)
+	s = s.Inflate(sdk.NewCoins(fee))
 	supplyKeeper.SetSupply(ctx, s)
+
+	if ctx.BlockHeight() >= updates.Update1Block {
+		// update coin: decrease reserve and volume
+		if !coinKeeper.IsCoinBase(fee.Denom) {
+			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve.Sub(feeInBaseCoin), feeCoin.Volume.Sub(fee.Amount))
+		} else {
+			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve, feeCoin.Volume.Sub(fee.Amount))
+		}
+	}
 
 	return nil
 }
