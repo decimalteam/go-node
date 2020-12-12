@@ -232,8 +232,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
-	app.mm.SetOrderBeginBlockers(validator.ModuleName)
-	app.mm.SetOrderEndBlockers(validator.ModuleName)
+	app.mm.SetOrderBeginBlockers(coin.ModuleName, validator.ModuleName)
+	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
 	// NOTE: The genutils moodule must occur after staking so that pools are
@@ -317,47 +317,38 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 		cfg.Initialized = true
 	}
 
-	if !app.updated && ctx.BlockHeight() >= updates.Update1Block {
+	if ctx.BlockHeight() == updates.Update1Block {
 		govAppModule := app.mm.Modules[gov.ModuleName].(gov.AppModule)
 		swapAppModule := app.mm.Modules[swap.ModuleName].(swap.AppModule)
 
-		if ctx.BlockHeight() == updates.Update1Block {
-			genesis := genutilcli.TestNetGenesis
-			var err error
+		genesis := genutilcli.TestNetGenesis
+		var err error
 
-			var genDoc *tmtypes.GenesisDoc
-			if genDoc, err = tmtypes.GenesisDocFromJSON([]byte(genesis)); err != nil {
-				panic(err)
-			}
-
-			var genState map[string]json.RawMessage
-			if err = app.cdc.UnmarshalJSON(genDoc.AppState, &genState); err != nil {
-				panic(err)
-			}
-
-			govAppModule.InitGenesis(ctx, genState[gov.ModuleName])
-			gov.InitGenesis(ctx, app.govKeeper, gov.InitialGenesisState)
-
-			swapAppModule.InitGenesis(ctx, genState[swap.ModuleName])
-			swap.InitGenesis(ctx, app.swapKeeper, app.supplyKeeper, swap.InitialGenesisState)
-
+		var genDoc *tmtypes.GenesisDoc
+		if genDoc, err = tmtypes.GenesisDocFromJSON([]byte(genesis)); err != nil {
+			panic(err)
 		}
-		app.mm.OrderEndBlockers = append(app.mm.OrderEndBlockers, govAppModule.Name())
-		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, govAppModule.Name())
 
-		app.mm.OrderExportGenesis = append(app.mm.OrderExportGenesis, swapAppModule.Name())
+		var genState map[string]json.RawMessage
+		if err = app.cdc.UnmarshalJSON(genDoc.AppState, &genState); err != nil {
+			panic(err)
+		}
 
-		//moduleAddress := app.supplyKeeper.GetModuleAddress(swap.PoolName)
-		//moduleAccount := app.accountKeeper.GetAccount(ctx, moduleAddress)
-		//
-		//if moduleAccount != nil {
-		//	if _, ok := moduleAccount.(exported.ModuleAccountI); !ok {
-		//		app.accountKeeper.RemoveAccount(ctx, moduleAccount)
-		//	}
-		//}
+		govAppModule.InitGenesis(ctx, genState[gov.ModuleName])
+		gov.InitGenesis(ctx, app.govKeeper, gov.InitialGenesisState)
 
-		app.updated = true
+		swapAppModule.InitGenesis(ctx, genState[swap.ModuleName])
+		swap.InitGenesis(ctx, app.swapKeeper, app.supplyKeeper, swap.InitialGenesisState)
 	}
+
+	//moduleAddress := app.supplyKeeper.GetModuleAddress(swap.PoolName)
+	//moduleAccount := app.accountKeeper.GetAccount(ctx, moduleAddress)
+	//
+	//if moduleAccount != nil {
+	//	if _, ok := moduleAccount.(exported.ModuleAccountI); !ok {
+	//		app.accountKeeper.RemoveAccount(ctx, moduleAccount)
+	//	}
+	//}
 
 	return app.mm.BeginBlock(ctx, req)
 }

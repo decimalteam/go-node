@@ -176,7 +176,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	for _, del := range delegations {
 		go func(del types.Delegation) {
 			defer wg.Done()
-			if k.CoinKeeper.GetCoinCache(del.Coin.Denom) {
+			if del.Coin.Denom != k.BondDenom(ctx) {
 				coin, err := k.GetCoin(ctx, del.Coin.Denom)
 				if err != nil {
 					panic(err)
