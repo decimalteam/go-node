@@ -78,7 +78,7 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 				case "mainnet":
 					appState = []byte(mainNetGenesis)
 				case "testnet":
-					appState = []byte(testNetGenesis)
+					appState = []byte(TestNetGenesis)
 				case "devnet":
 					appState = []byte(devNetGenesis)
 				default:

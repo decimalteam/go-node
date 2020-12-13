@@ -209,10 +209,5 @@ func (k Keeper) GetCoinCache(symbol string) bool {
 }
 
 func (k Keeper) GetBaseCoin(ctx sdk.Context) string {
-	// TODO: Remove this wrong behavior on next blockchain update
-	if ctx.BlockHeight() < 33000 {
-		return config.SymbolTestBaseCoin
-	}
-
 	return k.Config.SymbolBaseCoin
 }
