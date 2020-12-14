@@ -472,9 +472,11 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 			return nil, types.ErrInsufficientFunds(amount.String()+coin.Symbol, balance.String()+coin.Symbol)
 		}
 	} else {
-		feeBalance := account.GetCoins().AmountOf(feeCoin)
-		if feeBalance.LT(commission) {
-			return nil, types.ErrInsufficientFunds(commission.String()+feeCoin, feeBalance.String()+feeCoin)
+		if ctx.BlockHeight() >= 32000 {
+			feeBalance := account.GetCoins().AmountOf(feeCoin)
+			if feeBalance.LT(commission) {
+				return nil, types.ErrInsufficientFunds(commission.String()+feeCoin, feeBalance.String()+feeCoin)
+			}
 		}
 	}
 
