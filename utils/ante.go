@@ -352,7 +352,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 				commissionInBaseCoin.String())
 		}
 
-		if ctx.BlockHeight() < updates.Update1Block {
+		if ctx.BlockHeight() < updates.Update2Block {
 			feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
 		} else {
 			feeInBaseCoin = formulas.CalculateSaleReturn(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
@@ -397,7 +397,7 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "coin not exist: %s", fee.Denom)
 	}
 
-	if ctx.BlockHeight() >= updates.Update1Block {
+	if ctx.BlockHeight() >= updates.Update2Block {
 		if !coinKeeper.IsCoinBase(fee.Denom) {
 			if feeCoin.Reserve.Sub(fee.Amount).LT(coin.MinCoinReserve(ctx)) {
 				return coin.ErrTxBreaksMinReserveRule(ctx, feeCoin.Reserve.Sub(fee.Amount).String())
@@ -433,7 +433,7 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 	s = s.Inflate(sdk.NewCoins(fee))
 	supplyKeeper.SetSupply(ctx, s)
 
-	if ctx.BlockHeight() >= updates.Update1Block {
+	if ctx.BlockHeight() >= updates.Update2Block {
 		// update coin: decrease reserve and volume
 		if !coinKeeper.IsCoinBase(fee.Denom) {
 			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve.Sub(feeInBaseCoin), feeCoin.Volume.Sub(fee.Amount))

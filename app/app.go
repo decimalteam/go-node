@@ -6,6 +6,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/swap"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 	tmtypes "github.com/tendermint/tendermint/types"
 	"io"
 	"os"
@@ -317,11 +318,11 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 		cfg.Initialized = true
 	}
 
-	if ctx.BlockHeight() == updates.Update1Block {
+	if ctx.BlockHeight() == updates.Update2Block {
 		govAppModule := app.mm.Modules[gov.ModuleName].(gov.AppModule)
 		swapAppModule := app.mm.Modules[swap.ModuleName].(swap.AppModule)
 
-		genesis := genutilcli.TestNetGenesis
+		genesis := genutilcli.MainNetGenesis
 		var err error
 
 		var genDoc *tmtypes.GenesisDoc
@@ -339,16 +340,16 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 
 		swapAppModule.InitGenesis(ctx, genState[swap.ModuleName])
 		swap.InitGenesis(ctx, app.swapKeeper, app.supplyKeeper, swap.InitialGenesisState)
-	}
 
-	//moduleAddress := app.supplyKeeper.GetModuleAddress(swap.PoolName)
-	//moduleAccount := app.accountKeeper.GetAccount(ctx, moduleAddress)
-	//
-	//if moduleAccount != nil {
-	//	if _, ok := moduleAccount.(exported.ModuleAccountI); !ok {
-	//		app.accountKeeper.RemoveAccount(ctx, moduleAccount)
-	//	}
-	//}
+		moduleAddress := app.supplyKeeper.GetModuleAddress(swap.PoolName)
+		moduleAccount := app.accountKeeper.GetAccount(ctx, moduleAddress)
+
+		if moduleAccount != nil {
+			if _, ok := moduleAccount.(exported.ModuleAccountI); !ok {
+				app.accountKeeper.RemoveAccount(ctx, moduleAccount)
+			}
+		}
+	}
 
 	return app.mm.BeginBlock(ctx, req)
 }

@@ -76,7 +76,7 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 			if viper.GetString("network") != "" {
 				switch viper.GetString("network") {
 				case "mainnet":
-					appState = []byte(mainNetGenesis)
+					appState = []byte(MainNetGenesis)
 				case "testnet":
 					appState = []byte(TestNetGenesis)
 				case "devnet":

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -34,8 +35,6 @@ func (k Keeper) notBondedTokensToBonded(ctx sdk.Context, coins sdk.Coins) {
 	}
 }
 
-const UpdateBlock1 = 1582113
-
 // burnBondedTokens removes coins from the bonded pool module account
 func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 	coinsBurn := sdk.NewCoins()
@@ -45,7 +44,7 @@ func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	if ctx.BlockHeight() >= UpdateBlock1 {
+	if ctx.BlockHeight() >= updates.Update1Block {
 		err := k.burnCoins(ctx, types.BondedPoolName, coinsBurn)
 		if err != nil {
 			return err
@@ -69,7 +68,7 @@ func (k Keeper) burnNotBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	if ctx.BlockHeight() >= UpdateBlock1 {
+	if ctx.BlockHeight() >= updates.Update1Block {
 		err := k.burnCoins(ctx, types.NotBondedPoolName, coinsBurn)
 		if err != nil {
 			return err

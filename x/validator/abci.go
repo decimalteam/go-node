@@ -95,7 +95,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	if err != nil {
 		panic(err)
 	}
-	if ctx.BlockHeight() < updates.Update1Block {
+	if ctx.BlockHeight() < updates.Update2Block {
 		coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
 	}
 
@@ -117,7 +117,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	if err != nil {
 		panic(err)
 	}
-	if ctx.BlockHeight() >= updates.Update1Block {
+	if ctx.BlockHeight() >= updates.Update2Block {
 		coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
 	}
 

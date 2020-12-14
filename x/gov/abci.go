@@ -9,7 +9,7 @@ import (
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
-	if ctx.BlockHeight() < updates.Update1Block {
+	if ctx.BlockHeight() < updates.Update2Block {
 		return
 	}
 

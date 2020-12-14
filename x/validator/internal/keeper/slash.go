@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"fmt"
 	"log"
 	"time"
@@ -262,7 +263,7 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delega
 const WithoutSlashPeriod1Start = 66120
 const WithoutSlashPeriod1End = 70320
 
-const WithoutSlashPeriod2Start = UpdateBlock1
+const WithoutSlashPeriod2Start = updates.Update1Block
 const WithoutSlashPeriod2End = WithoutSlashPeriod2Start + 4200
 
 // handle a validator signature, must be called once per validator per block
