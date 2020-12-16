@@ -19,6 +19,9 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 
 	// fetch all the bonded validators, insert them into currValidators
 	keeper.vk.IterateBondedValidatorsByPower(ctx, func(index int64, validator exported.ValidatorI) (stop bool) {
+		if index == 9 {
+			return true
+		}
 		currValidators[validator.GetOperator().String()] = types.NewValidatorGovInfo(
 			validator.GetOperator(),
 			validator.GetBondedTokens(),
@@ -30,7 +33,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 
 	keeper.IterateVotes(ctx, proposal.ProposalID, func(vote types.Vote) bool {
 		// if validator, just record it in the map
-		valAddrStr := sdk.ValAddress(vote.Voter).String()
+		valAddrStr := vote.Voter.String()
 		if val, ok := currValidators[valAddrStr]; ok {
 			val.Vote = vote.Option
 			currValidators[valAddrStr] = val
@@ -43,7 +46,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 	// iterate over the validators again to tally their voting power
 	for _, val := range currValidators {
 		if val.Vote == types.OptionEmpty {
-			continue
+			val.Vote = types.OptionAbstain
 		}
 
 		votingPower := val.BondedTokens
@@ -61,16 +64,14 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 		return false, tallyResults, totalVotingPower
 	}
 
-	// If there is not enough quorum of votes, the proposal fails
-	percentVoting := totalVotingPower.Quo(keeper.vk.TotalBondedTokens(ctx).ToDec())
-	if percentVoting.LT(tallyParams.Quorum) {
-		return false, tallyResults, totalVotingPower
-	}
-
 	// If no one votes (everyone abstains), proposal fails
 	if totalVotingPower.Sub(results[types.OptionAbstain]).Equal(sdk.ZeroDec()) {
 		return false, tallyResults, totalVotingPower
 	}
 
-	return true, tallyResults, totalVotingPower
+	if results[types.OptionYes].Quo(totalVotingPower).GT(tallyParams.Quorum) {
+		return true, tallyResults, totalVotingPower
+	}
+
+	return false, tallyResults, totalVotingPower
 }

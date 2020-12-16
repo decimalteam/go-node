@@ -7,8 +7,13 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bytes"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"log"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/tendermint/tendermint/libs/log"
+	tmtypes "github.com/tendermint/tendermint/types"
+	dbm "github.com/tendermint/tm-db"
 	"sort"
 	"testing"
 
@@ -29,14 +34,14 @@ import (
 )
 
 var (
-	valTokens  = sdk.TokensFromConsensusPower(42)
-	initTokens = sdk.TokensFromConsensusPower(100000)
-	valCoins   = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, valTokens))
-	initCoins  = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, initTokens))
+	valTokens  = validator.TokensFromConsensusPower(42)
+	initTokens = validator.TokensFromConsensusPower(100000)
+	valCoins   = sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, valTokens))
+	initCoins  = sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens))
 )
 
 type testInput struct {
-	mApp     *mock.App
+	ctx      sdk.Context
 	keeper   keep.Keeper
 	router   types.Router
 	vk       validator.Keeper
@@ -47,64 +52,106 @@ type testInput struct {
 	privKeys []crypto.PrivKey
 }
 
-func getMockApp(t *testing.T, numGenAccs int, genState types.GenesisState, genAccs []authexported.Account) testInput {
+func getTestInput(t *testing.T, numGenAccs int, genState types.GenesisState, genAccs []authexported.Account) testInput {
 
 	_config := sdk.GetConfig()
 	_config.SetBech32PrefixForAccount(config.DecimalPrefixAccAddr, config.DecimalPrefixAccPub)
 	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
 	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
 
-	mApp := mock.NewApp()
-
-	validator.RegisterCodec(mApp.Cdc)
-	types.RegisterCodec(mApp.Cdc)
-	supply.RegisterCodec(mApp.Cdc)
-	coin.RegisterCodec(mApp.Cdc)
-
 	keyValidator := sdk.NewKVStoreKey(validator.StoreKey)
-	keyGov := sdk.NewKVStoreKey(types.StoreKey)
+	tkeyValidator := sdk.NewTransientStoreKey(validator.TStoreKey)
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
 	keyCoin := sdk.NewKVStoreKey(coin.StoreKey)
 	keyMultisig := sdk.NewKVStoreKey(multisig.StoreKey)
+	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
+	keyParams := sdk.NewKVStoreKey(params.StoreKey)
+	tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
+
+	db := dbm.NewMemDB()
+	ms := store.NewCommitMultiStore(db)
+	ms.MountStoreWithDB(tkeyValidator, sdk.StoreTypeTransient, nil)
+	ms.MountStoreWithDB(keyValidator, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyAcc, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyParams, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(tkeyParams, sdk.StoreTypeTransient, db)
+	ms.MountStoreWithDB(keySupply, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyCoin, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyMultisig, sdk.StoreTypeIAVL, db)
+	err := ms.LoadLatestVersion()
+	require.Nil(t, err)
+
+	ctx := sdk.NewContext(ms, abci.Header{ChainID: "foochainid"}, false, log.NewNopLogger())
+	ctx = ctx.WithConsensusParams(
+		&abci.ConsensusParams{
+			Validator: &abci.ValidatorParams{
+				PubKeyTypes: []string{tmtypes.ABCIPubKeyTypeEd25519},
+			},
+		},
+	)
+
+	cdc := codec.New()
+	validator.RegisterCodec(cdc)
+	types.RegisterCodec(cdc)
+	supply.RegisterCodec(cdc)
+	coin.RegisterCodec(cdc)
+	cdc.RegisterInterface((*authexported.Account)(nil), nil)
+	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/gov/base_account", nil)
+	codec.RegisterCrypto(cdc)
 
 	govAcc := supply.NewEmptyModuleAccount(types.ModuleName, supply.Burner)
 	notBondedPool := supply.NewEmptyModuleAccount(validator.NotBondedPoolName, supply.Burner, supply.Staking)
 	bondPool := supply.NewEmptyModuleAccount(validator.BondedPoolName, supply.Burner, supply.Staking)
+	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName, supply.Burner, supply.Minter)
 
 	blacklistedAddrs := make(map[string]bool)
 	blacklistedAddrs[govAcc.GetAddress().String()] = true
 	blacklistedAddrs[notBondedPool.GetAddress().String()] = true
 	blacklistedAddrs[bondPool.GetAddress().String()] = true
+	blacklistedAddrs[feeCollectorAcc.String()] = true
 
-	pk := mApp.ParamsKeeper
+	pk := params.NewKeeper(cdc, keyParams, tkeyParams)
+
+	accountKeeper := auth.NewAccountKeeper(
+		cdc,    // amino codec
+		keyAcc, // target store
+		pk.Subspace(auth.DefaultParamspace),
+		auth.ProtoBaseAccount, // prototype
+	)
+
+	bk := bank.NewBaseKeeper(
+		accountKeeper,
+		pk.Subspace(bank.DefaultParamspace),
+		blacklistedAddrs,
+	)
 
 	rtr := types.NewRouter()
 
-	bk := bank.NewBaseKeeper(mApp.AccountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), blacklistedAddrs)
-
 	maccPerms := map[string][]string{
+		auth.FeeCollectorName:       {supply.Burner, supply.Minter},
 		types.ModuleName:            {supply.Burner},
 		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
 		validator.BondedPoolName:    {supply.Burner, supply.Staking},
 	}
-	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.AccountKeeper, bk, maccPerms)
-	coinKeeper := coin.NewKeeper(mApp.Cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), mApp.AccountKeeper, bk, config.GetDefaultConfig(config.ChainID))
-	multisigKeeper := multisig.NewKeeper(mApp.Cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), mApp.AccountKeeper, coinKeeper, bk)
-	sk := validator.NewKeeper(
-		mApp.Cdc, keyValidator, pk.Subspace(validator.DefaultParamSpace), coinKeeper, mApp.AccountKeeper, supplyKeeper, multisigKeeper, auth.FeeCollectorName,
-	)
+	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bk, maccPerms)
+
+	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bk, config.GetDefaultConfig(config.ChainID))
+	coinConfig := config.GetDefaultConfig(config.ChainID)
+	coinKeeper.SetCoin(ctx, coin.Coin{
+		Title:  coinConfig.TitleBaseCoin,
+		Symbol: coinConfig.SymbolBaseCoin,
+		Volume: coinConfig.InitialVolumeBaseCoin,
+	})
+
+	multisigKeeper := multisig.NewKeeper(cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), accountKeeper, coinKeeper, bk)
+	sk := validator.NewKeeper(cdc, keyValidator, pk.Subspace(validator.DefaultParamSpace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, auth.FeeCollectorName)
+	sk.SetParams(ctx, validator.DefaultParams())
 
 	keeper := keep.NewKeeper(
-		mApp.Cdc, keyGov, pk.Subspace(DefaultParamspace).WithKeyTable(ParamKeyTable()), supplyKeeper, sk, rtr,
+		cdc, keyCoin, pk.Subspace(DefaultParamspace).WithKeyTable(ParamKeyTable()), supplyKeeper, sk, rtr,
 	)
-
-	mApp.Router().AddRoute(types.RouterKey, NewHandler(keeper))
-	mApp.QueryRouter().AddRoute(types.QuerierRoute, keep.NewQuerier(keeper))
-
-	mApp.SetEndBlocker(getEndBlocker(keeper))
-	mApp.SetInitChainer(getInitChainer(mApp, keeper, sk, supplyKeeper, genState, []supplyexported.ModuleAccountI{govAcc, notBondedPool, bondPool}))
-
-	require.NoError(t, mApp.CompleteSetup(keyValidator, keyGov, keySupply))
+	keeper.SetTallyParams(ctx, types.DefaultParams().TallyParams)
+	keeper.SetProposalID(ctx, 1)
 
 	var (
 		addrs    []sdk.AccAddress
@@ -116,9 +163,18 @@ func getMockApp(t *testing.T, numGenAccs int, genState types.GenesisState, genAc
 		genAccs, addrs, pubKeys, privKeys = mock.CreateGenAccounts(numGenAccs, valCoins)
 	}
 
-	mock.SetGenesis(mApp, genAccs)
+	initCoins := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens))
+	totalSupply := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens.MulRaw(int64(len(addrs)))))
 
-	return testInput{mApp, keeper, rtr, sk, coinKeeper, supplyKeeper, addrs, pubKeys, privKeys}
+	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
+	supplyKeeper.SetModuleAccount(ctx, feeCollectorAcc)
+
+	for _, addr := range addrs {
+		_, err := bk.AddCoins(ctx, addr, initCoins)
+		require.NoError(t, err)
+	}
+
+	return testInput{ctx, keeper, rtr, sk, coinKeeper, supplyKeeper, addrs, pubKeys, privKeys}
 }
 
 // gov and staking endblocker
@@ -136,7 +192,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, stakingKeeper validator.Keepe
 
 		stakingGenesis := validator.DefaultGenesisState()
 
-		totalSupply := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, initTokens.MulRaw(int64(len(mapp.GenesisAccounts)))))
+		totalSupply := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens.MulRaw(int64(len(mapp.GenesisAccounts)))))
 		supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 
 		// set module accounts
@@ -183,7 +239,7 @@ func (b sortByteArrays) Less(i, j int) bool {
 	case 0, 1:
 		return false
 	default:
-		log.Panic("not fail-able with `bytes.Comparable` bounded [-1, 1].")
+		panic("not fail-able with `bytes.Comparable` bounded [-1, 1].")
 		return false
 	}
 }
@@ -214,9 +270,9 @@ func createValidators(t *testing.T, stakingHandler sdk.Handler, ctx sdk.Context,
 
 	for i := 0; i < len(addrs); i++ {
 
-		valTokens := sdk.TokensFromConsensusPower(powerAmt[i])
+		valTokens := validator.TokensFromConsensusPower(powerAmt[i])
 		valCreateMsg := validator.NewMsgDeclareCandidate(
-			addrs[i], pubkeys[i], sdk.ZeroDec(), sdk.NewCoin(sdk.DefaultBondDenom, valTokens),
+			addrs[i], pubkeys[i], sdk.ZeroDec(), sdk.NewCoin(validator.DefaultBondDenom, valTokens),
 			validator.Description{}, sdk.AccAddress(addrs[i]),
 		)
 
