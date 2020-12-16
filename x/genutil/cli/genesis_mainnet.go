@@ -383,7 +383,7 @@ const MainNetGenesis = `
       "proposals": null,
       "tally_params": {
         "quorum": "0.667000000000000000",
-        "threshold": "0"
+        "threshold": "0.1"
       }
     },
     "swap": {
