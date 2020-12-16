@@ -8,7 +8,7 @@ import (
 
 // Default governance params
 var (
-	DefaultQuorum    = sdk.NewDecWithPrec(334, 3)
+	DefaultQuorum    = sdk.NewDecWithPrec(667, 3)
 	DefaultThreshold = sdk.NewDecWithPrec(5, 1)
 )
 
