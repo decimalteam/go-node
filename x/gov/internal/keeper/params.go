@@ -13,6 +13,9 @@ func (keeper Keeper) GetTallyParams(ctx sdk.Context) types.TallyParams {
 	if ctx.BlockHeight() >= updates.Update2Block {
 		tallyParams.Quorum = sdk.NewDec(2).QuoInt64(3)
 	}
+	if ctx.BlockHeight() >= updates.Update3Block {
+		tallyParams.Quorum = sdk.NewDecWithPrec(667, 3)
+	}
 	return tallyParams
 }
 
