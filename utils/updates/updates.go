@@ -1,4 +1,4 @@
 package updates
 
 const Update1Block = 1582113
-const Update2Block = 2100000
+const Update2Block = 2155612
