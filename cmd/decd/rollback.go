@@ -89,7 +89,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			st.AppHash = block.AppHash
 			st.LastResultsHash = block.LastResultsHash
 			st.LastBlockTime = time.Unix(0, block.Time.UnixNano()-time.Second.Nanoseconds()*5)
-			st.LastHeightValidatorsChanged = st.LastBlockHeight - 3
+			st.LastHeightValidatorsChanged = st.LastBlockHeight
 
 			state.SaveState(stateDB, st)
 			return nil
