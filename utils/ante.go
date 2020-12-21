@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/swap"
 	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -297,7 +296,11 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		case coin.CreateCoinConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(createCoinFee)
 		case swap.MsgHTLTConst:
-			if msg.(swap.MsgHTLT).From.Equals(swap.SwapServiceAddress) {
+			swapServiceAddress, err := sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
+			if err != nil {
+				return ctx, err
+			}
+			if msg.(swap.MsgHTLT).From.Equals(swapServiceAddress) {
 				return next(ctx, tx, simulate)
 			}
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
