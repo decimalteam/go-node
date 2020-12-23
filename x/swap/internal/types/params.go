@@ -12,7 +12,9 @@ const (
 	DefaultLockedTimeIn  = time.Hour * 12
 )
 
-var SwapServiceAddress, _ = sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
+const ServiceAddress = "dx1p844kydt9eljvuef4nk52dm6lcgj5c42q4zmvd"
+
+var ServiceAccAddress, _ = sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
 
 var (
 	KeyLockedTimeOut = []byte("LockedTimeOut")
