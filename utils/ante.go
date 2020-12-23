@@ -296,14 +296,43 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		case coin.CreateCoinConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(createCoinFee)
 		case swap.MsgHTLTConst:
-			swapServiceAddress, err := sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
-			if err != nil {
-				return ctx, err
+			if ctx.BlockHeight() >= updates.Update3Block {
+				swapServiceAddress, err := sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
+				if err != nil {
+					return ctx, err
+				}
+				if msg.(swap.MsgHTLT).From.Equals(swapServiceAddress) {
+					return next(ctx, tx, simulate)
+				}
+				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
+			} else {
+				if msg.(swap.MsgHTLT).From.Equals(swap.SwapServiceAddress) {
+					return next(ctx, tx, simulate)
+				}
+				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
 			}
-			if msg.(swap.MsgHTLT).From.Equals(swapServiceAddress) {
-				return next(ctx, tx, simulate)
+		case swap.MsgRedeemConst:
+			if ctx.BlockHeight() >= updates.Update3Block {
+				swapServiceAddress, err := sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
+				if err != nil {
+					return ctx, err
+				}
+				if msg.(swap.MsgHTLT).From.Equals(swapServiceAddress) {
+					return next(ctx, tx, simulate)
+				}
+				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
 			}
-			commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
+		case swap.MsgRefundConst:
+			if ctx.BlockHeight() >= updates.Update3Block {
+				swapServiceAddress, err := sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
+				if err != nil {
+					return ctx, err
+				}
+				if msg.(swap.MsgHTLT).From.Equals(swapServiceAddress) {
+					return next(ctx, tx, simulate)
+				}
+				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
+			}
 		}
 	}
 

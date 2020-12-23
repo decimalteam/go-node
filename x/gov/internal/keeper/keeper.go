@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
@@ -202,6 +203,11 @@ func (keeper Keeper) CheckValidator(ctx sdk.Context, address sdk.ValAddress) err
 	var val exported.ValidatorI
 
 	keeper.vk.IterateBondedValidatorsByPower(ctx, func(index int64, validator exported.ValidatorI) bool {
+		if ctx.BlockHeight() >= updates.Update3Block {
+			if index == 9 {
+				return true
+			}
+		}
 		if index == 10 {
 			return true
 		}
