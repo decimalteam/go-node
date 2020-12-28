@@ -22,6 +22,8 @@ const (
 type (
 	Keeper       = keeper.Keeper
 	MsgHTLT      = types.MsgHTLT
+	MsgRedeem    = types.MsgRedeem
+	MsgRefund    = types.MsgRefund
 	GenesisState = types.GenesisState
 )
 

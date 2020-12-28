@@ -312,18 +312,34 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
 			}
 		case swap.MsgRedeemConst:
-			if ctx.BlockHeight() >= updates.Update3Block {
+			if ctx.BlockHeight() >= updates.Update4Block {
 				swapServiceAddress, err := sdk.AccAddressFromBech32(swap.ServiceAddress)
 				if err != nil {
 					return ctx, err
 				}
-				if msg.(swap.MsgHTLT).From.Equals(swapServiceAddress) {
+				if msg.(swap.MsgRedeem).From.Equals(swapServiceAddress) {
+					return next(ctx, tx, simulate)
+				}
+			} else if ctx.BlockHeight() >= updates.Update3Block {
+				swapServiceAddress, err := sdk.AccAddressFromBech32(swap.ServiceAddress)
+				if err != nil {
+					return ctx, err
+				}
+				if msg.(swap.MsgRedeem).From.Equals(swapServiceAddress) {
 					return next(ctx, tx, simulate)
 				}
 				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
 			}
 		case swap.MsgRefundConst:
-			if ctx.BlockHeight() >= updates.Update3Block {
+			if ctx.BlockHeight() >= updates.Update4Block {
+				swapServiceAddress, err := sdk.AccAddressFromBech32(swap.ServiceAddress)
+				if err != nil {
+					return ctx, err
+				}
+				if msg.(swap.MsgRefund).From.Equals(swapServiceAddress) {
+					return next(ctx, tx, simulate)
+				}
+			} else if ctx.BlockHeight() >= updates.Update3Block {
 				swapServiceAddress, err := sdk.AccAddressFromBech32(swap.ServiceAddress)
 				if err != nil {
 					return ctx, err
