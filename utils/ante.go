@@ -312,6 +312,26 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 				}
 				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
 			}
+		case swap.MsgRedeemConst:
+			if ctx.BlockHeight() >= updates.Update5Block {
+				swapAddress, err := sdk.AccAddressFromBech32(swap.SwapServiceAddress)
+				if err != nil {
+					return ctx, err
+				}
+				if msg.(swap.MsgRedeem).From.Equals(swapAddress) {
+					return next(ctx, tx, simulate)
+				}
+			}
+		case swap.MsgRefundConst:
+			if ctx.BlockHeight() >= updates.Update5Block {
+				swapAddress, err := sdk.AccAddressFromBech32(swap.SwapServiceAddress)
+				if err != nil {
+					return ctx, err
+				}
+				if msg.(swap.MsgRefund).From.Equals(swapAddress) {
+					return next(ctx, tx, simulate)
+				}
+			}
 		}
 	}
 
