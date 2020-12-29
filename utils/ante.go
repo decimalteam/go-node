@@ -325,7 +325,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 				if err != nil {
 					return ctx, err
 				}
-				if msg.(swap.MsgRedeem).From.Equals(swapServiceAddress) {
+				if msg.(swap.MsgHTLT).From.Equals(swapServiceAddress) {
 					return next(ctx, tx, simulate)
 				}
 				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
