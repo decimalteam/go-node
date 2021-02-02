@@ -28,6 +28,7 @@ const (
 	CodeInsufficientCoinToPayCommission CodeType = 111
 	CodeInsufficientFunds               CodeType = 112
 	CodeCalculateCommission             CodeType = 113
+	CodeForbiddenUpdate                 CodeType = 114
 
 	// Buy/Sell coin
 	CodeSameCoins                  CodeType = 200
@@ -60,6 +61,10 @@ func ErrInvalidCoinSymbol(symbol string) *sdkerrors.Error {
 
 func ErrForbiddenCoinSymbol(symbol string) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeInvalidCoinSymbol, fmt.Sprintf("forbidden coin symbol %s", symbol))
+}
+
+func ErrUpdateOnlyForCreator() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeForbiddenUpdate, fmt.Sprintf("updating allowed only for creator of coin"))
 }
 
 func ErrCoinDoesNotExist(symbol string) *sdkerrors.Error {
