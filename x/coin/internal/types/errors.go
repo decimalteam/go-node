@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -50,6 +51,8 @@ const (
 	CheckExpired      CodeType = 405
 	CheckRedeemed     CodeType = 406
 )
+
+var ErrInvalidLimitVolume = errors.New("invalid limitVolume")
 
 func ErrInvalidCRR() *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeInvalidCRR, "coin CRR must be between 10 and 100")
