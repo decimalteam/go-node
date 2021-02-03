@@ -15,7 +15,7 @@ func GetCmdUpdateCoin(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "update [symbol] [limitVolume] [icon]",
 		Short: "Update custom coin",
-		Args:  cobra.ExactArgs(6),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
