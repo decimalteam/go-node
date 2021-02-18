@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"runtime/debug"
 	"strings"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
