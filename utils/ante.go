@@ -240,12 +240,6 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		return next(ctx, tx, simulate)
 	}
 
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
-		}
-	}()
-
 	feeTx, ok := tx.(FeeTx)
 	if !ok {
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
@@ -375,7 +369,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		}
 		err = DeductFees(fd.sk, ctx, feePayerAcc, fd.ck, sdk.NewCoin(fd.vk.BondDenom(ctx), commissionInBaseCoin), commissionInBaseCoin)
 		if err != nil {
-			return ctx, err
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, err.Error())
 		}
 		if len(msgs) == 1 {
 			if msgs[0].Type() == validator.DelegateConst {
@@ -398,7 +392,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	if f.Denom != fd.vk.BondDenom(ctx) {
 		coinInfo, err := fd.vk.GetCoin(ctx, f.Denom)
 		if err != nil {
-			return ctx, err
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, "failed to get coin")
 		}
 
 		if ctx.BlockHeight() < updates.Update5Block {
@@ -413,7 +407,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 
 		if ctx.BlockHeight() >= updates.Update5Block {
 			if coinInfo.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
-				return ctx, fmt.Errorf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
+				return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "coin reserve balance is not sufficient for transaction. Has: %s, required %s",
 					coinInfo.Reserve.String(),
 					feeInBaseCoin.String())
 			}
@@ -436,7 +430,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	// deduct the fees
 	err = DeductFees(fd.sk, ctx, feePayerAcc, fd.ck, f, feeInBaseCoin)
 	if err != nil {
-		return ctx, err
+		return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, err.Error())
 	}
 	if msgs[0].Type() == validator.DelegateConst {
 		stdTx.Fee.Gas = helpers.PipToUnit(feeInBaseCoin).Uint64() * 10
