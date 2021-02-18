@@ -115,6 +115,10 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		coin.Creator = msg.Sender
 	}
 
+	if ctx.BlockHeight() >= 1_450_550 {
+		coin.Icon = msg.Icon
+	}
+
 	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(coin.Symbol)))
 	if err != nil {
 		return nil, types.ErrCalculateCommission(err)

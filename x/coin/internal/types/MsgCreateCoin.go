@@ -20,9 +20,10 @@ type MsgCreateCoin struct {
 	InitialVolume        sdk.Int        `json:"initial_volume" yaml:"initial_volume"`
 	InitialReserve       sdk.Int        `json:"initial_reserve" yaml:"initial_reserve"`
 	LimitVolume          sdk.Int        `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
+	Icon                 string         `json:"icon" yaml:"icon"`
 }
 
-func NewMsgCreateCoin(sender sdk.AccAddress, title string, symbol string, crr uint, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int) MsgCreateCoin {
+func NewMsgCreateCoin(sender sdk.AccAddress, title string, symbol string, crr uint, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int, icon string) MsgCreateCoin {
 	return MsgCreateCoin{
 		Sender:               sender,
 		Title:                title,
@@ -31,6 +32,7 @@ func NewMsgCreateCoin(sender sdk.AccAddress, title string, symbol string, crr ui
 		InitialVolume:        initVolume,
 		InitialReserve:       initReserve,
 		LimitVolume:          limitVolume,
+		Icon:                 icon,
 	}
 }
 
