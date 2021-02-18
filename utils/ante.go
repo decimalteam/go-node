@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	"runtime/debug"
 	"strings"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -238,6 +239,12 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	if ctx.BlockHeight() == 0 {
 		return next(ctx, tx, simulate)
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
+		}
+	}()
 
 	feeTx, ok := tx.(FeeTx)
 	if !ok {
