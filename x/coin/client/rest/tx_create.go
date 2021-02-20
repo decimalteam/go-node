@@ -21,7 +21,7 @@ type CoinCreateReq struct {
 	InitialVolume        string       `json:"initial_volume" yaml:"initial_volume"`
 	InitialReserve       string       `json:"initial_reserve" yaml:"initial_reserve"`
 	LimitVolume          string       `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
-	Icon                 string       `json:"icon" yaml:"icon"`
+	Identity             string       `json:"identity" yaml:"identity"`
 }
 
 func CoinCreateRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -50,7 +50,7 @@ func CoinCreateRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		var initReserve, _ = sdk.NewIntFromString(req.InitialReserve)
 		var initVolume, _ = sdk.NewIntFromString(req.LimitVolume)
 		var limitVolume, _ = sdk.NewIntFromString(req.LimitVolume)
-		var icon = req.Icon
+		var icon = req.Identity
 
 		msg := types.NewMsgCreateCoin(addr, title, symbol, uint(crr), initVolume, initReserve, limitVolume, icon)
 		err = msg.ValidateBasic()

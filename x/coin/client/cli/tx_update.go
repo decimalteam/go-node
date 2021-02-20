@@ -13,7 +13,7 @@ import (
 
 func GetCmdUpdateCoin(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "update [symbol] [limitVolume] [icon]",
+		Use:   "update [symbol] [limitVolume] [identity]",
 		Short: "Update custom coin",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -26,9 +26,9 @@ func GetCmdUpdateCoin(cdc *codec.Codec) *cobra.Command {
 			if !ok {
 				return types.ErrInvalidLimitVolume
 			}
-			var icon = args[2]
+			var identity = args[2]
 
-			msg := types.NewMsgUpdateCoin(cliCtx.GetFromAddress(), symbol, limitVolume, icon)
+			msg := types.NewMsgUpdateCoin(cliCtx.GetFromAddress(), symbol, limitVolume, identity)
 			// Check if coin does not exist yet
 			coinExists, err := cliUtils.ExistsCoin(cliCtx, symbol)
 			if err != nil {

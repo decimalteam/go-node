@@ -17,7 +17,7 @@ import (
 
 func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "create [title] [symbol] [crr] [initReserve] [initVolume] [limitVolume] [icon]",
+		Use:   "create [title] [symbol] [crr] [initReserve] [initVolume] [limitVolume] [identity]",
 		Short: "Creates new coin",
 		Args:  cobra.ExactArgs(7),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -35,9 +35,9 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 			var initReserve, _ = sdk.NewIntFromString(args[3])
 			var initVolume, _ = sdk.NewIntFromString(args[4])
 			var limitVolume, _ = sdk.NewIntFromString(args[5])
-			var icon = args[6]
+			var identity = args[6]
 
-			msg := types.NewMsgCreateCoin(cliCtx.GetFromAddress(), title, symbol, uint(crr), initVolume, initReserve, limitVolume, icon)
+			msg := types.NewMsgCreateCoin(cliCtx.GetFromAddress(), title, symbol, uint(crr), initVolume, initReserve, limitVolume, identity)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

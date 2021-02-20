@@ -11,15 +11,15 @@ type MsgUpdateCoin struct {
 	Sender      sdk.AccAddress `json:"sender" yaml:"sender"`
 	Symbol      string         `json:"symbol" yaml:"symbol"`
 	LimitVolume sdk.Int        `json:"limit_volume" yaml:"limit_volume"`
-	Icon        string         `json:"icon" yaml:"icon"`
+	Identity    string         `json:"identity" yaml:"identity"`
 }
 
-func NewMsgUpdateCoin(sender sdk.AccAddress, symbol string, limitVolume sdk.Int, icon string) MsgUpdateCoin {
+func NewMsgUpdateCoin(sender sdk.AccAddress, symbol string, limitVolume sdk.Int, identity string) MsgUpdateCoin {
 	return MsgUpdateCoin{
 		Sender:      sender,
 		Symbol:      symbol,
 		LimitVolume: limitVolume,
-		Icon:        icon,
+		Identity:    identity,
 	}
 }
 

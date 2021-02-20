@@ -116,7 +116,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 	}
 
 	if ctx.BlockHeight() >= 1_450_550 {
-		coin.Icon = msg.Icon
+		coin.Identity = msg.Identity
 	}
 
 	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(coin.Symbol)))
@@ -191,7 +191,7 @@ func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types.MsgUpdateCoin) (*s
 	}
 
 	coin.LimitVolume = msg.LimitVolume
-	coin.Icon = msg.Icon
+	coin.Identity = msg.Identity
 
 	k.SetCoin(ctx, coin)
 

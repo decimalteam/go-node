@@ -32,7 +32,7 @@ type Coin struct {
 	LimitVolume sdk.Int        `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
 	Volume      sdk.Int        `json:"volume" yaml:"volume"`
 	Creator     sdk.AccAddress `json:"creator" yaml:"creator"`
-	Icon        string         `json:"icon" yaml:"icon"`
+	Identity    string         `json:"identity" yaml:"identity"`
 }
 
 func (c Coin) String() string {
