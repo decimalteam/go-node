@@ -4,16 +4,21 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/modules/incubator/nft/exported"
+
+	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 )
 
 // RegisterCodec concrete types on codec
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterInterface((*exported.NFT)(nil), nil)
+	cdc.RegisterInterface((*exported.TokenOwners)(nil), nil)
+	cdc.RegisterInterface((*exported.TokenOwner)(nil), nil)
 	cdc.RegisterConcrete(&BaseNFT{}, "cosmos-sdk/BaseNFT", nil)
 	cdc.RegisterConcrete(&IDCollection{}, "cosmos-sdk/IDCollection", nil)
 	cdc.RegisterConcrete(&Collection{}, "cosmos-sdk/Collection", nil)
 	cdc.RegisterConcrete(&Owner{}, "cosmos-sdk/Owner", nil)
+	cdc.RegisterConcrete(&TokenOwner{}, "cosmos-sdk/TokenOwner", nil)
+	cdc.RegisterConcrete(&TokenOwners{}, "cosmos-sdk/TokenOwners", nil)
 	cdc.RegisterConcrete(MsgTransferNFT{}, "cosmos-sdk/MsgTransferNFT", nil)
 	cdc.RegisterConcrete(MsgEditNFTMetadata{}, "cosmos-sdk/MsgEditNFTMetadata", nil)
 	cdc.RegisterConcrete(MsgMintNFT{}, "cosmos-sdk/MsgMintNFT", nil)

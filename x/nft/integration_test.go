@@ -1,14 +1,16 @@
 package nft_test
 
+/*
 import (
+
 	"fmt"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/modules/incubator/nft"
-	simapp "github.com/cosmos/modules/incubator/nft/app"
-	"github.com/cosmos/modules/incubator/nft/types"
+	simapp "bitbucket.org/decimalteam/go-node/x/nft/app"
+	"bitbucket.org/decimalteam/go-node/x/nft"
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 // nolint: deadcode unused
@@ -58,3 +60,4 @@ func CheckInvariants(k nft.Keeper, ctx sdk.Context) bool {
 	}
 	return true
 }
+*/

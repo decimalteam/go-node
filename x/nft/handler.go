@@ -2,18 +2,23 @@ package nft
 
 import (
 	"fmt"
-
-	abci "github.com/tendermint/tendermint/abci/types"
+	"runtime/debug"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/modules/incubator/nft/keeper"
-	"github.com/cosmos/modules/incubator/nft/types"
+
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/keeper"
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 // GenericHandler routes the messages to the handlers
 func GenericHandler(k keeper.Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
+			}
+		}()
 		switch msg := msg.(type) {
 		case types.MsgTransferNFT:
 			return HandleMsgTransferNFT(ctx, msg, k)
@@ -36,13 +41,8 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types.MsgTransferNFT, k keeper.Ke
 	if err != nil {
 		return nil, err
 	}
-	// update NFT owner
-	nft.SetOwner(msg.Recipient)
-	// update the NFT (owners are updated within the keeper)
-	err = k.UpdateNFT(ctx, msg.Denom, nft)
-	if err != nil {
-		return nil, err
-	}
+
+	_ = nft
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -70,10 +70,6 @@ func HandleMsgEditNFTMetadata(ctx sdk.Context, msg types.MsgEditNFTMetadata, k k
 
 	// update NFT
 	nft.EditMetadata(msg.TokenURI)
-	err = k.UpdateNFT(ctx, msg.Denom, nft)
-	if err != nil {
-		return nil, err
-	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -94,7 +90,7 @@ func HandleMsgEditNFTMetadata(ctx sdk.Context, msg types.MsgEditNFTMetadata, k k
 // HandleMsgMintNFT handles MsgMintNFT
 func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 ) (*sdk.Result, error) {
-	nft := types.NewBaseNFT(msg.ID, msg.Recipient, msg.TokenURI)
+	nft := types.NewBaseNFT(msg.ID, msg.Recipient, msg.TokenURI, msg.Quantity)
 	err := k.MintNFT(ctx, msg.Denom, &nft)
 	if err != nil {
 		return nil, err
@@ -120,13 +116,17 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 // HandleMsgBurnNFT handles MsgBurnNFT
 func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 ) (*sdk.Result, error) {
-	_, err := k.GetNFT(ctx, msg.Denom, msg.ID)
+	nft, err := k.GetNFT(ctx, msg.Denom, msg.ID)
 	if err != nil {
 		return nil, err
 	}
 
+	if !nft.GetCreator().Equals(msg.Sender) {
+		return nil, ErrNotAllowedBurn
+	}
+
 	// remove  NFT
-	err = k.DeleteNFT(ctx, msg.Denom, msg.ID)
+	err = k.DeleteNFT(ctx, msg.Denom, msg.ID, msg.Quantity)
 	if err != nil {
 		return nil, err
 	}
@@ -144,9 +144,4 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
-}
-
-// EndBlocker is run at the end of the block
-func EndBlocker(ctx sdk.Context, k keeper.Keeper) []abci.ValidatorUpdate {
-	return nil
 }

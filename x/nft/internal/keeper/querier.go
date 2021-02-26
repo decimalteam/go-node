@@ -6,9 +6,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/modules/incubator/nft/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 // query endpoints supported by the NFT Querier

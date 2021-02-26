@@ -5,7 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/modules/incubator/nft/types"
+
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 // GetOwners returns all the Owners ID Collections

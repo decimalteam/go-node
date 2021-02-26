@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/modules/incubator/nft/exported"
+
+	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 )
 
 // Collection of non fungible tokens
@@ -51,11 +52,22 @@ func (collection Collection) AddNFT(nft exported.NFT) (Collection, error) {
 	id := nft.GetID()
 	exists := collection.ContainsNFT(id)
 	if exists {
-		return collection, sdkerrors.Wrap(ErrNFTAlreadyExists,
-			fmt.Sprintf("NFT #%s already exists in collection %s", id, collection.Denom),
-		)
+		collNFT, err := collection.GetNFT(id)
+		if err != nil {
+			return collection, sdkerrors.Wrap(ErrUnknownNFT,
+				fmt.Sprintf("NFT #%s doesn't exist on collection %s", nft.GetID(), collection.Denom))
+		}
+		owner := collNFT.GetOwners().GetOwner(collNFT.GetCreator())
+		if owner == nil {
+			return collection, ErrInvalidNFT
+		}
+		owner.SetQuantity(owner.GetQuantity().Add(nft.GetOwners().GetOwner(nft.GetCreator()).GetQuantity()))
+		collNFT.SetOwner(owner)
+		collection.NFTs.Update(id, collNFT)
+	} else {
+		collection.NFTs = collection.NFTs.Append(nft)
 	}
-	collection.NFTs = collection.NFTs.Append(nft)
+
 	return collection, nil
 }
 

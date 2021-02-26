@@ -8,9 +8,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/cosmos/modules/incubator/nft/types"
 
 	"github.com/gorilla/mux"
+
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router,
@@ -45,6 +46,7 @@ type transferNFTReq struct {
 	Denom     string       `json:"denom"`
 	ID        string       `json:"id"`
 	Recipient string       `json:"recipient"`
+	Quantity  string       `json:"quantity"`
 }
 
 func transferNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
@@ -71,8 +73,14 @@ func transferNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.Handle
 			return
 		}
 
+		quantity, ok := sdk.NewIntFromString(req.Quantity)
+		if !ok {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid quantity")
+			return
+		}
+
 		// create the message
-		msg := types.NewMsgTransferNFT(fromAddr, recipient, req.Denom, req.ID)
+		msg := types.NewMsgTransferNFT(fromAddr, recipient, req.Denom, req.ID, quantity)
 
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
@@ -116,6 +124,7 @@ type mintNFTReq struct {
 	Denom     string         `json:"denom"`
 	ID        string         `json:"id"`
 	TokenURI  string         `json:"tokenURI"`
+	Quantity  string         `json:"quantity"`
 }
 
 func mintNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
@@ -136,17 +145,24 @@ func mintNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFun
 			return
 		}
 
+		quantity, ok := sdk.NewIntFromString(req.Quantity)
+		if !ok {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid quantity")
+			return
+		}
+
 		// create the message
-		msg := types.NewMsgMintNFT(fromAddr, req.Recipient, req.ID, req.Denom, req.TokenURI)
+		msg := types.NewMsgMintNFT(fromAddr, req.Recipient, req.ID, req.Denom, req.TokenURI, quantity, sdk.NewInt(1))
 
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
 }
 
 type burnNFTReq struct {
-	BaseReq rest.BaseReq `json:"base_req"`
-	Denom   string       `json:"denom"`
-	ID      string       `json:"id"`
+	BaseReq  rest.BaseReq `json:"base_req"`
+	Denom    string       `json:"denom"`
+	ID       string       `json:"id"`
+	Quantity string       `json:"quantity"`
 }
 
 func burnNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
@@ -167,8 +183,14 @@ func burnNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFun
 			return
 		}
 
+		quantity, ok := sdk.NewIntFromString(req.Quantity)
+		if !ok {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid quantity")
+			return
+		}
+
 		// create the message
-		msg := types.NewMsgBurnNFT(fromAddr, req.ID, req.Denom)
+		msg := types.NewMsgBurnNFT(fromAddr, req.ID, req.Denom, quantity)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
 }

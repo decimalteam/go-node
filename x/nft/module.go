@@ -3,6 +3,10 @@ package nft
 // DONTCOVER
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/nft/client/cli"
+	"bitbucket.org/decimalteam/go-node/x/nft/client/rest"
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
+	"bitbucket.org/decimalteam/go-node/x/nft/simulation"
 	"encoding/json"
 	"math/rand"
 
@@ -16,10 +20,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/modules/incubator/nft/client/cli"
-	"github.com/cosmos/modules/incubator/nft/client/rest"
-	"github.com/cosmos/modules/incubator/nft/simulation"
-	"github.com/cosmos/modules/incubator/nft/types"
 )
 
 var (
@@ -144,7 +144,7 @@ func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
 // EndBlock module end-block
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return EndBlocker(ctx, am.keeper)
+	return []abci.ValidatorUpdate{}
 }
 
 // RegisterStoreDecoder registers a decoder for nft module's types
@@ -165,5 +165,6 @@ func (AppModule) RandomizedParams(_ *rand.Rand) []sim.ParamChange { return nil }
 
 // WeightedOperations doesn't return any operation for the nft module.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
+	return nil
+	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
 }

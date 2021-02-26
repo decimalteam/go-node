@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -16,7 +17,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/cosmos/modules/incubator/nft/types"
+
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 // Edit metadata flags
@@ -45,7 +47,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 // GetCmdTransferNFT is the CLI command for sending a TransferNFT transaction
 func GetCmdTransferNFT(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "transfer [sender] [recipient] [denom] [tokenID]",
+		Use:   "transfer [sender] [recipient] [denom] [tokenID] [quantity]",
 		Short: "transfer a NFT to a recipient",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Transfer a NFT from a given collection that has a 
@@ -53,14 +55,14 @@ func GetCmdTransferNFT(cdc *codec.Codec) *cobra.Command {
 
 Example:
 $ %s tx %s transfer 
-cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p cosmos1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm \
+dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p dx1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm \
 crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa \
 --from mykey
 `,
 				version.ClientName, types.ModuleName,
 			),
 		),
-		Args: cobra.ExactArgs(4),
+		Args: cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := authtypes.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
@@ -79,7 +81,12 @@ crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa 
 			denom := args[2]
 			tokenID := args[3]
 
-			msg := types.NewMsgTransferNFT(sender, recipient, denom, tokenID)
+			quantity, ok := sdk.NewIntFromString(args[4])
+			if !ok {
+				return errors.New("invalid quantity")
+			}
+
+			msg := types.NewMsgTransferNFT(sender, recipient, denom, tokenID, quantity)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -123,7 +130,7 @@ $ %s tx %s edit-metadata crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd42
 // GetCmdMintNFT is the CLI command for a MintNFT transaction
 func GetCmdMintNFT(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mint [denom] [tokenID] [recipient]",
+		Use:   "mint [denom] [tokenID] [recipient] [quantity] [reserve]",
 		Short: "mint an NFT and set the owner to the recipient",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Mint an NFT from a given collection that has a 
@@ -131,12 +138,12 @@ func GetCmdMintNFT(cdc *codec.Codec) *cobra.Command {
 
 Example:
 $ %s tx %s mint crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa \
-cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
+dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 `,
 				version.ClientName, types.ModuleName,
 			),
 		),
-		Args: cobra.ExactArgs(3),
+		Args: cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -152,7 +159,12 @@ cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 
 			tokenURI := viper.GetString(flagTokenURI)
 
-			msg := types.NewMsgMintNFT(cliCtx.GetFromAddress(), recipient, tokenID, denom, tokenURI)
+			quantity, ok := sdk.NewIntFromString(args[3])
+			if !ok {
+				return errors.New("invalid quantity")
+			}
+
+			msg := types.NewMsgMintNFT(cliCtx.GetFromAddress(), recipient, tokenID, denom, tokenURI, quantity, sdk.NewInt(1))
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -165,7 +177,7 @@ cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 // GetCmdBurnNFT is the CLI command for sending a BurnNFT transaction
 func GetCmdBurnNFT(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "burn [denom] [tokenID]",
+		Use:   "burn [denom] [tokenID] [quantity]",
 		Short: "burn an NFT",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Burn (i.e permanently delete) an NFT from a given collection that has a 
@@ -178,7 +190,7 @@ $ %s tx %s burn crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65
 				version.ClientName, types.ModuleName,
 			),
 		),
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -187,7 +199,12 @@ $ %s tx %s burn crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65
 			denom := args[0]
 			tokenID := args[1]
 
-			msg := types.NewMsgBurnNFT(cliCtx.GetFromAddress(), tokenID, denom)
+			quantity, ok := sdk.NewIntFromString(args[2])
+			if !ok {
+				return errors.New("invalid quantity")
+			}
+
+			msg := types.NewMsgBurnNFT(cliCtx.GetFromAddress(), tokenID, denom, quantity)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

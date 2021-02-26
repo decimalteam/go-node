@@ -13,4 +13,5 @@ var (
 	ErrEmptyMetadata     = sdkerrors.Register(ModuleName, 6, "NFT metadata can't be empty")
 	ErrInvalidQuantity   = sdkerrors.Register(ModuleName, 7, "invalid NFT quantity")
 	ErrInvalidReserve    = sdkerrors.Register(ModuleName, 8, "invalid NFT reserve")
+	ErrNotAllowedBurn    = sdkerrors.Register(ModuleName, 9, "only the creator can burn a token")
 )

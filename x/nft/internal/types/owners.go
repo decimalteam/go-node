@@ -7,6 +7,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 )
 
 // IDCollection defines a set of nft ids that belong to a specific
@@ -174,6 +176,60 @@ func (owner Owner) String() string {
 }
 func (sa SortedStringArray) find(el string) (idx int) {
 	return FindUtil(sa, el)
+}
+
+// ----------------------------------------------------------------------------
+// TokenOwner
+
+type TokenOwner struct {
+	Address  sdk.AccAddress `json:"address"`
+	Quantity sdk.Int        `json:"quantity"`
+}
+
+func (t TokenOwner) GetAddress() sdk.AccAddress {
+	return t.Address
+}
+
+func (t TokenOwner) GetQuantity() sdk.Int {
+	return t.Quantity
+}
+
+func (t *TokenOwner) SetQuantity(quantity sdk.Int) {
+	t.Quantity = quantity
+}
+
+// ----------------------------------------------------------------------------
+// TokenOwners
+
+type TokenOwners struct {
+	Owners []exported.TokenOwner `json:"owners"`
+}
+
+func (t TokenOwners) GetOwners() []exported.TokenOwner {
+	return t.Owners
+}
+
+func (t *TokenOwners) SetOwner(owner exported.TokenOwner) {
+	for i, o := range t.Owners {
+		if o.GetAddress().Equals(owner.GetAddress()) {
+			t.Owners[i] = owner
+		}
+		return
+	}
+
+	t.Owners = append(t.Owners, &TokenOwner{
+		Address:  owner.GetAddress(),
+		Quantity: owner.GetQuantity(),
+	})
+}
+
+func (t TokenOwners) GetOwner(address sdk.AccAddress) exported.TokenOwner {
+	for _, owner := range t.Owners {
+		if owner.GetAddress().Equals(address) {
+			return owner
+		}
+	}
+	return nil
 }
 
 //-----------------------------------------------------------------------------

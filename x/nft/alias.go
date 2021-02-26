@@ -6,8 +6,8 @@
 package nft
 
 import (
-	"github.com/cosmos/modules/incubator/nft/keeper"
-	"github.com/cosmos/modules/incubator/nft/types"
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/keeper"
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 const (
@@ -40,6 +40,7 @@ var (
 	ErrNFTAlreadyExists      = types.ErrNFTAlreadyExists
 	ErrUnknownNFT            = types.ErrUnknownNFT
 	ErrEmptyMetadata         = types.ErrEmptyMetadata
+	ErrNotAllowedBurn        = types.ErrNotAllowedBurn
 	NewGenesisState          = types.NewGenesisState
 	DefaultGenesisState      = types.DefaultGenesisState
 	ValidateGenesis          = types.ValidateGenesis
