@@ -299,7 +299,7 @@ func TestCreateCoinTx(t *testing.T) {
 	title := "My Test Coin"
 	symbol := "ABCDEF"
 
-	sellCoinMsg := types.NewMsgCreateCoin(keep.Addrs[0], title, symbol, crr, volume, reserve, volume.MulRaw(10))
+	sellCoinMsg := types.NewMsgCreateCoin(keep.Addrs[0], title, symbol, crr, volume, reserve, volume.MulRaw(10), "")
 	_, err = handleMsgCreateCoin(ctx, keeper, sellCoinMsg)
 	require.NoError(t, err)
 

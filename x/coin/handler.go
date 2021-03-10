@@ -47,6 +47,8 @@ func NewHandler(k Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgCreateCoin:
 			return handleMsgCreateCoin(ctx, k, msg)
+		case types.MsgUpdateCoin:
+			return handleMsgUpdateCoin(ctx, k, msg)
 		case types.MsgSendCoin:
 			return handleMsgSendCoin(ctx, k, msg)
 		case types.MsgMultiSendCoin:
@@ -108,6 +110,14 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		return nil, types.ErrCoinAlreadyExist(msg.Symbol)
 	}
 
+	if ctx.BlockHeight() >= 1_418_470 {
+		coin.Creator = msg.Sender
+	}
+
+	if ctx.BlockHeight() >= 1_450_550 {
+		coin.Identity = msg.Identity
+	}
+
 	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(coin.Symbol)))
 	if err != nil {
 		return nil, types.ErrCalculateCommission(err)
@@ -157,6 +167,32 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		sdk.NewAttribute(types.AttributeLimitVolume, msg.LimitVolume.String()),
 		sdk.NewAttribute(types.AttributeCommissionCreateCoin, sdk.NewCoin(strings.ToLower(feeCoin), commission).String()),
 	))
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+////////////////////////////////////////////////////////////////
+// Updating coin handler
+////////////////////////////////////////////////////////////////
+
+func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types.MsgUpdateCoin) (*sdk.Result, error) {
+	coin, err := k.GetCoin(ctx, strings.ToLower(msg.Symbol))
+	if err != nil {
+		return nil, types.ErrCoinAlreadyExist(msg.Symbol)
+	}
+
+	if !coin.Creator.Equals(msg.Sender) {
+		return nil, types.ErrUpdateOnlyForCreator()
+	}
+
+	if coin.Volume.GT(msg.LimitVolume) {
+		return nil, types.ErrLimitVolumeBroken(coin.Volume.String(), msg.LimitVolume.String())
+	}
+
+	coin.LimitVolume = msg.LimitVolume
+	coin.Identity = msg.Identity
+
+	k.SetCoin(ctx, coin)
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

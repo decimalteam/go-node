@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -28,6 +29,7 @@ const (
 	CodeInsufficientCoinToPayCommission CodeType = 111
 	CodeInsufficientFunds               CodeType = 112
 	CodeCalculateCommission             CodeType = 113
+	CodeForbiddenUpdate                 CodeType = 114
 
 	// Buy/Sell coin
 	CodeSameCoins                  CodeType = 200
@@ -50,6 +52,8 @@ const (
 	CheckRedeemed     CodeType = 406
 )
 
+var ErrInvalidLimitVolume = errors.New("invalid limitVolume")
+
 func ErrInvalidCRR() *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeInvalidCRR, "coin CRR must be between 10 and 100")
 }
@@ -60,6 +64,10 @@ func ErrInvalidCoinSymbol(symbol string) *sdkerrors.Error {
 
 func ErrForbiddenCoinSymbol(symbol string) *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeInvalidCoinSymbol, fmt.Sprintf("forbidden coin symbol %s", symbol))
+}
+
+func ErrUpdateOnlyForCreator() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeForbiddenUpdate, fmt.Sprintf("updating allowed only for creator of coin"))
 }
 
 func ErrCoinDoesNotExist(symbol string) *sdkerrors.Error {

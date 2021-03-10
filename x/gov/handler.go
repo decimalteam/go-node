@@ -35,7 +35,6 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 func handleMsgSubmitProposal(ctx sdk.Context, keeper Keeper, msg types.MsgSubmitProposal) (*sdk.Result, error) {
 	if !types.CheckProposalAddress(msg.Proposer) {
-		fmt.Println(msg.Proposer, types.AllowedAddresses)
 		return nil, types.ErrNotAllowed
 	}
 
