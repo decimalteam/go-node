@@ -22,6 +22,26 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		k.HandleValidatorSignature(ctx, voteInfo.Validator.Address, voteInfo.Validator.Power, voteInfo.SignedLastBlock)
 	}
 
+	if ctx.BlockHeight() == updates.Update6Block {
+		validators := k.GetAllValidatorsByPowerIndex(ctx)
+		last := make(map[string]bool)
+		for _, validator := range validators {
+			last[validator.ValAddress.String()] = true
+			if validator.Online {
+				for _, info := range req.LastCommitInfo.GetVotes() {
+					if validator.ValAddress.Equals(k.GetValidatorAddrByConsAddr(ctx, info.Validator.Address)) {
+						delete(last, k.GetValidatorAddrByConsAddr(ctx, info.Validator.Address).String())
+					}
+				}
+			}
+		}
+
+		for validator := range last {
+			valAddr, _ := sdk.ValAddressFromBech32(validator)
+			k.DeleteLastValidatorPower(ctx, valAddr)
+		}
+	}
+
 	// Iterate through any newly discovered evidence of infraction
 	// Slash any validators (and since-unbonded stake within the unbonding period)
 	// who contributed to valid infractions
