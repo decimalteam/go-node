@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/multisig"
-	"container/list"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"strings"
@@ -30,9 +29,6 @@ type Keeper struct {
 	multisigKeeper   multisig.Keeper
 	hooks            types.ValidatorHooks
 	FeeCollectorName string
-
-	validatorCache     map[string]cachedValidator
-	validatorCacheList *list.List
 }
 
 // NewKeeper creates a validator keeper
@@ -48,16 +44,14 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspac
 	}
 
 	keeper := Keeper{
-		storeKey:           key,
-		cdc:                cdc,
-		paramSpace:         paramSpace.WithKeyTable(ParamKeyTable()),
-		CoinKeeper:         coinKeeper,
-		AccountKeeper:      accountKeeper,
-		supplyKeeper:       supplyKeeper,
-		multisigKeeper:     multisigKeeper,
-		validatorCache:     make(map[string]cachedValidator, aminoCacheSize),
-		validatorCacheList: list.New(),
-		FeeCollectorName:   feeCollectorName,
+		storeKey:         key,
+		cdc:              cdc,
+		paramSpace:       paramSpace.WithKeyTable(ParamKeyTable()),
+		CoinKeeper:       coinKeeper,
+		AccountKeeper:    accountKeeper,
+		supplyKeeper:     supplyKeeper,
+		multisigKeeper:   multisigKeeper,
+		FeeCollectorName: feeCollectorName,
 	}
 	return keeper
 }
