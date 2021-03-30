@@ -11,6 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	updts "bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -138,7 +139,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		// fetch the validator
 		validator, err := k.GetValidator(ctx, valAddrBytes)
 		if err != nil {
-			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
+			panic(err)
 		}
 
 		if validator.Jailed {
@@ -169,9 +170,23 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		}
 
 		if validator.Tokens.IsZero() {
-			validator, err = k.bondedToUnbonding(ctx, validator)
-			if err != nil {
-				panic(err)
+			if ctx.BlockHeight() >= updts.Update6Block {
+				if validator.IsBonded() {
+					validator, err = k.bondedToUnbonding(ctx, validator)
+					if err != nil {
+						panic(err)
+					}
+				} else {
+					err = k.RemoveValidator(ctx, validator.ValAddress)
+					if err != nil {
+						panic(err)
+					}
+				}
+			} else {
+				validator, err = k.bondedToUnbonding(ctx, validator)
+				if err != nil {
+					panic(err)
+				}
 			}
 		} else {
 			validator = validator.UpdateStatus(types.Unbonded)
