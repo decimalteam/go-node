@@ -38,6 +38,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, withRewards bool) []abci.ValidatorUpdate {
 	if ctx.BlockHeight() == 2_335_977 {
 		SyncPools(ctx, k, supplyKeeper)
+		SyncValidators(ctx, k)
 	}
 
 	// Calculate validator set changes.
