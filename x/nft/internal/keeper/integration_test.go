@@ -1,5 +1,6 @@
 package keeper_test
 
+/*
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -30,3 +31,4 @@ func createTestApp(isCheckTx bool) (*simapp.SimApp, sdk.Context) {
 
 	return app, ctx
 }
+*/

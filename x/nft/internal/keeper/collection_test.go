@@ -1,5 +1,6 @@
 package keeper_test
 
+/*
 import (
 	"testing"
 
@@ -79,3 +80,4 @@ func TestGetCollections(t *testing.T) {
 	msg, fail := keeper.SupplyInvariant(app.NFTKeeper)(ctx)
 	require.False(t, fail, msg)
 }
+*/

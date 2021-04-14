@@ -118,7 +118,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		validator.StoreKey,
 		gov.StoreKey,
 		swap.StoreKey,
-		nft.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)

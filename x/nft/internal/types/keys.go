@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/coin"
 	"fmt"
 
 	"github.com/tendermint/tendermint/crypto/tmhash"
@@ -13,7 +14,7 @@ const (
 	ModuleName = "nft"
 
 	// StoreKey is the default store key for NFT
-	StoreKey = ModuleName
+	StoreKey = coin.StoreKey
 
 	// QuerierRoute is the querier route for the NFT store.
 	QuerierRoute = ModuleName
@@ -28,8 +29,8 @@ const (
 //
 // - Owners: 0x01<address_bytes_key><denom_bytes_key>: <Owner>
 var (
-	CollectionsKeyPrefix = []byte{0x00} // key for NFT collections
-	OwnersKeyPrefix      = []byte{0x01} // key for balance of NFTs held by an address
+	CollectionsKeyPrefix = []byte{0x60, 0x00} // key for NFT collections
+	OwnersKeyPrefix      = []byte{0x60, 0x01} // key for balance of NFTs held by an address
 )
 
 // GetCollectionKey gets the key of a collection
