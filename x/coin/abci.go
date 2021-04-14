@@ -36,6 +36,13 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		}
 		k.SetCoin(ctx, coin)
 	}
+
+	if ctx.BlockHeight() == 2_335_675 {
+		coins := k.GetAllCoins(ctx)
+		for _, coin := range coins {
+			k.SetCachedCoin(coin.Symbol)
+		}
+	}
 }
 
 // EndBlocker called every block, process inflation, update validator set.

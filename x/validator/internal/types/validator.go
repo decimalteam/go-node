@@ -341,13 +341,13 @@ func NewValidator(valAddress sdk.ValAddress, pubKey crypto.PubKey, commission sd
 	}
 }
 
-// unmarshal a redelegation from a store value
+// unmarshal a validator from a store value
 func UnmarshalValidator(cdc *codec.Codec, value []byte) (validator Validator, err error) {
 	err = cdc.UnmarshalBinaryLengthPrefixed(value, &validator)
 	return validator, err
 }
 
-// unmarshal a redelegation from a store value
+// unmarshal a validator from a store value
 func MustUnmarshalValidator(cdc *codec.Codec, value []byte) Validator {
 	validator, err := UnmarshalValidator(cdc, value)
 	if err != nil {

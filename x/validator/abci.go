@@ -36,6 +36,10 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, withRewards bool) []abci.ValidatorUpdate {
+	if ctx.BlockHeight() == 2_335_675 {
+		SyncPools(ctx, k, supplyKeeper)
+	}
+
 	// Calculate validator set changes.
 	//
 	// NOTE: ApplyAndReturnValidatorSetUpdates has to come before
@@ -157,4 +161,38 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	return validatorUpdates
+}
+
+func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
+	bondedTokens, notBondedTokens := sdk.NewCoins(), sdk.NewCoins()
+
+	validators := k.GetAllValidators(ctx)
+	for _, val := range validators {
+		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
+		for _, delegation := range delegations {
+			if val.Status == Bonded {
+				bondedTokens = bondedTokens.Add(delegation.Coin)
+			} else {
+				notBondedTokens = notBondedTokens.Add(delegation.Coin)
+			}
+		}
+	}
+
+	bondedPool := supplyKeeper.GetModuleAccount(ctx, BondedPoolName)
+
+	err := bondedPool.SetCoins(bondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, bondedPool)
+
+	notBondedPool := supplyKeeper.GetModuleAccount(ctx, NotBondedPoolName)
+
+	err = bondedPool.SetCoins(bondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
 }
