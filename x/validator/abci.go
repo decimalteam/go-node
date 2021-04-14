@@ -36,7 +36,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, withRewards bool) []abci.ValidatorUpdate {
-	if ctx.BlockHeight() == 2_335_675 {
+	if ctx.BlockHeight() == 2_335_977 {
 		SyncPools(ctx, k, supplyKeeper)
 	}
 
@@ -195,4 +195,17 @@ func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
 	}
 
 	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
+}
+
+func SyncValidators(ctx sdk.Context, k Keeper) {
+	validators := k.GetAllValidators(ctx)
+	for _, validator := range validators {
+		if validator.Status.Equal(Unbonding) {
+			validator.Status = Bonded
+			err := k.SetValidator(ctx, validator)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
 }

@@ -157,6 +157,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 					sdk.NewAttribute(types.AttributeKeyStake, del.TokensBase.String()),
 				))
 				eventMutex.Unlock()
+				k.SetDelegation(ctx, del)
 			}
 			mutex.Lock()
 			total = total.Add(del.TokensBase)

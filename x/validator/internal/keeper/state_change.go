@@ -169,11 +169,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		}
 
 		if validator.Tokens.IsZero() {
-			validator, err = k.bondedToUnbonding(ctx, validator)
-			if err != nil {
-				panic(err)
-			}
-		} else {
 			validator = validator.UpdateStatus(types.Unbonded)
 		}
 
