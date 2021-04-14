@@ -1,7 +1,6 @@
 package app
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/swap"
 	"encoding/json"
 	"io"
 	"os"
@@ -26,6 +25,8 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bitbucket.org/decimalteam/go-node/x/gov"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
+	"bitbucket.org/decimalteam/go-node/x/swap"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
@@ -50,6 +51,7 @@ var (
 		validator.AppModuleBasic{},
 		gov.AppModuleBasic{},
 		swap.AppModuleBasic{},
+		nft.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
@@ -87,6 +89,7 @@ type newApp struct {
 	validatorKeeper validator.Keeper
 	govKeeper       gov.Keeper
 	swapKeeper      swap.Keeper
+	nftKeeper       nft.Keeper
 
 	// Module Manager
 	mm *module.Manager
@@ -115,6 +118,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		validator.StoreKey,
 		gov.StoreKey,
 		swap.StoreKey,
+		nft.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
@@ -213,6 +217,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.supplyKeeper,
 	)
 
+	app.nftKeeper = nft.NewKeeper(app.cdc, keys[nft.StoreKey])
+
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
@@ -223,6 +229,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		swap.NewAppModule(app.swapKeeper),
+		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
 	)
 
 	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
@@ -241,6 +248,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		genutil.ModuleName,
 		gov.ModuleName,
 		swap.ModuleName,
+		nft.ModuleName,
 	)
 
 	// register all module routes and module queriers
