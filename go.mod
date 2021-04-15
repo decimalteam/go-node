@@ -8,7 +8,6 @@ require (
 	github.com/btcsuite/btcd v0.0.0-20190824003749-130ea5bddde3 // indirect
 	github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
 	github.com/cosmos/cosmos-sdk v0.38.4
-	github.com/cosmos/modules/incubator/nft v0.0.0-20200715075539-8c1862235a75
 	github.com/ethereum/go-ethereum v1.9.11
 	github.com/golang/mock v1.3.1 // indirect
 	github.com/gorilla/mux v1.7.3
