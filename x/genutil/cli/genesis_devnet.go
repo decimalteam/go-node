@@ -2,8 +2,8 @@ package cli
 
 const devNetGenesis = `
 {
-  "genesis_time": "2020-11-20T10:00:00.000000Z",
-  "chain_id": "decimal-devnet-11-20-18-00",
+  "genesis_time": "2021-04-15T06:00:00.000000Z",
+  "chain_id": "decimal-devnet-04-15-14-00",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -76,7 +76,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AyXteacATBJVsNGhTGUwgHfLO4mJTXhvK/H/2MLOTylo"
                 },
-                "signature": "AinT+GH/9kWW6V8bMfJpG8qmrTI0/gtBvUEXe4KvSnItomOW5R3KCf1tsgka+gD/B7QMyj/e8sVn7gRtCZwsMg=="
+                "signature": "1SwnjVqGXvTgF6MoEyyxzjNuu9n6otGTMs85QfvgmpUmP/s1KdoNVWnCfyxNRLZcloUqUNHopNxYxSSXdDtn+g=="
               }
             ],
             "memo": ""
@@ -120,7 +120,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A8s6NPtmz3ywH2LGxNnRjjsEIdt53ZuRQy7q6Mof0iA9"
                 },
-                "signature": "7qJZRUmI5Qr2fNE69GiLPFowr8kOwlgpEIKqz5Z5pVd2ht8Gb3Y5teNhH9TuTFV83WNAthe/7u/Qz5xMMigeHg=="
+                "signature": "xFkIrYdaLKTFTKu6HO5HEG1u5ME/l911nLh/PG71JERocaVRwxMv9HEDmBh0ZMI6mHwxyt6Vxz4BPHGerbETSw=="
               }
             ],
             "memo": ""
@@ -164,7 +164,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A/jGezwfhOzAyTaRbg3off9HYzvtUO4CxaRrBJzdHGlw"
                 },
-                "signature": "MvLQ7EmUtPaTkf8kgGwrOwRzZoX27fP1uQrp7H8YGL0ay7w/7BsXo/fWL+CQ4Om/A2VP1DadESYiRmlGJ/JZeA=="
+                "signature": "Wy8Vi7cG+fdrz7NWUC6lSJ9nCTA5lnhnFU70fyUIaK9re+juSSTbu3ajEXroA6vP7IVK/tdOWjG0xyz+wsgLZg=="
               }
             ],
             "memo": ""
