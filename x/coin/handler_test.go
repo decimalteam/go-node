@@ -206,8 +206,8 @@ func TestBuyCoinReserveUnderflow(t *testing.T) {
 	require.NoError(t, err)
 	accountKeeper.SetAccount(ctx, account)
 
-	toBuy := helpers.BipToPip(sdk.NewInt(99000))
-	maxValToSell, ok := sdk.NewIntFromString("36904896537720035723223")
+	toBuy := helpers.BipToPip(sdk.NewInt(99900))
+	maxValToSell, ok := sdk.NewIntFromString("49881276637272773421684")
 	require.True(t, ok)
 
 	buyCoinMsg := NewMsgBuyCoin(keep.Addrs[0], sdk.NewCoin(cliUtils.GetBaseCoin(), toBuy), sdk.NewCoin(coin.Symbol, maxValToSell))
