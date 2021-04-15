@@ -71,6 +71,11 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		panic(err)
 	}
 
+	if ctx.BlockHeight() == updates.Update7Block {
+		SyncPools(ctx, k, supplyKeeper)
+		SyncValidators(ctx, k)
+	}
+
 	height := ctx.BlockHeight()
 
 	// Unbond all mature validators from the unbonding queue.
@@ -212,4 +217,17 @@ func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
 	}
 
 	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
+}
+
+func SyncValidators(ctx sdk.Context, k Keeper) {
+	validators := k.GetAllValidators(ctx)
+	for _, validator := range validators {
+		if validator.Status.Equal(Unbonding) {
+			validator.Status = Bonded
+			err := k.SetValidator(ctx, validator)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
 }
