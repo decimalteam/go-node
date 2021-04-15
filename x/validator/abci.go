@@ -211,7 +211,7 @@ func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
 
 	notBondedPool := supplyKeeper.GetModuleAccount(ctx, NotBondedPoolName)
 
-	err = bondedPool.SetCoins(bondedTokens)
+	err = notBondedPool.SetCoins(notBondedTokens)
 	if err != nil {
 		panic(err)
 	}

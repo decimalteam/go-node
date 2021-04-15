@@ -1,9 +1,11 @@
 package coin
 
 import (
+	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"strings"
 )
 
 // BeginBlocker check for infraction evidence or downtime of validators
@@ -40,6 +42,9 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 	if ctx.BlockHeight() == updates.Update7Block {
 		coins := k.GetAllCoins(ctx)
 		for _, coin := range coins {
+			if strings.ToLower(coin.Symbol) == config.SymbolBaseCoin {
+				continue
+			}
 			k.SetCachedCoin(coin.Symbol)
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -148,6 +149,11 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	for _, del := range delegations {
 		go func(del types.Delegation) {
 			defer wg.Done()
+			if ctx.BlockHeight() >= updates.Update7Block {
+				if strings.ToLower(del.Coin.Denom) == k.BondDenom(ctx) {
+					del.TokensBase = del.Coin.Amount
+				}
+			}
 			if k.CoinKeeper.GetCoinCache(del.Coin.Denom) {
 				coin, err := k.GetCoin(ctx, del.Coin.Denom)
 				if err != nil {

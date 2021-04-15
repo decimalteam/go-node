@@ -269,6 +269,9 @@ const WithoutSlashPeriod2End = WithoutSlashPeriod2Start + 4200
 const WithoutSlashPeriod3Start = updates.Update6Block
 const WithoutSlashPeriod3End = WithoutSlashPeriod3Start + 2400
 
+const WithoutSlashPeriod4Start = updates.Update7Block
+const WithoutSlashPeriod4End = WithoutSlashPeriod4Start + 2600
+
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
@@ -281,6 +284,9 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		return
 	}
 	if height >= WithoutSlashPeriod3Start && height <= WithoutSlashPeriod3End {
+		return
+	}
+	if height >= WithoutSlashPeriod4Start && height <= WithoutSlashPeriod4End {
 		return
 	}
 
