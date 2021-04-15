@@ -36,11 +36,6 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, withRewards bool) []abci.ValidatorUpdate {
-	if ctx.BlockHeight() == 2_336_360 {
-		SyncPools(ctx, k, supplyKeeper)
-		SyncValidators(ctx, k)
-	}
-
 	// Calculate validator set changes.
 	//
 	// NOTE: ApplyAndReturnValidatorSetUpdates has to come before
@@ -99,9 +94,6 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	if err != nil {
 		panic(err)
 	}
-	if ctx.BlockHeight() <= 79350 {
-		coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
-	}
 
 	feeCollector := supplyKeeper.GetModuleAccount(ctx, k.FeeCollectorName)
 	feesCollectedInt := feeCollector.GetCoins()
@@ -121,9 +113,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	if err != nil {
 		panic(err)
 	}
-	if ctx.BlockHeight() > 79350 {
-		coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
-	}
+	coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
 
 	remainder := sdk.NewIntFromBigInt(rewards.BigInt())
 
@@ -162,51 +152,4 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	return validatorUpdates
-}
-
-func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
-	bondedTokens, notBondedTokens := sdk.NewCoins(), sdk.NewCoins()
-
-	validators := k.GetAllValidators(ctx)
-	for _, val := range validators {
-		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
-		for _, delegation := range delegations {
-			if val.Status == Bonded {
-				bondedTokens = bondedTokens.Add(delegation.Coin)
-			} else {
-				notBondedTokens = notBondedTokens.Add(delegation.Coin)
-			}
-		}
-	}
-
-	bondedPool := supplyKeeper.GetModuleAccount(ctx, BondedPoolName)
-
-	err := bondedPool.SetCoins(bondedTokens)
-	if err != nil {
-		panic(err)
-	}
-
-	supplyKeeper.SetModuleAccount(ctx, bondedPool)
-
-	notBondedPool := supplyKeeper.GetModuleAccount(ctx, NotBondedPoolName)
-
-	err = bondedPool.SetCoins(bondedTokens)
-	if err != nil {
-		panic(err)
-	}
-
-	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
-}
-
-func SyncValidators(ctx sdk.Context, k Keeper) {
-	validators := k.GetAllValidators(ctx)
-	for _, validator := range validators {
-		if validator.Status.Equal(Unbonding) {
-			validator.Status = Bonded
-			err := k.SetValidator(ctx, validator)
-			if err != nil {
-				panic(err)
-			}
-		}
-	}
 }

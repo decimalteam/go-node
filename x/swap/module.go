@@ -6,11 +6,8 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/swap/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/swap/client/rest"
 	"bitbucket.org/decimalteam/go-node/x/swap/internal/keeper"
-	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
 	"encoding/json"
 	"fmt"
-	"time"
-
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
@@ -139,8 +136,5 @@ func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 // EndBlock returns the end blocker for the gov module. It returns no validator
 // updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	if ctx.BlockHeight() == 301450 {
-		am.keeper.SetParams(ctx, types.Params{LockedTimeOut: time.Minute * 2})
-	}
 	return []abci.ValidatorUpdate{}
 }
