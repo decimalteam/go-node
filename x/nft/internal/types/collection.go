@@ -61,8 +61,8 @@ func (collection Collection) AddNFT(nft exported.NFT) (Collection, error) {
 		if owner == nil {
 			return collection, ErrInvalidNFT
 		}
-		owner.SetQuantity(owner.GetQuantity().Add(nft.GetOwners().GetOwner(nft.GetCreator()).GetQuantity()))
-		collNFT.SetOwner(owner)
+		owner = owner.SetQuantity(owner.GetQuantity().Add(nft.GetOwners().GetOwner(nft.GetCreator()).GetQuantity()))
+		collNFT = collNFT.SetOwners(collNFT.GetOwners().SetOwner(owner))
 		collection.NFTs.Update(id, collNFT)
 	} else {
 		collection.NFTs = collection.NFTs.Append(nft)

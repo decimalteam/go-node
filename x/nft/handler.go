@@ -42,7 +42,17 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types.MsgTransferNFT, k keeper.Ke
 		return nil, err
 	}
 
-	_ = nft
+	nft, err = types.TransferNFT(nft, msg.Sender, msg.Recipient, msg.Quantity)
+	if err != nil {
+		return nil, err
+	}
+
+	collection, found := k.GetCollection(ctx, msg.Denom)
+	if !found {
+		return nil, ErrUnknownCollection
+	}
+	collection.NFTs.Update(msg.ID, nft)
+	k.SetCollection(ctx, msg.Denom, collection)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -90,8 +100,14 @@ func HandleMsgEditNFTMetadata(ctx sdk.Context, msg types.MsgEditNFTMetadata, k k
 // HandleMsgMintNFT handles MsgMintNFT
 func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 ) (*sdk.Result, error) {
-	nft := types.NewBaseNFT(msg.ID, msg.Recipient, msg.TokenURI, msg.Quantity)
-	err := k.MintNFT(ctx, msg.Denom, &nft)
+	nft, err := k.GetNFT(ctx, msg.Denom, msg.ID)
+	if err == nil {
+		if !nft.GetCreator().Equals(msg.Sender) {
+			return nil, ErrNotAllowedMint
+		}
+	}
+	nft = types.NewBaseNFT(msg.ID, msg.Sender, msg.Recipient, msg.TokenURI, msg.Quantity)
+	err = k.MintNFT(ctx, msg.Denom, nft)
 	if err != nil {
 		return nil, err
 	}

@@ -22,7 +22,7 @@ type BaseNFT struct {
 }
 
 // NewBaseNFT creates a new NFT instance
-func NewBaseNFT(id string, owner sdk.AccAddress, tokenURI string, quantity sdk.Int) BaseNFT {
+func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity sdk.Int) BaseNFT {
 	return BaseNFT{
 		ID: id,
 		Owners: &TokenOwners{Owners: []exported.TokenOwner{&TokenOwner{
@@ -30,7 +30,7 @@ func NewBaseNFT(id string, owner sdk.AccAddress, tokenURI string, quantity sdk.I
 			Quantity: quantity,
 		}}},
 		TokenURI: strings.TrimSpace(tokenURI),
-		Creator:  owner,
+		Creator:  creator,
 	}
 }
 
@@ -46,15 +46,14 @@ func (bnft BaseNFT) GetTokenURI() string { return bnft.TokenURI }
 func (bnft BaseNFT) GetCreator() sdk.AccAddress { return bnft.Creator }
 
 // EditMetadata edits metadata of an nft
-func (bnft *BaseNFT) EditMetadata(tokenURI string) {
+func (bnft BaseNFT) EditMetadata(tokenURI string) exported.NFT {
 	bnft.TokenURI = tokenURI
+	return bnft
 }
 
-func (bnft *BaseNFT) SetOwner(owner exported.TokenOwner) {
-	bnft.Owners.SetOwner(&TokenOwner{
-		Address:  owner.GetAddress(),
-		Quantity: owner.GetQuantity(),
-	})
+func (bnft BaseNFT) SetOwners(owners exported.TokenOwners) exported.NFT {
+	bnft.Owners = owners
+	return bnft
 }
 
 func (bnft BaseNFT) String() string {
@@ -65,6 +64,26 @@ TokenURI:		%s`,
 		bnft.Owners,
 		bnft.TokenURI,
 	)
+}
+
+func TransferNFT(nft exported.NFT, sender, recipient sdk.AccAddress, quantity sdk.Int) (exported.NFT, error) {
+	senderOwner := nft.GetOwners().GetOwner(sender)
+	if senderOwner.GetQuantity().LT(quantity) {
+		return nil, ErrInvalidQuantity
+	}
+
+	senderOwner = senderOwner.SetQuantity(senderOwner.GetQuantity().Sub(quantity))
+
+	recipientOwner := nft.GetOwners().GetOwner(recipient)
+	if recipientOwner == nil {
+		nft = nft.SetOwners(nft.GetOwners().SetOwner(NewTokenOwner(recipient, quantity)))
+		nft = nft.SetOwners(nft.GetOwners().SetOwner(senderOwner))
+		return nft, nil
+	}
+
+	recipientOwner = recipientOwner.SetQuantity(recipientOwner.GetQuantity().Add(quantity))
+
+	return nft, nil
 }
 
 // ----------------------------------------------------------------------------

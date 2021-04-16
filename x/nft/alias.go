@@ -41,6 +41,7 @@ var (
 	ErrUnknownNFT            = types.ErrUnknownNFT
 	ErrEmptyMetadata         = types.ErrEmptyMetadata
 	ErrNotAllowedBurn        = types.ErrNotAllowedBurn
+	ErrNotAllowedMint        = types.ErrNotAllowedMint
 	NewGenesisState          = types.NewGenesisState
 	DefaultGenesisState      = types.DefaultGenesisState
 	ValidateGenesis          = types.ValidateGenesis

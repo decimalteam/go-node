@@ -186,6 +186,13 @@ type TokenOwner struct {
 	Quantity sdk.Int        `json:"quantity"`
 }
 
+func NewTokenOwner(address sdk.AccAddress, quantity sdk.Int) *TokenOwner {
+	return &TokenOwner{
+		Address:  address,
+		Quantity: quantity,
+	}
+}
+
 func (t TokenOwner) GetAddress() sdk.AccAddress {
 	return t.Address
 }
@@ -194,8 +201,9 @@ func (t TokenOwner) GetQuantity() sdk.Int {
 	return t.Quantity
 }
 
-func (t *TokenOwner) SetQuantity(quantity sdk.Int) {
+func (t TokenOwner) SetQuantity(quantity sdk.Int) exported.TokenOwner {
 	t.Quantity = quantity
+	return t
 }
 
 // ----------------------------------------------------------------------------
@@ -209,18 +217,20 @@ func (t TokenOwners) GetOwners() []exported.TokenOwner {
 	return t.Owners
 }
 
-func (t *TokenOwners) SetOwner(owner exported.TokenOwner) {
+func (t TokenOwners) SetOwner(owner exported.TokenOwner) exported.TokenOwners {
 	for i, o := range t.Owners {
 		if o.GetAddress().Equals(owner.GetAddress()) {
 			t.Owners[i] = owner
 		}
-		return
+		return t
 	}
 
-	t.Owners = append(t.Owners, &TokenOwner{
+	t.Owners = append(t.Owners, TokenOwner{
 		Address:  owner.GetAddress(),
 		Quantity: owner.GetQuantity(),
 	})
+
+	return t
 }
 
 func (t TokenOwners) GetOwner(address sdk.AccAddress) exported.TokenOwner {

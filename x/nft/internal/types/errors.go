@@ -14,4 +14,5 @@ var (
 	ErrInvalidQuantity   = sdkerrors.Register(ModuleName, 7, "invalid NFT quantity")
 	ErrInvalidReserve    = sdkerrors.Register(ModuleName, 8, "invalid NFT reserve")
 	ErrNotAllowedBurn    = sdkerrors.Register(ModuleName, 9, "only the creator can burn a token")
+	ErrNotAllowedMint    = sdkerrors.Register(ModuleName, 10, "only the creator can mint a token")
 )
