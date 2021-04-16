@@ -164,7 +164,12 @@ dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 				return errors.New("invalid quantity")
 			}
 
-			msg := types.NewMsgMintNFT(cliCtx.GetFromAddress(), recipient, tokenID, denom, tokenURI, quantity, sdk.NewInt(1))
+			reserve, ok := sdk.NewIntFromString(args[4])
+			if !ok {
+				return errors.New("invalid quantity")
+			}
+
+			msg := types.NewMsgMintNFT(cliCtx.GetFromAddress(), recipient, tokenID, denom, tokenURI, quantity, reserve)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
