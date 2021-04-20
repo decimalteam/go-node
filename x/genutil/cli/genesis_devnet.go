@@ -2,8 +2,8 @@ package cli
 
 const devNetGenesis = `
 {
-  "genesis_time": "2021-04-16T05:00:00.000000Z",
-  "chain_id": "decimal-devnet-04-16-14-00",
+  "genesis_time": "2021-04-20T11:30:00.000000Z",
+  "chain_id": "decimal-devnet-04-20-19-30",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -22,7 +22,7 @@ const devNetGenesis = `
   "app_state": {
     "validator": {
       "params": {
-        "unbonding_time": "3600000000000",
+        "unbonding_time": "1800000000000",
         "max_validators": 256,
         "max_entries": 7,
         "bond_denom": "del",
@@ -76,7 +76,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AyXteacATBJVsNGhTGUwgHfLO4mJTXhvK/H/2MLOTylo"
                 },
-                "signature": "jJbUFjw8H4/qHmLbX6R6Jxa2k025QkpuQQB8BBkWk9RShKWiNoixGad2DSp4vigeE2c/3aFW0AaUcyagoIWrZg=="
+                "signature": "5XPv/g2KtqMaLWGRBheEBZ/qIzrFTX5zaQuZuVvcgX8C7FmPDnP61KgtvVr7eLEuii2DgUnCM853aIt5ftyxog=="
               }
             ],
             "memo": ""
@@ -120,7 +120,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A8s6NPtmz3ywH2LGxNnRjjsEIdt53ZuRQy7q6Mof0iA9"
                 },
-                "signature": "XH6EWiaS7Y8zGstCgTVfgmLnqUI4VtuPa8MAHiJKMhZGn1XTtS96bvSz27ujVlq6opbIMK4BXZQ+RuqjWslFZg=="
+                "signature": "rFTs1q5Q6qiVwlRfABE26XBGYol/iCRhdKOGDTdVZetAH/cyMSDIlvNUkTtJYdaqehZOE+P2hyCJQGFKMXIHmw=="
               }
             ],
             "memo": ""
@@ -164,7 +164,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A/jGezwfhOzAyTaRbg3off9HYzvtUO4CxaRrBJzdHGlw"
                 },
-                "signature": "K8m93BEt6CQ6tdzk61f0YFqqffLlswqAqwEJwB+Jeh0xnhxzki+OQ3zQZieQvjQ3gSGxNvW1eDPdklMuqGCK0Q=="
+                "signature": "jeD/P5xqFULADEKi0V3Q1effRkhiTEd9rFsxyVEbZH9lg2JJGpfDcWOCLuCH+iZK1qM1mrd0iW0fSHgZil3nnw=="
               }
             ],
             "memo": ""

@@ -60,11 +60,11 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	for _, dvPair := range matureUnbonds {
 		delegation, found := k.GetUnbondingDelegation(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
 		if !found {
-			continue
+			panic(fmt.Sprintf("not found unbonding delegation delegator = %s, validator = %s", dvPair.DelegatorAddress, dvPair.ValidatorAddress))
 		}
 		err := k.CompleteUnbonding(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
 		if err != nil {
-			continue
+			panic(fmt.Sprintf("error = %s. Delegator = %s, validator = %s", err.Error(), dvPair.DelegatorAddress, dvPair.ValidatorAddress))
 		}
 
 		ctxTime := ctx.BlockHeader().Time
