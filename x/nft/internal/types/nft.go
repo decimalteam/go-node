@@ -67,9 +67,47 @@ func (bnft BaseNFT) String() string {
 Owners:			%s
 TokenURI:		%s`,
 		bnft.ID,
-		bnft.Owners,
+		bnft.Owners.String(),
 		bnft.TokenURI,
 	)
+}
+
+// ----------------------------------------------------------------------------
+// Encoding
+
+// NFTJSON is the exported NFT format for clients
+type BaseNFTJSON struct {
+	ID       string         `json:"id,omitempty" yaml:"id"` // id of the token; not exported to clients
+	Owners   TokenOwners    `json:"owners" yaml:"owners"`   // account addresses that owns the NFT
+	Creator  sdk.AccAddress `json:"creator" yaml:"creator"`
+	TokenURI string         `json:"token_uri" yaml:"token_uri"` // optional extra properties available for querying
+	Reserve  sdk.Int        `json:"reserve" yaml:"reserve"`
+}
+
+func (bnft BaseNFT) MarshalJSON() ([]byte, error) {
+	b := BaseNFTJSON{
+		ID:       bnft.ID,
+		Owners:   bnft.Owners.(TokenOwners),
+		Creator:  bnft.Creator,
+		TokenURI: bnft.TokenURI,
+		Reserve:  bnft.Reserve,
+	}
+	return json.Marshal(b)
+}
+
+func (bnft *BaseNFT) UnmarshalJSON(b []byte) error {
+	var nft BaseNFTJSON
+	err := json.Unmarshal(b, &nft)
+	if err != nil {
+		return err
+	}
+
+	bnft.ID = nft.ID
+	bnft.TokenURI = nft.TokenURI
+	bnft.Creator = nft.Creator
+	bnft.Reserve = nft.Reserve
+	bnft.Owners = nft.Owners
+	return nil
 }
 
 func TransferNFT(nft exported.NFT, sender, recipient sdk.AccAddress, quantity sdk.Int) (exported.NFT, error) {

@@ -57,7 +57,10 @@ func querySupply(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper
 		return nil, sdkerrors.Wrap(types.ErrUnknownCollection, fmt.Sprintf("unknown denom %s", params.Denom))
 	}
 
-	bz := []byte(strconv.Itoa(collection.Supply()))
+	bz, err := types.ModuleCdc.MarshalJSON(strconv.Itoa(collection.Supply()))
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
 	return bz, nil
 }
 

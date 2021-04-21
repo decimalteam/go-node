@@ -10,7 +10,7 @@ import (
 // - 'custom/nft/supply'
 // - 'custom/nft/collection'
 type QueryCollectionParams struct {
-	Denom string
+	Denom string `json:"denom"`
 }
 
 // NewQueryCollectionParams creates a new instance of QuerySupplyParams
@@ -42,8 +42,8 @@ func NewQueryBalanceParams(owner sdk.AccAddress, denom ...string) QueryBalancePa
 
 // QueryNFTParams params for query 'custom/nfts/nft'
 type QueryNFTParams struct {
-	Denom   string
-	TokenID string
+	Denom   string `json:"denom"`
+	TokenID string `json:"token_id"`
 }
 
 // NewQueryNFTParams creates a new instance of QueryNFTParams

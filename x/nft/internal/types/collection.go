@@ -184,7 +184,6 @@ func (collections Collections) MarshalJSON() ([]byte, error) {
 
 	for _, collection := range collections {
 		denom := collection.Denom
-		collection.Denom = ""
 		collectionJSON[denom] = collection
 	}
 

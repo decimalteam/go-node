@@ -20,10 +20,12 @@ type TokenOwner interface {
 	GetAddress() sdk.AccAddress
 	GetQuantity() sdk.Int
 	SetQuantity(quantity sdk.Int) TokenOwner
+	String() string
 }
 
 type TokenOwners interface {
 	GetOwners() []TokenOwner
 	SetOwner(owner TokenOwner) TokenOwners
 	GetOwner(owner sdk.AccAddress) TokenOwner
+	String() string
 }

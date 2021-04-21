@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -206,6 +207,10 @@ func (t TokenOwner) SetQuantity(quantity sdk.Int) exported.TokenOwner {
 	return t
 }
 
+func (t TokenOwner) String() string {
+	return fmt.Sprintf("%s %s", t.Address, t.Quantity)
+}
+
 // ----------------------------------------------------------------------------
 // TokenOwners
 
@@ -238,6 +243,35 @@ func (t TokenOwners) GetOwner(address sdk.AccAddress) exported.TokenOwner {
 		if owner.GetAddress().Equals(address) {
 			return owner
 		}
+	}
+	return nil
+}
+
+func (t TokenOwners) String() string {
+	if len(t.Owners) == 0 {
+		return ""
+	}
+
+	out := ""
+	for _, owner := range t.Owners {
+		out += fmt.Sprintf("%v\n", owner)
+	}
+	return out[:len(out)-1]
+}
+
+type TokenOwnersJSON struct {
+	Owners []TokenOwner `json:"owners"`
+}
+
+func (t *TokenOwners) UnmarshalJSON(b []byte) error {
+	var owners TokenOwnersJSON
+	err := json.Unmarshal(b, &owners)
+	if err != nil {
+		return err
+	}
+
+	for _, owner := range owners.Owners {
+		t.Owners = append(t.Owners, owner)
 	}
 	return nil
 }
