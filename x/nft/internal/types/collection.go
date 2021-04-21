@@ -57,12 +57,18 @@ func (collection Collection) AddNFT(nft exported.NFT) (Collection, error) {
 			return collection, sdkerrors.Wrap(ErrUnknownNFT,
 				fmt.Sprintf("NFT #%s doesn't exist on collection %s", nft.GetID(), collection.Denom))
 		}
-		owner := collNFT.GetOwners().GetOwner(collNFT.GetCreator())
+		ownerAddress := nft.GetOwners().GetOwners()[0].GetAddress()
+		quantity := nft.GetOwners().GetOwners()[0].GetQuantity()
+		owner := collNFT.GetOwners().GetOwner(ownerAddress)
 		if owner == nil {
-			return collection, ErrInvalidNFT
+			collNFT = collNFT.SetOwners(collNFT.GetOwners().SetOwner(TokenOwner{
+				Address:  ownerAddress,
+				Quantity: quantity,
+			}))
+		} else {
+			owner = owner.SetQuantity(owner.GetQuantity().Add(quantity))
+			collNFT = collNFT.SetOwners(collNFT.GetOwners().SetOwner(owner))
 		}
-		owner = owner.SetQuantity(owner.GetQuantity().Add(nft.GetOwners().GetOwner(nft.GetCreator()).GetQuantity()))
-		collNFT = collNFT.SetOwners(collNFT.GetOwners().SetOwner(owner))
 		collection.NFTs.Update(id, collNFT)
 	} else {
 		collection.NFTs = collection.NFTs.Append(nft)
