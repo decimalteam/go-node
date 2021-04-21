@@ -666,7 +666,7 @@ func TestMultipleUnbondingDelegationAtSameTime(t *testing.T) {
 	require.Len(t, ubd.Entries, 2)
 
 	// move forwaubd in time, should complete both ubds
-	ctx = ctx.WithBlockTime(ctx.BlockHeader().Time.Add(1 * time.Second))
+	ctx = ctx.WithBlockTime(ctx.BlockHeader().Time.Add(2 * time.Second))
 	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	ubd, found = keeper.GetUnbondingDelegation(ctx, selfDelAddr, valAddr)
