@@ -68,6 +68,8 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		}
 		err := k.CompleteUnbonding(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
 		if err != nil {
+			ctx.Logger().Error(err.Error())
+			continue
 			panic(fmt.Sprintf("error = %s. Delegator = %s, validator = %s", err.Error(), dvPair.DelegatorAddress, dvPair.ValidatorAddress))
 		}
 
