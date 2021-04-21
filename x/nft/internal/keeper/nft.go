@@ -17,12 +17,12 @@ func (k Keeper) IsNFT(ctx sdk.Context, denom, id string) (exists bool) {
 }
 
 // GetNFT gets the entire NFT metadata struct for a uint64
-func (k Keeper) GetNFT(ctx sdk.Context, denom, id string) (nft exported.NFT, err error) {
+func (k Keeper) GetNFT(ctx sdk.Context, denom, id string) (exported.NFT, error) {
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
 		return nil, sdkerrors.Wrap(types.ErrUnknownCollection, fmt.Sprintf("collection of %s doesn't exist", denom))
 	}
-	nft, err = collection.GetNFT(id)
+	nft, err := collection.GetNFT(id)
 
 	if err != nil {
 		return nil, err
@@ -31,7 +31,18 @@ func (k Keeper) GetNFT(ctx sdk.Context, denom, id string) (nft exported.NFT, err
 }
 
 // MintNFT mints an NFT and manages that NFTs existence within Collections and Owners
-func (k Keeper) MintNFT(ctx sdk.Context, denom string, nft exported.NFT) (err error) {
+func (k Keeper) MintNFT(ctx sdk.Context, denom string, nft exported.NFT) error {
+	err := k.ReserveTokens(ctx,
+		sdk.NewCoins(
+			sdk.NewCoin(
+				k.validatorKeeper.BondDenom(ctx),
+				nft.GetReserve().Mul(nft.GetOwners().GetOwners()[0].GetQuantity()), // reserve * quantity
+			)),
+		nft.GetCreator())
+	if err != nil {
+		return err
+	}
+
 	collection, found := k.GetCollection(ctx, denom)
 	if found {
 		collection, err = collection.AddNFT(nft)
@@ -46,11 +57,11 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom string, nft exported.NFT) (err er
 	ownerIDCollection, _ := k.GetOwnerByDenom(ctx, nft.GetCreator(), denom)
 	ownerIDCollection = ownerIDCollection.AddID(nft.GetID())
 	k.SetOwnerByDenom(ctx, nft.GetCreator(), denom, ownerIDCollection.IDs)
-	return
+	return err
 }
 
 // DeleteNFT deletes an existing NFT from store
-func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) (err error) {
+func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) error {
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrUnknownCollection, fmt.Sprintf("collection of %s doesn't exist", denom))
@@ -95,5 +106,11 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) (
 
 	k.SetCollection(ctx, denom, collection)
 
-	return
+	err = k.BurnTokens(ctx, sdk.NewCoins(
+		sdk.NewCoin(k.validatorKeeper.BondDenom(ctx), nft.GetReserve().Mul(quantity))))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

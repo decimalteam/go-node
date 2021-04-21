@@ -59,6 +59,7 @@ var (
 		validator.BondedPoolName:    {supply.Burner, supply.Staking},
 		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
 		swap.PoolName:               {supply.Minter, supply.Burner},
+		nft.ReservedPool:            {supply.Burner},
 	}
 )
 
@@ -216,7 +217,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.supplyKeeper,
 	)
 
-	app.nftKeeper = nft.NewKeeper(app.cdc, keys[nft.StoreKey])
+	app.nftKeeper = nft.NewKeeper(app.cdc, keys[nft.StoreKey], app.supplyKeeper, app.validatorKeeper)
 
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),

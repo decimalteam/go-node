@@ -17,6 +17,7 @@ const (
 	QueryCollection   = keeper.QueryCollection
 	QueryDenoms       = keeper.QueryDenoms
 	QueryNFT          = keeper.QueryNFT
+	ReservedPool      = types.ReservedPool
 	ModuleName        = types.ModuleName
 	StoreKey          = types.StoreKey
 	QuerierRoute      = types.QuerierRoute

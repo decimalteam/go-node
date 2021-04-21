@@ -17,12 +17,13 @@ var _ exported.NFT = (*BaseNFT)(nil)
 type BaseNFT struct {
 	ID       string               `json:"id,omitempty" yaml:"id"` // id of the token; not exported to clients
 	Owners   exported.TokenOwners `json:"owners" yaml:"owners"`   // account addresses that owns the NFT
-	Creator  sdk.AccAddress       `json:"creator"`
+	Creator  sdk.AccAddress       `json:"creator" yaml:"creator"`
 	TokenURI string               `json:"token_uri" yaml:"token_uri"` // optional extra properties available for querying
+	Reserve  sdk.Int              `json:"reserve" yaml:"reserve"`
 }
 
 // NewBaseNFT creates a new NFT instance
-func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity sdk.Int) BaseNFT {
+func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity, reserve sdk.Int) BaseNFT {
 	return BaseNFT{
 		ID: id,
 		Owners: &TokenOwners{Owners: []exported.TokenOwner{&TokenOwner{
@@ -31,6 +32,7 @@ func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quant
 		}}},
 		TokenURI: strings.TrimSpace(tokenURI),
 		Creator:  creator,
+		Reserve:  reserve,
 	}
 }
 
@@ -54,6 +56,10 @@ func (bnft BaseNFT) EditMetadata(tokenURI string) exported.NFT {
 func (bnft BaseNFT) SetOwners(owners exported.TokenOwners) exported.NFT {
 	bnft.Owners = owners
 	return bnft
+}
+
+func (bnft BaseNFT) GetReserve() sdk.Int {
+	return bnft.Reserve
 }
 
 func (bnft BaseNFT) String() string {

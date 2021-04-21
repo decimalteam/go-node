@@ -12,6 +12,7 @@ type NFT interface {
 	GetCreator() sdk.AccAddress
 	GetTokenURI() string
 	EditMetadata(tokenURI string) NFT
+	GetReserve() sdk.Int
 	String() string
 }
 
