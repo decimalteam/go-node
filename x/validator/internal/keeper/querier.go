@@ -182,7 +182,7 @@ func queryDelegatorUnbondingDelegations(ctx sdk.Context, req abci.RequestQuery, 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	unbondingDelegations := k.GetAllUnbondingDelegations(ctx, params.DelegatorAddr)
+	unbondingDelegations := k.GetUnbondingDelegationsByDelegator(ctx, params.DelegatorAddr)
 	if unbondingDelegations == nil {
 		unbondingDelegations = types.UnbondingDelegations{}
 	}

@@ -145,7 +145,7 @@ func TestUnbondingDelegation(t *testing.T) {
 	resUnbonds := keeper.GetUnbondingDelegations(ctx, addrDels[0], 5)
 	require.Equal(t, 1, len(resUnbonds))
 
-	resUnbonds = keeper.GetAllUnbondingDelegations(ctx, addrDels[0])
+	resUnbonds = keeper.GetUnbondingDelegationsByDelegator(ctx, addrDels[0])
 	require.Equal(t, 1, len(resUnbonds))
 
 	resUnbond, found = keeper.GetUnbondingDelegation(ctx, addrDels[0], addrVals[0])
@@ -160,7 +160,7 @@ func TestUnbondingDelegation(t *testing.T) {
 	resUnbonds = keeper.GetUnbondingDelegations(ctx, addrDels[0], 5)
 	require.Equal(t, 0, len(resUnbonds))
 
-	resUnbonds = keeper.GetAllUnbondingDelegations(ctx, addrDels[0])
+	resUnbonds = keeper.GetUnbondingDelegationsByDelegator(ctx, addrDels[0])
 	require.Equal(t, 0, len(resUnbonds))
 
 }
