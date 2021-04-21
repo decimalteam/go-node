@@ -52,6 +52,10 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 
 	height := ctx.BlockHeight()
 
+	if ctx.BlockHeight() == 250 {
+		SyncPools(ctx, k, supplyKeeper)
+	}
+
 	// Unbond all mature validators from the unbonding queue.
 	k.UnbondAllMatureValidatorQueue(ctx)
 
@@ -152,4 +156,38 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	return validatorUpdates
+}
+
+func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
+	bondedTokens, notBondedTokens := sdk.NewCoins(), sdk.NewCoins()
+
+	validators := k.GetAllValidators(ctx)
+	for _, val := range validators {
+		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
+		for _, delegation := range delegations {
+			if val.Status == Bonded {
+				bondedTokens = bondedTokens.Add(delegation.Coin)
+			} else {
+				notBondedTokens = notBondedTokens.Add(delegation.Coin)
+			}
+		}
+	}
+
+	bondedPool := supplyKeeper.GetModuleAccount(ctx, BondedPoolName)
+
+	err := bondedPool.SetCoins(bondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, bondedPool)
+
+	notBondedPool := supplyKeeper.GetModuleAccount(ctx, NotBondedPoolName)
+
+	err = notBondedPool.SetCoins(notBondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
 }
