@@ -52,7 +52,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 
 	height := ctx.BlockHeight()
 
-	if ctx.BlockHeight() == 250 {
+	if ctx.BlockHeight() == 16030 {
 		SyncPools(ctx, k, supplyKeeper)
 	}
 
