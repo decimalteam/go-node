@@ -56,7 +56,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		SyncPools(ctx, k, supplyKeeper)
 	}
 
-	if ctx.BlockHeight() == 16350 {
+	if ctx.BlockHeight() == 16860 {
 		SyncPools2(ctx, k, supplyKeeper)
 		SyncUnbondingDelegations(ctx, k)
 	}
