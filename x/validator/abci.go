@@ -285,5 +285,18 @@ func SyncUnbondingDelegations(ctx sdk.Context, k Keeper) {
 		if err != nil {
 			panic(err)
 		}
+
+		for _, entry := range delegation.Entries {
+			if entry.IsMature(ctx.BlockTime()) {
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EventTypeCompleteUnbonding,
+						sdk.NewAttribute(types.AttributeKeyValidator, delegation.ValidatorAddress.String()),
+						sdk.NewAttribute(types.AttributeKeyDelegator, delegation.DelegatorAddress.String()),
+						sdk.NewAttribute(types.AttributeKeyCoin, entry.Balance.String()),
+					),
+				)
+			}
+		}
 	}
 }
