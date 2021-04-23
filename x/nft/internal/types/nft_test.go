@@ -1,5 +1,12 @@
 package types
 
+import (
+	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+	"testing"
+)
+
 /*
 import (
 	"fmt"
@@ -183,26 +190,27 @@ func TestNFTsEmptyMethod(t *testing.T) {
 	nfts = NewNFTs(&testNFT)
 	require.False(t, nfts.Empty())
 }
-
+*/
 func TestNFTsMarshalUnmarshalJSON(t *testing.T) {
 	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	nfts := NewNFTs(testNFT)
 	bz, err := nfts.MarshalJSON()
 	require.NoError(t, err)
 	require.Equal(t, string(bz),
 		fmt.Sprintf(`{"%s":{"id":"%s","owners":{"owners":[{"address":"%s","quantity":"1"}]},"creator":"%s","token_uri":"%s","reserve":"1"}}`,
 			id, id, address.String(), address.String(), tokenURI))
 
-	var unmarshaledNFTs NFTs
-	err = unmarshaledNFTs.UnmarshalJSON(bz)
+	var unmarshalledNFTs NFTs
+	err = unmarshalledNFTs.UnmarshalJSON(bz)
 	require.NoError(t, err)
-	require.Equal(t, unmarshaledNFTs.String(), nfts.String())
+	require.Equal(t, unmarshalledNFTs.String(), nfts.String())
 
 	bz = []byte{}
-	err = unmarshaledNFTs.UnmarshalJSON(bz)
+	err = unmarshalledNFTs.UnmarshalJSON(bz)
 	require.Error(t, err)
 }
 
+/*
 
 func TestNFTsSortInterface(t *testing.T) {
 	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))

@@ -187,8 +187,8 @@ type TokenOwner struct {
 	Quantity sdk.Int        `json:"quantity"`
 }
 
-func NewTokenOwner(address sdk.AccAddress, quantity sdk.Int) *TokenOwner {
-	return &TokenOwner{
+func NewTokenOwner(address sdk.AccAddress, quantity sdk.Int) TokenOwner {
+	return TokenOwner{
 		Address:  address,
 		Quantity: quantity,
 	}

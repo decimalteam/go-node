@@ -23,8 +23,8 @@ type BaseNFT struct {
 }
 
 // NewBaseNFT creates a new NFT instance
-func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity, reserve sdk.Int) BaseNFT {
-	return BaseNFT{
+func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity, reserve sdk.Int) *BaseNFT {
+	return &BaseNFT{
 		ID: id,
 		Owners: &TokenOwners{Owners: []exported.TokenOwner{&TokenOwner{
 			Address:  owner,
@@ -87,7 +87,7 @@ type BaseNFTJSON struct {
 func (bnft BaseNFT) MarshalJSON() ([]byte, error) {
 	b := BaseNFTJSON{
 		ID:       bnft.ID,
-		Owners:   bnft.Owners.(TokenOwners),
+		Owners:   *bnft.Owners.(*TokenOwners),
 		Creator:  bnft.Creator,
 		TokenURI: bnft.TokenURI,
 		Reserve:  bnft.Reserve,
@@ -106,7 +106,7 @@ func (bnft *BaseNFT) UnmarshalJSON(b []byte) error {
 	bnft.TokenURI = nft.TokenURI
 	bnft.Creator = nft.Creator
 	bnft.Reserve = nft.Reserve
-	bnft.Owners = nft.Owners
+	bnft.Owners = &nft.Owners
 	return nil
 }
 

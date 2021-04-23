@@ -166,6 +166,8 @@ $ %s query %s collection crypto-kitties
 				return err
 			}
 
+			fmt.Printf("%T", out[0].NFTs[0])
+
 			return cliCtx.PrintOutput(out)
 		},
 	}
