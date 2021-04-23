@@ -2,7 +2,7 @@
 
 # Add initial signed transactions to the genesis file
 decd gen-declare-candidate-tx \
-    --chain-id decimal-devnet-04-20-19-30 \
+    --chain-id decimal-devnet-04-23-11-30 \
     --name dev-node-fra1-01 \
     --sequence 0 \
     --amount 40000000000000000000000000del \
@@ -11,11 +11,11 @@ decd gen-declare-candidate-tx \
     --details "Declaring validator on dev-node-fra1-01" \
     --website decimalchain.com \
     --node-id 8a2cc38f5264e9699abb8db91c9b4a4a061f000d \
-    --keyring-backend test
+    --keyring-backend test | jq '.value.signatures[0].signature'
 
 # Add initial signed transactions to the genesis file
 decd gen-declare-candidate-tx \
-    --chain-id decimal-devnet-04-20-19-30 \
+    --chain-id decimal-devnet-04-23-11-30 \
     --name dev-node-fra1-02 \
     --sequence 0 \
     --amount 40000000000000000000000000del \
@@ -24,11 +24,11 @@ decd gen-declare-candidate-tx \
     --details "Declaring validator on dev-node-fra1-02" \
     --website decimalchain.com \
     --node-id e0e7a88de0b39bd2adceb3516d353582ff94ec15 \
-    --keyring-backend test
+    --keyring-backend test | jq '.value.signatures[0].signature'
 
 # Add initial signed transactions to the genesis file
 decd gen-declare-candidate-tx \
-    --chain-id decimal-devnet-04-20-19-30 \
+    --chain-id decimal-devnet-04-23-11-30 \
     --name dev-node-tor1-01 \
     --sequence 0 \
     --amount 40000000000000000000000000del \
@@ -37,4 +37,4 @@ decd gen-declare-candidate-tx \
     --details "Declaring validator on dev-node-tor1-01" \
     --website decimalchain.com \
     --node-id 27fcfef145b3717c5d639ec72fb12f9c43da98f0 \
-    --keyring-backend test
+    --keyring-backend test | jq '.value.signatures[0].signature'
