@@ -130,7 +130,7 @@ $ %s tx %s edit-metadata crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd42
 // GetCmdMintNFT is the CLI command for a MintNFT transaction
 func GetCmdMintNFT(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mint [denom] [tokenID] [recipient] [quantity] [reserve]",
+		Use:   "mint [denom] [tokenID] [recipient] [quantity] [reserve] [allow_mint]",
 		Short: "mint an NFT and set the owner to the recipient",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Mint an NFT from a given collection that has a 
@@ -143,7 +143,7 @@ dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 				version.ClientName, types.ModuleName,
 			),
 		),
-		Args: cobra.ExactArgs(5),
+		Args: cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -169,7 +169,12 @@ dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 				return errors.New("invalid quantity")
 			}
 
-			msg := types.NewMsgMintNFT(cliCtx.GetFromAddress(), recipient, tokenID, denom, tokenURI, quantity, reserve)
+			var allowMint bool
+			if args[5] == "t" {
+				allowMint = true
+			}
+
+			msg := types.NewMsgMintNFT(cliCtx.GetFromAddress(), recipient, tokenID, denom, tokenURI, quantity, reserve, allowMint)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

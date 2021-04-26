@@ -15,24 +15,26 @@ var _ exported.NFT = (*BaseNFT)(nil)
 
 // BaseNFT non fungible token definition
 type BaseNFT struct {
-	ID       string               `json:"id,omitempty" yaml:"id"` // id of the token; not exported to clients
-	Owners   exported.TokenOwners `json:"owners" yaml:"owners"`   // account addresses that owns the NFT
-	Creator  sdk.AccAddress       `json:"creator" yaml:"creator"`
-	TokenURI string               `json:"token_uri" yaml:"token_uri"` // optional extra properties available for querying
-	Reserve  sdk.Int              `json:"reserve" yaml:"reserve"`
+	ID        string               `json:"id,omitempty" yaml:"id"` // id of the token; not exported to clients
+	Owners    exported.TokenOwners `json:"owners" yaml:"owners"`   // account addresses that owns the NFT
+	Creator   sdk.AccAddress       `json:"creator" yaml:"creator"`
+	TokenURI  string               `json:"token_uri" yaml:"token_uri"` // optional extra properties available for querying
+	Reserve   sdk.Int              `json:"reserve" yaml:"reserve"`
+	AllowMint bool                 `json:"allow_mint" yaml:"allow_mint"`
 }
 
 // NewBaseNFT creates a new NFT instance
-func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity, reserve sdk.Int) *BaseNFT {
+func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity, reserve sdk.Int, allowMint bool) *BaseNFT {
 	return &BaseNFT{
 		ID: id,
 		Owners: &TokenOwners{Owners: []exported.TokenOwner{&TokenOwner{
 			Address:  owner,
 			Quantity: quantity,
 		}}},
-		TokenURI: strings.TrimSpace(tokenURI),
-		Creator:  creator,
-		Reserve:  reserve,
+		TokenURI:  strings.TrimSpace(tokenURI),
+		Creator:   creator,
+		Reserve:   reserve,
+		AllowMint: allowMint,
 	}
 }
 
@@ -62,6 +64,10 @@ func (bnft BaseNFT) GetReserve() sdk.Int {
 	return bnft.Reserve
 }
 
+func (bnft BaseNFT) GetAllowMint() bool {
+	return bnft.AllowMint
+}
+
 func (bnft BaseNFT) String() string {
 	return fmt.Sprintf(`ID:				%s
 Owners:			%s
@@ -77,20 +83,22 @@ TokenURI:		%s`,
 
 // NFTJSON is the exported NFT format for clients
 type BaseNFTJSON struct {
-	ID       string         `json:"id,omitempty" yaml:"id"` // id of the token; not exported to clients
-	Owners   TokenOwners    `json:"owners" yaml:"owners"`   // account addresses that owns the NFT
-	Creator  sdk.AccAddress `json:"creator" yaml:"creator"`
-	TokenURI string         `json:"token_uri" yaml:"token_uri"` // optional extra properties available for querying
-	Reserve  sdk.Int        `json:"reserve" yaml:"reserve"`
+	ID        string         `json:"id,omitempty" yaml:"id"` // id of the token; not exported to clients
+	Owners    TokenOwners    `json:"owners" yaml:"owners"`   // account addresses that owns the NFT
+	Creator   sdk.AccAddress `json:"creator" yaml:"creator"`
+	TokenURI  string         `json:"token_uri" yaml:"token_uri"` // optional extra properties available for querying
+	Reserve   sdk.Int        `json:"reserve" yaml:"reserve"`
+	AllowMint bool           `json:"allow_mint" yaml:"allow_mint"`
 }
 
 func (bnft BaseNFT) MarshalJSON() ([]byte, error) {
 	b := BaseNFTJSON{
-		ID:       bnft.ID,
-		Owners:   *bnft.Owners.(*TokenOwners),
-		Creator:  bnft.Creator,
-		TokenURI: bnft.TokenURI,
-		Reserve:  bnft.Reserve,
+		ID:        bnft.ID,
+		Owners:    *bnft.Owners.(*TokenOwners),
+		Creator:   bnft.Creator,
+		TokenURI:  bnft.TokenURI,
+		Reserve:   bnft.Reserve,
+		AllowMint: bnft.AllowMint,
 	}
 	return json.Marshal(b)
 }
@@ -107,6 +115,7 @@ func (bnft *BaseNFT) UnmarshalJSON(b []byte) error {
 	bnft.Creator = nft.Creator
 	bnft.Reserve = nft.Reserve
 	bnft.Owners = &nft.Owners
+	bnft.AllowMint = nft.AllowMint
 	return nil
 }
 
@@ -126,6 +135,9 @@ func TransferNFT(nft exported.NFT, sender, recipient sdk.AccAddress, quantity sd
 	}
 
 	recipientOwner = recipientOwner.SetQuantity(recipientOwner.GetQuantity().Add(quantity))
+
+	nft = nft.SetOwners(nft.GetOwners().SetOwner(senderOwner))
+	nft = nft.SetOwners(nft.GetOwners().SetOwner(recipientOwner))
 
 	return nft, nil
 }

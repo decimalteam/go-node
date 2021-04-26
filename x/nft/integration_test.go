@@ -34,7 +34,7 @@ func createTestApp(isCheckTx bool) (*simapp.SimApp, sdk.Context) {
 
 	return app, ctx
 }
-
+/*
 // CheckInvariants checks the invariants
 func CheckInvariants(k nft.Keeper, ctx sdk.Context) bool {
 	collectionsSupply := make(map[string]int)

@@ -18,10 +18,11 @@ type MsgMintNFT struct {
 	Quantity  sdk.Int        `json:"quantity"`
 	TokenURI  string         `json:"token_uri"`
 	Reserve   sdk.Int        `json:"reserve"`
+	AllowMint bool           `json:"allow_mint"`
 }
 
 // NewMsgMintNFT is a constructor function for MsgMintNFT
-func NewMsgMintNFT(sender, recipient sdk.AccAddress, id, denom, tokenURI string, quantity, reserve sdk.Int) MsgMintNFT {
+func NewMsgMintNFT(sender, recipient sdk.AccAddress, id, denom, tokenURI string, quantity, reserve sdk.Int, allowMint bool) MsgMintNFT {
 	return MsgMintNFT{
 		Sender:    sender,
 		Recipient: recipient,
@@ -30,6 +31,7 @@ func NewMsgMintNFT(sender, recipient sdk.AccAddress, id, denom, tokenURI string,
 		TokenURI:  strings.TrimSpace(tokenURI),
 		Quantity:  quantity,
 		Reserve:   reserve,
+		AllowMint: allowMint,
 	}
 }
 

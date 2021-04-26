@@ -105,8 +105,11 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 		if !nft.GetCreator().Equals(msg.Sender) {
 			return nil, ErrNotAllowedMint
 		}
+		if !nft.GetAllowMint() {
+			return nil, ErrNotAllowedMint
+		}
 	}
-	nft = types.NewBaseNFT(msg.ID, msg.Sender, msg.Recipient, msg.TokenURI, msg.Quantity, msg.Reserve)
+	nft = types.NewBaseNFT(msg.ID, msg.Sender, msg.Recipient, msg.TokenURI, msg.Quantity, msg.Reserve, msg.AllowMint)
 	err = k.MintNFT(ctx, msg.Denom, nft)
 	if err != nil {
 		return nil, err

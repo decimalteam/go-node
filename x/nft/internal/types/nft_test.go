@@ -192,12 +192,12 @@ func TestNFTsEmptyMethod(t *testing.T) {
 }
 */
 func TestNFTsMarshalUnmarshalJSON(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(1))
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(1), true)
 	nfts := NewNFTs(testNFT)
 	bz, err := nfts.MarshalJSON()
 	require.NoError(t, err)
 	require.Equal(t, string(bz),
-		fmt.Sprintf(`{"%s":{"id":"%s","owners":{"owners":[{"address":"%s","quantity":"1"}]},"creator":"%s","token_uri":"%s","reserve":"1"}}`,
+		fmt.Sprintf(`{"%s":{"id":"%s","owners":{"owners":[{"address":"%s","quantity":"1"}]},"creator":"%s","token_uri":"%s","reserve":"1","allow_mint":true}}`,
 			id, id, address.String(), address.String(), tokenURI))
 
 	var unmarshalledNFTs NFTs
