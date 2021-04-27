@@ -7,3 +7,4 @@ const Update4Block = 227000
 const Update5Block = 227000
 const Update6Block = 1_028_527
 const Update7Block = 1_475_250
+const Update8Block = 2_245_897

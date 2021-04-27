@@ -383,6 +383,16 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 				commissionInBaseCoin.String())
 		}
 
+		feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
+
+		if ctx.BlockHeight() >= updates.Update5Block {
+			if coinInfo.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
+				return ctx, fmt.Errorf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
+					coinInfo.Reserve.String(),
+					feeInBaseCoin.String())
+			}
+		}
+
 		if ctx.BlockHeight() < updates.Update1Block {
 			feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
 		} else {
