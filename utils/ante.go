@@ -323,12 +323,10 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		if len(msgs) == 1 {
 			if msgs[0].Type() == validator.DelegateConst {
 				stdTx.Fee.Gas = helpers.PipToUnit(commissionInBaseCoin).Uint64() * 10
-				//tx = stdTx
 				ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
 				ctx.GasMeter().ConsumeGas(helpers.PipToUnit(commissionInBaseCoin).Uint64()*10, "commission")
 			} else {
 				stdTx.Fee.Gas = helpers.PipToUnit(commissionInBaseCoin).Uint64()
-				//tx = stdTx
 				ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
 				ctx.GasMeter().ConsumeGas(helpers.PipToUnit(commissionInBaseCoin).Uint64(), "commission")
 			}
@@ -353,6 +351,13 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		}
 
 		feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
+
+		if coinInfo.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
+			return ctx, fmt.Errorf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
+				coinInfo.Reserve.String(),
+				feeInBaseCoin.String())
+		}
+
 	} else {
 		feeInBaseCoin = f.Amount
 	}
@@ -369,12 +374,10 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	}
 	if msgs[0].Type() == validator.DelegateConst {
 		stdTx.Fee.Gas = helpers.PipToUnit(feeInBaseCoin).Uint64() * 10
-		//tx = stdTx
 		ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
 		ctx.GasMeter().ConsumeGas(helpers.PipToUnit(feeInBaseCoin).Uint64()*10, "commission")
 	} else {
 		stdTx.Fee.Gas = helpers.PipToUnit(feeInBaseCoin).Uint64()
-		//tx = stdTx
 		ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
 		ctx.GasMeter().ConsumeGas(helpers.PipToUnit(feeInBaseCoin).Uint64(), "commission")
 	}
