@@ -27,6 +27,7 @@ const (
 	SetOfflineConst       = types.SetOfflineConst
 	UnbondConst           = types.UnbondConst
 	EditCandidateConst    = types.EditCandidateConst
+	RecoveredConst        = types.RecoverAddressConst
 
 	DAOAddress1 = keeper.DAOAddress1
 	DAOAddress2 = keeper.DAOAddress2

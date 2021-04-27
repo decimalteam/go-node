@@ -212,6 +212,7 @@ func NewFeeDecorator(ck coin.Keeper, sk supply.Keeper, ak auth.AccountKeeper, vk
 }
 
 const (
+	recoverAddress      = 0
 	declareCandidateFee = 10000
 	editCandidateFee    = 10000
 	delegateFee         = 200
@@ -272,6 +273,8 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		case validator.UnbondConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(unbondFee)
 		case validator.EditCandidateConst:
+			commissionInBaseCoin = commissionInBaseCoin.AddRaw(editCandidateFee)
+		case validator.RecoveredConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(editCandidateFee)
 		case coin.SendCoinConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(sendFee)

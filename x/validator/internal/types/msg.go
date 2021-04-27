@@ -232,3 +232,35 @@ func (msg MsgEditCandidate) ValidateBasic() error {
 	}
 	return nil
 }
+
+// -----------------------------------------------------------------------------------------
+
+type MsgRecoverAddress struct {
+	RecoveredAddress sdk.AccAddress `json:"recovered_address"`
+}
+
+func NewMsgRecoveredAddress(recoveredAddress sdk.AccAddress) MsgRecoverAddress {
+	return MsgRecoverAddress{
+		RecoveredAddress: recoveredAddress,
+	}
+}
+
+const RecoverAddressConst = "recover_address"
+
+func (msg MsgRecoverAddress) Route() string { return RouterKey }
+func (msg MsgRecoverAddress) Type() string  { return RecoverAddressConst }
+func (msg MsgRecoverAddress) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.RecoveredAddress}
+}
+
+func (msg MsgRecoverAddress) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg MsgRecoverAddress) ValidateBasic() error {
+	if msg.RecoveredAddress.Empty() {
+		return ErrEmptyValidatorAddr()
+	}
+	return nil
+}
