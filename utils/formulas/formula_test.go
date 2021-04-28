@@ -33,3 +33,23 @@ func BenchmarkCalculateSaleReturn(b *testing.B) {
 	}
 	fmt.Println(res)
 }
+
+func TestCalculateSaleAmount(t *testing.T) {
+	supply, _ := sdk.NewIntFromString("1030421762542736433327868")
+	reserve, _ := sdk.NewIntFromString("1044216001082372924902")
+	amount, _ := sdk.NewIntFromString("1000000000000000000")
+
+	result := CalculateSaleAmount(supply, reserve, 50, amount)
+
+	t.Log(result)
+}
+
+func TestCalculateSaleReturn2(t *testing.T) {
+	supply, _ := sdk.NewIntFromString("1030421762542736433327868")
+	reserve, _ := sdk.NewIntFromString("1044216001082372924902")
+	amount, _ := sdk.NewIntFromString("3380759108999599642")
+
+	result := CalculateSaleReturn(supply, reserve, 50, amount)
+
+	t.Log(result)
+}

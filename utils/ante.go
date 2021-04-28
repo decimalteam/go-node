@@ -345,17 +345,17 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		}
 
 		if coinInfo.Reserve.LT(commissionInBaseCoin) {
-			return ctx, fmt.Errorf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, fmt.Sprintf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
 				coinInfo.Reserve.String(),
-				commissionInBaseCoin.String())
+				commissionInBaseCoin.String()))
 		}
 
 		feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
 
 		if coinInfo.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
-			return ctx, fmt.Errorf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, fmt.Sprintf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
 				coinInfo.Reserve.String(),
-				feeInBaseCoin.String())
+				feeInBaseCoin.String()))
 		}
 
 	} else {
