@@ -378,25 +378,23 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		}
 
 		if coinInfo.Reserve.LT(commissionInBaseCoin) {
-			return ctx, fmt.Errorf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, fmt.Sprintf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
 				coinInfo.Reserve.String(),
-				commissionInBaseCoin.String())
+				commissionInBaseCoin.String()))
 		}
 
 		feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
-
-		if ctx.BlockHeight() >= updates.Update5Block {
-			if coinInfo.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
-				return ctx, fmt.Errorf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
-					coinInfo.Reserve.String(),
-					feeInBaseCoin.String())
-			}
-		}
 
 		if ctx.BlockHeight() < updates.Update1Block {
 			feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
 		} else {
 			feeInBaseCoin = formulas.CalculateSaleReturn(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
+		}
+
+		if coinInfo.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, fmt.Sprintf("coin reserve balance is not sufficient for transaction. Has: %s, fee: %s",
+				coinInfo.Reserve.String(),
+				feeInBaseCoin.String()))
 		}
 	} else {
 		feeInBaseCoin = f.Amount
@@ -440,8 +438,8 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 
 	if ctx.BlockHeight() >= updates.Update1Block {
 		if !coinKeeper.IsCoinBase(fee.Denom) {
-			if feeCoin.Reserve.Sub(fee.Amount).LT(coin.MinCoinReserve(ctx)) {
-				return coin.ErrTxBreaksMinReserveRule(ctx, feeCoin.Reserve.Sub(fee.Amount).String())
+			if feeCoin.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
+				return coin.ErrTxBreaksMinReserveRule(ctx, feeCoin.Reserve.Sub(feeInBaseCoin).String())
 			}
 		}
 	}
