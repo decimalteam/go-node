@@ -10,6 +10,7 @@ import (
 type DelegationI interface {
 	GetDelegatorAddr() sdk.AccAddress // delegator sdk.AccAddress for the bond
 	GetValidatorAddr() sdk.ValAddress // validator operator address
+	GetCoin() sdk.Coin
 }
 
 // ValidatorI expected validator functions

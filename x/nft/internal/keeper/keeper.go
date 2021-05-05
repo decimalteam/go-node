@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
@@ -20,17 +19,18 @@ type Keeper struct {
 
 	cdc *codec.Codec // The amino codec for binary encoding/decoding.
 
-	supplyKeeper    supply.Keeper
-	validatorKeeper validator.Keeper
+	supplyKeeper supply.Keeper
+
+	baseDenom string
 }
 
 // NewKeeper creates new instances of the nft Keeper
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, supplyKeeper supply.Keeper, validatorKeeper validator.Keeper) Keeper {
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, supplyKeeper supply.Keeper, baseDenom string) Keeper {
 	return Keeper{
-		storeKey:        storeKey,
-		cdc:             cdc,
-		supplyKeeper:    supplyKeeper,
-		validatorKeeper: validatorKeeper,
+		storeKey:     storeKey,
+		cdc:          cdc,
+		supplyKeeper: supplyKeeper,
+		baseDenom:    baseDenom,
 	}
 }
 

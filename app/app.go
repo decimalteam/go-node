@@ -186,6 +186,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.bankKeeper,
 	)
 
+	app.nftKeeper = nft.NewKeeper(app.cdc, keys[nft.StoreKey], app.supplyKeeper, validator.DefaultBondDenom)
+
 	app.validatorKeeper = validator.NewKeeper(
 		app.cdc,
 		keys[validator.StoreKey],
@@ -194,6 +196,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.accountKeeper,
 		app.supplyKeeper,
 		app.multisigKeeper,
+		app.nftKeeper,
 		auth.FeeCollectorName,
 	)
 
@@ -216,8 +219,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.accountKeeper,
 		app.supplyKeeper,
 	)
-
-	app.nftKeeper = nft.NewKeeper(app.cdc, keys[nft.StoreKey], app.supplyKeeper, app.validatorKeeper)
 
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),

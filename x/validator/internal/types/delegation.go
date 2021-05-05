@@ -75,6 +75,7 @@ func (d Delegation) Equal(d2 Delegation) bool {
 // nolint - for Delegation
 func (d Delegation) GetDelegatorAddr() sdk.AccAddress { return d.DelegatorAddress }
 func (d Delegation) GetValidatorAddr() sdk.ValAddress { return d.ValidatorAddress }
+func (d Delegation) GetCoin() sdk.Coin                { return d.Coin }
 
 // String returns a human readable string representation of a Delegation.
 func (d Delegation) String() string {

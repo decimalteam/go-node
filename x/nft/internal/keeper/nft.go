@@ -35,7 +35,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom string, nft exported.NFT) error {
 	err := k.ReserveTokens(ctx,
 		sdk.NewCoins(
 			sdk.NewCoin(
-				k.validatorKeeper.BondDenom(ctx),
+				k.baseDenom,
 				nft.GetReserve().Mul(nft.GetOwners().GetOwners()[0].GetQuantity()), // reserve * quantity
 			)),
 		nft.GetCreator())
@@ -107,7 +107,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) e
 	k.SetCollection(ctx, denom, collection)
 
 	err = k.BurnTokens(ctx, sdk.NewCoins(
-		sdk.NewCoin(k.validatorKeeper.BondDenom(ctx), nft.GetReserve().Mul(quantity))))
+		sdk.NewCoin(k.baseDenom, nft.GetReserve().Mul(quantity))))
 	if err != nil {
 		return err
 	}
