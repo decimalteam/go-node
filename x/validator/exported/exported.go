@@ -1,7 +1,6 @@
 package exported
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -11,13 +10,14 @@ type DelegationI interface {
 	GetDelegatorAddr() sdk.AccAddress // delegator sdk.AccAddress for the bond
 	GetValidatorAddr() sdk.ValAddress // validator operator address
 	GetCoin() sdk.Coin
+	GetTokensBase() sdk.Int
+	SetTokensBase(sdk.Int) DelegationI
 }
 
 // ValidatorI expected validator functions
 type ValidatorI interface {
 	IsJailed() bool               // whether the validator is jailed
 	GetMoniker() string           // moniker of the validator
-	GetStatus() types.BondStatus  // status of the validator
 	IsBonded() bool               // check if has a bonded status
 	IsUnbonded() bool             // check if has status unbonded
 	IsUnbonding() bool            // check if has status unbonding

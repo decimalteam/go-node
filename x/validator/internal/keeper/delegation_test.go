@@ -60,21 +60,21 @@ func TestDelegation(t *testing.T) {
 	keeper.SetDelegation(ctx, bond2to3)
 
 	// test all bond retrieve capabilities
-	resBonds := keeper.GetDelegatorDelegations(ctx, addrDels[0], 5)
+	resBonds := types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[0], 5))
 	require.Equal(t, 3, len(resBonds))
 	require.True(t, bond1to1.Equal(resBonds[0]))
 	require.True(t, bond1to2.Equal(resBonds[1]))
 	require.True(t, bond1to3.Equal(resBonds[2]))
-	resBonds = keeper.GetAllDelegatorDelegations(ctx, addrDels[0])
+	resBonds = types.GetBaseDelegations(keeper.GetAllDelegatorDelegations(ctx, addrDels[0]))
 	require.Equal(t, 3, len(resBonds))
-	resBonds = keeper.GetDelegatorDelegations(ctx, addrDels[0], 2)
+	resBonds = types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[0], 2))
 	require.Equal(t, 2, len(resBonds))
-	resBonds = keeper.GetDelegatorDelegations(ctx, addrDels[1], 5)
+	resBonds = types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[1], 5))
 	require.Equal(t, 3, len(resBonds))
 	require.True(t, bond2to1.Equal(resBonds[0]))
 	require.True(t, bond2to2.Equal(resBonds[1]))
 	require.True(t, bond2to3.Equal(resBonds[2]))
-	allBonds := keeper.GetAllDelegations(ctx)
+	allBonds := types.GetBaseDelegations(keeper.GetAllDelegations(ctx))
 	require.Equal(t, 9, len(allBonds))
 	require.True(t, bond1to1.Equal(allBonds[0]))
 	require.True(t, bond1to2.Equal(allBonds[1]))
@@ -106,12 +106,12 @@ func TestDelegation(t *testing.T) {
 	keeper.RemoveDelegation(ctx, bond2to3)
 	_, found = keeper.GetDelegation(ctx, addrDels[1], addrVals[2], keeper.BondDenom(ctx))
 	require.False(t, found)
-	resBonds = keeper.GetDelegatorDelegations(ctx, addrDels[1], 5)
+	resBonds = types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[1], 5))
 	require.Equal(t, 2, len(resBonds))
 	require.True(t, bond2to1.Equal(resBonds[0]))
 	require.True(t, bond2to2.Equal(resBonds[1]))
 
-	resBonds = keeper.GetAllDelegatorDelegations(ctx, addrDels[1])
+	resBonds = types.GetBaseDelegations(keeper.GetAllDelegatorDelegations(ctx, addrDels[1]))
 	require.Equal(t, 2, len(resBonds))
 
 	// delete all the records from delegator 2
@@ -121,7 +121,7 @@ func TestDelegation(t *testing.T) {
 	require.False(t, found)
 	_, found = keeper.GetDelegation(ctx, addrDels[1], addrVals[1], keeper.BondDenom(ctx))
 	require.False(t, found)
-	resBonds = keeper.GetDelegatorDelegations(ctx, addrDels[1], 5)
+	resBonds = types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[1], 5))
 	require.Equal(t, 0, len(resBonds))
 }
 

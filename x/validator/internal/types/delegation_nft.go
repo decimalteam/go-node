@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -44,6 +45,10 @@ func UnmarshalDelegationNFT(cdc *codec.Codec, value []byte) (delegation Delegati
 	return delegation, err
 }
 
-func (d DelegationNFT) GetDelegatorAddr() sdk.AccAddress { return d.DelegatorAddress }
-func (d DelegationNFT) GetValidatorAddr() sdk.ValAddress { return d.ValidatorAddress }
-func (d DelegationNFT) GetCoin() sdk.Coin                { return d.Coin }
+func (d DelegationNFT) GetDelegatorAddr() sdk.AccAddress             { return d.DelegatorAddress }
+func (d DelegationNFT) GetValidatorAddr() sdk.ValAddress             { return d.ValidatorAddress }
+func (d DelegationNFT) GetCoin() sdk.Coin                            { return d.Coin }
+func (d DelegationNFT) GetTokensBase() sdk.Int                       { return d.Coin.Amount }
+func (d DelegationNFT) SetTokensBase(_ sdk.Int) exported.DelegationI { return d }
+
+type DelegationsNFT []DelegationNFT

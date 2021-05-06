@@ -89,4 +89,6 @@ type (
 	Validator = types.Validator
 
 	Description = types.Description
+
+	BondStatus = types.BondStatus
 )

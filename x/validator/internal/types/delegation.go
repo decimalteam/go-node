@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -76,6 +77,11 @@ func (d Delegation) Equal(d2 Delegation) bool {
 func (d Delegation) GetDelegatorAddr() sdk.AccAddress { return d.DelegatorAddress }
 func (d Delegation) GetValidatorAddr() sdk.ValAddress { return d.ValidatorAddress }
 func (d Delegation) GetCoin() sdk.Coin                { return d.Coin }
+func (d Delegation) GetTokensBase() sdk.Int           { return d.TokensBase }
+func (d Delegation) SetTokensBase(tokensBase sdk.Int) exported.DelegationI {
+	d.TokensBase = tokensBase
+	return d
+}
 
 // String returns a human readable string representation of a Delegation.
 func (d Delegation) String() string {
@@ -95,6 +101,17 @@ func (d Delegations) String() (out string) {
 		out += del.String() + "\n"
 	}
 	return strings.TrimSpace(out)
+}
+
+func GetBaseDelegations(delegations []exported.DelegationI) Delegations {
+	var dels Delegations
+	for _, delegation := range delegations {
+		switch delegation := delegation.(type) {
+		case Delegation:
+			dels = append(dels, delegation)
+		}
+	}
+	return dels
 }
 
 // UnbondingDelegation stores all of a single delegator's unbonding bonds

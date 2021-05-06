@@ -154,6 +154,18 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 	lastTotalPower := keeper.GetLastTotalPower(ctx)
 	validators := keeper.GetAllValidators(ctx)
 	delegations := keeper.GetAllDelegations(ctx)
+
+	var baseDelegations types.Delegations
+	var delegationsNFT types.DelegationsNFT
+	for _, delegation := range delegations {
+		switch delegation := delegation.(type) {
+		case types.Delegation:
+			baseDelegations = append(baseDelegations, delegation)
+		case types.DelegationNFT:
+			delegationsNFT = append(delegationsNFT, delegation)
+		}
+	}
+
 	var unbondingDelegations []types.UnbondingDelegation
 	keeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd types.UnbondingDelegation) (stop bool) {
 		unbondingDelegations = append(unbondingDelegations, ubd)
@@ -170,7 +182,8 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 		LastTotalPower:       lastTotalPower,
 		LastValidatorPowers:  lastValidatorPowers,
 		Validators:           validators,
-		Delegations:          delegations,
+		Delegations:          baseDelegations,
+		DelegationsNFT:       delegationsNFT,
 		UnbondingDelegations: unbondingDelegations,
 		Exported:             true,
 	}

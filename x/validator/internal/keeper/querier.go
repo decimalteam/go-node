@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"errors"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -341,15 +342,15 @@ func queryParameters(ctx sdk.Context, k Keeper) ([]byte, error) {
 //______________________________________________________
 // util
 
-func delegationToDelegationResponse(del types.Delegation) (types.DelegationResponse, error) {
+func delegationToDelegationResponse(del exported.DelegationI) (types.DelegationResponse, error) {
 	return types.NewDelegationResp(
-		del.DelegatorAddress,
-		del.ValidatorAddress,
-		del.Coin,
+		del.GetDelegatorAddr(),
+		del.GetValidatorAddr(),
+		del.GetCoin(),
 	), nil
 }
 
-func delegationsToDelegationResponses(delegations types.Delegations) (types.DelegationResponses, error) {
+func delegationsToDelegationResponses(delegations []exported.DelegationI) (types.DelegationResponses, error) {
 	resp := make(types.DelegationResponses, len(delegations))
 	for i, del := range delegations {
 		delResp, err := delegationToDelegationResponse(del)

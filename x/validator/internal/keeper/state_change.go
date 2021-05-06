@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"errors"
 	"fmt"
@@ -83,7 +84,9 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 				}
 				delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
 				for _, delegation := range delegations {
-					amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(delegation.Coin)
+					if _, ok := delegation.(types.Delegation); ok {
+						amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(delegation.GetCoin())
+					}
 				}
 			}
 		case validator.IsBonded():
@@ -165,7 +168,9 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
 		for _, delegation := range delegations {
-			amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(delegation.Coin)
+			if _, ok := delegation.(types.Delegation); ok {
+				amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(delegation.GetCoin())
+			}
 		}
 
 		if validator.Tokens.IsZero() {
@@ -303,35 +308,35 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator) {
 
 	}
 
-	delegationsInBase := types.Delegations{}
+	var delegationsInBase []exported.DelegationI
 
 	for _, delegation := range delegations {
-		if _, ok := k.CoinKeeper.GetCoinsCache()[delegation.Coin.Denom]; ok {
-			delegation = k.CalcTokensBase(ctx, delegation)
+		if _, ok := k.CoinKeeper.GetCoinsCache()[delegation.GetCoin().Denom]; ok {
+			delegation = delegation.SetTokensBase(k.CalcTokensBase(ctx, delegation))
 		}
 		delegationsInBase = append(delegationsInBase, delegation)
 	}
 
 	sort.SliceStable(delegations, func(i, j int) bool {
-		amountI := delegations[i].TokensBase
-		amountJ := delegations[j].TokensBase
+		amountI := delegations[i].GetTokensBase()
+		amountJ := delegations[j].GetTokensBase()
 		return amountI.GT(amountJ)
 	})
 
 	for i := int(k.MaxDelegations(ctx)); i < len(delegations); i++ {
 		switch validator.Status {
 		case types.Bonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegations[i].DelegatorAddress, sdk.NewCoins(delegations[i].Coin))
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
 			if err != nil {
 				panic(err)
 			}
 		case types.Unbonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegations[i].DelegatorAddress, sdk.NewCoins(delegations[i].Coin))
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
 			if err != nil {
 				panic(err)
 			}
 		}
-		err := k.unbond(ctx, delegations[i].DelegatorAddress, delegations[i].ValidatorAddress, delegations[i].Coin)
+		err := k.unbond(ctx, delegations[i].GetDelegatorAddr(), delegations[i].GetValidatorAddr(), delegations[i].GetCoin())
 		if err != nil {
 			panic(err)
 		}

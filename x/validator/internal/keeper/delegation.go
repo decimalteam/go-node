@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"log"
 	"time"
 
@@ -26,7 +27,7 @@ func (k Keeper) GetDelegation(ctx sdk.Context,
 }
 
 // IterateAllDelegations iterate through all of the delegations
-func (k Keeper) IterateAllDelegations(ctx sdk.Context, cb func(delegation types.Delegation) (stop bool)) {
+func (k Keeper) IterateAllDelegations(ctx sdk.Context, cb func(delegation exported.DelegationI) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{types.DelegationKey})
 	defer iterator.Close()
@@ -37,11 +38,21 @@ func (k Keeper) IterateAllDelegations(ctx sdk.Context, cb func(delegation types.
 			break
 		}
 	}
+
+	iteratorNFT := sdk.KVStorePrefixIterator(store, []byte{types.DelegationNFTKey})
+	defer iteratorNFT.Close()
+
+	for ; iteratorNFT.Valid(); iteratorNFT.Next() {
+		delegation := types.MustUnmarshalDelegationNFT(k.cdc, iteratorNFT.Value())
+		if cb(delegation) {
+			break
+		}
+	}
 }
 
 // GetAllDelegations returns all delegations used during genesis dump
-func (k Keeper) GetAllDelegations(ctx sdk.Context) (delegations []types.Delegation) {
-	k.IterateAllDelegations(ctx, func(delegation types.Delegation) bool {
+func (k Keeper) GetAllDelegations(ctx sdk.Context) (delegations []exported.DelegationI) {
+	k.IterateAllDelegations(ctx, func(delegation exported.DelegationI) bool {
 		delegations = append(delegations, delegation)
 		return false
 	})
@@ -49,7 +60,7 @@ func (k Keeper) GetAllDelegations(ctx sdk.Context) (delegations []types.Delegati
 }
 
 // return all delegations to a specific validator. Useful for querier.
-func (k Keeper) GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) (delegations []types.Delegation) {
+func (k Keeper) GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) (delegations []exported.DelegationI) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{types.DelegationKey})
 	defer iterator.Close()
@@ -60,14 +71,24 @@ func (k Keeper) GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress)
 			delegations = append(delegations, delegation)
 		}
 	}
+
+	iteratorNFT := sdk.KVStorePrefixIterator(store, []byte{types.DelegationNFTKey})
+	defer iteratorNFT.Close()
+
+	for ; iteratorNFT.Valid(); iteratorNFT.Next() {
+		delegation := types.MustUnmarshalDelegationNFT(k.cdc, iteratorNFT.Value())
+		if delegation.GetValidatorAddr().Equals(valAddr) {
+			delegations = append(delegations, delegation)
+		}
+	}
 	return delegations
 }
 
 // return a given amount of all the delegations from a delegator
 func (k Keeper) GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddress,
-	maxRetrieve uint16) (delegations []types.Delegation) {
+	maxRetrieve uint16) (delegations []exported.DelegationI) {
 
-	delegations = make([]types.Delegation, maxRetrieve)
+	delegations = make([]exported.DelegationI, maxRetrieve)
 
 	store := ctx.KVStore(k.storeKey)
 	delegatorPrefixKey := types.GetDelegationsKey(delegator)
@@ -85,7 +106,7 @@ func (k Keeper) GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddres
 
 // set a delegation
 func (k Keeper) SetDelegation(ctx sdk.Context, delegation types.Delegation) {
-	delegation = k.CalcTokensBase(ctx, delegation)
+	delegation.TokensBase = k.CalcTokensBase(ctx, delegation)
 	err := k.set(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.Coin.Denom), delegation)
 	if err != nil {
 		panic(err)
@@ -99,17 +120,18 @@ func (k Keeper) RemoveDelegation(ctx sdk.Context, delegation types.Delegation) {
 	k.delete(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.Coin.Denom))
 }
 
-func (k Keeper) CalcTokensBase(ctx sdk.Context, delegation types.Delegation) types.Delegation {
-	if delegation.Coin.Denom != k.BondDenom(ctx) {
-		coin, err := k.GetCoin(ctx, delegation.Coin.Denom)
+func (k Keeper) CalcTokensBase(ctx sdk.Context, delegation exported.DelegationI) sdk.Int {
+	var tokensBase sdk.Int
+	if delegation.GetCoin().Denom != k.BondDenom(ctx) {
+		coin, err := k.GetCoin(ctx, delegation.GetCoin().Denom)
 		if err != nil {
 			panic(err)
 		}
-		delegation.TokensBase = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegation.Coin.Amount)
+		tokensBase = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegation.GetCoin().Amount)
 	} else {
-		delegation.TokensBase = delegation.Coin.Amount
+		tokensBase = delegation.GetCoin().Amount
 	}
-	return delegation
+	return tokensBase
 }
 
 // return a given amount of all the delegator unbonding-delegations
@@ -516,8 +538,8 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 //_____________________________________________________________________________________
 
 // return all delegations for a delegator
-func (k Keeper) GetAllDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddress) []types.Delegation {
-	delegations := make([]types.Delegation, 0)
+func (k Keeper) GetAllDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddress) []exported.DelegationI {
+	delegations := make([]exported.DelegationI, 0)
 
 	store := ctx.KVStore(k.storeKey)
 	delegatorPrefixKey := types.GetDelegationsKey(delegator)
