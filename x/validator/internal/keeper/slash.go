@@ -142,6 +142,10 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 
 	// perform slashing on all entries within the unbonding delegation
 	for i, entry := range unbondingDelegation.Entries {
+		if _, ok := entry.(types.UnbondingDelegationNFTEntry); ok {
+			continue
+		}
+		entry := entry.(types.UnbondingDelegationEntry)
 
 		// If unbonding started before this height, stake didn't contribute to infraction
 		if entry.CreationHeight < infractionHeight {

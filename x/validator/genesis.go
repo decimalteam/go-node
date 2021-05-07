@@ -89,8 +89,10 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 	for _, ubd := range data.UnbondingDelegations {
 		keeper.SetUnbondingDelegation(ctx, ubd)
 		for _, entry := range ubd.Entries {
-			keeper.InsertUBDQueue(ctx, ubd, entry.CompletionTime)
-			notBondedTokens = notBondedTokens.Add(entry.Balance)
+			keeper.InsertUBDQueue(ctx, ubd, entry.GetCompletionTime())
+			if _, ok := entry.(types.UnbondingDelegationEntry); ok {
+				notBondedTokens = notBondedTokens.Add(entry.GetBalance())
+			}
 		}
 	}
 

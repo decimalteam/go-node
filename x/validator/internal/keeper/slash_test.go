@@ -101,10 +101,10 @@ func TestSlashUnbondingDelegation(t *testing.T) {
 	require.Len(t, ubd.Entries, 1)
 
 	// initial balance unchanged
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(10)), ubd.Entries[0].InitialBalance)
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(10)), ubd.Entries[0].GetInitialBalance())
 
 	// balance decreased
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(5)), ubd.Entries[0].Balance)
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(5)), ubd.Entries[0].GetBalance())
 	newUnbondedPool := keeper.GetNotBondedPool(ctx)
 	diffTokens := oldUnbondedPool.GetCoins().Sub(newUnbondedPool.GetCoins()).AmountOf(keeper.BondDenom(ctx))
 	require.Equal(t, int64(5), diffTokens.Int64())
@@ -213,7 +213,7 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
 	// balance decreased
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(2)), ubd.Entries[0].Balance)
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(2)), ubd.Entries[0].GetBalance())
 	// read updated pool
 	newBondedPool := keeper.GetBondedPool(ctx)
 	// bonded tokens burned
@@ -235,7 +235,7 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
 	// balance decreased again
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt()), ubd.Entries[0].Balance)
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt()), ubd.Entries[0].GetBalance())
 	// read updated pool
 	newBondedPool = keeper.GetBondedPool(ctx)
 	// bonded tokens burned again
@@ -257,7 +257,7 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
 	// balance unchanged
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(0)), ubd.Entries[0].Balance)
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(0)), ubd.Entries[0].GetBalance())
 	// read updated pool
 	newBondedPool = keeper.GetBondedPool(ctx)
 	// bonded tokens burned again
@@ -279,7 +279,7 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
 	// balance unchanged
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(0)), ubd.Entries[0].Balance)
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(0)), ubd.Entries[0].GetBalance())
 	// read updated pool
 	newBondedPool = keeper.GetBondedPool(ctx)
 	// just 1 bonded token burned again since that's all the validator now has

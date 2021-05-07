@@ -95,6 +95,7 @@ type (
 	IDCollection          = types.IDCollection
 	IDCollections         = types.IDCollections
 	Owner                 = types.Owner
+	TokenOwner            = types.TokenOwner
 	QueryCollectionParams = types.QueryCollectionParams
 	QueryBalanceParams    = types.QueryBalanceParams
 	QueryNFTParams        = types.QueryNFTParams

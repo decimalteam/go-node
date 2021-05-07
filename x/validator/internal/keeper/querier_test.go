@@ -190,7 +190,7 @@ func TestQueryValidators(t *testing.T) {
 }
 
 func TestQueryDelegation(t *testing.T) {
-	cdc := codec.New()
+	cdc := MakeTestCodec()
 	ctx, _, keeper, _, _ := CreateTestInput(t, false, 10000)
 	params := keeper.GetParams(ctx)
 
@@ -386,7 +386,7 @@ func TestQueryDelegation(t *testing.T) {
 }
 
 func TestQueryUnbondingDelegation(t *testing.T) {
-	cdc := codec.New()
+	cdc := MakeTestCodec()
 	ctx, _, keeper, _, _ := CreateTestInput(t, false, 10000)
 
 	// Create Validators and Delegation

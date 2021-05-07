@@ -3,6 +3,7 @@ package exported
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
+	"time"
 )
 
 // DelegationI delegation bond for a delegated proof of stake system
@@ -12,6 +13,14 @@ type DelegationI interface {
 	GetCoin() sdk.Coin
 	GetTokensBase() sdk.Int
 	SetTokensBase(sdk.Int) DelegationI
+}
+
+type UnbondingDelegationEntryI interface {
+	GetCreationHeight() int64
+	GetCompletionTime() time.Time
+	GetBalance() sdk.Coin
+	GetInitialBalance() sdk.Coin
+	IsMature(currentTime time.Time) bool
 }
 
 // ValidatorI expected validator functions

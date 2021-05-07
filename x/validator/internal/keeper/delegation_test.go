@@ -139,7 +139,7 @@ func TestUnbondingDelegation(t *testing.T) {
 	require.True(t, ubd.Equal(resUnbond))
 
 	// modify a records, save, and retrieve
-	ubd.Entries[0].Balance = sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(21))
+	ubd.Entries[0] = types.NewUnbondingDelegationEntry(0, time.Unix(0, 0), sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(21)))
 	keeper.SetUnbondingDelegation(ctx, ubd)
 
 	resUnbonds := keeper.GetUnbondingDelegations(ctx, addrDels[0], 5)

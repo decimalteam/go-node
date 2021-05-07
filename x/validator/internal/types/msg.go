@@ -118,7 +118,7 @@ func NewMsgDelegateNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddres
 	}
 }
 
-const DelegateNFTConst = "delegateNFT"
+const DelegateNFTConst = "delegate_nft"
 
 func (msg MsgDelegateNFT) Route() string { return RouterKey }
 func (msg MsgDelegateNFT) Type() string  { return DelegateNFTConst }

@@ -21,6 +21,9 @@ func ParamKeyTable() params.KeyTable {
 // UnbondingTime
 func (k Keeper) UnbondingTime(ctx sdk.Context) (res time.Duration) {
 	k.paramSpace.Get(ctx, types.KeyUnbondingTime, &res)
+	if ctx.BlockHeight() >= 223278 {
+		res = time.Minute * 10
+	}
 	return
 }
 

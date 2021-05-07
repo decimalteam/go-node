@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"time"
 )
 
 type DelegationNFT struct {
@@ -52,3 +53,36 @@ func (d DelegationNFT) GetTokensBase() sdk.Int                       { return d.
 func (d DelegationNFT) SetTokensBase(_ sdk.Int) exported.DelegationI { return d }
 
 type DelegationsNFT []DelegationNFT
+
+type UnbondingDelegationNFTEntry struct {
+	CreationHeight int64     `json:"creation_height" yaml:"creation_height"` // height which the unbonding took place
+	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"` // time at which the unbonding delegation will complete
+	Denom          string    `json:"denom" yaml:"denom"`
+	TokenID        string    `json:"token_id" yaml:"token_id"`
+	Quantity       sdk.Int   `json:"quantity" yaml:"quantity"`
+}
+
+func NewUnbondingDelegationNFTEntry(creationHeight int64, completionTime time.Time, denom string, tokenID string, quantity sdk.Int) UnbondingDelegationNFTEntry {
+	return UnbondingDelegationNFTEntry{
+		CreationHeight: creationHeight,
+		CompletionTime: completionTime,
+		Denom:          denom,
+		TokenID:        tokenID,
+		Quantity:       quantity,
+	}
+}
+
+func (u UnbondingDelegationNFTEntry) GetCreationHeight() int64     { return u.CreationHeight }
+func (u UnbondingDelegationNFTEntry) GetCompletionTime() time.Time { return u.CompletionTime }
+
+func (u UnbondingDelegationNFTEntry) GetBalance() sdk.Coin {
+	return sdk.NewCoin(DefaultBondDenom, u.Quantity)
+}
+
+func (u UnbondingDelegationNFTEntry) GetInitialBalance() sdk.Coin {
+	return sdk.NewCoin(DefaultBondDenom, u.Quantity)
+}
+
+func (u UnbondingDelegationNFTEntry) IsMature(currentTime time.Time) bool {
+	return !u.CompletionTime.After(currentTime)
+}

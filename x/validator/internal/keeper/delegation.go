@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
+	"fmt"
 	"log"
 	"time"
 
@@ -515,11 +517,43 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 			i--
 
 			// track undelegation only when remaining or truncated shares are non-zero
-			if !entry.Balance.IsZero() {
-				amt := sdk.NewCoins(entry.Balance)
-				err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, ubd.DelegatorAddress, amt)
-				if err != nil {
-					return err
+			if !entry.GetBalance().IsZero() {
+				switch entry := entry.(type) {
+				case types.UnbondingDelegationEntry:
+					amt := sdk.NewCoins(entry.Balance)
+					err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, ubd.DelegatorAddress, amt)
+					if err != nil {
+						return err
+					}
+				case types.UnbondingDelegationNFTEntry:
+					collection, ok := k.nftKeeper.GetCollection(ctx, entry.Denom)
+					if !ok {
+						return fmt.Errorf("collection not found")
+					}
+
+					token, err := collection.GetNFT(entry.TokenID)
+					if err != nil {
+						return err
+					}
+
+					owner := token.GetOwners().GetOwner(delAddr)
+					if owner == nil {
+						token = token.SetOwners(token.GetOwners().SetOwner(&nft.TokenOwner{
+							Address:  delAddr,
+							Quantity: entry.Quantity,
+						}))
+					} else {
+						token = token.SetOwners(token.GetOwners().SetOwner(owner.SetQuantity(owner.GetQuantity().Add(entry.Quantity))))
+					}
+
+					collection, err = collection.UpdateNFT(token)
+					if err != nil {
+						return err
+					}
+
+					k.nftKeeper.SetCollection(ctx, entry.Denom, collection)
+				default:
+					panic(fmt.Sprintf("%T", entry))
 				}
 			}
 		}
