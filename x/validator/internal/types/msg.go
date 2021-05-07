@@ -103,7 +103,7 @@ func (msg MsgDelegate) ValidateBasic() error {
 type MsgDelegateNFT struct {
 	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-	TokenID          string         `json:"token_id"`
+	TokenID          string         `json:"id"`
 	Denom            string         `json:"denom"`
 	Quantity         sdk.Int        `json:"quantity"`
 }
@@ -245,7 +245,7 @@ func (msg MsgUnbond) ValidateBasic() error {
 type MsgUnbondNFT struct {
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
 	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
-	TokenID          string         `json:"token_id"`
+	TokenID          string         `json:"id"`
 	Denom            string         `json:"denom"`
 	Quantity         sdk.Int        `json:"quantity"`
 }
