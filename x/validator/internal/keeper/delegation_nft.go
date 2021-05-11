@@ -27,6 +27,25 @@ func (k Keeper) SetDelegationNFT(ctx sdk.Context, delegation types.DelegationNFT
 	}
 }
 
+func (k Keeper) RemoveDelegationNFT(ctx sdk.Context, delegation types.DelegationNFT) {
+	k.delete(ctx, types.GetDelegationNFTKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.TokenID, delegation.Denom))
+}
+
+func (k Keeper) SetUnbondingDelegationNFTEntry(ctx sdk.Context,
+	delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
+	creationHeight int64, minTime time.Time, tokenID, denom string, quantity sdk.Int) types.UnbondingDelegation {
+
+	ubd, found := k.GetUnbondingDelegation(ctx, delegatorAddr, validatorAddr)
+	if found {
+		ubd.AddNFTEntry(creationHeight, minTime, tokenID, denom, quantity)
+	} else {
+		ubd = types.NewUnbondingDelegation(delegatorAddr, validatorAddr,
+			types.NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, quantity))
+	}
+	k.SetUnbondingDelegation(ctx, ubd)
+	return ubd
+}
+
 func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, denom string, quantity sdk.Int, validator types.Validator) error {
 	nft, err := k.nftKeeper.GetNFT(ctx, denom, tokenID)
 	if err != nil {
@@ -94,65 +113,63 @@ func (k Keeper) UndelegateNFT(
 	}
 
 	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
-	//ubd := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, amount)
-	//k.InsertUBDQueue(ctx, ubd, completionTime)
+	ubd := k.SetUnbondingDelegationNFTEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, tokenID, denom, quantity)
+	k.InsertUBDQueue(ctx, ubd, completionTime)
 
 	return completionTime, nil
 }
 
 // unbond a particular delegation and perform associated store operations
 func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, tokenID, denom string, quantity sdk.Int) error {
-	//	// check if a delegation object exists in the store
-	//	delegation, found := k.GetDelegation(ctx, delAddr, valAddr, coin.Denom)
-	//	if !found {
-	//		return types.ErrNoDelegatorForAddress()
-	//	}
-	//
-	//	// call the before-delegation-modified hook
-	//	k.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
-	//
-	//	// ensure that we have enough shares to remove
-	//	if delegation.Coin.Amount.LT(coin.Amount) {
-	//		return types.ErrNotEnoughDelegationShares(delegation.Coin.Amount.String())
-	//	}
-	//
-	//	// get validator
-	//	validator, err := k.GetValidator(ctx, valAddr)
-	//	if err != nil {
-	//		return types.ErrNoValidatorFound()
-	//	}
-	//
-	//	// subtract shares from delegation
-	//	delegation.Coin = delegation.Coin.Sub(coin)
-	//
-	//	// remove the delegation
-	//	if delegation.Coin.IsZero() {
-	//		k.RemoveDelegation(ctx, delegation)
-	//	} else {
-	//		k.SetDelegation(ctx, delegation)
-	//		// call the after delegation modification hook
-	//		k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
-	//	}
-	//
-	//	k.DeleteValidatorByPowerIndex(ctx, validator)
-	//
-	//	amountBase := coin.Amount
-	//	if coin.Denom != k.BondDenom(ctx) {
-	//		c, err := k.GetCoin(ctx, coin.Denom)
-	//		if err != nil {
-	//			return types.ErrInternal(err.Error())
-	//		}
-	//		amountBase = formulas.CalculateSaleReturn(c.Volume, c.Reserve, c.CRR, coin.Amount)
-	//	}
-	//	decreasedTokens := k.DecreaseValidatorTokens(ctx, validator, amountBase)
-	//
-	//	if decreasedTokens.IsZero() && validator.IsUnbonded() {
-	//		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
-	//		err = k.RemoveValidator(ctx, validator.ValAddress)
-	//		if err != nil {
-	//			return types.ErrInternal(err.Error())
-	//		}
-	//	}
-	//
+	// check if a delegation object exists in the store
+	delegation, found := k.GetDelegationNFT(ctx, valAddr, delAddr, tokenID, denom)
+	if !found {
+		return types.ErrNoDelegatorForAddress()
+	}
+
+	// call the before-delegation-modified hook
+	k.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
+
+	// ensure that we have enough shares to remove
+	if delegation.Quantity.LT(quantity) {
+		return types.ErrNotEnoughDelegationShares(delegation.Coin.Amount.String())
+	}
+
+	// get validator
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
+		return types.ErrNoValidatorFound()
+	}
+
+	// subtract shares from delegation
+	delegation.Quantity = delegation.Quantity.Sub(quantity)
+
+	// remove the delegation
+	if delegation.Coin.IsZero() {
+		k.RemoveDelegationNFT(ctx, delegation)
+	} else {
+		k.SetDelegationNFT(ctx, delegation)
+		// call the after delegation modification hook
+		k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+	}
+
+	k.DeleteValidatorByPowerIndex(ctx, validator)
+
+	token, err := k.nftKeeper.GetNFT(ctx, denom, tokenID)
+	if err != nil {
+		return types.ErrInternal(err.Error())
+	}
+
+	amountBase := quantity.Mul(token.GetReserve())
+	decreasedTokens := k.DecreaseValidatorTokens(ctx, validator, amountBase)
+
+	if decreasedTokens.IsZero() && validator.IsUnbonded() {
+		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
+		err = k.RemoveValidator(ctx, validator.ValAddress)
+		if err != nil {
+			return types.ErrInternal(err.Error())
+		}
+	}
+
 	return nil
 }

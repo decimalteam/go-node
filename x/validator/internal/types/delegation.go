@@ -151,10 +151,9 @@ func (e UnbondingDelegationEntry) String() string {
 
 // NewUnbondingDelegation - create a new unbonding delegation object
 func NewUnbondingDelegation(delegatorAddr sdk.AccAddress,
-	validatorAddr sdk.ValAddress, creationHeight int64, minTime time.Time,
-	balance sdk.Coin) UnbondingDelegation {
+	validatorAddr sdk.ValAddress,
+	entry exported.UnbondingDelegationEntryI) UnbondingDelegation {
 
-	entry := NewUnbondingDelegationEntry(creationHeight, minTime, balance)
 	return UnbondingDelegation{
 		DelegatorAddress: delegatorAddr,
 		ValidatorAddress: validatorAddr,

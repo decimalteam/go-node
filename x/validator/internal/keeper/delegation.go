@@ -239,7 +239,7 @@ func (k Keeper) SetUnbondingDelegationEntry(ctx sdk.Context,
 	if found {
 		ubd.AddEntry(creationHeight, minTime, balance)
 	} else {
-		ubd = types.NewUnbondingDelegation(delegatorAddr, validatorAddr, creationHeight, minTime, balance)
+		ubd = types.NewUnbondingDelegation(delegatorAddr, validatorAddr, types.NewUnbondingDelegationEntry(creationHeight, minTime, balance))
 	}
 	k.SetUnbondingDelegation(ctx, ubd)
 	return ubd

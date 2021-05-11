@@ -17,6 +17,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgSetOffline{}, "validator/set_offline", nil)
 	cdc.RegisterInterface((*exported.UnbondingDelegationEntryI)(nil), nil)
 	cdc.RegisterConcrete(UnbondingDelegationEntry{}, "validator/unbonding_delegation_entry", nil)
+	cdc.RegisterConcrete(UnbondingDelegationNFTEntry{}, "validator/unbonding_delegation_nft_entry", nil)
 }
 
 // ModuleCdc defines the module codec
