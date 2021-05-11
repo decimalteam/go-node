@@ -141,11 +141,17 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 		return types.ErrNoValidatorFound()
 	}
 
+	token, err := k.nftKeeper.GetNFT(ctx, denom, tokenID)
+	if err != nil {
+		return types.ErrInternal(err.Error())
+	}
+
 	// subtract shares from delegation
 	delegation.Quantity = delegation.Quantity.Sub(quantity)
+	delegation.Coin.Amount = delegation.Quantity.Mul(token.GetReserve())
 
 	// remove the delegation
-	if delegation.Coin.IsZero() {
+	if delegation.Quantity.IsZero() {
 		k.RemoveDelegationNFT(ctx, delegation)
 	} else {
 		k.SetDelegationNFT(ctx, delegation)
@@ -154,11 +160,6 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 	}
 
 	k.DeleteValidatorByPowerIndex(ctx, validator)
-
-	token, err := k.nftKeeper.GetNFT(ctx, denom, tokenID)
-	if err != nil {
-		return types.ErrInternal(err.Error())
-	}
 
 	amountBase := quantity.Mul(token.GetReserve())
 	decreasedTokens := k.DecreaseValidatorTokens(ctx, validator, amountBase)
