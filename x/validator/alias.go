@@ -84,9 +84,12 @@ type (
 	MsgSetOnline        = types.MsgSetOnline
 	MsgSetOffline       = types.MsgSetOffline
 
-	UnbondingDelegation = types.UnbondingDelegation
+	UnbondingDelegation      = types.UnbondingDelegation
+	UnbondingDelegationEntry = types.UnbondingDelegationEntry
 
 	Validator = types.Validator
 
 	Description = types.Description
+
+	BondStatus = types.BondStatus
 )

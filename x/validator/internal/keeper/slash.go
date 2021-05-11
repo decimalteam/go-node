@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"log"
 	"time"
@@ -141,6 +142,10 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 
 	// perform slashing on all entries within the unbonding delegation
 	for i, entry := range unbondingDelegation.Entries {
+		if _, ok := entry.(types.UnbondingDelegationNFTEntry); ok {
+			continue
+		}
+		entry := entry.(types.UnbondingDelegationEntry)
 
 		// If unbonding started before this height, stake didn't contribute to infraction
 		if entry.CreationHeight < infractionHeight {
@@ -195,43 +200,47 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 }
 
 // return total slashed coins
-func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations types.Delegations, slashFactor sdk.Dec) sdk.Coins {
+func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.DelegationI, slashFactor sdk.Dec) sdk.Coins {
 	totalSlashAmount := sdk.ZeroInt()
 	burnedAmount := sdk.NewCoins()
 
 	for _, delegation := range delegations {
+		if _, ok := delegation.(types.DelegationNFT); ok {
+			continue
+		}
 		// Calculate slash amount proportional to stake contributing to infraction
-		slashAmountDec := slashFactor.MulInt(delegation.Coin.Amount)
+		slashAmountDec := slashFactor.MulInt(delegation.GetCoin().Amount)
 		slashAmount := slashAmountDec.TruncateInt()
 		totalSlashAmount = totalSlashAmount.Add(slashAmount)
 
-		bondSlashAmount := sdk.MinInt(slashAmount, delegation.Coin.Amount)
+		bondSlashAmount := sdk.MinInt(slashAmount, delegation.GetCoin().Amount)
 		bondSlashAmount = sdk.MaxInt(bondSlashAmount, sdk.ZeroInt())
 
 		if bondSlashAmount.IsZero() {
 			continue
 		}
 
-		burnedAmount = burnedAmount.Add(sdk.NewCoin(delegation.Coin.Denom, bondSlashAmount))
-		delegation.Coin.Amount = delegation.Coin.Amount.Sub(bondSlashAmount)
-		k.SetDelegation(ctx, delegation)
+		burnedAmount = burnedAmount.Add(sdk.NewCoin(delegation.GetCoin().Denom, bondSlashAmount))
+		baseDelegation := delegation.(types.Delegation)
+		baseDelegation.Coin.Amount = delegation.GetCoin().Amount.Sub(bondSlashAmount)
+		k.SetDelegation(ctx, baseDelegation)
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeLiveness,
-				sdk.NewAttribute(types.AttributeKeyValidator, delegation.ValidatorAddress.String()),
-				sdk.NewAttribute(types.AttributeKeyDelegator, delegation.DelegatorAddress.String()),
-				sdk.NewAttribute(types.AttributeKeySlashAmount, sdk.NewCoin(delegation.Coin.Denom, bondSlashAmount).String()),
+				sdk.NewAttribute(types.AttributeKeyValidator, delegation.GetValidatorAddr().String()),
+				sdk.NewAttribute(types.AttributeKeyDelegator, delegation.GetDelegatorAddr().String()),
+				sdk.NewAttribute(types.AttributeKeySlashAmount, sdk.NewCoin(delegation.GetCoin().Denom, bondSlashAmount).String()),
 				sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueMissingSignature),
 			),
 		)
 
-		validator, err := k.GetValidator(ctx, delegation.ValidatorAddress)
+		validator, err := k.GetValidator(ctx, delegation.GetValidatorAddr())
 		if err != nil {
 			panic(err)
 		}
-		if delegation.Coin.Denom != k.BondDenom(ctx) {
-			coin, err := k.GetCoin(ctx, delegation.Coin.Denom)
+		if delegation.GetCoin().Denom != k.BondDenom(ctx) {
+			coin, err := k.GetCoin(ctx, delegation.GetCoin().Denom)
 			if err != nil {
 				panic(err)
 			}

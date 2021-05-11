@@ -7,9 +7,11 @@ import (
 	"sync"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 )
 
 // get a single validator
@@ -140,26 +142,33 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	wg := sync.WaitGroup{}
 	wg.Add(len(delegations))
 	for _, del := range delegations {
-		go func(del types.Delegation) {
+		go func(del exported.DelegationI) {
 			defer wg.Done()
-			if del.Coin.Denom != k.BondDenom(ctx) {
-				coin, err := k.GetCoin(ctx, del.Coin.Denom)
+			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
+				coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
 				if err != nil {
 					panic(err)
 				}
-				del.TokensBase = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.Coin.Amount)
+				del = del.SetTokensBase(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount))
 				eventMutex.Lock()
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
 					types.EventTypeCalcStake,
 					sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
-					sdk.NewAttribute(types.AttributeKeyDelegator, del.DelegatorAddress.String()),
-					sdk.NewAttribute(types.AttributeKeyCoin, del.Coin.String()),
-					sdk.NewAttribute(types.AttributeKeyStake, del.TokensBase.String()),
+					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
+					sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
+					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
 				))
 				eventMutex.Unlock()
+				switch del := del.(type) {
+				case types.Delegation:
+					k.SetDelegation(ctx, del)
+				case types.DelegationNFT:
+					k.SetDelegationNFT(ctx, del)
+				}
+
 			}
 			mutex.Lock()
-			total = total.Add(del.TokensBase)
+			total = total.Add(del.GetTokensBase())
 			mutex.Unlock()
 		}(del)
 	}
@@ -462,7 +471,7 @@ func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Vali
 	}
 
 	for _, delegation := range delegations {
-		if delegation.Coin.Amount.LT(stakeValue) || (delAddr.Equals(delegation.DelegatorAddress) && stake.Denom == delegation.Coin.Denom) {
+		if delegation.GetCoin().Amount.LT(stakeValue) || (delAddr.Equals(delegation.GetDelegatorAddr()) && stake.Denom == delegation.GetCoin().Denom) {
 			return true, nil
 		}
 	}
@@ -485,8 +494,8 @@ func (k Keeper) CalculateBipValue(ctx sdk.Context, value sdk.Coin, includeSelf b
 	for _, validator := range validators {
 		stakes := k.GetValidatorDelegations(ctx, validator.ValAddress)
 		for _, stake := range stakes {
-			if stake.Coin.Denom == value.Denom {
-				totalAmount = totalAmount.Add(stake.Coin.Amount)
+			if stake.GetCoin().Denom == value.Denom {
+				totalAmount = totalAmount.Add(stake.GetCoin().Amount)
 			}
 		}
 	}

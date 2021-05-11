@@ -45,7 +45,7 @@ func TestInitGenesis(t *testing.T) {
 	delegations[1].Coin = sdk.NewCoin(keeper.BondDenom(ctx), valTokens)
 	delegations[1].TokensBase = valTokens
 
-	genesisState := types.NewGenesisState(params, validators, delegations)
+	genesisState := types.NewGenesisState(params, validators, delegations, nil)
 	vals := InitGenesis(ctx, keeper, supplyKeeper, genesisState)
 
 	actualGenesis := ExportGenesis(ctx, keeper)

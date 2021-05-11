@@ -65,7 +65,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		}
 		err := k.CompleteUnbonding(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
 		if err != nil {
-			continue
+			panic(fmt.Sprintf("error = %s. Delegator = %s, validator = %s", err.Error(), dvPair.DelegatorAddress, dvPair.ValidatorAddress))
 		}
 
 		ctxTime := ctx.BlockHeader().Time
@@ -77,7 +77,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 						types.EventTypeCompleteUnbonding,
 						sdk.NewAttribute(types.AttributeKeyValidator, dvPair.ValidatorAddress.String()),
 						sdk.NewAttribute(types.AttributeKeyDelegator, dvPair.DelegatorAddress.String()),
-						sdk.NewAttribute(types.AttributeKeyCoin, entry.Balance.String()),
+						sdk.NewAttribute(types.AttributeKeyCoin, entry.GetBalance().String()),
 					),
 				)
 			}

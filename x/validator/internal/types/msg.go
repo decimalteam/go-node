@@ -100,6 +100,49 @@ func (msg MsgDelegate) ValidateBasic() error {
 
 // -----------------------------------------------------------------------------------------
 
+type MsgDelegateNFT struct {
+	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
+	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+	TokenID          string         `json:"id"`
+	Denom            string         `json:"denom"`
+	Quantity         sdk.Int        `json:"quantity"`
+}
+
+func NewMsgDelegateNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, quantity sdk.Int) MsgDelegateNFT {
+	return MsgDelegateNFT{
+		DelegatorAddress: delegatorAddr,
+		ValidatorAddress: validatorAddr,
+		TokenID:          tokenID,
+		Denom:            denom,
+		Quantity:         quantity,
+	}
+}
+
+const DelegateNFTConst = "delegate_nft"
+
+func (msg MsgDelegateNFT) Route() string { return RouterKey }
+func (msg MsgDelegateNFT) Type() string  { return DelegateNFTConst }
+func (msg MsgDelegateNFT) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.DelegatorAddress}
+}
+
+func (msg MsgDelegateNFT) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg MsgDelegateNFT) ValidateBasic() error {
+	if msg.ValidatorAddress.Empty() {
+		return ErrEmptyValidatorAddr()
+	}
+	if msg.DelegatorAddress.Empty() {
+		return ErrEmptyDelegatorAddr()
+	}
+	return nil
+}
+
+// -----------------------------------------------------------------------------------------
+
 type MsgSetOnline struct {
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
 }
@@ -188,6 +231,49 @@ func (msg MsgUnbond) GetSignBytes() []byte {
 }
 
 func (msg MsgUnbond) ValidateBasic() error {
+	if msg.ValidatorAddress.Empty() {
+		return ErrEmptyValidatorAddr()
+	}
+	if msg.DelegatorAddress.Empty() {
+		return ErrEmptyDelegatorAddr()
+	}
+	return nil
+}
+
+// -----------------------------------------------------------------------------------------
+
+type MsgUnbondNFT struct {
+	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
+	TokenID          string         `json:"id"`
+	Denom            string         `json:"denom"`
+	Quantity         sdk.Int        `json:"quantity"`
+}
+
+func NewMsgUnbondNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, quantity sdk.Int) MsgUnbondNFT {
+	return MsgUnbondNFT{
+		ValidatorAddress: validatorAddr,
+		DelegatorAddress: delegatorAddr,
+		TokenID:          tokenID,
+		Denom:            denom,
+		Quantity:         quantity,
+	}
+}
+
+const UnbondNFTConst = "unbond_nft"
+
+func (msg MsgUnbondNFT) Route() string { return RouterKey }
+func (msg MsgUnbondNFT) Type() string  { return UnbondNFTConst }
+func (msg MsgUnbondNFT) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.DelegatorAddress}
+}
+
+func (msg MsgUnbondNFT) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg MsgUnbondNFT) ValidateBasic() error {
 	if msg.ValidatorAddress.Empty() {
 		return ErrEmptyValidatorAddr()
 	}

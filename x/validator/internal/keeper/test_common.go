@@ -1,7 +1,7 @@
 package keeper // noalias
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"encoding/hex"
 	"math/rand"
@@ -22,6 +22,8 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
+	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -72,6 +74,8 @@ func MakeTestCodec() *codec.Codec {
 	cdc.RegisterConcrete(types.MsgSetOffline{}, "test/validator/set_offline", nil)
 	cdc.RegisterConcrete(types.MsgUnbond{}, "test/validator/unbond", nil)
 	cdc.RegisterConcrete(types.MsgDelegate{}, "test/validator/delegate", nil)
+	cdc.RegisterInterface((*exported.UnbondingDelegationEntryI)(nil), nil)
+	cdc.RegisterConcrete(types.UnbondingDelegationEntry{}, "validator/unbonding_delegation_entry", nil)
 
 	// Register AppAccount
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)
@@ -94,6 +98,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
 	keyCoin := sdk.NewKVStoreKey(coin.StoreKey)
 	keyMultisig := sdk.NewKVStoreKey(multisig.StoreKey)
+	keyNFT := sdk.NewKVStoreKey(nft.StoreKey)
 
 	db := dbm.NewMemDB()
 	ms := store.NewCommitMultiStore(db)
@@ -173,7 +178,9 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 	multisigKeeper := multisig.NewKeeper(cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), accountKeeper, coinKeeper, bk)
 
-	keeper := NewKeeper(cdc, keyStaking, pk.Subspace(DefaultParamspace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, auth.FeeCollectorName)
+	nftKeeper := nft.NewKeeper(cdc, keyNFT, supplyKeeper, types.DefaultBondDenom)
+
+	keeper := NewKeeper(cdc, keyStaking, pk.Subspace(DefaultParamspace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, nftKeeper, auth.FeeCollectorName)
 	keeper.SetParams(ctx, types.DefaultParams())
 
 	// set module accounts

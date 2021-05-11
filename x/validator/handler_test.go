@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"bitbucket.org/decimalteam/go-node/config"
 	val "bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"github.com/stretchr/testify/assert"
@@ -665,7 +666,7 @@ func TestMultipleUnbondingDelegationAtSameTime(t *testing.T) {
 	require.Len(t, ubd.Entries, 2)
 
 	// move forwaubd in time, should complete both ubds
-	ctx = ctx.WithBlockTime(ctx.BlockHeader().Time.Add(1 * time.Second))
+	ctx = ctx.WithBlockTime(ctx.BlockHeader().Time.Add(2 * time.Second))
 	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	ubd, found = keeper.GetUnbondingDelegation(ctx, selfDelAddr, valAddr)
@@ -833,4 +834,77 @@ func TestEditCandidate(t *testing.T) {
 
 	err = keeper.PayRewards(ctx)
 	require.NoError(t, err)
+}
+
+func TestSetOnline(t *testing.T) {
+	ctx, _, keeper, _, _ := val.CreateTestInput(t, false, 1000)
+	validatorAddr1 := sdk.ValAddress(val.Addrs[0])
+	validatorAddr2 := sdk.ValAddress(val.Addrs[1])
+	validatorAddr3 := sdk.ValAddress(val.Addrs[2])
+
+	// add three validators
+	valTokens1 := types.TokensFromConsensusPower(50)
+	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr1, val.PKs[0], valTokens1)
+	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	// apply TM updates
+	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(keeper.GetLastValidators(ctx)))
+
+	valTokens2 := types.TokensFromConsensusPower(30)
+	msgCreateValidator = NewTestMsgDeclareCandidate(validatorAddr2, val.PKs[1], valTokens2)
+	res, err = handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	// apply TM updates
+	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(keeper.GetLastValidators(ctx)))
+
+	valTokens3 := types.TokensFromConsensusPower(10)
+	msgCreateValidator = NewTestMsgDeclareCandidate(validatorAddr3, val.PKs[2], valTokens3)
+	res, err = handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	// apply TM updates
+	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 3, len(keeper.GetLastValidators(ctx)))
+
+	val3, err := keeper.GetValidator(ctx, validatorAddr3)
+	require.NoError(t, err)
+
+	val3.Online = false
+	val3.Status = types.Unbonded
+
+	err = keeper.SetValidator(ctx, val3)
+	require.NoError(t, err)
+
+	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 3, len(keeper.GetLastValidators(ctx)))
+
+	res, err = handleMsgSetOnline(ctx, keeper, NewMsgSetOnline(validatorAddr3))
+	require.NoError(t, err)
+	require.NotNil(t, res)
+
+	updates, err := keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(updates))
+	require.Equal(t, 3, len(keeper.GetLastValidators(ctx)))
+}
+
+func TestConvertAddr(t *testing.T) {
+	_config := sdk.GetConfig()
+	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
+
+	pubkey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, "dxvalconspub1zcjduepqnm4fvecksk6yvfeanmgdez2dyltqgqz47xs2gm6gzxfy7uzt456qzdh7pj")
+	require.NoError(t, err)
+
+	consAddr := sdk.GetConsAddress(pubkey)
+
+	t.Log(consAddr)
+	t.Log(consAddr.String())
 }

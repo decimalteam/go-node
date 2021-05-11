@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bytes"
 	"encoding/hex"
 	"testing"
@@ -100,6 +101,7 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
 	keyCoin := sdk.NewKVStoreKey(coin.StoreKey)
 	keyMultisig := sdk.NewKVStoreKey(multisig.StoreKey)
+	keyNFT := sdk.NewKVStoreKey(nft.StoreKey)
 
 	db := dbm.NewMemDB()
 	ms := store.NewCommitMultiStore(db)
@@ -157,7 +159,9 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 	multisigKeeper := multisig.NewKeeper(cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), accountKeeper, coinKeeper, bankKeeper)
 
-	sk := validator.NewKeeper(cdc, keyStaking, pk.Subspace(validator.DefaultParamSpace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, auth.FeeCollectorName)
+	nftKeeper := nft.NewKeeper(cdc, keyNFT, supplyKeeper, validator.DefaultBondDenom)
+
+	sk := validator.NewKeeper(cdc, keyStaking, pk.Subspace(validator.DefaultParamSpace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, nftKeeper, auth.FeeCollectorName)
 	sk.SetParams(ctx, validator.DefaultParams())
 
 	initCoins := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens))

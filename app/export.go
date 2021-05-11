@@ -3,10 +3,9 @@ package app
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
-	"log"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+	"log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -82,7 +81,12 @@ func (app *newApp) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []str
 	// iterate through unbonding delegations, reset creation height
 	app.validatorKeeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd validator.UnbondingDelegation) (stop bool) {
 		for i := range ubd.Entries {
-			ubd.Entries[i].CreationHeight = 0
+			ubd.Entries[i] = validator.UnbondingDelegationEntry{
+				CreationHeight: 0,
+				CompletionTime: ubd.Entries[i].GetCompletionTime(),
+				InitialBalance: ubd.Entries[i].GetInitialBalance(),
+				Balance:        ubd.Entries[i].GetBalance(),
+			}
 		}
 		app.validatorKeeper.SetUnbondingDelegation(ctx, ubd)
 		return false
