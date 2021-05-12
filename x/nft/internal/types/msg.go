@@ -36,7 +36,7 @@ func NewMsgMintNFT(sender, recipient sdk.AccAddress, id, denom, tokenURI string,
 	}
 }
 
-const regName = "^[a-zA-Z0-9_]{1,255}$"
+const regName = "^[a-zA-Z0-9_-]{1,255}$"
 
 // Route Implements Msg
 func (msg MsgMintNFT) Route() string { return RouterKey }
