@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bytes"
 	"errors"
 	"fmt"
@@ -10,8 +11,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // get a single validator
@@ -144,7 +145,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	for _, del := range delegations {
 		go func(del exported.DelegationI) {
 			defer wg.Done()
-			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
+			if del.GetCoin().Denom != k.BondDenom(ctx) {
 				coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
 				if err != nil {
 					panic(err)
@@ -159,13 +160,14 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
 				))
 				eventMutex.Unlock()
-				switch del := del.(type) {
-				case types.Delegation:
-					k.SetDelegation(ctx, del)
-				case types.DelegationNFT:
-					k.SetDelegationNFT(ctx, del)
+				if ctx.BlockHeight() >= updates.Update9Block {
+					switch del := del.(type) {
+					case types.Delegation:
+						k.SetDelegation(ctx, del)
+					case types.DelegationNFT:
+						k.SetDelegationNFT(ctx, del)
+					}
 				}
-
 			}
 			mutex.Lock()
 			total = total.Add(del.GetTokensBase())

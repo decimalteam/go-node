@@ -103,13 +103,19 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		Reserve:     msg.InitialReserve,
 		LimitVolume: msg.LimitVolume,
 		Volume:      msg.InitialVolume,
-		Creator:     msg.Sender,
-		Identity:    msg.Identity,
 	}
 
 	_, err := k.GetCoin(ctx, strings.ToLower(msg.Symbol))
 	if err == nil {
 		return nil, types.ErrCoinAlreadyExist(msg.Symbol)
+	}
+
+	if ctx.BlockHeight() >= 1_418_470 {
+		coin.Creator = msg.Sender
+	}
+
+	if ctx.BlockHeight() >= 1_450_550 {
+		coin.Identity = msg.Identity
 	}
 
 	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(coin.Symbol)))
@@ -196,9 +202,16 @@ func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types.MsgUpdateCoin) (*s
 ////////////////////////////////////////////////////////////////
 
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
-	err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
-	if err != nil {
-		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
+	if ctx.BlockHeight() >= 430 {
+		err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
+		if err != nil {
+			return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
+		}
+	} else {
+		err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin}.Add(msg.Coin))
+		if err != nil {
+			return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
+		}
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
