@@ -129,8 +129,8 @@ func TestDelegation(t *testing.T) {
 func TestUnbondingDelegation(t *testing.T) {
 	ctx, _, keeper, _, _ := CreateTestInput(t, false, 0)
 
-	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], 0,
-		time.Unix(0, 0), sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(5)))
+	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], types.NewUnbondingDelegationEntry(0,
+		time.Unix(0, 0), sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(5))))
 
 	// set and retrieve a record
 	keeper.SetUnbondingDelegation(ctx, ubd)
