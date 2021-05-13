@@ -255,15 +255,3 @@ func (msg MsgEditNFTMetadata) GetSignBytes() []byte {
 func (msg MsgEditNFTMetadata) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
-
-/* --------------------------------------------------------------------------- */
-// MsgDelegateNFT
-/* --------------------------------------------------------------------------- */
-
-type MsgDelegateNFT struct {
-	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
-	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-	ID               string         `json:"id"`
-	Denom            string         `json:"denom"`
-	Quantity         sdk.Int        `json:"quantity"`
-}
