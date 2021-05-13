@@ -75,8 +75,8 @@ func TestSlashUnbondingDelegation(t *testing.T) {
 
 	// set an unbonding delegation with expiration timestamp (beyond which the
 	// unbonding delegation shouldn't be slashed)
-	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], 0,
-		time.Unix(5, 0), sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(10)))
+	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], types.NewUnbondingDelegationEntry(0,
+		time.Unix(5, 0), sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(10))))
 
 	keeper.SetUnbondingDelegation(ctx, ubd)
 
@@ -191,8 +191,8 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	// set an unbonding delegation with expiration timestamp beyond which the
 	// unbonding delegation shouldn't be slashed
 	ubdTokens := sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(4))
-	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], 11,
-		time.Unix(0, 0), ubdTokens)
+	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], types.NewUnbondingDelegationEntry(11,
+		time.Unix(0, 0), ubdTokens))
 	keeper.SetUnbondingDelegation(ctx, ubd)
 
 	// slash validator for the first time
