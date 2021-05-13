@@ -46,6 +46,7 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types.MsgTransferNFT, k keeper.Ke
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(nft)
 
 	collection, found := k.GetCollection(ctx, msg.Denom)
 	if !found {
