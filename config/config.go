@@ -9,7 +9,7 @@ import (
 const (
 
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "0.9.22"
+	DecimalVersion = "0.9.23"
 
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
@@ -37,7 +37,7 @@ const (
 	DecimalPrefixConsPub = DecimalMainPrefix + PrefixValidator + PrefixConsensus + PrefixPublic
 
 	// ChainID is the Decimal chain identifier.
-	ChainID = "decimal-devnet-04-23-11-30"
+	ChainID = "decimal-devnet-05-13-17-00"
 
 	TitleTestBaseCoin  = "Test decimal coin"
 	SymbolTestBaseCoin = "tdel"
