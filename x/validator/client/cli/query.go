@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"strings"
 
@@ -202,7 +203,7 @@ $ %s query validator delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p co
 				return err
 			}
 
-			var resp types.DelegationResponse
+			var resp exported.DelegationI
 			if err := cdc.UnmarshalJSON(res, &resp); err != nil {
 				return err
 			}
@@ -247,7 +248,7 @@ $ %s query validator delegations cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 				return err
 			}
 
-			var resp types.DelegationResponses
+			var resp []exported.DelegationI
 			if err := cdc.UnmarshalJSON(res, &resp); err != nil {
 				return err
 			}
@@ -292,7 +293,7 @@ $ %s query validator delegations-to cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9
 				return err
 			}
 
-			var resp types.DelegationResponses
+			var resp []exported.DelegationI
 			if err := cdc.UnmarshalJSON(res, &resp); err != nil {
 				return err
 			}

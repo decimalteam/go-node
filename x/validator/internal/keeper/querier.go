@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"errors"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -120,6 +121,8 @@ func queryValidatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
+
+	fmt.Println(string(res))
 
 	return res, nil
 }
