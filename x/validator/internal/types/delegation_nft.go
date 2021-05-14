@@ -86,3 +86,12 @@ func (u UnbondingDelegationNFTEntry) GetInitialBalance() sdk.Coin {
 func (u UnbondingDelegationNFTEntry) IsMature(currentTime time.Time) bool {
 	return !u.CompletionTime.After(currentTime)
 }
+
+func (u UnbondingDelegationNFTEntry) GetEvent() sdk.Event {
+	return sdk.NewEvent(
+		EventTypeCompleteUnbondingNFT,
+		sdk.NewAttribute(AttributeKeyDenom, u.Denom),
+		sdk.NewAttribute(AttributeKeyID, u.TokenID),
+		sdk.NewAttribute(AttributeKeyQuantity, u.Quantity.String()),
+	)
+}
