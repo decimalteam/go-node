@@ -38,6 +38,8 @@ func NewMsgMintNFT(sender, recipient sdk.AccAddress, id, denom, tokenURI string,
 
 const regName = "^[a-zA-Z0-9_-]{1,255}$"
 
+var minReserve = sdk.NewInt(100)
+
 // Route Implements Msg
 func (msg MsgMintNFT) Route() string { return RouterKey }
 
@@ -61,7 +63,7 @@ func (msg MsgMintNFT) ValidateBasic() error {
 	if !msg.Quantity.IsPositive() {
 		return ErrInvalidQuantity
 	}
-	if !msg.Reserve.IsPositive() {
+	if !msg.Reserve.IsPositive() || msg.Reserve.LT(minReserve) {
 		return ErrInvalidReserve
 	}
 	if match, _ := regexp.MatchString(regName, msg.Denom); !match {

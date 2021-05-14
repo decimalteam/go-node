@@ -226,8 +226,8 @@ func (t TokenOwners) SetOwner(owner exported.TokenOwner) exported.TokenOwners {
 	for i, o := range t.Owners {
 		if o.GetAddress().Equals(owner.GetAddress()) {
 			t.Owners[i] = owner
+			return t
 		}
-		return t
 	}
 
 	t.Owners = append(t.Owners, TokenOwner{
