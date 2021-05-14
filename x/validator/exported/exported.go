@@ -21,6 +21,7 @@ type UnbondingDelegationEntryI interface {
 	GetBalance() sdk.Coin
 	GetInitialBalance() sdk.Coin
 	IsMature(currentTime time.Time) bool
+	Event
 }
 
 // ValidatorI expected validator functions
@@ -37,4 +38,8 @@ type ValidatorI interface {
 	GetBondedTokens() sdk.Int     // validator bonded tokens
 	GetConsensusPower() int64     // validation power in tendermint
 	GetCommission() sdk.Dec       // validator commission rate
+}
+
+type Event interface {
+	GetEvent() sdk.Event
 }

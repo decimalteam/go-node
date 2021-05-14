@@ -134,6 +134,11 @@ func (e UnbondingDelegationEntry) GetCreationHeight() int64     { return e.Creat
 func (e UnbondingDelegationEntry) GetCompletionTime() time.Time { return e.CompletionTime }
 func (e UnbondingDelegationEntry) GetBalance() sdk.Coin         { return e.Balance }
 func (e UnbondingDelegationEntry) GetInitialBalance() sdk.Coin  { return e.InitialBalance }
+func (e UnbondingDelegationEntry) GetEvent() sdk.Event {
+	return sdk.NewEvent(
+		EventTypeCompleteUnbonding,
+	)
+}
 
 // IsMature - is the current entry mature
 func (e UnbondingDelegationEntry) IsMature(currentTime time.Time) bool {
@@ -187,6 +192,20 @@ func (d *UnbondingDelegation) AddNFTEntry(creationHeight int64, minTime time.Tim
 // RemoveEntry - remove entry at index i to the unbonding delegation
 func (d *UnbondingDelegation) RemoveEntry(i int64) {
 	d.Entries = append(d.Entries[:i], d.Entries[i+1:]...)
+}
+
+func (d UnbondingDelegation) GetEvents(ctxTime time.Time) sdk.Events {
+	events := sdk.Events{}
+	for _, entry := range d.Entries {
+		if entry.IsMature(ctxTime) {
+			events.AppendEvent(entry.GetEvent().AppendAttributes(
+				sdk.NewAttribute(AttributeKeyValidator, d.ValidatorAddress.String()),
+				sdk.NewAttribute(AttributeKeyDelegator, d.DelegatorAddress.String()),
+				sdk.NewAttribute(AttributeKeyCoin, entry.GetBalance().String()),
+			))
+		}
+	}
+	return events
 }
 
 // return the unbonding delegation
