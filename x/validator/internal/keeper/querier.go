@@ -1,10 +1,8 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"errors"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -113,16 +111,21 @@ func queryValidatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper)
 
 	delegations := k.GetValidatorDelegations(ctx, params.ValidatorAddr)
 
-	if delegations == nil {
-		delegations = []exported.DelegationI{}
+	resDelegations := types.DelegationResponse{}
+
+	for _, delegation := range delegations {
+		switch delegation := delegation.(type) {
+		case types.Delegation:
+			resDelegations.Delegations = append(resDelegations.Delegations, delegation)
+		case types.DelegationNFT:
+			resDelegations.DelegationsNFT = append(resDelegations.DelegationsNFT, delegation)
+		}
 	}
 
-	res, err := codec.MarshalJSONIndent(types.ModuleCdc, delegations)
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, resDelegations)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-
-	fmt.Println(string(res))
 
 	return res, nil
 }
@@ -158,11 +161,18 @@ func queryDelegatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper)
 
 	delegations := k.GetAllDelegatorDelegations(ctx, params.DelegatorAddr)
 
-	if delegations == nil {
-		delegations = []exported.DelegationI{}
+	resDelegations := types.DelegationResponse{}
+
+	for _, delegation := range delegations {
+		switch delegation := delegation.(type) {
+		case types.Delegation:
+			resDelegations.Delegations = append(resDelegations.Delegations, delegation)
+		case types.DelegationNFT:
+			resDelegations.DelegationsNFT = append(resDelegations.DelegationsNFT, delegation)
+		}
 	}
 
-	res, err := codec.MarshalJSONIndent(types.ModuleCdc, delegations)
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, resDelegations)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -248,10 +258,7 @@ func queryDelegation(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 		return nil, types.ErrNoDelegation()
 	}
 
-	delegationResp, err := delegationToDelegationResponse(delegation)
-	if err != nil {
-		return nil, err
-	}
+	delegationResp := types.NewDelegationResp(types.Delegations{delegation}, types.DelegationsNFT{})
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, delegationResp)
 	if err != nil {
@@ -332,29 +339,4 @@ func queryParameters(ctx sdk.Context, k Keeper) ([]byte, error) {
 	}
 
 	return res, nil
-}
-
-//______________________________________________________
-// util
-
-func delegationToDelegationResponse(del exported.DelegationI) (types.DelegationResponse, error) {
-	return types.NewDelegationResp(
-		del.GetDelegatorAddr(),
-		del.GetValidatorAddr(),
-		del.GetCoin(),
-	), nil
-}
-
-func delegationsToDelegationResponses(delegations []exported.DelegationI) (types.DelegationResponses, error) {
-	resp := make(types.DelegationResponses, len(delegations))
-	for i, del := range delegations {
-		delResp, err := delegationToDelegationResponse(del)
-		if err != nil {
-			return nil, err
-		}
-
-		resp[i] = delResp
-	}
-
-	return resp, nil
 }

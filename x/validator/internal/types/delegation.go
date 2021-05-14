@@ -246,17 +246,15 @@ func (ubds UnbondingDelegations) String() (out string) {
 // DelegationResponse is equivalent to Delegation except that it contains a balance
 // in addition to shares which is more suitable for client responses.
 type DelegationResponse struct {
-	exported.DelegationI
-	Balance sdk.Coin `json:"balance" yaml:"balance"`
+	Delegations    `json:"delegations"`
+	DelegationsNFT `json:"delegations_nft"`
 }
 
-func NewDelegationResp(d sdk.AccAddress, v sdk.ValAddress, b sdk.Coin) DelegationResponse {
-	return DelegationResponse{NewDelegation(d, v, b), b}
-}
-
-// String implements the Stringer interface for DelegationResponse.
-func (d DelegationResponse) String() string {
-	return fmt.Sprintf("%s\n  Balance:   %s", d.DelegationI, d.Balance)
+func NewDelegationResp(delegations Delegations, delegationsNFT DelegationsNFT) DelegationResponse {
+	return DelegationResponse{
+		Delegations:    delegations,
+		DelegationsNFT: delegationsNFT,
+	}
 }
 
 type delegationRespAlias DelegationResponse
