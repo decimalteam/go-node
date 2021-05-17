@@ -11,7 +11,7 @@ import (
 
 // tests GetDelegation, GetDelegatorDelegations, SetDelegation, RemoveDelegation, GetDelegatorDelegations
 func TestDelegation(t *testing.T) {
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, 10)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 10)
 
 	//construct the validators
 	amts := []sdk.Int{sdk.NewInt(9), sdk.NewInt(8), sdk.NewInt(7)}
@@ -127,7 +127,7 @@ func TestDelegation(t *testing.T) {
 
 // tests Get/Set/Remove UnbondingDelegation
 func TestUnbondingDelegation(t *testing.T) {
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, 0)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 0)
 
 	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], types.NewUnbondingDelegationEntry(0,
 		time.Unix(0, 0), sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(5))))
@@ -166,7 +166,7 @@ func TestUnbondingDelegation(t *testing.T) {
 }
 
 func TestUnbondDelegation(t *testing.T) {
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, 0)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 0)
 
 	startTokens := types.TokensFromConsensusPower(10)
 
@@ -199,7 +199,7 @@ func TestUnbondDelegation(t *testing.T) {
 }
 
 func TestUndelegateFromUnbondedValidator(t *testing.T) {
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, 1)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 1)
 	delTokens := types.TokensFromConsensusPower(10)
 	delCoins := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
 
@@ -253,7 +253,7 @@ func TestUndelegateFromUnbondedValidator(t *testing.T) {
 }
 
 func TestUnbondingAllDelegationFromValidator(t *testing.T) {
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, 0)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 0)
 	delTokens := types.TokensFromConsensusPower(10)
 	delCoins := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
 

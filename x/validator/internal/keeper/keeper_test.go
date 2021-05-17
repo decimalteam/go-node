@@ -8,7 +8,7 @@ import (
 )
 
 func TestParams(t *testing.T) {
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, 0)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 0)
 	expParams := types.DefaultParams()
 
 	//check that the empty keeper loads the default

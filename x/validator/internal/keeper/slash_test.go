@@ -14,7 +14,7 @@ import (
 // setup helper function - creates two validators
 func setupHelper(t *testing.T, power int64) (sdk.Context, Keeper, types.Params) {
 	// setup
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, power)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, power)
 
 	params := keeper.GetParams(ctx)
 	numVals := int64(3)

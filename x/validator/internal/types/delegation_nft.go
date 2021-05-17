@@ -60,15 +60,17 @@ type UnbondingDelegationNFTEntry struct {
 	Denom          string    `json:"denom" yaml:"denom"`
 	TokenID        string    `json:"token_id" yaml:"token_id"`
 	Quantity       sdk.Int   `json:"quantity" yaml:"quantity"`
+	Balance        sdk.Coin  `json:"balance"`
 }
 
-func NewUnbondingDelegationNFTEntry(creationHeight int64, completionTime time.Time, denom string, tokenID string, quantity sdk.Int) UnbondingDelegationNFTEntry {
+func NewUnbondingDelegationNFTEntry(creationHeight int64, completionTime time.Time, denom string, tokenID string, quantity sdk.Int, balance sdk.Coin) UnbondingDelegationNFTEntry {
 	return UnbondingDelegationNFTEntry{
 		CreationHeight: creationHeight,
 		CompletionTime: completionTime,
 		Denom:          denom,
 		TokenID:        tokenID,
 		Quantity:       quantity,
+		Balance:        balance,
 	}
 }
 
@@ -76,11 +78,11 @@ func (u UnbondingDelegationNFTEntry) GetCreationHeight() int64     { return u.Cr
 func (u UnbondingDelegationNFTEntry) GetCompletionTime() time.Time { return u.CompletionTime }
 
 func (u UnbondingDelegationNFTEntry) GetBalance() sdk.Coin {
-	return sdk.NewCoin(DefaultBondDenom, u.Quantity)
+	return u.Balance
 }
 
 func (u UnbondingDelegationNFTEntry) GetInitialBalance() sdk.Coin {
-	return sdk.NewCoin(DefaultBondDenom, u.Quantity)
+	return u.Balance
 }
 
 func (u UnbondingDelegationNFTEntry) IsMature(currentTime time.Time) bool {

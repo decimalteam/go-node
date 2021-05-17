@@ -35,12 +35,18 @@ func (k Keeper) SetUnbondingDelegationNFTEntry(ctx sdk.Context,
 	delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
 	creationHeight int64, minTime time.Time, tokenID, denom string, quantity sdk.Int) types.UnbondingDelegation {
 
+	token, err := k.nftKeeper.GetNFT(ctx, denom, tokenID)
+	if err != nil {
+		panic(err)
+	}
+	balance := sdk.NewCoin(k.BondDenom(ctx), quantity.Mul(token.GetReserve()))
+
 	ubd, found := k.GetUnbondingDelegation(ctx, delegatorAddr, validatorAddr)
 	if found {
-		ubd.AddNFTEntry(creationHeight, minTime, tokenID, denom, quantity)
+		ubd.AddNFTEntry(creationHeight, minTime, tokenID, denom, quantity, balance)
 	} else {
 		ubd = types.NewUnbondingDelegation(delegatorAddr, validatorAddr,
-			types.NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, quantity))
+			types.NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, quantity, balance))
 	}
 	k.SetUnbondingDelegation(ctx, ubd)
 	return ubd

@@ -2,6 +2,7 @@ package validator
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	val "bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,7 @@ func TestValidatorByPowerIndex(t *testing.T) {
 
 	initPower := int64(1000000)
 	initBond := types.TokensFromConsensusPower(initPower)
-	ctx, _, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, initPower)
+	ctx, _, keeper, supplyKeeper, coinKeeper, _ := val.CreateTestInput(t, false, initPower)
 
 	// create validator
 	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr, val.PKs[0], initBond)
@@ -110,7 +111,7 @@ func TestValidatorByPowerIndex(t *testing.T) {
 }
 
 func TestDuplicatesMsgCreateValidator(t *testing.T) {
-	ctx, _, keeper, _, _ := val.CreateTestInput(t, false, 1000)
+	ctx, _, keeper, _, _, _ := val.CreateTestInput(t, false, 1000)
 
 	addr1, addr2 := sdk.ValAddress(val.Addrs[0]), sdk.ValAddress(val.Addrs[1])
 	pk1, pk2 := val.PKs[0], val.PKs[1]
@@ -164,7 +165,7 @@ func TestDuplicatesMsgCreateValidator(t *testing.T) {
 }
 
 func TestInvalidPubKeyTypeMsgCreateValidator(t *testing.T) {
-	ctx, _, keeper, _, _ := val.CreateTestInput(t, false, 1000)
+	ctx, _, keeper, _, _, _ := val.CreateTestInput(t, false, 1000)
 
 	addr := sdk.ValAddress(val.Addrs[0])
 	invalidPk := secp256k1.GenPrivKey().PubKey()
@@ -187,7 +188,7 @@ func TestInvalidPubKeyTypeMsgCreateValidator(t *testing.T) {
 func TestIncrementsMsgDelegate(t *testing.T) {
 	initPower := int64(1000)
 	initBond := types.TokensFromConsensusPower(initPower)
-	ctx, accMapper, keeper, _, _ := val.CreateTestInput(t, false, initPower)
+	ctx, accMapper, keeper, _, _, _ := val.CreateTestInput(t, false, initPower)
 	params := keeper.GetParams(ctx)
 
 	bondAmount := types.TokensFromConsensusPower(10)
@@ -257,7 +258,7 @@ func TestIncrementsMsgDelegate(t *testing.T) {
 func TestIncrementsMsgUnbond(t *testing.T) {
 	initPower := int64(1000)
 	initBond := types.TokensFromConsensusPower(initPower)
-	ctx, accMapper, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, initPower)
+	ctx, accMapper, keeper, supplyKeeper, coinKeeper, _ := val.CreateTestInput(t, false, initPower)
 
 	params := keeper.GetParams(ctx)
 	denom := params.BondDenom
@@ -362,7 +363,7 @@ func TestIncrementsMsgUnbond(t *testing.T) {
 func TestMultipleMsgCreateValidator(t *testing.T) {
 	initPower := int64(1000)
 	initTokens := types.TokensFromConsensusPower(initPower)
-	ctx, accMapper, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, initPower)
+	ctx, accMapper, keeper, supplyKeeper, coinKeeper, _ := val.CreateTestInput(t, false, initPower)
 
 	params := keeper.GetParams(ctx)
 	blockTime := time.Now().UTC()
@@ -434,7 +435,7 @@ func TestMultipleMsgCreateValidator(t *testing.T) {
 }
 
 func TestMultipleMsgDelegate(t *testing.T) {
-	ctx, _, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, 1000)
+	ctx, _, keeper, supplyKeeper, coinKeeper, _ := val.CreateTestInput(t, false, 1000)
 	validatorAddr, delegatorAddrs := sdk.ValAddress(val.Addrs[0]), val.Addrs[1:]
 
 	// first make a validator
@@ -478,7 +479,7 @@ func TestMultipleMsgDelegate(t *testing.T) {
 }
 
 func TestValidatorQueue(t *testing.T) {
-	ctx, _, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, 1000)
+	ctx, _, keeper, supplyKeeper, coinKeeper, _ := val.CreateTestInput(t, false, 1000)
 	validatorAddr := sdk.ValAddress(val.Addrs[0])
 
 	// set the unbonding time
@@ -508,6 +509,20 @@ func TestValidatorQueue(t *testing.T) {
 	ctx = ctx.WithBlockTime(finishTime)
 	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
+	var reqEvent sdk.Event
+	for _, event := range ctx.EventManager().Events() {
+		if event.Type == types.EventTypeCompleteUnbonding {
+			reqEvent = event
+			break
+		}
+	}
+	require.Equal(t, reqEvent, sdk.NewEvent(
+		types.EventTypeCompleteUnbonding,
+		sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyDelegator, sdk.AccAddress(validatorAddr).String()),
+		sdk.NewAttribute(types.AttributeKeyCoin, unbondAmt.String()),
+	))
+
 	origHeader := ctx.BlockHeader()
 
 	validator, err := keeper.GetValidator(ctx, validatorAddr)
@@ -531,7 +546,7 @@ func TestValidatorQueue(t *testing.T) {
 }
 
 func TestUnbondingPeriod(t *testing.T) {
-	ctx, _, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, 1000)
+	ctx, _, keeper, supplyKeeper, coinKeeper, _ := val.CreateTestInput(t, false, 1000)
 	validatorAddr := sdk.ValAddress(val.Addrs[0])
 
 	// set the unbonding time
@@ -579,7 +594,7 @@ func TestUnbondingPeriod(t *testing.T) {
 }
 
 func TestUnbondingFromUnbondingValidator(t *testing.T) {
-	ctx, _, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, 1000)
+	ctx, _, keeper, supplyKeeper, coinKeeper, _ := val.CreateTestInput(t, false, 1000)
 	validatorAddr, delegatorAddr := sdk.ValAddress(val.Addrs[0]), val.Addrs[1]
 
 	// create the validator
@@ -624,7 +639,7 @@ func TestUnbondingFromUnbondingValidator(t *testing.T) {
 }
 
 func TestMultipleUnbondingDelegationAtSameTime(t *testing.T) {
-	ctx, _, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, 1000)
+	ctx, _, keeper, supplyKeeper, coinKeeper, _ := val.CreateTestInput(t, false, 1000)
 	valAddr := sdk.ValAddress(val.Addrs[0])
 
 	// set the unbonding time
@@ -674,7 +689,7 @@ func TestMultipleUnbondingDelegationAtSameTime(t *testing.T) {
 }
 
 func TestMultipleUnbondingDelegationAtUniqueTimes(t *testing.T) {
-	ctx, _, keeper, supplyKeeper, coinKeeper := val.CreateTestInput(t, false, 1000)
+	ctx, _, keeper, supplyKeeper, coinKeeper, _ := val.CreateTestInput(t, false, 1000)
 	valAddr := sdk.ValAddress(val.Addrs[0])
 
 	// set the unbonding time
@@ -731,7 +746,7 @@ func TestMultipleUnbondingDelegationAtUniqueTimes(t *testing.T) {
 }
 
 func TestUnbondingWhenExcessValidators(t *testing.T) {
-	ctx, _, keeper, _, _ := val.CreateTestInput(t, false, 1000)
+	ctx, _, keeper, _, _, _ := val.CreateTestInput(t, false, 1000)
 	validatorAddr1 := sdk.ValAddress(val.Addrs[0])
 	validatorAddr2 := sdk.ValAddress(val.Addrs[1])
 	validatorAddr3 := sdk.ValAddress(val.Addrs[2])
@@ -802,7 +817,7 @@ func TestInvalidMsg(t *testing.T) {
 }
 
 func TestEditCandidate(t *testing.T) {
-	ctx, _, keeper, _, _ := val.CreateTestInput(t, false, 1000)
+	ctx, _, keeper, _, _, _ := val.CreateTestInput(t, false, 1000)
 	validatorAddr1 := sdk.ValAddress(val.Addrs[0])
 	rewardAddr1 := val.Addrs[1]
 
@@ -837,7 +852,7 @@ func TestEditCandidate(t *testing.T) {
 }
 
 func TestSetOnline(t *testing.T) {
-	ctx, _, keeper, _, _ := val.CreateTestInput(t, false, 1000)
+	ctx, _, keeper, _, _, _ := val.CreateTestInput(t, false, 1000)
 	validatorAddr1 := sdk.ValAddress(val.Addrs[0])
 	validatorAddr2 := sdk.ValAddress(val.Addrs[1])
 	validatorAddr3 := sdk.ValAddress(val.Addrs[2])
@@ -894,6 +909,80 @@ func TestSetOnline(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(updates))
 	require.Equal(t, 3, len(keeper.GetLastValidators(ctx)))
+}
+
+func TestUnbondNFT(t *testing.T) {
+	ctx, _, keeper, supplyKeeper, coinKeeper, nftKeeper := val.CreateTestInput(t, false, 1000)
+	validatorAddr := sdk.ValAddress(val.Addrs[0])
+	delegatorAddr := sdk.AccAddress(validatorAddr)
+
+	// set the unbonding time
+	params := keeper.GetParams(ctx)
+	params.UnbondingTime = 7 * time.Second
+	keeper.SetParams(ctx, params)
+
+	// create the validator
+	valTokens := types.TokensFromConsensusPower(10)
+	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr, val.PKs[0], valTokens)
+	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
+
+	// create nft
+	const denom = "denom1"
+	const tokenID = "token1"
+	quantity := sdk.NewInt(100)
+	reserve := sdk.NewInt(100)
+	token := nft.NewBaseNFT(tokenID, delegatorAddr, delegatorAddr,
+		"", quantity, reserve, true)
+	collection := nft.NewCollection(denom, nft.NewNFTs(token))
+	nftKeeper.SetCollection(ctx, denom, collection)
+
+	// delegate nft
+	msgDelegateNft := types.NewMsgDelegateNFT(validatorAddr, delegatorAddr, tokenID, denom, quantity)
+	res, err = handleMsgDelegateNFT(ctx, keeper, msgDelegateNft)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+
+	// unbond the half of delegations nft
+	unbondQuantity := quantity.QuoRaw(2)
+	msgUnbondNFT := types.NewMsgUnbondNFT(validatorAddr, delegatorAddr, tokenID, denom, unbondQuantity)
+	res, err = handleMsgUnbondNFT(ctx, keeper, msgUnbondNFT)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+
+	unbondingDelegation, ok := keeper.GetUnbondingDelegation(ctx, delegatorAddr, validatorAddr)
+	require.True(t, ok)
+	require.Equal(t, unbondQuantity.Mul(reserve), unbondingDelegation.Entries[0].GetBalance().Amount)
+
+	validator, err := keeper.GetValidator(ctx, validatorAddr)
+	require.NoError(t, err)
+	require.Equal(t, validator.Tokens, valTokens.Add(unbondQuantity.Mul(reserve)))
+
+	var finishTime time.Time
+	types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
+
+	ctx = ctx.WithBlockTime(finishTime)
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
+
+	var reqEvent sdk.Event
+	for _, event := range ctx.EventManager().Events() {
+		if event.Type == types.EventTypeCompleteUnbondingNFT {
+			reqEvent = event
+			break
+		}
+	}
+	require.Equal(t, sdk.NewEvent(
+		types.EventTypeCompleteUnbondingNFT,
+		sdk.NewAttribute(types.AttributeKeyDenom, denom),
+		sdk.NewAttribute(types.AttributeKeyID, tokenID),
+		sdk.NewAttribute(types.AttributeKeyQuantity, unbondQuantity.String()),
+		sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyDelegator, delegatorAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyCoin, sdk.NewCoin(keeper.BondDenom(ctx), unbondQuantity.Mul(reserve)).String()),
+	), reqEvent)
 }
 
 func TestConvertAddr(t *testing.T) {
