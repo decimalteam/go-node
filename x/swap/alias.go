@@ -22,6 +22,8 @@ const (
 type (
 	Keeper       = keeper.Keeper
 	MsgHTLT      = types.MsgHTLT
+	MsgRedeem    = types.MsgRedeem
+	MsgRefund    = types.MsgRefund
 	GenesisState = types.GenesisState
 )
 
@@ -34,4 +36,8 @@ var (
 	SwapServiceAddress = types.SwapServiceAddress
 
 	NewKeeper = keeper.NewKeeper
+
+	NewMsgRedeem = types.NewMsgRedeem
+	NewMsgHTLT   = types.NewMsgHTLT
+	NewMsgRefund = types.NewMsgRefund
 )
