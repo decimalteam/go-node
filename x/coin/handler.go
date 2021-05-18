@@ -452,9 +452,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Decode provided check from base58 format to raw bytes
 	checkBytes := base58.Decode(msg.Check)
 	if len(checkBytes) == 0 {
-		//todo error
-		msgError := "unable to decode check from base58"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+		return nil, types.ErrUnableDecodeCheck()
 	}
 
 	// Parse provided check from raw bytes to ensure it is valid
@@ -466,17 +464,13 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Decode provided proof from base64 format to raw bytes
 	proof, err := base64.StdEncoding.DecodeString(msg.Proof)
 	if err != nil {
-		//todo error
-		msgError := "unable to decode proof from base64"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidProof, msgError)
+		return nil, types.ErrUnableDecodeProof()
 	}
 
 	// Recover issuer address from check signature
 	issuer, err := check.Sender()
 	if err != nil {
-		//todo error
-		errMsg := fmt.Sprintf("unable to recover check issuer address: %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, errMsg)
+		return nil, types.ErrUnableRecoverAddress(err.Error())
 	}
 
 	account := k.AccountKeeper.GetAccount(ctx, issuer)
@@ -529,9 +523,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Recover public key from check lock
 	publicKeyA, err := check.LockPubKey()
 	if err != nil {
-		//todo new error
-		msgError := fmt.Sprintf("unable to recover lock public key from check: %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+		return nil, types.ErrUnableRecoverLockPkey(err.Error())
 	}
 
 	// Prepare bytes used to recover public key from provided proof
@@ -541,9 +533,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		msg.Sender,
 	})
 	if err != nil {
-		//todo new error
-		msgError := fmt.Sprintf("unable to RLP encode check sender address: %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+		return nil, types.ErrUnableRPLEncodeCheck(err.Error())
 	}
 	hw.Sum(senderAddressHash[:0])
 

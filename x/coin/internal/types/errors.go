@@ -42,16 +42,19 @@ const (
 	// Send coin
 	CodeInvalidAmount CodeType = 300
 	// Redeem check
-	CodeInvalidCheck         CodeType = 400
-	CodeInvalidProof         CodeType = 401
-	CodeInvalidPassphrase    CodeType = 402
-	CodeInvalidChainID       CodeType = 403
-	CodeInvalidNonce         CodeType = 404
-	CodeCheckExpired         CodeType = 405
-	CodeCheckRedeemed        CodeType = 406
-	CodeUnableDecodeCheck    CodeType = 407
-	CodeUnableRPLEncodeCheck CodeType = 408
-	CodeUnableSignCheck      CodeType = 409
+	CodeInvalidCheck          CodeType = 400
+	CodeInvalidProof          CodeType = 401
+	CodeInvalidPassphrase     CodeType = 402
+	CodeInvalidChainID        CodeType = 403
+	CodeInvalidNonce          CodeType = 404
+	CodeCheckExpired          CodeType = 405
+	CodeCheckRedeemed         CodeType = 406
+	CodeUnableDecodeCheck     CodeType = 407
+	CodeUnableRPLEncodeCheck  CodeType = 408
+	CodeUnableSignCheck       CodeType = 409
+	CodeUnableDecodeProof     CodeType = 410
+	CodeUnableRecoverAddress  CodeType = 411
+	CodeUnableRecoverLockPkey CodeType = 412
 	// AccountKeys
 	CodeInvalidPkey              CodeType = 500
 	CodeUnableRetriveArmoredPkey CodeType = 501
@@ -332,6 +335,30 @@ func ErrUnableSignCheck(err string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeUnableSignCheck,
 		fmt.Sprintf("unable to sign check receiver address by private key generated from passphrase: %s", err),
+	)
+}
+
+func ErrUnableDecodeProof() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeUnableDecodeProof,
+		fmt.Sprintf("unable to decode proof from base64"),
+	)
+}
+
+func ErrUnableRecoverAddress(err string) *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeUnableRecoverAddress,
+		fmt.Sprintf("unable to recover check issuer address: %s", err),
+	)
+}
+
+func ErrUnableRecoverLockPkey(err string) *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeUnableRecoverLockPkey,
+		fmt.Sprintf("unable to recover lock public key from check: %s", err),
 	)
 }
 
