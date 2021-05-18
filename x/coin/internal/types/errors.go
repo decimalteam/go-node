@@ -285,7 +285,7 @@ func ErrInvalidNonce() *sdkerrors.Error {
 	)
 }
 
-func ErrCheckExpired(date string) *sdkerrors.Error {
+func ErrCheckExpired(date uint64) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CheckExpired,
