@@ -42,13 +42,18 @@ const (
 	// Send coin
 	CodeInvalidAmount CodeType = 300
 	// Redeem check
-	InvalidCheck      CodeType = 400
-	InvalidProof      CodeType = 401
-	InvalidPassphrase CodeType = 402
-	InvalidChainID    CodeType = 403
-	InvalidNonce      CodeType = 404
-	CheckExpired      CodeType = 405
-	CheckRedeemed     CodeType = 406
+	CodeInvalidCheck      CodeType = 400
+	CodeInvalidProof      CodeType = 401
+	CodeInvalidPassphrase CodeType = 402
+	CodeInvalidChainID    CodeType = 403
+	CodeInvalidNonce      CodeType = 404
+	CodeCheckExpired      CodeType = 405
+	CodeCheckRedeemed     CodeType = 406
+	// AccountKeys
+	CodeInvalidPkey              CodeType = 500
+	CodeUnableRetriveArmoredPkey CodeType = 501
+	CodeUnableRetrivePkey        CodeType = 502
+	CodeUnableRetriveSECPPkey    CodeType = 503
 )
 
 var ErrInvalidLimitVolume = errors.New("invalid limitVolume")
@@ -248,7 +253,7 @@ func ErrInvalidAmount() *sdkerrors.Error {
 func ErrInvalidCheck(data string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		InvalidCheck,
+		CodeInvalidCheck,
 		fmt.Sprintf("unable to parse check: %s", data),
 	)
 }
@@ -256,7 +261,7 @@ func ErrInvalidCheck(data string) *sdkerrors.Error {
 func ErrInvalidProof(data string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		InvalidProof,
+		CodeInvalidProof,
 		fmt.Sprintf("provided proof is invalid %s", data),
 	)
 }
@@ -264,7 +269,7 @@ func ErrInvalidProof(data string) *sdkerrors.Error {
 func ErrInvalidPassphrase(data string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		InvalidPassphrase,
+		CodeInvalidPassphrase,
 		fmt.Sprintf("unable to create private key from passphrase: %s", data),
 	)
 }
@@ -272,7 +277,7 @@ func ErrInvalidPassphrase(data string) *sdkerrors.Error {
 func ErrInvalidChainID(wanted string, issued string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		InvalidChainID,
+		CodeInvalidChainID,
 		fmt.Sprintf("wanted chain ID %s, but check is issued for chain with ID %s", wanted, issued),
 	)
 }
@@ -280,7 +285,7 @@ func ErrInvalidChainID(wanted string, issued string) *sdkerrors.Error {
 func ErrInvalidNonce() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		InvalidNonce,
+		CodeInvalidNonce,
 		fmt.Sprintf("nonce is too big (should be up to 16 bytes)"),
 	)
 }
@@ -288,7 +293,7 @@ func ErrInvalidNonce() *sdkerrors.Error {
 func ErrCheckExpired(date uint64) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		CheckExpired,
+		CodeCheckExpired,
 		fmt.Sprintf("check was expired at block %s", date),
 	)
 }
@@ -296,7 +301,41 @@ func ErrCheckExpired(date uint64) *sdkerrors.Error {
 func ErrCheckRedeemed() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		CheckRedeemed,
+		CodeCheckRedeemed,
 		fmt.Sprintf("check was redeemed already"),
+	)
+}
+
+// AccountKeys Errors
+
+func ErrInvalidPkey() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeInvalidPkey,
+		fmt.Sprintf("invalid private key"),
+	)
+}
+
+func ErrUnableRetriveArmoredPkey(name string, err string) *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeUnableRetriveArmoredPkey,
+		fmt.Sprintf("unable to retrieve armored private key for account %s: %s", name, err),
+	)
+}
+
+func ErrUnableRetrivePkey(name string, err string) *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeUnableRetrivePkey,
+		fmt.Sprintf("unable to retrieve private key for account %s: %s", name, err),
+	)
+}
+
+func ErrUnableRetriveSECPPkey(name string, algo string) *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeUnableRetriveSECPPkey,
+		fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", name, algo),
 	)
 }
