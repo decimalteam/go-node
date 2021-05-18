@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"google.golang.org/genproto/googleapis/type/date"
-
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -287,11 +285,11 @@ func ErrInvalidNonce() *sdkerrors.Error {
 	)
 }
 
-func ErrCheckExpired(date date.Date) *sdkerrors.Error {
+func ErrCheckExpired(date string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CheckExpired,
-		fmt.Sprintf("check was expired at block %d", date),
+		fmt.Sprintf("check was expired at block %s", date),
 	)
 }
 
