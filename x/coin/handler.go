@@ -452,6 +452,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Decode provided check from base58 format to raw bytes
 	checkBytes := base58.Decode(msg.Check)
 	if len(checkBytes) == 0 {
+		//todo error
 		msgError := "unable to decode check from base58"
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
 	}
@@ -459,13 +460,13 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Parse provided check from raw bytes to ensure it is valid
 	check, err := types.ParseCheck(checkBytes)
 	if err != nil {
-		msgError := fmt.Sprintf("unable to parse check: %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+		return nil, types.ErrInvalidCheck(err.Error())
 	}
 
 	// Decode provided proof from base64 format to raw bytes
 	proof, err := base64.StdEncoding.DecodeString(msg.Proof)
 	if err != nil {
+		//todo error
 		msgError := "unable to decode proof from base64"
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidProof, msgError)
 	}
@@ -473,6 +474,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Recover issuer address from check signature
 	issuer, err := check.Sender()
 	if err != nil {
+		//todo error
 		errMsg := fmt.Sprintf("unable to recover check issuer address: %s", err.Error())
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, errMsg)
 	}
@@ -506,31 +508,28 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 
 	// Ensure the proper chain ID is specified in the check
 	if check.ChainID != ctx.ChainID() {
-		errMsg := fmt.Sprintf("wanted chain ID %s, but check is issued for chain with ID %s", ctx.ChainID(), check.ChainID)
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidChainID, errMsg)
+		return nil, types.ErrInvalidChainID(ctx.ChainID(), check.ChainID)
 	}
 
 	// Ensure nonce length
 	if len(check.Nonce) > 16 {
-		errMsg := "nonce is too big (should be up to 16 bytes)"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidNonce, errMsg)
+		return nil, types.ErrInvalidNonce()
 	}
 
 	// Check block number
 	if check.DueBlock < uint64(ctx.BlockHeight()) {
-		errMsg := fmt.Sprintf("check was expired at block %d", check.DueBlock)
-		return nil, sdkerrors.New(types.DefaultCodespace, types.CheckExpired, errMsg)
+		return nil, types.ErrCheckExpired(check.DueBlock)
 	}
 
 	// Ensure check is not redeemed yet
 	if k.IsCheckRedeemed(ctx, check) {
-		errMsg := "check was redeemed already"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.CheckRedeemed, errMsg)
+		return nil, types.ErrCheckRedeemed()
 	}
 
 	// Recover public key from check lock
 	publicKeyA, err := check.LockPubKey()
 	if err != nil {
+		//todo new error
 		msgError := fmt.Sprintf("unable to recover lock public key from check: %s", err.Error())
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
 	}
@@ -542,6 +541,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		msg.Sender,
 	})
 	if err != nil {
+		//todo new error
 		msgError := fmt.Sprintf("unable to RLP encode check sender address: %s", err.Error())
 		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
 	}
@@ -552,8 +552,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 
 	// Compare both public keys to ensure provided proof is correct
 	if !bytes.Equal(publicKeyA, publicKeyB) {
-		msgError := fmt.Sprintf("provided proof is invalid %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidProof, msgError)
+		return nil, types.ErrInvalidProof(err.Error())
 	}
 
 	// Set check redeemed

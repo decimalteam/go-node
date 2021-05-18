@@ -39,6 +39,7 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 			// Decode provided check from base58 format to raw bytes
 			checkBytes := base58.Decode(checkBase58)
 			if len(checkBytes) == 0 {
+				//todo error
 				msgError := "unable to decode check from base58"
 				return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
 			}
