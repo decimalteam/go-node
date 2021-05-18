@@ -42,13 +42,16 @@ const (
 	// Send coin
 	CodeInvalidAmount CodeType = 300
 	// Redeem check
-	CodeInvalidCheck      CodeType = 400
-	CodeInvalidProof      CodeType = 401
-	CodeInvalidPassphrase CodeType = 402
-	CodeInvalidChainID    CodeType = 403
-	CodeInvalidNonce      CodeType = 404
-	CodeCheckExpired      CodeType = 405
-	CodeCheckRedeemed     CodeType = 406
+	CodeInvalidCheck         CodeType = 400
+	CodeInvalidProof         CodeType = 401
+	CodeInvalidPassphrase    CodeType = 402
+	CodeInvalidChainID       CodeType = 403
+	CodeInvalidNonce         CodeType = 404
+	CodeCheckExpired         CodeType = 405
+	CodeCheckRedeemed        CodeType = 406
+	CodeUnableDecodeCheck    CodeType = 407
+	CodeUnableRPLEncodeCheck CodeType = 408
+	CodeUnableSignCheck      CodeType = 409
 	// AccountKeys
 	CodeInvalidPkey              CodeType = 500
 	CodeUnableRetriveArmoredPkey CodeType = 501
@@ -250,6 +253,8 @@ func ErrInvalidAmount() *sdkerrors.Error {
 	)
 }
 
+// Redeem check
+
 func ErrInvalidCheck(data string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
@@ -303,6 +308,30 @@ func ErrCheckRedeemed() *sdkerrors.Error {
 		DefaultCodespace,
 		CodeCheckRedeemed,
 		fmt.Sprintf("check was redeemed already"),
+	)
+}
+
+func ErrUnableDecodeCheck() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeUnableDecodeCheck,
+		fmt.Sprintf("unable to decode check from base58"),
+	)
+}
+
+func ErrUnableRPLEncodeCheck(err string) *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeUnableRPLEncodeCheck,
+		fmt.Sprintf("unable to RLP encode check receiver address: %s", err),
+	)
+}
+
+func ErrUnableSignCheck(err string) *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeUnableSignCheck,
+		fmt.Sprintf("unable to sign check receiver address by private key generated from passphrase: %s", err),
 	)
 }
 
