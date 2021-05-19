@@ -68,6 +68,10 @@ func TestRevocation(t *testing.T) {
 	require.False(t, val.IsJailed())
 }
 
+func TestSlashBondedDelegationNFT(t *testing.T) {
+
+}
+
 // tests slashUnbondingDelegation
 func TestSlashUnbondingDelegation(t *testing.T) {
 	ctx, keeper, _ := setupHelper(t, 10)
