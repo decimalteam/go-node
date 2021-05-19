@@ -11,7 +11,6 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,7 +21,7 @@ import (
 )
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	validatorTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
@@ -46,7 +45,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdDeclareCandidate is the CLI command for doing CreateValidator
-func GetCmdDeclareCandidate(cdc *codec.Codec) *cobra.Command {
+func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Short: "Declare candidate",
 		Use:   "declare [pub_key] [coin] [commission] --from name/address",
@@ -167,7 +166,7 @@ func PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string
 }
 
 // BuildCreateValidatorMsg makes a new MsgCreateValidator.
-func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
+func BuildCreateValidatorMsg(cliCtx client.Context, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
 	amounstStr := viper.GetString(FlagAmount)
 	amount, err := sdk.ParseCoin(amounstStr)
 	if err != nil {
@@ -218,7 +217,7 @@ func BuildCreateValidatorMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (
 }
 
 // GetDelegate .
-func GetDelegate(cdc *codec.Codec) *cobra.Command {
+func GetDelegate(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Short: "Delegate coins",
 		Use:   "delegate [validator_address] [coin] --from name/address",
@@ -245,7 +244,7 @@ func GetDelegate(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-func GetDelegateNFT(cdc *codec.Codec) *cobra.Command {
+func GetDelegateNFT(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Short: "Delegate NFT",
 		Use:   "delegate-nft [validator_address] [tokenID] [denom] [quantity] --from name/address",
@@ -276,7 +275,7 @@ func GetDelegateNFT(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetSetOnline .
-func GetSetOnline(cdc *codec.Codec) *cobra.Command {
+func GetSetOnline(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Short: "Set online validator",
 		Use:   "set-online --from name/address",
@@ -294,7 +293,7 @@ func GetSetOnline(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetSetOffline .
-func GetSetOffline(cdc *codec.Codec) *cobra.Command {
+func GetSetOffline(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Short: "Set offline validator",
 		Use:   "set-offline --from name/address",
@@ -312,7 +311,7 @@ func GetSetOffline(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetUnbond .
-func GetUnbond(cdc *codec.Codec) *cobra.Command {
+func GetUnbond(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Short: "Unbond delegation",
 		Use:   "unbond [validator-address] [coin] --from name/address",
@@ -340,7 +339,7 @@ func GetUnbond(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetUnbondNFT .
-func GetUnbondNFT(cdc *codec.Codec) *cobra.Command {
+func GetUnbondNFT(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Short: "Unbond-nft delegation",
 		Use:   "unbond-nft [validator-address] [tokenID] [denom] [quantity] --from name/address",
@@ -371,7 +370,7 @@ func GetUnbondNFT(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetEditCandidate .
-func GetEditCandidate(cdc *codec.Codec) *cobra.Command {
+func GetEditCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Short: "Edit candidate",
 		Use:   "edit-candidate [validator-address] [reward-address]",

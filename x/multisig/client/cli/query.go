@@ -14,7 +14,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	// Group multisig queries under a subcommand
 	multisigQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -37,7 +37,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // listWalletsCommand queries a list of wallets containing owner with specified address.
-func listWalletsCommand(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func listWalletsCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "list-wallets [owner]",
 		Short: "List all multi-signature wallets by owner address",
@@ -61,7 +61,7 @@ func listWalletsCommand(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // getWalletCommand queries a wallet with specified address.
-func getWalletCommand(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func getWalletCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "get-wallet [address]",
 		Short: "Get multi-signature wallet by address",
@@ -85,7 +85,7 @@ func getWalletCommand(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 // listTransactionsCommand queries a list of transactions for the wallet with specified address.
-func listTransactionsCommand(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func listTransactionsCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "list-transactions [wallet]",
 		Short: "List all multi-signature transactions by wallet address",
@@ -109,7 +109,7 @@ func listTransactionsCommand(queryRoute string, cdc *codec.Codec) *cobra.Command
 }
 
 // getTransactionCommand queries a transaction with specified ID.
-func getTransactionCommand(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func getTransactionCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "get-transaction [tx_id]",
 		Short: "Get multi-signature transaction by ID",

@@ -2,6 +2,9 @@ package validator
 
 import (
 	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/client"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -11,12 +14,10 @@ import (
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/client/cli"
@@ -30,26 +31,28 @@ var (
 )
 
 // AppModuleBasic defines the basic application module used by the validator module.
-type AppModuleBasic struct{}
+type AppModuleBasic struct {
+	cdc codec.LegacyAmino
+}
 
 // Name returns the validator module's name.
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
 
-// RegisterCodec registers the validator module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
+// RegisterLegacyAminoCodec registers the validator module's types for the given codec.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	RegisterCodec(cdc)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the validator
 // module.
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
+func (AppModuleBasic) DefaultGenesis(_ codec.JSONMarshaler) json.RawMessage {
 	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the validator module.
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(marshaler codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var data GenesisState
 	err := ModuleCdc.UnmarshalJSON(bz, &data)
 	if err != nil {
@@ -59,18 +62,24 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 }
 
 // RegisterRESTRoutes registers the REST routes for the validator module.
-func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
+func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 	rest.RegisterRoutes(ctx, rtr)
 }
 
+// RegisterInterfaces implements InterfaceModule.RegisterInterfaces
+func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {}
+
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the validator module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
+
 // GetTxCmd returns the root tx command for the validator module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(cdc)
+func (amb AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd(&amb.cdc)
 }
 
 // GetQueryCmd returns no root query command for the validator module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(StoreKey, cdc)
+func (amb AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd(StoreKey, &amb.cdc)
 }
 
 //_____________________________________
@@ -89,8 +98,10 @@ func (AppModuleBasic) PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeI
 }
 
 // BuildCreateValidatorMsg - used for gen-tx
-func (AppModuleBasic) BuildCreateValidatorMsg(cliCtx context.CLIContext,
-	txBldr authtypes.TxBuilder) (authtypes.TxBuilder, sdk.Msg, error) {
+func (AppModuleBasic) BuildCreateValidatorMsg(
+	cliCtx client.Context,
+	txBldr authtypes.TxBuilder,
+) (authtypes.TxBuilder, sdk.Msg, error) {
 	return cli.BuildCreateValidatorMsg(cliCtx, txBldr)
 }
 
@@ -118,12 +129,22 @@ func (AppModule) Name() string {
 	return ModuleName
 }
 
-// RegisterInvariants registers the validator module invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
-
 // Route returns the message routing key for the validator module.
-func (AppModule) Route() string {
-	return RouterKey
+func (AppModule) Route() sdk.Route {
+	return sdk.NewRoute(RouterKey, func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
+		return &sdk.Result{}, nil
+	})
+}
+
+// RegisterInvariants registers the validator module invariants.
+func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+
+// RegisterServices registers module services.
+func (AppModule) RegisterServices(_ module.Configurator) {}
+
+// LegacyQuerierHandler returns no sdk.Querier.
+func (am AppModule) LegacyQuerierHandler(amino *codec.LegacyAmino) sdk.Querier {
+	return NewQuerier(am.keeper)
 }
 
 // NewHandler returns an sdk.Handler for the validator module.
@@ -143,7 +164,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 
 // InitGenesis performs genesis initialization for the validator module. It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
 	return InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
@@ -151,7 +172,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.Va
 
 // ExportGenesis returns the exported genesis state as raw bytes for the validator
 // module.
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONMarshaler) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
 	return ModuleCdc.MustMarshalJSON(gs)
 }

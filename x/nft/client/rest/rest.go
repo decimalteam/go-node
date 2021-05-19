@@ -8,7 +8,7 @@ import (
 )
 
 // RegisterRoutes register distribution REST routes.
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router, cdc *codec.Codec, queryRoute string) {
+func RegisterRoutes(cliCtx client.Context, r *mux.Router, cdc *codec.LegacyAmino, queryRoute string) {
 	registerQueryRoutes(cliCtx, r, cdc, queryRoute)
 	registerTxRoutes(cliCtx, r, cdc, queryRoute)
 }

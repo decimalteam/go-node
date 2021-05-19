@@ -6,14 +6,15 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/gov/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/gov/client/rest"
 	"encoding/json"
-	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -26,47 +27,55 @@ var (
 )
 
 // AppModuleBasic defines the basic application module used by the gov module.
-type AppModuleBasic struct{}
+type AppModuleBasic struct {
+	cdc codec.LegacyAmino
+}
 
 // Name returns the gov module's name.
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
 
-// RegisterCodec registers the gov module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
+// RegisterLegacyAminoCodec registers the gov module's types for the given codec.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	RegisterCodec(cdc)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the gov
 // module.
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
+func (AppModuleBasic) DefaultGenesis(_ codec.JSONMarshaler) json.RawMessage {
 	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the gov module.
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(_ codec.JSONMarshaler, _ client.TxEncodingConfig, bz json.RawMessage) error {
 	var data GenesisState
-	if err := ModuleCdc.UnmarshalJSON(bz, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
+	err := ModuleCdc.UnmarshalJSON(bz, &data)
+	if err != nil {
+		return err
 	}
-
 	return ValidateGenesis(data)
 }
 
 // RegisterRESTRoutes registers the REST routes for the gov module.
-func (a AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
+func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 	rest.RegisterRoutes(ctx, rtr)
 }
 
+// RegisterInterfaces implements InterfaceModule.RegisterInterfaces
+func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {}
+
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
+
 // GetTxCmd returns the root tx command for the gov module.
-func (a AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(StoreKey, cdc)
+func (amb AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd(StoreKey, &amb.cdc)
 }
 
-// GetQueryCmd returns the root query command for the gov module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(StoreKey, cdc)
+// GetQueryCmd returns no root query command for the gov module.
+func (amb AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd(StoreKey, &amb.cdc)
 }
 
 //____________________________________________________________________________
@@ -95,14 +104,22 @@ func (AppModule) Name() string {
 	return ModuleName
 }
 
-// RegisterInvariants registers module invariants
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	return
+// Route returns the message routing key for the gov module.
+func (AppModule) Route() sdk.Route {
+	return sdk.NewRoute(RouterKey, func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
+		return &sdk.Result{}, nil
+	})
 }
 
-// Route returns the message routing key for the gov module.
-func (AppModule) Route() string {
-	return RouterKey
+// RegisterInvariants registers the gov module invariants.
+func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+
+// RegisterServices registers module services.
+func (AppModule) RegisterServices(_ module.Configurator) {}
+
+// LegacyQuerierHandler returns no sdk.Querier.
+func (am AppModule) LegacyQuerierHandler(amino *codec.LegacyAmino) sdk.Querier {
+	return NewQuerier(am.keeper)
 }
 
 // NewHandler returns an sdk.Handler for the gov module.
@@ -115,14 +132,14 @@ func (AppModule) QuerierRoute() string {
 	return QuerierRoute
 }
 
-// NewQuerierHandler returns no sdk.Querier.
+// NewQuerierHandler returns the gov module sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
 	return NewQuerier(am.keeper)
 }
 
 // InitGenesis performs genesis initialization for the gov module. It returns
-// no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
+// no gov updates.
+func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
@@ -131,7 +148,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.Va
 
 // ExportGenesis returns the exported genesis state as raw bytes for the gov
 // module.
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONMarshaler) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
 	return ModuleCdc.MustMarshalJSON(gs)
 }
@@ -139,7 +156,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 // BeginBlock performs a no-op.
 func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
-// EndBlock returns the end blocker for the gov module. It returns no validator
+// EndBlock returns the end blocker for the gov module. It returns no gov
 // updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	EndBlocker(ctx, am.keeper)

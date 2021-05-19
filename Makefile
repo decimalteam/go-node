@@ -31,3 +31,9 @@ lint:
 	@echo "--> Running linter"
 	@golangci-lint run
 	@go mod verify
+
+proto-gen:
+	@echo "Generating protobuf files"
+	./scripts/protogen.sh
+
+proto-format:

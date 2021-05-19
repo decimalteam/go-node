@@ -27,7 +27,7 @@ const (
 )
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
+func GetTxCmd(storeKey string, cdc *codec.LegacyAmino) *cobra.Command {
 	nftTxCmd := &cobra.Command{
 		Use:   types.ModuleName,
 		Short: "NFT transactions subcommands",
@@ -45,7 +45,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdTransferNFT is the CLI command for sending a TransferNFT transaction
-func GetCmdTransferNFT(cdc *codec.Codec) *cobra.Command {
+func GetCmdTransferNFT(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "transfer [sender] [recipient] [denom] [tokenID] [quantity]",
 		Short: "transfer a NFT to a recipient",
@@ -93,7 +93,7 @@ crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa 
 }
 
 // GetCmdEditNFTMetadata is the CLI command for sending an EditMetadata transaction
-func GetCmdEditNFTMetadata(cdc *codec.Codec) *cobra.Command {
+func GetCmdEditNFTMetadata(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "edit-metadata [denom] [tokenID]",
 		Short: "edit the metadata of an NFT",
@@ -128,7 +128,7 @@ $ %s tx %s edit-metadata crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd42
 }
 
 // GetCmdMintNFT is the CLI command for a MintNFT transaction
-func GetCmdMintNFT(cdc *codec.Codec) *cobra.Command {
+func GetCmdMintNFT(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "mint [denom] [tokenID] [recipient] [quantity] [reserve] [allow_mint]",
 		Short: "mint an NFT and set the owner to the recipient",
@@ -185,7 +185,7 @@ dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 }
 
 // GetCmdBurnNFT is the CLI command for sending a BurnNFT transaction
-func GetCmdBurnNFT(cdc *codec.Codec) *cobra.Command {
+func GetCmdBurnNFT(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "burn [denom] [tokenID] [quantity]",
 		Short: "burn an NFT",

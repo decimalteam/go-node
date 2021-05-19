@@ -14,17 +14,16 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	utils "github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
-func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
+func GetCmdRedeemCheck(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "redeem-check [check] [passphrase]",
 		Short: "Redeem check",
@@ -85,6 +84,7 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
+			GenerateOrBroadca
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

@@ -23,6 +23,16 @@ type MsgCreateCoin struct {
 	Identity             string         `json:"identity" yaml:"identity"`
 }
 
+func (msg MsgCreateCoin) Reset() {
+}
+
+func (msg MsgCreateCoin) String() string {
+	return ""
+}
+
+func (msg MsgCreateCoin) ProtoMessage() {
+}
+
 func NewMsgCreateCoin(sender sdk.AccAddress, title string, symbol string, crr uint, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int, identity string) MsgCreateCoin {
 	return MsgCreateCoin{
 		Sender:               sender,

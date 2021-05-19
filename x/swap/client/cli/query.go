@@ -15,7 +15,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	swapQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
@@ -33,7 +33,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return swapQueryCmd
 }
 
-func GetCmdQuerySwap(storeName string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQuerySwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "swap [hashed_secret]",
 		Short: "Query a swap",
@@ -66,7 +66,7 @@ func GetCmdQuerySwap(storeName string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-func GetCmdQueryActiveSwap(storeName string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryActiveSwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "active-swap",
 		Args:  cobra.NoArgs,
@@ -89,7 +89,7 @@ func GetCmdQueryActiveSwap(storeName string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-func GetCmdQueryPool(storeName string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryPool(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "pool",
 		Args:  cobra.NoArgs,

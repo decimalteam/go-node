@@ -1,7 +1,9 @@
 package app
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/capability"
 	"encoding/json"
+	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"io"
 	"os"
 
@@ -17,7 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils"
@@ -45,52 +46,53 @@ var (
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		params.AppModuleBasic{},
-		supply.AppModuleBasic{},
 		coin.AppModuleBasic{},
 		multisig.AppModuleBasic{},
 		validator.AppModuleBasic{},
+		capability.AppModuleBasic{},
 		gov.AppModuleBasic{},
 		swap.AppModuleBasic{},
 		nft.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:       {supply.Burner, supply.Minter},
-		validator.BondedPoolName:    {supply.Burner, supply.Staking},
-		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
-		swap.PoolName:               {supply.Minter, supply.Burner},
-		nft.ReservedPool:            {supply.Burner},
+		auth.FeeCollectorName:       {auth.Burner, auth.Minter},
+		validator.BondedPoolName:    {auth.Burner, auth.Staking},
+		validator.NotBondedPoolName: {auth.Burner, auth.Staking},
+		swap.PoolName:               {auth.Minter, auth.Burner},
+		nft.ReservedPool:            {auth.Burner},
 	}
 )
 
 // MakeCodec generates the necessary codecs for Amino
-func MakeCodec() *codec.Codec {
-	var cdc = codec.New()
-	ModuleBasics.RegisterCodec(cdc)
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
+func MakeCodec() *codec.LegacyAmino {
+	var cdc = codec.NewLegacyAmino()
+	ModuleBasics.RegisterLegacyAminoCodec(cdc)
+	sdk.RegisterLegacyAminoCodec(cdc)
+	codec2.RegisterCrypto(cdc)
 	return cdc
 }
 
 type newApp struct {
 	*bam.BaseApp
-	cdc *codec.Codec
+	cdc *codec.LegacyAmino
 
 	// keys to access the substores
 	keys  map[string]*sdk.KVStoreKey
 	tkeys map[string]*sdk.TransientStoreKey
 
 	// Keepers
-	accountKeeper   auth.AccountKeeper
-	bankKeeper      bank.Keeper
-	supplyKeeper    supply.Keeper
-	paramsKeeper    params.Keeper
-	coinKeeper      coin.Keeper
-	multisigKeeper  multisig.Keeper
-	validatorKeeper validator.Keeper
-	govKeeper       gov.Keeper
-	swapKeeper      swap.Keeper
-	nftKeeper       nft.Keeper
+	accountKeeper    auth.AccountKeeper
+	bankKeeper       bank.Keeper
+	supplyKeeper     auth.Keeper
+	paramsKeeper     params.Keeper
+	coinKeeper       coin.Keeper
+	multisigKeeper   multisig.Keeper
+	validatorKeeper  validator.Keeper
+	govKeeper        gov.Keeper
+	capabilityKeeper capability.Keeper
+	swapKeeper       swap.Keeper
+	nftKeeper        nft.Keeper
 
 	// Module Manager
 	mm *module.Manager
@@ -112,7 +114,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey,
 		auth.StoreKey,
-		supply.StoreKey,
 		params.StoreKey,
 		coin.StoreKey,
 		multisig.StoreKey,
@@ -143,6 +144,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
 	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
 	swapSubspace := app.paramsKeeper.Subspace(swap.DefaultParamspace)
+	capabilitySubspace := app.paramsKeeper.Subspace(capability.DefaultParamspace)
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -160,9 +162,9 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	)
 
 	// The SupplyKeeper collects transaction fees and renders them to the fee distribution module
-	app.supplyKeeper = supply.NewKeeper(
+	app.supplyKeeper = auth.NewKeeper(
 		app.cdc,
-		keys[supply.StoreKey],
+		keys[auth.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
 		maccPerms,
@@ -220,12 +222,14 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.supplyKeeper,
 	)
 
+	app.capabilityKeeper = capability.NewKeeper()
+
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
+		capability.NewAppModule(app.capabilityKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
@@ -244,7 +248,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		auth.ModuleName,
 		bank.ModuleName,
 		coin.ModuleName,
-		supply.ModuleName,
 		multisig.ModuleName,
 		genutil.ModuleName,
 		gov.ModuleName,
@@ -315,7 +318,7 @@ func (app *newApp) LoadHeight(height int64) error {
 func (app *newApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
+		modAccAddrs[auth.NewModuleAddress(acc).String()] = true
 	}
 	return modAccAddrs
 }

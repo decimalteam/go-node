@@ -12,12 +12,12 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
-func registerQueryRoutes(ctx context.CLIContext, r *mux.Router) {
+func registerQueryRoutes(ctx client.Context, r *mux.Router) {
 	r.HandleFunc("/coins", getCoinsHandlerFunc(ctx)).Methods("GET")
 	r.HandleFunc("/coin/{symbol}", getCoinHandlerFunc(ctx)).Methods("GET")
 }
 
-func getCoinsHandlerFunc(ctx context.CLIContext) http.HandlerFunc {
+func getCoinsHandlerFunc(ctx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, ctx, r)
 		if !ok {
@@ -32,7 +32,7 @@ func getCoinsHandlerFunc(ctx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func getCoinHandlerFunc(ctx context.CLIContext) http.HandlerFunc {
+func getCoinHandlerFunc(ctx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, ctx, r)
 		if !ok {

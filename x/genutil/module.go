@@ -1,20 +1,21 @@
 package genutil
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/client"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
-
-	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
 var (
@@ -22,24 +23,28 @@ var (
 	_ module.AppModuleBasic   = AppModuleBasic{}
 )
 
-// app module basics object
-type AppModuleBasic struct{}
+// AppModuleBasic defines the basic application module used by the genutil module.
+type AppModuleBasic struct {
+	cdc codec.Marshaler
+}
 
-// module name
+// Name returns the genutil module's name.
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
 
-// register module codec
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {}
+// RegisterLegacyAminoCodec registers the genutil module's types for the given codec.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+}
 
-// default genesis state
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
+// DefaultGenesis returns default genesis state as raw bytes for the genutil
+// module.
+func (AppModuleBasic) DefaultGenesis(_ codec.JSONMarshaler) json.RawMessage {
 	return ModuleCdc.MustMarshalJSON(GenesisState{})
 }
 
-// module validate genesis
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
+// ValidateGenesis performs genesis state validation for the genutil module.
+func (AppModuleBasic) ValidateGenesis(marshaler codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var data GenesisState
 	err := ModuleCdc.UnmarshalJSON(bz, &data)
 	if err != nil {
@@ -48,14 +53,25 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 	return ValidateGenesis(ModuleCdc, data)
 }
 
-// register rest routes
-func (AppModuleBasic) RegisterRESTRoutes(_ context.CLIContext, _ *mux.Router) {}
+// RegisterInterfaces implements InterfaceModule.RegisterInterfaces
+func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {}
 
-// get the root tx command of this module
-func (AppModuleBasic) GetTxCmd(_ *codec.Codec) *cobra.Command { return nil }
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the genutil module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
 
-// get the root query command of this module
-func (AppModuleBasic) GetQueryCmd(_ *codec.Codec) *cobra.Command { return nil }
+// RegisterRESTRoutes registers the REST routes for the genutil module.
+func (amb AppModuleBasic) RegisterRESTRoutes(context client.Context, router *mux.Router) {
+}
+
+// GetTxCmd returns the root tx command for the genutil module.
+func (amb AppModuleBasic) GetTxCmd() *cobra.Command {
+	return nil
+}
+
+// GetQueryCmd returns no root query command for the genutil module.
+func (amb AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return nil
+}
 
 //___________________________
 // app module
@@ -78,14 +94,53 @@ func NewAppModule(accountKeeper types.AccountKeeper,
 	})
 }
 
-// module init-genesis
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
+// Name returns the genutil module's name.
+func (AppModule) Name() string {
+	return ModuleName
+}
+
+// Route returns the message routing key for the genutil module.
+func (AppModule) Route() sdk.Route {
+	return sdk.NewRoute(ModuleName, func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
+		return &sdk.Result{}, nil
+	})
+}
+
+// RegisterInvariants registers the genutil module invariants.
+func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+
+// RegisterServices registers module services.
+func (AppModule) RegisterServices(_ module.Configurator) {}
+
+// LegacyQuerierHandler returns no sdk.Querier.
+func (am AppModule) LegacyQuerierHandler(amino *codec.LegacyAmino) sdk.Querier {
+	return nil
+}
+
+// NewHandler returns an sdk.Handler for the genutil module.
+func (am AppModule) NewHandler() sdk.Handler {
+	return nil
+}
+
+// QuerierRoute returns the genutil module's querier route name.
+func (AppModule) QuerierRoute() string {
+	return ModuleName
+}
+
+// NewQuerierHandler returns the genutil module sdk.Querier.
+func (am AppModule) NewQuerierHandler() sdk.Querier {
+	return nil
+}
+
+// InitGenesis performs genesis initialization for the genutil module. It returns
+// no genutil updates.
+func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
 	return InitGenesis(ctx, ModuleCdc, am.validatorKeeper, am.deliverTx, genesisState)
 }
 
 // module export genesis
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
+func (am AppModule) ExportGenesis(sdk.Context, codec.JSONMarshaler) json.RawMessage {
 	return nil
 }

@@ -32,7 +32,7 @@ import (
 const flagGenTxDir = "gentx-dir"
 
 // CollectGenTxsCmd - return the cobra command to collect genesis transactions
-func CollectGenTxsCmd(ctx *server.Context, cdc *codec.Codec,
+func CollectGenTxsCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 	genAccIterator types.GenesisAccountsIterator, defaultNodeHome string) *cobra.Command {
 
 	cmd := &cobra.Command{
@@ -110,7 +110,7 @@ func newPrintInfo(moniker, chainID, nodeID, genTxsDir string,
 	}
 }
 
-func displayInfo(cdc *codec.Codec, info printInfo) error {
+func displayInfo(cdc *codec.LegacyAmino, info printInfo) error {
 	out, err := codec.MarshalJSONIndent(cdc, info)
 	if err != nil {
 		return err
@@ -121,7 +121,7 @@ func displayInfo(cdc *codec.Codec, info printInfo) error {
 }
 
 // GenAppStateFromConfig gets the genesis app state from the config
-func GenAppStateFromConfig(cdc *codec.Codec, config *cfg.Config,
+func GenAppStateFromConfig(cdc *codec.LegacyAmino, config *cfg.Config,
 	initCfg genutil.InitConfig, genDoc tmtypes.GenesisDoc,
 	genAccIterator types.GenesisAccountsIterator,
 ) (appState json.RawMessage, err error) {
@@ -160,7 +160,7 @@ func GenAppStateFromConfig(cdc *codec.Codec, config *cfg.Config,
 
 // CollectStdTxs processes and validates application's genesis StdTxs and returns
 // the list of appGenTxs, and persistent peers required to generate genesis.json.
-func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
+func CollectStdTxs(cdc *codec.LegacyAmino, moniker, genTxsDir string,
 	genDoc tmtypes.GenesisDoc, genAccIterator types.GenesisAccountsIterator,
 ) (appGenTxs []authtypes.StdTx, err error) {
 

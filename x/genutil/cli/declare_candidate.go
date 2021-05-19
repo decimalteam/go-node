@@ -23,7 +23,7 @@ import (
 
 // GenDeclareCandidateTxCmd builds and prints transaction to declare validator candidate.
 // nolint: errcheck
-func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
+func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
 	genAccIterator types.GenesisAccountsIterator, defaultNodeHome, defaultCLIHome string) *cobra.Command {
 
 	ipDefault, _ := server.ExternalIP()

@@ -12,6 +12,16 @@ type MsgBuyCoin struct {
 	MaxCoinToSell sdk.Coin       `json:"max_coin_to_sell" yaml:"max_coin_to_sell"`
 }
 
+func (msg MsgBuyCoin) Reset() {
+}
+
+func (msg MsgBuyCoin) String() string {
+	return ""
+}
+
+func (msg MsgBuyCoin) ProtoMessage() {
+}
+
 func NewMsgBuyCoin(sender sdk.AccAddress, coinToBuy sdk.Coin, maxCoinToSell sdk.Coin) MsgBuyCoin {
 	return MsgBuyCoin{
 		Sender:        sender,

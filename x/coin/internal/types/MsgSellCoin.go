@@ -12,6 +12,18 @@ type MsgSellCoin struct {
 	MinCoinToBuy sdk.Coin       `json:"min_coin_to_buy" yaml:"min_coin_to_buy"`
 }
 
+func (msg MsgSellCoin) Reset() {
+	panic("implement me")
+}
+
+func (msg MsgSellCoin) String() string {
+	panic("implement me")
+}
+
+func (msg MsgSellCoin) ProtoMessage() {
+	panic("implement me")
+}
+
 func NewMsgSellCoin(sender sdk.AccAddress, coinToSell sdk.Coin, minCoinToBuy sdk.Coin) MsgSellCoin {
 	return MsgSellCoin{
 		Sender:       sender,

@@ -2,15 +2,16 @@ package rest
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+
+	auth "github.com/cosmos/cosmos-sdk/x/auth/client"
 )
 
 // contains checks if the a given query contains one of the tx types
@@ -24,7 +25,7 @@ func contains(stringSlice []string, txType string) bool {
 }
 
 // queries validator txs
-func queryTxs(cliCtx context.CLIContext, action string, delegatorAddr string) (*sdk.SearchTxsResult, error) {
+func queryTxs(cliCtx client.Context, action string, delegatorAddr string) (*sdk.SearchTxsResult, error) {
 	page := 1
 	limit := 100
 	events := []string{
@@ -32,10 +33,10 @@ func queryTxs(cliCtx context.CLIContext, action string, delegatorAddr string) (*
 		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeySender, delegatorAddr),
 	}
 
-	return utils.QueryTxsByEvents(cliCtx, events, page, limit)
+	return auth.QueryTxsByEvents(cliCtx, events, page, limit, "desc")
 }
 
-func queryBonds(cliCtx context.CLIContext, endpoint string) http.HandlerFunc {
+func queryBonds(cliCtx client.Context, endpoint string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		bech32delegator := vars["delegatorAddr"]
@@ -61,7 +62,7 @@ func queryBonds(cliCtx context.CLIContext, endpoint string) http.HandlerFunc {
 
 		params := types.NewQueryBondsParams(delegatorAddr, validatorAddr, coin)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -78,7 +79,7 @@ func queryBonds(cliCtx context.CLIContext, endpoint string) http.HandlerFunc {
 	}
 }
 
-func queryDelegator(cliCtx context.CLIContext, endpoint string) http.HandlerFunc {
+func queryDelegator(cliCtx client.Context, endpoint string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		bech32delegator := vars["delegatorAddr"]
@@ -96,7 +97,7 @@ func queryDelegator(cliCtx context.CLIContext, endpoint string) http.HandlerFunc
 
 		params := types.NewQueryDelegatorParams(delegatorAddr)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -113,7 +114,7 @@ func queryDelegator(cliCtx context.CLIContext, endpoint string) http.HandlerFunc
 	}
 }
 
-func queryValidator(cliCtx context.CLIContext, endpoint string) http.HandlerFunc {
+func queryValidator(cliCtx client.Context, endpoint string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		bech32validatorAddr := vars["validatorAddr"]
@@ -131,7 +132,7 @@ func queryValidator(cliCtx context.CLIContext, endpoint string) http.HandlerFunc
 
 		params := types.NewQueryValidatorParams(validatorAddr)
 
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

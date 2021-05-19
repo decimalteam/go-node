@@ -17,7 +17,7 @@ import (
 	"github.com/tendermint/tendermint/libs/rand"
 )
 
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	swapTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
@@ -35,7 +35,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return swapTxCmd
 }
 
-func GetCmdHTLT(cdc *codec.Codec) *cobra.Command {
+func GetCmdHTLT(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "htlt [in | out] [recipient] [amount] [--hash] --from",
 		Short: "Create swap",
@@ -92,7 +92,7 @@ func GetCmdHTLT(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func GetCmdRedeem(cdc *codec.Codec) *cobra.Command {
+func GetCmdRedeem(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "redeem [secret] --from",
 		Short: "Redeem swap",
@@ -121,7 +121,7 @@ func GetCmdRedeem(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func GetRefund(cdc *codec.Codec) *cobra.Command {
+func GetRefund(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "refund [hash] --from",
 		Short: "Refund locked coins",

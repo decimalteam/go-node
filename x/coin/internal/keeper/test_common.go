@@ -26,7 +26,7 @@ var (
 )
 
 // create a codec used only for testing
-func MakeTestCodec() *codec.Codec {
+func MakeTestCodec() *codec.LegacyAmino {
 	var cdc = codec.New()
 
 	// Register Msgs

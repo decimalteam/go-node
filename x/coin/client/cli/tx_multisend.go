@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func GetCmdMultiSendCoin(cdc *codec.Codec) *cobra.Command {
+func GetCmdMultiSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "multisend [coin receiver] [coin receiver] ...",
 		Short: "Multisend coin",

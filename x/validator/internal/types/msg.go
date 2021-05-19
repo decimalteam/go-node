@@ -16,6 +16,18 @@ type MsgDeclareCandidate struct {
 	Description   Description    `json:"description"`
 }
 
+func (msg MsgDeclareCandidate) Reset() {
+	panic("implement me")
+}
+
+func (msg MsgDeclareCandidate) String() string {
+	panic("implement me")
+}
+
+func (msg MsgDeclareCandidate) ProtoMessage() {
+	panic("implement me")
+}
+
 func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, commission sdk.Dec, stake sdk.Coin, description Description, rewardAddress sdk.AccAddress) MsgDeclareCandidate {
 	return MsgDeclareCandidate{
 		Commission:    commission,
@@ -65,6 +77,18 @@ type MsgDelegate struct {
 	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
 	Coin             sdk.Coin       `json:"coin"`
+}
+
+func (msg MsgDelegate) Reset() {
+	panic("implement me")
+}
+
+func (msg MsgDelegate) String() string {
+	panic("implement me")
+}
+
+func (msg MsgDelegate) ProtoMessage() {
+	panic("implement me")
 }
 
 func NewMsgDelegate(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, coin sdk.Coin) MsgDelegate {
@@ -207,6 +231,18 @@ type MsgUnbond struct {
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
 	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
 	Coin             sdk.Coin       `json:"coin"`
+}
+
+func (msg MsgUnbond) Reset() {
+	panic("implement me")
+}
+
+func (msg MsgUnbond) String() string {
+	panic("implement me")
+}
+
+func (msg MsgUnbond) ProtoMessage() {
+	panic("implement me")
 }
 
 func NewMsgUnbond(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, coin sdk.Coin) MsgUnbond {

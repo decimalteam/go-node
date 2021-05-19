@@ -32,7 +32,7 @@ func NewGenesisState(genTxs []json.RawMessage) GenesisState {
 
 // NewGenesisStateFromStdTx creates a new GenesisState object
 // from auth transactions
-func NewGenesisStateFromStdTx(codec *codec.Codec, genTxs []authtypes.StdTx) GenesisState {
+func NewGenesisStateFromStdTx(codec *codec.LegacyAmino, genTxs []authtypes.StdTx) GenesisState {
 	genTxsBz := make([]json.RawMessage, len(genTxs))
 	for i, genTx := range genTxs {
 		genTxsBz[i] = codec.MustMarshalJSON(genTx)
@@ -41,7 +41,7 @@ func NewGenesisStateFromStdTx(codec *codec.Codec, genTxs []authtypes.StdTx) Gene
 }
 
 // GetGenesisStateFromAppState gets the genutil genesis state from the expected app state
-func GetGenesisStateFromAppState(cdc *codec.Codec, appState map[string]json.RawMessage) GenesisState {
+func GetGenesisStateFromAppState(cdc *codec.LegacyAmino, appState map[string]json.RawMessage) GenesisState {
 	var genesisState GenesisState
 	if appState[ModuleName] != nil {
 		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
@@ -50,7 +50,7 @@ func GetGenesisStateFromAppState(cdc *codec.Codec, appState map[string]json.RawM
 }
 
 // SetGenesisStateInAppState sets the genutil genesis state within the expected app state
-func SetGenesisStateInAppState(cdc *codec.Codec,
+func SetGenesisStateInAppState(cdc *codec.LegacyAmino,
 	appState map[string]json.RawMessage, genesisState GenesisState) map[string]json.RawMessage {
 
 	genesisStateBz := cdc.MustMarshalJSON(genesisState)
@@ -62,7 +62,7 @@ func SetGenesisStateInAppState(cdc *codec.Codec,
 // for the application.
 //
 // NOTE: The pubkey input is this machines pubkey.
-func GenesisStateFromGenDoc(cdc *codec.Codec, genDoc tmtypes.GenesisDoc,
+func GenesisStateFromGenDoc(cdc *codec.LegacyAmino, genDoc tmtypes.GenesisDoc,
 ) (genesisState map[string]json.RawMessage, err error) {
 
 	if err = cdc.UnmarshalJSON(genDoc.AppState, &genesisState); err != nil {
@@ -75,7 +75,7 @@ func GenesisStateFromGenDoc(cdc *codec.Codec, genDoc tmtypes.GenesisDoc,
 // for the application.
 //
 // NOTE: The pubkey input is this machines pubkey.
-func GenesisStateFromGenFile(cdc *codec.Codec, genFile string,
+func GenesisStateFromGenFile(cdc *codec.LegacyAmino, genFile string,
 ) (genesisState map[string]json.RawMessage, genDoc *tmtypes.GenesisDoc, err error) {
 
 	if !tos.FileExists(genFile) {
@@ -92,7 +92,7 @@ func GenesisStateFromGenFile(cdc *codec.Codec, genFile string,
 }
 
 // ValidateGenesis validates GenTx transactions
-func ValidateGenesis(cdc *codec.Codec, genesisState GenesisState) error {
+func ValidateGenesis(cdc *codec.LegacyAmino, genesisState GenesisState) error {
 	for i, genTx := range genesisState.GenTxs {
 		var tx authtypes.StdTx
 		if err := cdc.UnmarshalJSON(genTx, &tx); err != nil {
@@ -114,7 +114,7 @@ func ValidateGenesis(cdc *codec.Codec, genesisState GenesisState) error {
 }
 
 // InitGenesis - initialize accounts and deliver genesis transactions
-func InitGenesis(ctx sdk.Context, cdc *codec.Codec, validatorKeeper validator.Keeper,
+func InitGenesis(ctx sdk.Context, cdc *codec.LegacyAmino, validatorKeeper validator.Keeper,
 	deliverTx deliverTxfn, genesisState GenesisState) []abci.ValidatorUpdate {
 
 	var validators []abci.ValidatorUpdate

@@ -45,7 +45,7 @@ var (
 	// functions aliases
 	NewKeeper           = keeper.NewKeeper
 	NewQuerier          = keeper.NewQuerier
-	RegisterCodec       = types.RegisterCodec
+	RegisterCodec       = types.RegisterLegacyAminoCodec
 	DefaultGenesisState = types.DefaultGenesisState
 
 	NewMsgDeclareCandidate = types.NewMsgDeclareCandidate

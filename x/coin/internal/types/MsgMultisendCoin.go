@@ -16,6 +16,18 @@ type MsgMultiSendCoin struct {
 	Sends  []Send         `json:"sends"`
 }
 
+func (msg MsgMultiSendCoin) Reset() {
+	panic("implement me")
+}
+
+func (msg MsgMultiSendCoin) String() string {
+	panic("implement me")
+}
+
+func (msg MsgMultiSendCoin) ProtoMessage() {
+	panic("implement me")
+}
+
 func NewMsgMultiSendCoin(sender sdk.AccAddress, sends []Send) MsgMultiSendCoin {
 	return MsgMultiSendCoin{
 		Sender: sender,

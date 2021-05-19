@@ -14,6 +14,18 @@ type MsgUpdateCoin struct {
 	Identity    string         `json:"identity" yaml:"identity"`
 }
 
+func (msg MsgUpdateCoin) Reset() {
+	panic("implement me")
+}
+
+func (msg MsgUpdateCoin) String() string {
+	panic("implement me")
+}
+
+func (msg MsgUpdateCoin) ProtoMessage() {
+	panic("implement me")
+}
+
 func NewMsgUpdateCoin(sender sdk.AccAddress, symbol string, limitVolume sdk.Int, identity string) MsgUpdateCoin {
 	return MsgUpdateCoin{
 		Sender:      sender,

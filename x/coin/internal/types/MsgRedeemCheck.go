@@ -12,6 +12,16 @@ type MsgRedeemCheck struct {
 	Proof  string         `json:"proof" yaml:"proof"`
 }
 
+func (msg MsgRedeemCheck) Reset() {
+}
+
+func (msg MsgRedeemCheck) String() string {
+	return ""
+}
+
+func (msg MsgRedeemCheck) ProtoMessage() {
+}
+
 func NewMsgRedeemCheck(sender sdk.AccAddress, check string, proof string) MsgRedeemCheck {
 	return MsgRedeemCheck{
 		Sender: sender,

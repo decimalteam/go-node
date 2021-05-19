@@ -23,7 +23,7 @@ import (
 
 // InitCmd returns a command that initializes all files needed for Tendermint
 // and the respective application
-func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
+func InitCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManager,
 	defaultNodeHome string) *cobra.Command { // nolint: golint
 	cmd := &cobra.Command{
 		Use:   "init [moniker] --network mainnet|testnet|devnet",

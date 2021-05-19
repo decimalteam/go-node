@@ -20,11 +20,11 @@ type CoinSendReq struct {
 	Receiver string       `json:"receiver" yaml:"receiver"`
 }
 
-func CoinSendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func CoinSendRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req CoinSendReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}

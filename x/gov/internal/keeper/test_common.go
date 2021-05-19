@@ -76,7 +76,7 @@ func newPubKey(pk string) (res crypto.PubKey) {
 	return pkEd
 }
 
-func makeTestCodec() *codec.Codec {
+func makeTestCodec() *codec.LegacyAmino {
 	var cdc = codec.New()
 	auth.RegisterCodec(cdc)
 	types.RegisterCodec(cdc)

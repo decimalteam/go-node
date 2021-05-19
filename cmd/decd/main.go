@@ -125,7 +125,7 @@ const (
 )
 
 // addGenesisAccountCmd returns add-genesis-account cobra Command.
-func addGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
+func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 	defaultNodeHome, defaultClientHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-genesis-account [address_or_key_name] [coin][,[coin]]",

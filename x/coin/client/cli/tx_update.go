@@ -3,23 +3,25 @@ package cli
 import (
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
+	tx2 "github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	auth "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
 )
 
-func GetCmdUpdateCoin(cdc *codec.Codec) *cobra.Command {
+func GetCmdUpdateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "update [symbol] [limitVolume] [identity]",
 		Short: "Update custom coin",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := client.Context{}.WithLegacyAmino(cdc)
 
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := tx.(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 			// Parsing parameters to variables
 			var symbol = args[0]
 			var limitVolume, ok = sdk.NewIntFromString(args[1])
@@ -38,7 +40,7 @@ func GetCmdUpdateCoin(cdc *codec.Codec) *cobra.Command {
 				return types.ErrCoinDoesNotExist(symbol)
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx2.GenerateOrBroadcastTxCLI(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 }

@@ -27,7 +27,7 @@ func ExistsCoin(cliCtx clientctx.CLIContext, symbol string) (bool, error) {
 func GetCoin(cliCtx clientctx.CLIContext, symbol string) (types.Coin, error) {
 	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types.ModuleName, types.QueryGetCoin, symbol), nil)
 	coin := types.Coin{}
-	if err = cliCtx.Codec.UnmarshalJSON(res, &coin); err != nil {
+	if err = cliCtx.LegacyAmino.UnmarshalJSON(res, &coin); err != nil {
 		return coin, err
 	}
 	return coin, err

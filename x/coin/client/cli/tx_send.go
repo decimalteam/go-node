@@ -1,27 +1,28 @@
 package cli
 
 import (
+	utils "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
-func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
+func GetCmdSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "send [coin] [amount] [receiver]",
 		Short: "Send coin",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := client.Context{}.WithLegacyAmino(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			coin := args[0]
@@ -51,7 +52,7 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 			if balance.AmountOf(strings.ToLower(coin)).LT(amount) {
 				return types.ErrInsufficientFunds(amount.String(), balance.AmountOf(strings.ToLower(coin)).String())
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return auth.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 }

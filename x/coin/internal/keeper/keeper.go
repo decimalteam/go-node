@@ -22,7 +22,7 @@ import (
 // Keeper of the coin store
 type Keeper struct {
 	storeKey      sdk.StoreKey
-	cdc           *codec.Codec
+	cdc           *codec.LegacyAmino
 	paramspace    types.ParamSubspace
 	AccountKeeper auth.AccountKeeper
 	BankKeeper    bank.Keeper
@@ -33,7 +33,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a coin keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, accountKeeper auth.AccountKeeper, coinKeeper bank.Keeper, config *config.Config) Keeper {
+func NewKeeper(cdc *codec.LegacyAmino, key sdk.StoreKey, paramspace types.ParamSubspace, accountKeeper auth.AccountKeeper, coinKeeper bank.Keeper, config *config.Config) Keeper {
 	keeper := Keeper{
 		storeKey:       key,
 		cdc:            cdc,

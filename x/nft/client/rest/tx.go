@@ -14,8 +14,8 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router,
-	cdc *codec.Codec, queryRoute string) {
+func registerTxRoutes(cliCtx client.Context, r *mux.Router,
+	cdc *codec.LegacyAmino, queryRoute string) {
 	// Transfer an NFT to an address
 	r.HandleFunc(
 		"/nfts/transfer",
@@ -49,7 +49,7 @@ type transferNFTReq struct {
 	Quantity  string       `json:"quantity"`
 }
 
-func transferNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
+func transferNFTHandler(cdc *codec.LegacyAmino, cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req transferNFTReq
 		if !rest.ReadRESTReq(w, r, cdc, &req) {
@@ -93,7 +93,7 @@ type editNFTMetadataReq struct {
 	TokenURI string       `json:"tokenURI"`
 }
 
-func editNFTMetadataHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
+func editNFTMetadataHandler(cdc *codec.LegacyAmino, cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req editNFTMetadataReq
 		if !rest.ReadRESTReq(w, r, cdc, &req) {
@@ -127,7 +127,7 @@ type mintNFTReq struct {
 	Quantity  string         `json:"quantity"`
 }
 
-func mintNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
+func mintNFTHandler(cdc *codec.LegacyAmino, cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req mintNFTReq
 		if !rest.ReadRESTReq(w, r, cdc, &req) {
@@ -165,7 +165,7 @@ type burnNFTReq struct {
 	Quantity string       `json:"quantity"`
 }
 
-func burnNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
+func burnNFTHandler(cdc *codec.LegacyAmino, cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req burnNFTReq
 		if !rest.ReadRESTReq(w, r, cdc, &req) {

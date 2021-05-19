@@ -19,7 +19,7 @@ import (
 )
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	multisigTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
@@ -38,7 +38,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 }
 
 // getCmdCreateWallet is the CLI command for sending a CreateWallet transaction.
-func getCmdCreateWallet(cdc *codec.Codec) *cobra.Command {
+func getCmdCreateWallet(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "create-wallet [owners] [weights] [threshold]",
 		Short: "create a new multi-signature wallet",
@@ -90,7 +90,7 @@ func getCmdCreateWallet(cdc *codec.Codec) *cobra.Command {
 }
 
 // getCmdCreateTransaction is the CLI command for sending a CreateTransaction transaction.
-func getCmdCreateTransaction(cdc *codec.Codec) *cobra.Command {
+func getCmdCreateTransaction(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "create-transaction [wallet] [receiver] [coins]",
 		Short: "create a new multi-signature transaction",
@@ -147,7 +147,7 @@ func getCmdCreateTransaction(cdc *codec.Codec) *cobra.Command {
 }
 
 // getCmdSignTransaction is the CLI command for saving a transaction signature.
-func getCmdSignTransaction(cdc *codec.Codec) *cobra.Command {
+func getCmdSignTransaction(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "sign-transaction [tx-id]",
 		Short: "Save a signature generated for a specific transaction",

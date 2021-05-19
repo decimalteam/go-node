@@ -1,31 +1,29 @@
 module bitbucket.org/decimalteam/go-node
 
-go 1.14
+go 1.15
 
 require (
-	github.com/99designs/keyring v1.1.3
+	github.com/99designs/keyring v1.1.6
+	github.com/armon/go-metrics v0.3.6 // indirect
 	github.com/bartekn/go-bip39 v0.0.0-20171116152956-a05967ea095d
-	github.com/btcsuite/btcd v0.0.0-20190824003749-130ea5bddde3 // indirect
-	github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
-	github.com/cosmos/cosmos-sdk v0.38.4
+	github.com/btcsuite/btcutil v1.0.2
+	github.com/cosmos/cosmos-sdk v0.42.4
 	github.com/ethereum/go-ethereum v1.9.11
-	github.com/golang/mock v1.3.1 // indirect
-	github.com/gorilla/mux v1.7.3
-	github.com/onsi/ginkgo v1.10.1 // indirect
-	github.com/onsi/gomega v1.7.0 // indirect
+	github.com/gogo/protobuf v1.3.3 // indirect
+	github.com/gorilla/mux v1.8.0
 	github.com/pkg/errors v0.9.1
-	github.com/rcrowley/go-metrics v0.0.0-20190704165056-9c2d0518ed81 // indirect
-	github.com/spf13/afero v1.2.2 // indirect
-	github.com/spf13/cobra v0.0.6
+	github.com/regen-network/cosmos-proto v0.3.1 // indirect
+	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.6.2
-	github.com/stretchr/testify v1.5.1
-	github.com/tendermint/go-amino v0.15.1
-	github.com/tendermint/tendermint v0.33.3
-	github.com/tendermint/tm-db v0.5.0
-	go.etcd.io/bbolt v1.3.4 // indirect
-	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
-	golang.org/x/net v0.0.0-20190921015927-1a5e07d1ff72 // indirect
-	golang.org/x/sys v0.0.0-20200413165638-669c56c373c4 // indirect
-	gopkg.in/yaml.v2 v2.2.8
+	github.com/spf13/viper v1.7.1
+	github.com/stretchr/testify v1.7.0
+	github.com/tendermint/go-amino v0.16.0
+	github.com/tendermint/iavl v0.13.2 // indirect
+	github.com/tendermint/tendermint v0.34.9
+	github.com/tendermint/tm-db v0.6.4
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	google.golang.org/genproto v0.0.0-20210114201628-6edceaf6022f // indirect
+	gopkg.in/yaml.v2 v2.4.0
 )
+
+replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1

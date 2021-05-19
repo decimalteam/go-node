@@ -24,11 +24,11 @@ type CoinCreateReq struct {
 	Identity             string       `json:"identity" yaml:"identity"`
 }
 
-func CoinCreateRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func CoinCreateRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req CoinCreateReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}

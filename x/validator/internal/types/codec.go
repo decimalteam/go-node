@@ -3,10 +3,11 @@ package types
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
 )
 
-// RegisterCodec registers concrete types on codec
-func RegisterCodec(cdc *codec.Codec) {
+// RegisterLegacyAminoCodec registers concrete types on codec
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgDeclareCandidate{}, "validator/declare_candidate", nil)
 	cdc.RegisterConcrete(MsgDelegate{}, "validator/delegate", nil)
 	cdc.RegisterConcrete(MsgDelegateNFT{}, "validator/delegate_nft", nil)
@@ -24,11 +25,11 @@ func RegisterCodec(cdc *codec.Codec) {
 }
 
 // ModuleCdc defines the module codec
-var ModuleCdc *codec.Codec
+var ModuleCdc *codec.LegacyAmino
 
 func init() {
-	ModuleCdc = codec.New()
-	RegisterCodec(ModuleCdc)
-	codec.RegisterCrypto(ModuleCdc)
+	ModuleCdc = codec.NewLegacyAmino()
+	RegisterLegacyAminoCodec(ModuleCdc)
+	codec2.RegisterCrypto(ModuleCdc)
 	ModuleCdc.Seal()
 }

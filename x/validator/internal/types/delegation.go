@@ -48,12 +48,12 @@ func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, c
 }
 
 // return the delegation
-func MustMarshalDelegation(cdc *codec.Codec, delegation Delegation) []byte {
+func MustMarshalDelegation(cdc *codec.LegacyAmino, delegation Delegation) []byte {
 	return cdc.MustMarshalBinaryLengthPrefixed(delegation)
 }
 
 // return the delegation
-func MustUnmarshalDelegation(cdc *codec.Codec, value []byte) Delegation {
+func MustUnmarshalDelegation(cdc *codec.LegacyAmino, value []byte) Delegation {
 	delegation, err := UnmarshalDelegation(cdc, value)
 	if err != nil {
 		panic(err)
@@ -62,7 +62,7 @@ func MustUnmarshalDelegation(cdc *codec.Codec, value []byte) Delegation {
 }
 
 // return the delegation
-func UnmarshalDelegation(cdc *codec.Codec, value []byte) (delegation Delegation, err error) {
+func UnmarshalDelegation(cdc *codec.LegacyAmino, value []byte) (delegation Delegation, err error) {
 	err = cdc.UnmarshalBinaryLengthPrefixed(value, &delegation)
 	return delegation, err
 }
@@ -209,12 +209,12 @@ func (d UnbondingDelegation) GetEvents(ctxTime time.Time) sdk.Events {
 }
 
 // return the unbonding delegation
-func MustMarshalUBD(cdc *codec.Codec, ubd UnbondingDelegation) []byte {
+func MustMarshalUBD(cdc *codec.LegacyAmino, ubd UnbondingDelegation) []byte {
 	return cdc.MustMarshalBinaryLengthPrefixed(ubd)
 }
 
 // unmarshal a unbonding delegation from a store value
-func MustUnmarshalUBD(cdc *codec.Codec, value []byte) UnbondingDelegation {
+func MustUnmarshalUBD(cdc *codec.LegacyAmino, value []byte) UnbondingDelegation {
 	ubd, err := UnmarshalUBD(cdc, value)
 	if err != nil {
 		panic(err)
@@ -223,7 +223,7 @@ func MustUnmarshalUBD(cdc *codec.Codec, value []byte) UnbondingDelegation {
 }
 
 // unmarshal a unbonding delegation from a store value
-func UnmarshalUBD(cdc *codec.Codec, value []byte) (ubd UnbondingDelegation, err error) {
+func UnmarshalUBD(cdc *codec.LegacyAmino, value []byte) (ubd UnbondingDelegation, err error) {
 	err = cdc.UnmarshalBinaryLengthPrefixed(value, &ubd)
 	return ubd, err
 }

@@ -12,7 +12,7 @@ import (
 )
 
 // DecodeStore unmarshals the KVPair's Value to the corresponding auth type
-func DecodeStore(cdc *codec.Codec, kvA, kvB tmkv.Pair) string {
+func DecodeStore(cdc *codec.LegacyAmino, kvA, kvB tmkv.Pair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], types.AddressStoreKeyPrefix):
 		var accA, accB exported.Account

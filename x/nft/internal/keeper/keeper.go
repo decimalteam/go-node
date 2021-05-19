@@ -17,7 +17,7 @@ import (
 type Keeper struct {
 	storeKey sdk.StoreKey // Unexposed key to access store from sdk.Context
 
-	cdc *codec.Codec // The amino codec for binary encoding/decoding.
+	cdc *codec.LegacyAmino // The amino codec for binary encoding/decoding.
 
 	supplyKeeper supply.Keeper
 
@@ -25,7 +25,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates new instances of the nft Keeper
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, supplyKeeper supply.Keeper, baseDenom string) Keeper {
+func NewKeeper(cdc *codec.LegacyAmino, storeKey sdk.StoreKey, supplyKeeper supply.Keeper, baseDenom string) Keeper {
 	return Keeper{
 		storeKey:     storeKey,
 		cdc:          cdc,

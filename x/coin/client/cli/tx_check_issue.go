@@ -27,7 +27,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
-func GetCmdIssueCheck(cdc *codec.Codec) *cobra.Command {
+func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "issue-check [coin] [amount] [nonce] [dueBlock] [passphrase]",
 		Short: "Issue check",

@@ -9,7 +9,7 @@ import (
 )
 
 // RegisterCodec concrete types on codec
-func RegisterCodec(cdc *codec.Codec) {
+func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*exported.NFT)(nil), nil)
 	cdc.RegisterInterface((*exported.TokenOwners)(nil), nil)
 	cdc.RegisterInterface((*exported.TokenOwner)(nil), nil)
@@ -26,10 +26,10 @@ func RegisterCodec(cdc *codec.Codec) {
 }
 
 // ModuleCdc generic sealed codec to be used throughout this module
-var ModuleCdc *codec.Codec
+var ModuleCdc *codec.LegacyAmino
 
 func init() {
-	ModuleCdc = codec.New()
+	ModuleCdc = codec.NewLegacyAmino()
 	codec.RegisterCrypto(ModuleCdc)
 	RegisterCodec(ModuleCdc)
 	ModuleCdc.Seal()

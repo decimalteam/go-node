@@ -15,7 +15,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
-func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
+func GetCmdCreateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "create [title] [symbol] [crr] [initReserve] [initVolume] [limitVolume] [identity]",
 		Short: "Creates new coin",

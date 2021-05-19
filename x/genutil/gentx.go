@@ -23,7 +23,7 @@ import (
 )
 
 // SetGenTxsInAppGenesisState - sets the genesis transactions in the app genesis state
-func SetGenTxsInAppGenesisState(cdc *codec.Codec, appGenesisState map[string]json.RawMessage,
+func SetGenTxsInAppGenesisState(cdc *codec.LegacyAmino, appGenesisState map[string]json.RawMessage,
 	genTxs []authtypes.StdTx) (map[string]json.RawMessage, error) {
 
 	genesisState := GetGenesisStateFromAppState(cdc, appGenesisState)
@@ -45,7 +45,7 @@ func SetGenTxsInAppGenesisState(cdc *codec.Codec, appGenesisState map[string]jso
 // coins in the genesis accounts
 func ValidateAccountInGenesis(appGenesisState map[string]json.RawMessage,
 	genAccIterator types.GenesisAccountsIterator,
-	key sdk.AccAddress, coin sdk.Coin, cdc *codec.Codec) error {
+	key sdk.AccAddress, coin sdk.Coin, cdc *codec.LegacyAmino) error {
 
 	accountIsInGenesis := false
 
@@ -92,7 +92,7 @@ func ValidateAccountInGenesis(appGenesisState map[string]json.RawMessage,
 type deliverTxfn func(abci.RequestDeliverTx) abci.ResponseDeliverTx
 
 // DeliverGenTxs - deliver a genesis transaction
-func DeliverGenTxs(ctx sdk.Context, cdc *codec.Codec, genTxs []json.RawMessage,
+func DeliverGenTxs(ctx sdk.Context, cdc *codec.LegacyAmino, genTxs []json.RawMessage,
 	validatorKeeper validator.Keeper, deliverTx deliverTxfn) ([]abci.ValidatorUpdate, error) {
 
 	for _, genTx := range genTxs {

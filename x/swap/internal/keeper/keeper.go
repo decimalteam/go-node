@@ -14,14 +14,14 @@ import (
 // Keeper of the validator store
 type Keeper struct {
 	storeKey      sdk.StoreKey
-	cdc           *codec.Codec
+	cdc           *codec.LegacyAmino
 	paramSpace    types.ParamSubspace
 	coinKeeper    coin.Keeper
 	accountKeeper auth.AccountKeeper
 	supplyKeeper  supply.Keeper
 }
 
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper,
+func NewKeeper(cdc *codec.LegacyAmino, storeKey sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper,
 	accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper) Keeper {
 	if addr := supplyKeeper.GetModuleAddress(types.PoolName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.PoolName))

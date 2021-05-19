@@ -13,7 +13,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
-func GetCmdBuyCoin(cdc *codec.Codec) *cobra.Command {
+func GetCmdBuyCoin(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "buy [coinToBuy] [amountToBuy] [coinToSell] [maxAmountToSell]",
 		Short: "Buy coin",

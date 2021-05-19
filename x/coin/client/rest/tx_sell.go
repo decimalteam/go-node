@@ -21,11 +21,11 @@ type CoinSellReq struct {
 	CoinToBuy    string       `json:"coin_to_buy" yaml:"coin_to_buy"`
 }
 
-func CoinSellRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func CoinSellRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req CoinSellReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}

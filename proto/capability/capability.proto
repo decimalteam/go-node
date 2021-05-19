@@ -1,0 +1,17 @@
+syntax = "proto3";
+package capability;
+
+option go_package = "s";
+
+message Capability {
+  uint64 index = 1;
+}
+
+message Owner {
+  string module = 1;
+  string name   = 2;
+}
+
+message CapabilityOwners {
+  repeated Owner owners = 1;
+}

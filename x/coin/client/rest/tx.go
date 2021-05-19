@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 )
 
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/coin/create", CoinCreateRequestHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/coin/send", CoinSendRequestHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/coin/sell", CoinSellRequestHandlerFn(cliCtx)).Methods("POST")
@@ -25,7 +25,7 @@ type <Action>Req struct {
 	// TODO: Define more types if needed
 }
 
-func <Action>RequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func <Action>RequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req <Action>Req
 		vars := mux.Vars(r)

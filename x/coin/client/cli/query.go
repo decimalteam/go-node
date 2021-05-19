@@ -14,7 +14,7 @@ import (
 )
 
 // GetQueryCmd returns the CLI query commands for this module.
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	// Group coin queries under a subcommand
 	coinQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -35,7 +35,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 }
 
-func listCoinsCommand(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func listCoinsCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
 		Short: "List all existing coins",
@@ -56,7 +56,7 @@ func listCoinsCommand(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-func getCoinCommand(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func getCoinCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Use:   "get [symbol]",
 		Short: "Returns coin information by symbol",

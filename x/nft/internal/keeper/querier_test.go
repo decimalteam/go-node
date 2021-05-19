@@ -47,7 +47,7 @@ func TestQuerySupply(t *testing.T) {
 	require.Nil(t, res)
 
 	queryCollectionParams := types.NewQueryCollectionParams(denom2)
-	bz, errRes := app.Codec().MarshalJSON(queryCollectionParams)
+	bz, errRes := app.LegacyAmino().MarshalJSON(queryCollectionParams)
 	require.Nil(t, errRes)
 	query.Data = bz
 	res, err = querier(ctx, []string{"supply"}, query)
@@ -55,7 +55,7 @@ func TestQuerySupply(t *testing.T) {
 	require.Nil(t, res)
 
 	queryCollectionParams = types.NewQueryCollectionParams(denom)
-	bz, errRes = app.Codec().MarshalJSON(queryCollectionParams)
+	bz, errRes = app.LegacyAmino().MarshalJSON(queryCollectionParams)
 	require.Nil(t, errRes)
 	query.Data = bz
 
@@ -91,7 +91,7 @@ func TestQueryCollection(t *testing.T) {
 	require.Nil(t, res)
 
 	queryCollectionParams := types.NewQueryCollectionParams(denom2)
-	bz, errRes := app.Codec().MarshalJSON(queryCollectionParams)
+	bz, errRes := app.LegacyAmino().MarshalJSON(queryCollectionParams)
 	require.Nil(t, errRes)
 
 	query.Data = bz
@@ -100,7 +100,7 @@ func TestQueryCollection(t *testing.T) {
 	require.Nil(t, res)
 
 	queryCollectionParams = types.NewQueryCollectionParams(denom)
-	bz, errRes = app.Codec().MarshalJSON(queryCollectionParams)
+	bz, errRes = app.LegacyAmino().MarshalJSON(queryCollectionParams)
 	require.Nil(t, errRes)
 
 	query.Data = bz
@@ -141,7 +141,7 @@ func TestQueryOwner(t *testing.T) {
 
 	// query the balance using the first denom
 	params := types.NewQueryBalanceParams(address, denom)
-	bz, err2 := app.Codec().MarshalJSON(params)
+	bz, err2 := app.LegacyAmino().MarshalJSON(params)
 	require.Nil(t, err2)
 	query.Data = bz
 
@@ -150,7 +150,7 @@ func TestQueryOwner(t *testing.T) {
 	require.NotNil(t, res)
 
 	var out types.Owner
-	app.Codec().MustUnmarshalJSON(res, &out)
+	app.LegacyAmino().MustUnmarshalJSON(res, &out)
 
 	// build the owner using only the first denom
 	idCollection1 := types.NewIDCollection(denom, []string{id})
@@ -160,7 +160,7 @@ func TestQueryOwner(t *testing.T) {
 
 	// query the balance using no denom so that all denoms will be returns
 	params = types.NewQueryBalanceParams(address, "")
-	bz, err2 = app.Codec().MarshalJSON(params)
+	bz, err2 = app.LegacyAmino().MarshalJSON(params)
 	require.Nil(t, err2)
 
 	query.Path = "/custom/nft/owner"
@@ -173,7 +173,7 @@ func TestQueryOwner(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	app.Codec().MustUnmarshalJSON(res, &out)
+	app.LegacyAmino().MustUnmarshalJSON(res, &out)
 
 	// build the owner using both denoms TODO: add sorting to ensure the objects are the same
 	idCollection2 := types.NewIDCollection(denom2, []string{id})
@@ -205,7 +205,7 @@ func TestQueryNFT(t *testing.T) {
 	require.Nil(t, res)
 
 	params := types.NewQueryNFTParams(denom2, id2)
-	bz, err2 := app.Codec().MarshalJSON(params)
+	bz, err2 := app.LegacyAmino().MarshalJSON(params)
 	require.Nil(t, err2)
 
 	query.Data = bz
@@ -214,7 +214,7 @@ func TestQueryNFT(t *testing.T) {
 	require.Nil(t, res)
 
 	params = types.NewQueryNFTParams(denom, id)
-	bz, err2 = app.Codec().MarshalJSON(params)
+	bz, err2 = app.LegacyAmino().MarshalJSON(params)
 	require.Nil(t, err2)
 
 	query.Data = bz
@@ -223,7 +223,7 @@ func TestQueryNFT(t *testing.T) {
 	require.NotNil(t, res)
 
 	var out exported.NFT
-	app.Codec().MustUnmarshalJSON(res, &out)
+	app.LegacyAmino().MustUnmarshalJSON(res, &out)
 
 	require.Equal(t, out.String(), nft.String())
 }
@@ -255,7 +255,7 @@ func TestQueryDenoms(t *testing.T) {
 	denoms := []string{denom, denom2}
 
 	var out []string
-	app.Codec().MustUnmarshalJSON(res, &out)
+	app.LegacyAmino().MustUnmarshalJSON(res, &out)
 
 	for key, denomInQuestion := range out {
 		require.Equal(t, denomInQuestion, denoms[key])

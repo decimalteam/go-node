@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 )
 
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
 	// r.HandleFunc(
 	// TODO: Define the Rest route ,
 	// Call the function which should be executed for this route),
@@ -20,7 +20,7 @@ type <Action>Req struct {
 	// TODO: Define more types if needed
 }
 
-func <Action>RequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func <Action>RequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req <Action>Req
 		vars := mux.Vars(r)

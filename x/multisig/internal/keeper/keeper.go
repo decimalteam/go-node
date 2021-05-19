@@ -17,7 +17,7 @@ import (
 // Keeper of the multisig store
 type Keeper struct {
 	storeKey      sdk.StoreKey
-	cdc           *codec.Codec
+	cdc           *codec.LegacyAmino
 	paramspace    types.ParamSubspace
 	AccountKeeper auth.AccountKeeper
 	CoinKeeper    coin.Keeper
@@ -25,7 +25,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a multisig keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, accountKeeper auth.AccountKeeper, coinKeeper coin.Keeper, bankKeeper bank.Keeper) Keeper {
+func NewKeeper(cdc *codec.LegacyAmino, key sdk.StoreKey, paramspace types.ParamSubspace, accountKeeper auth.AccountKeeper, coinKeeper coin.Keeper, bankKeeper bank.Keeper) Keeper {
 	keeper := Keeper{
 		storeKey:      key,
 		cdc:           cdc,

@@ -12,6 +12,18 @@ type MsgSendCoin struct {
 	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
 }
 
+func (msg MsgSendCoin) Reset() {
+	panic("implement me")
+}
+
+func (msg MsgSendCoin) String() string {
+	panic("implement me")
+}
+
+func (msg MsgSendCoin) ProtoMessage() {
+	panic("implement me")
+}
+
 func NewMsgSendCoin(sender sdk.AccAddress, coin sdk.Coin, receiver sdk.AccAddress) MsgSendCoin {
 	return MsgSendCoin{
 		Sender:   sender,
