@@ -35,11 +35,9 @@ func ErrInvalidSender() *sdkerrors.Error {
 }
 
 func ErrInvalidOwnerCount(count int, more bool) *sdkerrors.Error {
-	var AppendWord string
+	var AppendWord string = "need at least"
 	if more {
 		AppendWord = "allowed no more"
-	} else {
-		AppendWord = "need at least"
 	}
 	return sdkerrors.New(
 		DefaultCodespace,
