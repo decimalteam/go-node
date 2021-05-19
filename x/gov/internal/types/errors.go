@@ -41,8 +41,7 @@ func ErrUnknownProposal(proposalID uint64) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnknownProposal,
-		//todo proposalID
-		"unknown proposal",
+		fmt.Sprintf("unknown proposal: %d", proposalID),
 	)
 }
 
@@ -50,8 +49,7 @@ func ErrInactiveProposal(proposalID uint64) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInactiveProposal,
-		//todo proposalID
-		"inactive proposal",
+		fmt.Sprintf("inactive proposal: %d", proposalID),
 	)
 }
 
@@ -83,8 +81,7 @@ func ErrInvalidProposalContentTitleLong(MaxTitleLength int) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidProposalContentTitleLong,
-		//todo MaxTitleLength
-		"proposal title is longer than max length of %d",
+		fmt.Sprintf("proposal title is longer than max length of %d", MaxTitleLength),
 	)
 }
 
@@ -100,8 +97,7 @@ func ErrInvalidProposalContentDescrLong(MaxDescriptionLength int) *sdkerrors.Err
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidProposalContentDescrLong,
-		//todo MaxDescriptionLength
-		"proposal description is longer than max length of %d",
+		fmt.Sprintf("proposal description is longer than max length of %d", MaxDescriptionLength),
 	)
 }
 
@@ -109,8 +105,7 @@ func ErrInvalidProposalType(ProposalType string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidProposalType,
-		//todo ProposalType
-		"invalid proposal type",
+		fmt.Sprintf("invalid proposal type: %s", ProposalType),
 	)
 }
 
@@ -118,8 +113,7 @@ func ErrInvalidVote(option string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidVote,
-		//todo option
-		"invalid vote option",
+		fmt.Sprintf("invalid vote option: %s", option),
 	)
 }
 
@@ -151,8 +145,7 @@ func ErrSubmitProposal(err string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeSubmitProposal,
-		//todo error
-		"error submit proposal: %s",
+		fmt.Sprintf("error submit proposal: %s", err),
 	)
 }
 
@@ -176,7 +169,6 @@ func ErrNotAllowed() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNotAllowed,
-		//todo address view
 		fmt.Sprintf("not allowed to create the proposal from this address"),
 	)
 }
