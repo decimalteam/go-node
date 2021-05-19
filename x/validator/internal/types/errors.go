@@ -190,6 +190,22 @@ func ErrCommissionHuge() *sdkerrors.Error {
 	)
 }
 
+func ErrValidatorAlreadyOnline() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeValidatorAlreadyOnline,
+		"validator already online",
+	)
+}
+
+func ErrValidatorAlreadyOffline() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeValidatorAlreadyOffline,
+		"validator already offline",
+	)
+}
+
 func ErrValidatorPubKeyTypeNotSupported() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
@@ -251,22 +267,6 @@ func ErrCoinDoesNotExist(symbol string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeCoinDoesNotExist,
 		fmt.Sprintf("coin %s does not exist", symbol),
-	)
-}
-
-func ErrValidatorAlreadyOnline() *sdkerrors.Error {
-	return sdkerrors.New(
-		DefaultCodespace,
-		CodeValidatorAlreadyOnline,
-		"validator already online",
-	)
-}
-
-func ErrValidatorAlreadyOffline() *sdkerrors.Error {
-	return sdkerrors.New(
-		DefaultCodespace,
-		CodeValidatorAlreadyOffline,
-		"validator already offline",
 	)
 }
 
