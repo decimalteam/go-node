@@ -42,18 +42,18 @@ func (msg MsgSubmitProposal) Type() string { return TypeMsgSubmitProposal }
 // ValidateBasic implements Msg
 func (msg MsgSubmitProposal) ValidateBasic() error {
 	if msg.Content.Title == "" || msg.Content.Description == "" {
-		return sdkerrors.Wrap(ErrInvalidProposalContent, "missing content")
+		return ErrInvalidProposalContent()
 	}
 	if msg.Proposer.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Proposer.String())
 	}
 
 	if msg.VotingStartBlock >= msg.VotingEndBlock {
-		return ErrInvalidStartEndBlocks
+		return ErrInvalidStartEndBlocks()
 	}
 
 	if msg.VotingEndBlock-msg.VotingStartBlock > 1296000 {
-		return ErrDurationTooLong
+		return ErrDurationTooLong()
 	}
 
 	return nil
@@ -102,7 +102,7 @@ func (msg MsgVote) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Voter.String())
 	}
 	if !ValidVoteOption(msg.Option) {
-		return sdkerrors.Wrap(ErrInvalidVote, msg.Option.String())
+		return ErrInvalidVote(msg.Option.String())
 	}
 
 	return nil

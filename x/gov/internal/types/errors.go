@@ -6,6 +6,7 @@ import (
 )
 
 // x/gov module sentinel errors
+
 type CodeType = uint32
 
 const (
@@ -15,10 +16,16 @@ const (
 	DurationInMonth  int = 3
 	DurationInBlocks int = 1296000
 
-	CodeUnknownProposal         CodeType = 100
-	CodeInactiveProposal        CodeType = 200
-	CodeAlreadyActiveProposal   CodeType = 300
-	CodeInvalidProposalContent  CodeType = 400
+	CodeUnknownProposal       CodeType = 100
+	CodeInactiveProposal      CodeType = 200
+	CodeAlreadyActiveProposal CodeType = 300
+	// proposal content
+	CodeInvalidProposalContent           CodeType = 400
+	CodeInvalidProposalContentTitleBlank CodeType = 401
+	CodeInvalidProposalContentTitleLong  CodeType = 402
+	CodeInvalidProposalContentDescrBlank CodeType = 403
+	CodeInvalidProposalContentDescrLong  CodeType = 404
+
 	CodeInvalidProposalType     CodeType = 500
 	CodeInvalidVote             CodeType = 600
 	CodeInvalidGenesis          CodeType = 700
@@ -30,22 +37,6 @@ const (
 	CodeNotAllowed              CodeType = 1300
 )
 
-var (
-//ErrUnknownProposal         = sdkerrors.Register(ModuleName, 100, "unknown proposal")
-//ErrInactiveProposal        = sdkerrors.Register(ModuleName, 200, "inactive proposal")
-//ErrAlreadyActiveProposal   = sdkerrors.Register(ModuleName, 300, "proposal already active")
-//ErrInvalidProposalContent  = sdkerrors.Register(ModuleName, 400, "invalid proposal content")
-//ErrInvalidProposalType     = sdkerrors.Register(ModuleName, 500, "invalid proposal type")
-//ErrInvalidVote             = sdkerrors.Register(ModuleName, 600, "invalid vote option")
-//ErrInvalidGenesis          = sdkerrors.Register(ModuleName, 700, "invalid genesis state")
-//ErrNoProposalHandlerExists = sdkerrors.Register(ModuleName, 800, "no handler exists for proposal type")
-//ErrInvalidStartEndBlocks   = sdkerrors.Register(ModuleName, 900, "invalid start or end blocks")
-//ErrSubmitProposal          = sdkerrors.Register(ModuleName, 1000, "error submit proposal")
-//ErrStartBlock              = sdkerrors.Register(ModuleName, 1100, "start block must greater then current block height")
-//ErrDurationTooLong         = sdkerrors.Register(ModuleName, 1200, "duration too long. Max duration = 3 month (1296000 blocks)")
-//ErrNotAllowed              = sdkerrors.Register(ModuleName, 1300, "not allowed to create the proposal from this address")
-)
-
 func ErrUnknownProposal(proposalID uint64) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
@@ -55,10 +46,11 @@ func ErrUnknownProposal(proposalID uint64) *sdkerrors.Error {
 	)
 }
 
-func ErrInactiveProposal() *sdkerrors.Error {
+func ErrInactiveProposal(proposalID uint64) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInactiveProposal,
+		//todo proposalID
 		"inactive proposal",
 	)
 }
@@ -75,22 +67,58 @@ func ErrInvalidProposalContent() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidProposalContent,
-		"invalid proposal content",
+		"missing content",
 	)
 }
 
-func ErrInvalidProposalType() *sdkerrors.Error {
+func ErrInvalidProposalContentTitleBlank() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeInvalidProposalContentTitleBlank,
+		"proposal title cannot be blank",
+	)
+}
+
+func ErrInvalidProposalContentTitleLong(MaxTitleLength int) *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeInvalidProposalContentTitleLong,
+		//todo MaxTitleLength
+		"proposal title is longer than max length of %d",
+	)
+}
+
+func ErrInvalidProposalContentDescrBlank() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeInvalidProposalContentDescrBlank,
+		"proposal description cannot be blank",
+	)
+}
+
+func ErrInvalidProposalContentDescrLong(MaxDescriptionLength int) *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeInvalidProposalContentDescrLong,
+		//todo MaxDescriptionLength
+		"proposal description is longer than max length of %d",
+	)
+}
+
+func ErrInvalidProposalType(ProposalType string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidProposalType,
+		//todo ProposalType
 		"invalid proposal type",
 	)
 }
 
-func ErrInvalidVote() *sdkerrors.Error {
+func ErrInvalidVote(option string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidVote,
+		//todo option
 		"invalid vote option",
 	)
 }
@@ -99,7 +127,7 @@ func ErrInvalidGenesis() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidGenesis,
-		"invalid genesis state",
+		"initial proposal ID hasn't been set",
 	)
 }
 
@@ -119,11 +147,12 @@ func ErrInvalidStartEndBlocks() *sdkerrors.Error {
 	)
 }
 
-func ErrSubmitProposal() *sdkerrors.Error {
+func ErrSubmitProposal(err string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeSubmitProposal,
-		"error submit proposal",
+		//todo error
+		"error submit proposal: %s",
 	)
 }
 
