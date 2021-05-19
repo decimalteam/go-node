@@ -1,10 +1,7 @@
 package types
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var _ sdk.Msg = &MsgCreateWallet{}
@@ -47,69 +44,37 @@ func (msg MsgCreateWallet) Type() string { return CreateWalletConst }
 func (msg MsgCreateWallet) ValidateBasic() error {
 	// Validate sender
 	if msg.Sender.Empty() {
-		return sdkerrors.New(
-			DefaultCodespace,
-			InvalidSender,
-			"Invalid sender address: sender address cannot be empty",
-		)
+		return ErrInvalidSender()
 	}
 	// Validate owner count
 	if len(msg.Owners) < MinOwnerCount {
-		return sdkerrors.New(
-			DefaultCodespace,
-			InvalidOwnerCount,
-			fmt.Sprintf("Invalid owner count: need at least %d owners", MinOwnerCount),
-		)
+		return ErrInvalidOwnerCount(MaxOwnerCount, false)
 	}
 	if len(msg.Owners) > MaxOwnerCount {
-		return sdkerrors.New(
-			DefaultCodespace,
-			InvalidOwnerCount,
-			fmt.Sprintf("Invalid owner count: allowed no more than %d owners", MaxOwnerCount),
-		)
+		return ErrInvalidOwnerCount(MaxOwnerCount, true)
 	}
 	// Validate weight count
 	if len(msg.Owners) != len(msg.Weights) {
-		return sdkerrors.New(
-			DefaultCodespace,
-			InvalidWeightCount,
-			fmt.Sprintf("Invalid weight count: weight count (%d) is not equal to owner count (%d)", len(msg.Weights), len(msg.Owners)),
-		)
+		return ErrInvalidWeightCount(len(msg.Weights), len(msg.Owners))
 	}
 	// Validate owners (ensure there are no duplicates)
 	owners := make(map[string]bool, len(msg.Owners))
 	for i, c := 0, len(msg.Owners); i < c; i++ {
 		if msg.Owners[i].Empty() {
-			return sdkerrors.New(
-				DefaultCodespace,
-				InvalidOwner,
-				"Invalid owner address: owner address cannot be empty",
-			)
+			return ErrInvalidOwner()
 		}
 		if owners[msg.Owners[i].String()] {
-			return sdkerrors.New(
-				DefaultCodespace,
-				InvalidOwner,
-				fmt.Sprintf("Invalid owners: owner with address %s is duplicated", msg.Owners[i]),
-			)
+			return ErrDuplicateOwner(msg.Owners[i])
 		}
 		owners[msg.Owners[i].String()] = true
 	}
 	// Validate weights
 	for i, c := 0, len(msg.Weights); i < c; i++ {
 		if msg.Weights[i] < MinWeight {
-			return sdkerrors.New(
-				DefaultCodespace,
-				InvalidWeight,
-				fmt.Sprintf("Invalid weight: weight cannot be less than %d", MinWeight),
-			)
+			return ErrInvalidWeight(MinWeight, "less")
 		}
 		if msg.Weights[i] > MaxWeight {
-			return sdkerrors.New(
-				DefaultCodespace,
-				InvalidWeight,
-				fmt.Sprintf("Invalid weight: weight cannot be greater than %d", MaxWeight),
-			)
+			return ErrInvalidWeight(MaxWeight, "greater")
 		}
 	}
 	return nil
