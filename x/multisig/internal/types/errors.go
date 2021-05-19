@@ -71,6 +71,13 @@ func ErrInvalidWeight(weight int, data string) *sdkerrors.Error {
 		fmt.Sprintf("Invalid weight: weight cannot be %s than %d", data, weight),
 	)
 }
+func ErrInvalidCoinToSend(denom string) *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeInvalidCoinToSend,
+		fmt.Sprintf("Coin to send with symbol %s does not exist", denom),
+	)
+}
 
 func ErrWalletAccountNotFound() *sdkerrors.Error {
 	return sdkerrors.New(
