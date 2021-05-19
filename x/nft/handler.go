@@ -50,7 +50,7 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types.MsgTransferNFT, k keeper.Ke
 
 	collection, found := k.GetCollection(ctx, msg.Denom)
 	if !found {
-		return nil, ErrUnknownCollection
+		return nil, ErrUnknownCollection()
 	}
 	collection.NFTs.Update(msg.ID, nft)
 	k.SetCollection(ctx, msg.Denom, collection)
@@ -103,11 +103,8 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 ) (*sdk.Result, error) {
 	nft, err := k.GetNFT(ctx, msg.Denom, msg.ID)
 	if err == nil {
-		if !nft.GetCreator().Equals(msg.Sender) {
-			return nil, ErrNotAllowedMint
-		}
-		if !nft.GetAllowMint() {
-			return nil, ErrNotAllowedMint
+		if !nft.GetCreator().Equals(msg.Sender) || !nft.GetAllowMint() {
+			return nil, ErrNotAllowedMint()
 		}
 	}
 	nft = types.NewBaseNFT(msg.ID, msg.Sender, msg.Recipient, msg.TokenURI, msg.Quantity, msg.Reserve, msg.AllowMint)
@@ -142,7 +139,7 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 	}
 
 	if !nft.GetCreator().Equals(msg.Sender) {
-		return nil, ErrNotAllowedBurn
+		return nil, ErrNotAllowedBurn()
 	}
 
 	// remove  NFT

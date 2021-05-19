@@ -1,13 +1,9 @@
 package keeper
 
 import (
-	"fmt"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // IsNFT returns whether an NFT exists
@@ -20,7 +16,7 @@ func (k Keeper) IsNFT(ctx sdk.Context, denom, id string) (exists bool) {
 func (k Keeper) GetNFT(ctx sdk.Context, denom, id string) (exported.NFT, error) {
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrUnknownCollection, fmt.Sprintf("collection of %s doesn't exist", denom))
+		return nil, types.ErrUnknownCollection()
 	}
 	nft, err := collection.GetNFT(id)
 
@@ -64,7 +60,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom string, nft exported.NFT) error {
 func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) error {
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
-		return sdkerrors.Wrap(types.ErrUnknownCollection, fmt.Sprintf("collection of %s doesn't exist", denom))
+		return types.ErrUnknownCollection()
 	}
 	nft, err := collection.GetNFT(id)
 	if err != nil {
@@ -72,14 +68,11 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) e
 	}
 	ownerIDCollection, found := k.GetOwnerByDenom(ctx, nft.GetCreator(), denom)
 	if !found {
-		return sdkerrors.Wrap(types.ErrUnknownCollection,
-			fmt.Sprintf("id collection #%s doesn't exist for owner %s", denom, nft.GetCreator()),
-		)
+		return types.ErrUnknownCollection()
 	}
 
 	if quantity.GT(nft.GetOwners().GetOwner(nft.GetCreator()).GetQuantity()) {
-		return sdkerrors.Wrap(types.ErrNotAllowedBurn,
-			fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(), nft.GetOwners().GetOwner(nft.GetCreator()).GetQuantity().String()))
+		return types.ErrNotAllowedBurn()
 	}
 
 	if quantity.Equal(nft.GetOwners().GetOwner(nft.GetCreator()).GetQuantity()) {

@@ -6,10 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // IDCollection defines a set of nft ids that belong to a specific
@@ -49,9 +47,7 @@ func (idCollection IDCollection) AddID(id string) IDCollection {
 func (idCollection IDCollection) DeleteID(id string) (IDCollection, error) {
 	index := idCollection.IDs.find(id)
 	if index == -1 {
-		return idCollection, sdkerrors.Wrap(ErrUnknownNFT,
-			fmt.Sprintf("ID #%s doesn't exist on ID Collection %s", id, idCollection.Denom),
-		)
+		return idCollection, ErrUnknownNFT()
 	}
 
 	idCollection.IDs = append(idCollection.IDs[:index], idCollection.IDs[index+1:]...)
@@ -137,9 +133,7 @@ func (owner Owner) UpdateIDCollection(idCollection IDCollection) (Owner, error) 
 	denom := idCollection.Denom
 	index := owner.IDCollections.find(denom)
 	if index == -1 {
-		return owner, sdkerrors.Wrap(ErrUnknownCollection,
-			fmt.Sprintf("ID Collection %s doesn't exist for owner %s", denom, owner.Address),
-		)
+		return owner, ErrUnknownCollection()
 	}
 
 	owner.IDCollections = append(append(owner.IDCollections[:index], idCollection), owner.IDCollections[index+1:]...)
@@ -151,9 +145,7 @@ func (owner Owner) UpdateIDCollection(idCollection IDCollection) (Owner, error) 
 func (owner Owner) DeleteID(denom string, id string) (Owner, error) {
 	idCollection, found := owner.GetIDCollection(denom)
 	if !found {
-		return owner, sdkerrors.Wrap(ErrUnknownNFT,
-			fmt.Sprintf("ID #%s doesn't exist in ID Collection %s", id, denom),
-		)
+		return owner, ErrUnknownNFT()
 	}
 	idCollection, err := idCollection.DeleteID(id)
 	if err != nil {

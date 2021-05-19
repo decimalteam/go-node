@@ -40,11 +40,11 @@ var (
 //	ErrInvalidTokenID    = sdkerrors.Register(ModuleName, 12, "invalid token name")
 )
 
-func ErrInvalidCollection() *sdkerrors.Error {
+func ErrInvalidCollection(denom string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCollection,
-		fmt.Sprintf("invalid NFT collection"),
+		fmt.Sprintf("invalid NFT collection: %s", denom),
 	)
 }
 
