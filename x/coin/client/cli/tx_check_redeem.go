@@ -60,8 +60,6 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 			})
 			if err != nil {
 				return types.ErrUnableRPLEncodeCheck(err.Error())
-				//msgError := fmt.Sprintf("unable to RLP encode check receiver address: %s", err.Error())
-				//return sdkerrors.New(types.DefaultCodespace, types.InvalidPassphrase, msgError)
 			}
 			hw.Sum(receiverAddressHash[:0])
 
@@ -69,8 +67,6 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 			signature, err := crypto.Sign(receiverAddressHash[:], passphrasePrivKey)
 			if err != nil {
 				return types.ErrUnableSignCheck(err.Error())
-				//msgError := fmt.Sprintf("unable to sign check receiver address by private key generated from passphrase: %s", err.Error())
-				//return sdkerrors.New(types.DefaultCodespace, types.InvalidPassphrase, msgError)
 			}
 			proofBase64 := base64.StdEncoding.EncodeToString(signature)
 
