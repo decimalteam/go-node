@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -69,7 +70,55 @@ func TestRevocation(t *testing.T) {
 }
 
 func TestSlashBondedDelegationNFT(t *testing.T) {
+	ctx, _, keeper, _, _, nftKeeper := CreateTestInput(t, false, 100)
 
+	valAddr := addrVals[0]
+	delAddr := sdk.AccAddress(addrVals[0])
+	amt := types.TokensFromConsensusPower(100)
+
+	// NFT params
+	const denom = "denom1"
+	const tokenID = "token1"
+	quantity := sdk.NewInt(100)
+	reserve := sdk.NewInt(100)
+
+	// create nft
+	err := nftKeeper.MintNFT(ctx, denom, nft.NewBaseNFT(
+		tokenID,
+		delAddr,
+		delAddr,
+		"",
+		quantity,
+		reserve,
+		true,
+	))
+	require.NoError(t, err)
+
+	bondedCoins := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), amt))
+
+	bondedPool := keeper.GetBondedPool(ctx)
+	err = bondedPool.SetCoins(bondedCoins)
+	require.NoError(t, err)
+	keeper.supplyKeeper.SetModuleAccount(ctx, bondedPool)
+
+	// set validator
+	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), delAddr, types.Description{})
+	validator.Online = true
+	del := types.NewDelegation(delAddr, validator.ValAddress, sdk.NewCoin(keeper.BondDenom(ctx), amt))
+	keeper.SetDelegation(ctx, del)
+	validator = TestingUpdateValidator(keeper, ctx, validator, true)
+	keeper.SetValidatorByConsAddr(ctx, validator)
+
+	// set nft delegation
+	delegationNFT := types.NewDelegationNFT(delAddr, valAddr, tokenID, denom, quantity,
+		sdk.NewCoin(keeper.BondDenom(ctx), quantity.Mul(reserve)))
+	keeper.SetDelegationNFT(ctx, delegationNFT)
+
+	keeper.Slash(ctx, validator.GetConsAddr(), ctx.BlockHeight(), types.SlashFractionDowntime)
+
+	delegationNFT, ok := keeper.GetDelegationNFT(ctx, valAddr, delAddr, tokenID, denom)
+	require.True(t, ok)
+	require.Equal(t, sdk.NewInt(99), delegationNFT.Quantity)
 }
 
 // tests slashUnbondingDelegation

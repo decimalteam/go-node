@@ -281,7 +281,7 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 				}
 			}
 
-			delegation.Quantity = delegation.Quantity.Mul(bondSlashQuantity)
+			delegation.Quantity = delegation.Quantity.Sub(bondSlashQuantity)
 			delegation.Coin.Amount = delegation.Coin.Amount.Sub(bondSlashAmount)
 
 			k.SetDelegationNFT(ctx, delegation)
@@ -311,7 +311,6 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 				),
 			)
 		}
-
 	}
 
 	tokensToBurn := sdk.NewCoins()
