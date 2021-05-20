@@ -25,7 +25,13 @@ const (
 	CodeInvalidStruct CodeType = 200
 	CodeAccountNotSet CodeType = 201
 
-	CodeInvalidDelegation CodeType = 300
+	CodeInvalidDelegation           CodeType = 300
+	CodeInsufficientShares          CodeType = 301
+	CodeDelegatorShareExRateInvalid CodeType = 302
+	CodeUnbondingDelegationNotFound CodeType = 303
+	CodeBadDelegationAmount         CodeType = 304
+	CodeNoDelegatorForAddress       CodeType = 305
+	CodeNotEnoughDelegationShares   CodeType = 306
 
 	CodeEmptyPubKey                     CodeType = 400
 	CodeValidatorPubKeyTypeNotSupported CodeType = 401
@@ -107,7 +113,7 @@ func ErrValidatorPubKeyExists() *sdkerrors.Error {
 func ErrInsufficientShares() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		CodeInvalidDelegation,
+		CodeInsufficientShares,
 		"insufficient delegation shares",
 	)
 }
@@ -115,23 +121,15 @@ func ErrInsufficientShares() *sdkerrors.Error {
 func ErrDelegatorShareExRateInvalid() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		CodeInvalidDelegation,
+		CodeDelegatorShareExRateInvalid,
 		"cannot delegate to validators with invalid (zero) ex-rate",
-	)
-}
-
-func ErrDelegatorStakeIsTooLow() *sdkerrors.Error {
-	return sdkerrors.New(
-		DefaultCodespace,
-		CodeDelegatorStakeIsTooLow,
-		"stake is too low",
 	)
 }
 
 func ErrUnbondingDelegationNotFound() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		CodeInvalidDelegation,
+		CodeUnbondingDelegationNotFound,
 		"unbonding delegation not found",
 	)
 }
@@ -139,7 +137,7 @@ func ErrUnbondingDelegationNotFound() *sdkerrors.Error {
 func ErrBadDelegationAmount() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		CodeInvalidDelegation,
+		CodeBadDelegationAmount,
 		"amount must be > 0",
 	)
 }
@@ -147,24 +145,16 @@ func ErrBadDelegationAmount() *sdkerrors.Error {
 func ErrNoDelegatorForAddress() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		CodeInvalidDelegation,
-		"delegator does not contain this delegation",
+		CodeNoDelegatorForAddress,
+		"delegator does not contain this address",
 	)
 }
 
 func ErrNotEnoughDelegationShares(shares string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
-		CodeInvalidDelegation,
+		CodeNotEnoughDelegationShares,
 		fmt.Sprintf("not enough shares only have %v", shares),
-	)
-}
-
-func ErrEmptyDelegatorAddr() *sdkerrors.Error {
-	return sdkerrors.New(
-		DefaultCodespace,
-		CodeEmptyDelegatorAddress,
-		"empty delegator address",
 	)
 }
 
@@ -236,6 +226,22 @@ func ErrNoHistoricalInfo() *sdkerrors.Error {
 		DefaultCodespace,
 		CodeErrNoHistoricalInfo,
 		"no historical info found",
+	)
+}
+
+func ErrDelegatorStakeIsTooLow() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeDelegatorStakeIsTooLow,
+		"stake is too low",
+	)
+}
+
+func ErrEmptyDelegatorAddr() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeEmptyDelegatorAddress,
+		"empty delegator address",
 	)
 }
 
