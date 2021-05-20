@@ -39,6 +39,8 @@ const (
 	CodeCoinReserveIsNotSufficient CodeType = 500
 
 	CodeErrInvalidHistoricalInfo CodeType = 600
+	CodeValidatorSetEmpty        CodeType = 601
+	CodeValidatorSetNotSorted    CodeType = 602
 
 	CodeErrNoHistoricalInfo CodeType = 700
 
@@ -218,6 +220,22 @@ func ErrInvalidHistoricalInfo() *sdkerrors.Error {
 		DefaultCodespace,
 		CodeErrInvalidHistoricalInfo,
 		"invalid historical info",
+	)
+}
+
+func ErrValidatorSetEmpty() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeValidatorSetEmpty,
+		"validator set is empty",
+	)
+}
+
+func ErrValidatorSetNotSorted() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeValidatorSetNotSorted,
+		"validator set is not sorted by address",
 	)
 }
 
