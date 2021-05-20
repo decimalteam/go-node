@@ -25,33 +25,65 @@ const (
 )
 
 func ErrSwapNotFound() *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeSwapNotFound, `swap not found`)
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeSwapNotFound,
+		`swap not found`,
+	)
 }
 
 func ErrSwapAlreadyExist(hash Hash) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeSwapAlreadyExist, fmt.Sprintf(`swap with hash %s already exist`, hex.EncodeToString(hash[:])))
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeSwapAlreadyExist,
+		fmt.Sprintf(`swap with hash %s already exist`, hex.EncodeToString(hash[:])),
+	)
 }
 
 func ErrFromFieldNotEqual(fromMsg, fromSwap sdk.AccAddress) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeFromFieldNotEqual, fmt.Sprintf(`'from' field not equal: %s != %s`, fromMsg.String(), fromSwap.String()))
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeFromFieldNotEqual,
+		fmt.Sprintf(`'from' field not equal: %s != %s`, fromMsg.String(), fromSwap.String()),
+	)
 }
 
 func ErrAlreadyRefunded() *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeAlreadyRefunded, "already refunded")
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeAlreadyRefunded,
+		"already refunded",
+	)
 }
 
 func ErrAlreadyRedeemed() *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeAlreadyRedeemed, "already redeemed")
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeAlreadyRedeemed,
+		"already redeemed",
+	)
 }
 
 func ErrNotExpired() *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeNotExpired, "swap not expired")
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeNotExpired,
+		"swap not expired",
+	)
 }
 
 func ErrExpired() *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeExpired, "swap expired")
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeExpired,
+		"swap expired",
+	)
 }
 
 func ErrWrongSecret() *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeWrongSecret, "wrong secret")
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeWrongSecret,
+		"wrong secret",
+	)
 }
