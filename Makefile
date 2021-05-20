@@ -12,12 +12,6 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=Decimal \
 BUILD_FLAGS := -ldflags '$(ldflags)'
 BUILD_TAGS := -tags cleveldb
 
-DECIMALDIR="$HOME/go/src/bitbucket.org/decimalteam/go-node"
-DECIMALGIT="git@bitbucket.org:decimalteam/go-node.git"
-BRANCH="develop"
-SERVICEPATH="/etc/systemd/system/decd.service"
-DECDBIN="$HOME/go/bin/decd"
-
 all: install
 
 install: go.sum
