@@ -205,11 +205,11 @@ func ErrValidatorAlreadyOffline() *sdkerrors.Error {
 	)
 }
 
-func ErrValidatorPubKeyTypeNotSupported() *sdkerrors.Error {
+func ErrValidatorPubKeyTypeNotSupported(PKeyType string, AllowedTypes []string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeValidatorPubKeyTypeNotSupported,
-		"validator pubkey type is not supported",
+		fmt.Sprintf("validator pubkey type is not supported. got: %s, valid: %s", PKeyType, AllowedTypes),
 	)
 }
 

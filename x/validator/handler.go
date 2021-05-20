@@ -61,8 +61,9 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 	if ctx.ConsensusParams() != nil {
 		tmPubKey := tmtypes.TM2PB.PubKey(msg.PubKey)
 		if !tmstrings.StringInSlice(tmPubKey.Type, ctx.ConsensusParams().Validator.PubKeyTypes) {
+			//todo fix it
 			return nil, sdkerrors.Wrapf(
-				types.ErrValidatorPubKeyTypeNotSupported(),
+				types.ErrValidatorPubKeyTypeNotSupported(tmPubKey.Type, ctx.ConsensusParams().Validator.PubKeyTypes),
 				"got: %s, valid: %s", tmPubKey.Type, ctx.ConsensusParams().Validator.PubKeyTypes,
 			)
 		}
