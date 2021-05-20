@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -314,7 +313,7 @@ func queryPool(ctx sdk.Context, k Keeper) ([]byte, error) {
 	bondedPool := k.GetBondedPool(ctx)
 	notBondedPool := k.GetNotBondedPool(ctx)
 	if bondedPool == nil || notBondedPool == nil {
-		return nil, errors.New("pool accounts haven't been set")
+		return nil, types.ErrAccountNotSet()
 	}
 
 	pool := types.NewPool(

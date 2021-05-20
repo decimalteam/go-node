@@ -23,6 +23,7 @@ const (
 	CodeValidatorAlreadyOffline      CodeType = 107
 
 	CodeInvalidStruct CodeType = 200
+	CodeAccountNotSet CodeType = 201
 
 	CodeInvalidDelegation CodeType = 300
 
@@ -68,6 +69,14 @@ func ErrInvalidStruct() *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidStruct,
 		"invalid struct",
+	)
+}
+
+func ErrAccountNotSet() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeAccountNotSet,
+		"pool accounts haven't been set",
 	)
 }
 
