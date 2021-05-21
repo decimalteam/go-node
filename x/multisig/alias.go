@@ -1,55 +1,55 @@
 package multisig
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/multisig/internal/keeper"
-	"bitbucket.org/decimalteam/go-node/x/multisig/internal/types"
+	keeper2 "bitbucket.org/decimalteam/go-node/x/multisig/keeper"
+	types2 "bitbucket.org/decimalteam/go-node/x/multisig/types"
 )
 
 const (
 	// TODO: define constants that you would like exposed from the internal package
 
-	ModuleName        = types.ModuleName
-	RouterKey         = types.RouterKey
-	StoreKey          = types.StoreKey
-	DefaultParamspace = types.DefaultParamspace
-	DefaultCodespace  = types.DefaultCodespace
+	ModuleName        = types2.ModuleName
+	RouterKey         = types2.RouterKey
+	StoreKey          = types2.StoreKey
+	DefaultParamspace = types2.DefaultParamspace
+	DefaultCodespace  = types2.DefaultCodespace
 	//QueryParams       = types.QueryParams
-	QuerierRoute = types.QuerierRoute
+	QuerierRoute = types2.QuerierRoute
 
-	CreateTransactionConst = types.CreateTransactionConst
-	CreateWalletConst      = types.CreateWalletConst
-	SignTransactionConst   = types.SignTransactionConst
+	CreateTransactionConst = types2.CreateTransactionConst
+	CreateWalletConst      = types2.CreateWalletConst
+	SignTransactionConst   = types2.SignTransactionConst
 )
 
 var (
 	// functions aliases
-	NewKeeper               = keeper.NewKeeper
-	NewQuerier              = keeper.NewQuerier
-	RegisterCodec           = types.RegisterCodec
-	NewGenesisState         = types.NewGenesisState
-	DefaultGenesisState     = types.DefaultGenesisState
-	ValidateGenesis         = types.ValidateGenesis
-	NewMsgCreateWallet      = types.NewMsgCreateWallet
-	NewMsgCreateTransaction = types.NewMsgCreateTransaction
-	NewMsgSignTransaction   = types.NewMsgSignTransaction
-	NewWallet               = types.NewWallet
-	NewTransaction          = types.NewTransaction
+	NewKeeper               = keeper2.NewKeeper
+	NewQuerier              = keeper2.NewQuerier
+	RegisterCodec           = types2.RegisterCodec
+	NewGenesisState         = types2.NewGenesisState
+	DefaultGenesisState     = types2.DefaultGenesisState
+	ValidateGenesis         = types2.ValidateGenesis
+	NewMsgCreateWallet      = types2.NewMsgCreateWallet
+	NewMsgCreateTransaction = types2.NewMsgCreateTransaction
+	NewMsgSignTransaction   = types2.NewMsgSignTransaction
+	NewWallet               = types2.NewWallet
+	NewTransaction          = types2.NewTransaction
 
 	// variable aliases
-	ModuleCdc = types.ModuleCdc
+	ModuleCdc = types2.ModuleCdc
 	// TODO: Fill out variable aliases
 )
 
 type (
-	Keeper               = keeper.Keeper
-	CodeType             = types.CodeType
-	GenesisState         = types.GenesisState
-	Params               = types.Params
-	MsgCreateWallet      = types.MsgCreateWallet
-	MsgCreateTransaction = types.MsgCreateTransaction
-	MsgSignTransaction   = types.MsgSignTransaction
-	QueryWallets         = types.QueryWallets
-	QueryTransactions    = types.QueryTransactions
-	Wallet               = types.Wallet
-	Transaction          = types.Transaction
+	Keeper               = keeper2.Keeper
+	CodeType             = types2.CodeType
+	GenesisState         = types2.GenesisState
+	Params               = types2.Params
+	MsgCreateWallet      = types2.MsgCreateWallet
+	MsgCreateTransaction = types2.MsgCreateTransaction
+	MsgSignTransaction   = types2.MsgSignTransaction
+	QueryWallets         = types2.QueryWallets
+	QueryTransactions    = types2.QueryTransactions
+	Wallet               = types2.Wallet
+	Transaction          = types2.Transaction
 )

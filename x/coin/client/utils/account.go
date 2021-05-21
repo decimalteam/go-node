@@ -1,7 +1,7 @@
 package utils
 
 import (
-	ctx "github.com/cosmos/cosmos-sdk/client/context"
+	ctx "github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"

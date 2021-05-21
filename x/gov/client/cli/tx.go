@@ -1,13 +1,14 @@
 package cli
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"bufio"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,7 +18,6 @@ import (
 	"github.com/spf13/cobra"
 
 	govutils "bitbucket.org/decimalteam/go-node/x/gov/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 )
 
 // Proposal flags
@@ -55,7 +55,7 @@ var ProposalFlags = []string{
 // under the governance CLI (eg. parameter change proposals).
 func GetTxCmd(storeKey string, cdc *codec.LegacyAmino) *cobra.Command {
 	govTxCmd := &cobra.Command{
-		Use:                        types.ModuleName,
+		Use:                        types2.ModuleName,
 		Short:                      "Governance transactions subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -108,7 +108,7 @@ $ %s tx gov submit-proposal --title="Test Proposal" --description="My awesome pr
 				return err
 			}
 
-			msg := types.NewMsgSubmitProposal(types.Content{
+			msg := types2.NewMsgSubmitProposal(types2.Content{
 				Title:       proposal.Title,
 				Description: proposal.Description,
 			}, cliCtx.GetFromAddress(), proposal.VotingStartBlock, proposal.VotingEndBlock)
@@ -161,13 +161,13 @@ $ %s tx gov vote 1 yes --from mykey
 			}
 
 			// Find out which vote option user chose
-			byteVoteOption, err := types.VoteOptionFromString(govutils.NormalizeVoteOption(args[1]))
+			byteVoteOption, err := types2.VoteOptionFromString(govutils.NormalizeVoteOption(args[1]))
 			if err != nil {
 				return err
 			}
 
 			// Build vote message and run basic validation
-			msg := types.NewMsgVote(sdk.ValAddress(from), proposalID, byteVoteOption)
+			msg := types2.NewMsgVote(sdk.ValAddress(from), proposalID, byteVoteOption)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

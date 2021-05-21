@@ -1,8 +1,8 @@
 package gov
 
 import (
-	keep "bitbucket.org/decimalteam/go-node/x/gov/internal/keeper"
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	"bitbucket.org/decimalteam/go-node/x/gov/keeper"
+	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -29,7 +29,7 @@ func TestTickPassedVotingPeriod(t *testing.T) {
 	proposer, err := sdk.AccAddressFromBech32(validator.DAOAddress1)
 	require.NoError(t, err)
 	newProposalMsg := NewMsgSubmitProposal(
-		types.Content{
+		types2.Content{
 			Title:       "title",
 			Description: "desc",
 		},
@@ -52,7 +52,7 @@ func TestTickPassedVotingPeriod(t *testing.T) {
 	activeQueue = input.keeper.ActiveAllProposalQueueIterator(ctx)
 	require.True(t, activeQueue.Valid())
 
-	activeProposalID := types.GetProposalIDFromBytes(activeQueue.Value())
+	activeProposalID := types2.GetProposalIDFromBytes(activeQueue.Value())
 	proposal, ok := input.keeper.GetProposal(ctx, activeProposalID)
 	require.True(t, ok)
 	require.Equal(t, StatusVotingPeriod, proposal.Status)
@@ -80,14 +80,14 @@ func TestProposalPassedEndBlocker(t *testing.T) {
 	valUpdates := validator.EndBlocker(ctx, input.vk, input.ck, input.sk, false)
 	require.Equal(t, 1, len(valUpdates))
 
-	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, keep.TestProposal.VotingStartBlock, keep.TestProposal.VotingEndBlock)
+	proposal, err := input.keeper.SubmitProposal(ctx, keeper.TestProposal.Content, keeper.TestProposal.VotingStartBlock, keeper.TestProposal.VotingEndBlock)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingStartBlock))
 
 	EndBlocker(ctx, input.keeper)
 
-	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[0]), types.OptionYes)
+	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[0]), types2.OptionYes)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingEndBlock))
@@ -97,7 +97,7 @@ func TestProposalPassedEndBlocker(t *testing.T) {
 	proposal, ok := input.keeper.GetProposal(ctx, proposal.ProposalID)
 	require.True(t, ok)
 
-	require.Equal(t, types.StatusPassed, proposal.Status)
+	require.Equal(t, types2.StatusPassed, proposal.Status)
 
 	t.Log(proposal.FinalTallyResult)
 	require.Equal(t, validator.TokensFromConsensusPower(10), proposal.FinalTallyResult.Yes)
@@ -118,17 +118,17 @@ func TestProposalPassedEndBlocker2(t *testing.T) {
 	valUpdates := validator.EndBlocker(ctx, input.vk, input.ck, input.sk, false)
 	require.Equal(t, 2, len(valUpdates))
 
-	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, keep.TestProposal.VotingStartBlock, keep.TestProposal.VotingEndBlock)
+	proposal, err := input.keeper.SubmitProposal(ctx, keeper.TestProposal.Content, keeper.TestProposal.VotingStartBlock, keeper.TestProposal.VotingEndBlock)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingStartBlock))
 
 	EndBlocker(ctx, input.keeper)
 
-	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[0]), types.OptionYes)
+	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[0]), types2.OptionYes)
 	require.NoError(t, err)
 
-	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[1]), types.OptionNo)
+	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[1]), types2.OptionNo)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingEndBlock))
@@ -138,7 +138,7 @@ func TestProposalPassedEndBlocker2(t *testing.T) {
 	proposal, ok := input.keeper.GetProposal(ctx, proposal.ProposalID)
 	require.True(t, ok)
 
-	require.Equal(t, types.StatusPassed, proposal.Status)
+	require.Equal(t, types2.StatusPassed, proposal.Status)
 
 	t.Log(proposal.FinalTallyResult)
 	require.Equal(t, validator.TokensFromConsensusPower(21), proposal.FinalTallyResult.Yes)
@@ -160,14 +160,14 @@ func TestEndBlockerProposalRejected(t *testing.T) {
 	valUpdates := validator.EndBlocker(ctx, input.vk, input.ck, input.sk, false)
 	require.Equal(t, 1, len(valUpdates))
 
-	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, keep.TestProposal.VotingStartBlock, keep.TestProposal.VotingEndBlock)
+	proposal, err := input.keeper.SubmitProposal(ctx, keeper.TestProposal.Content, keeper.TestProposal.VotingStartBlock, keeper.TestProposal.VotingEndBlock)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingStartBlock))
 
 	EndBlocker(ctx, input.keeper)
 
-	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[0]), types.OptionNo)
+	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[0]), types2.OptionNo)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingEndBlock))
@@ -177,7 +177,7 @@ func TestEndBlockerProposalRejected(t *testing.T) {
 	proposal, ok := input.keeper.GetProposal(ctx, proposal.ProposalID)
 	require.True(t, ok)
 
-	require.Equal(t, types.StatusRejected, proposal.Status)
+	require.Equal(t, types2.StatusRejected, proposal.Status)
 
 	t.Log(proposal.FinalTallyResult)
 	require.Equal(t, validator.TokensFromConsensusPower(10), proposal.FinalTallyResult.No)
@@ -198,17 +198,17 @@ func TestEndBlockerProposalRejected2(t *testing.T) {
 	valUpdates := validator.EndBlocker(ctx, input.vk, input.ck, input.sk, false)
 	require.Equal(t, 2, len(valUpdates))
 
-	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, keep.TestProposal.VotingStartBlock, keep.TestProposal.VotingEndBlock)
+	proposal, err := input.keeper.SubmitProposal(ctx, keeper.TestProposal.Content, keeper.TestProposal.VotingStartBlock, keeper.TestProposal.VotingEndBlock)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingStartBlock))
 
 	EndBlocker(ctx, input.keeper)
 
-	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[0]), types.OptionYes)
+	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[0]), types2.OptionYes)
 	require.NoError(t, err)
 
-	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[1]), types.OptionNo)
+	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[1]), types2.OptionNo)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingEndBlock))
@@ -218,7 +218,7 @@ func TestEndBlockerProposalRejected2(t *testing.T) {
 	proposal, ok := input.keeper.GetProposal(ctx, proposal.ProposalID)
 	require.True(t, ok)
 
-	require.Equal(t, types.StatusRejected, proposal.Status)
+	require.Equal(t, types2.StatusRejected, proposal.Status)
 
 	t.Log(proposal.FinalTallyResult)
 	require.Equal(t, validator.TokensFromConsensusPower(10), proposal.FinalTallyResult.Yes)
@@ -241,14 +241,14 @@ func TestEndBlockerProposalRejected3(t *testing.T) {
 	valUpdates := validator.EndBlocker(ctx, input.vk, input.ck, input.sk, false)
 	require.Equal(t, 2, len(valUpdates))
 
-	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, keep.TestProposal.VotingStartBlock, keep.TestProposal.VotingEndBlock)
+	proposal, err := input.keeper.SubmitProposal(ctx, keeper.TestProposal.Content, keeper.TestProposal.VotingStartBlock, keeper.TestProposal.VotingEndBlock)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingStartBlock))
 
 	EndBlocker(ctx, input.keeper)
 
-	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[0]), types.OptionYes)
+	err = input.keeper.AddVote(ctx, proposal.ProposalID, sdk.ValAddress(input.addrs[0]), types2.OptionYes)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingEndBlock))
@@ -258,7 +258,7 @@ func TestEndBlockerProposalRejected3(t *testing.T) {
 	proposal, ok := input.keeper.GetProposal(ctx, proposal.ProposalID)
 	require.True(t, ok)
 
-	require.Equal(t, types.StatusRejected, proposal.Status)
+	require.Equal(t, types2.StatusRejected, proposal.Status)
 
 	t.Log(proposal.FinalTallyResult)
 	require.Equal(t, validator.TokensFromConsensusPower(20), proposal.FinalTallyResult.Yes)

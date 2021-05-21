@@ -12,7 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/types"
 )
 
 // NewHandler creates an sdk.Handler for all the validator type messages

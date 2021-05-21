@@ -1,8 +1,8 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/keeper"
+	"bitbucket.org/decimalteam/go-node/x/validator/types"
 )
 
 const (

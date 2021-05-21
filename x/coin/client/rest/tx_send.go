@@ -1,13 +1,12 @@
 package rest
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"fmt"
 	"net/http"
 	"strings"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -43,7 +42,7 @@ func CoinSendRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgSendCoin(addr, sdk.NewCoin(coin, amount), receiver)
+		msg := types2.NewMsgSendCoin(addr, sdk.NewCoin(coin, amount), receiver)
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

@@ -17,7 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/types"
 )
 
 // GetTxCmd returns the transaction commands for this module

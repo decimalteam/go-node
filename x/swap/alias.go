@@ -1,43 +1,43 @@
 package swap
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/swap/internal/keeper"
-	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
+	keeper2 "bitbucket.org/decimalteam/go-node/x/swap/keeper"
+	types2 "bitbucket.org/decimalteam/go-node/x/swap/types"
 )
 
 const (
-	ModuleName        = types.ModuleName
-	StoreKey          = types.StoreKey
-	RouterKey         = types.RouterKey
-	QuerierRoute      = types.QuerierRoute
-	DefaultParamspace = keeper.DefaultParamspace
+	ModuleName        = types2.ModuleName
+	StoreKey          = types2.StoreKey
+	RouterKey         = types2.RouterKey
+	QuerierRoute      = types2.QuerierRoute
+	DefaultParamspace = keeper2.DefaultParamspace
 
-	MsgHTLTConst   = types.TypeMsgHTLT
-	MsgRedeemConst = types.TypeMsgRedeem
-	MsgRefundConst = types.TypeMsgRefund
+	MsgHTLTConst   = types2.TypeMsgHTLT
+	MsgRedeemConst = types2.TypeMsgRedeem
+	MsgRefundConst = types2.TypeMsgRefund
 
-	PoolName = types.PoolName
+	PoolName = types2.PoolName
 )
 
 type (
-	Keeper       = keeper.Keeper
-	MsgHTLT      = types.MsgHTLT
-	MsgRedeem    = types.MsgRedeem
-	MsgRefund    = types.MsgRefund
-	GenesisState = types.GenesisState
+	Keeper       = keeper2.Keeper
+	MsgHTLT      = types2.MsgHTLT
+	MsgRedeem    = types2.MsgRedeem
+	MsgRefund    = types2.MsgRefund
+	GenesisState = types2.GenesisState
 )
 
 var (
-	ModuleCdc = types.ModuleCdc
+	ModuleCdc = types2.ModuleCdc
 
-	RegisterCodec       = types.RegisterCodec
-	DefaultGenesisState = types.DefaultGenesisState
+	RegisterCodec       = types2.RegisterCodec
+	DefaultGenesisState = types2.DefaultGenesisState
 
-	SwapServiceAddress = types.SwapServiceAddress
+	SwapServiceAddress = types2.SwapServiceAddress
 
-	NewKeeper = keeper.NewKeeper
+	NewKeeper = keeper2.NewKeeper
 
-	NewMsgRedeem = types.NewMsgRedeem
-	NewMsgHTLT   = types.NewMsgHTLT
-	NewMsgRefund = types.NewMsgRefund
+	NewMsgRedeem = types2.NewMsgRedeem
+	NewMsgHTLT   = types2.NewMsgHTLT
+	NewMsgRefund = types2.NewMsgRefund
 )

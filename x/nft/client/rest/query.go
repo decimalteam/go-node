@@ -1,17 +1,15 @@
 package rest
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 func registerQueryRoutes(cliCtx client.Context, r *mux.Router, cdc *codec.LegacyAmino, queryRoute string) {
@@ -50,7 +48,7 @@ func getSupply(cdc *codec.LegacyAmino, cliCtx client.Context, queryRoute string)
 	return func(w http.ResponseWriter, r *http.Request) {
 		denom := mux.Vars(r)["denom"]
 
-		params := types.NewQueryCollectionParams(denom)
+		params := types2.NewQueryCollectionParams(denom)
 		bz, err := cdc.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -75,7 +73,7 @@ func getOwner(cdc *codec.LegacyAmino, cliCtx client.Context, queryRoute string) 
 			return
 		}
 
-		params := types.NewQueryBalanceParams(address, "")
+		params := types2.NewQueryBalanceParams(address, "")
 		bz, err := cdc.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -102,7 +100,7 @@ func getOwnerByDenom(cdc *codec.LegacyAmino, cliCtx client.Context, queryRoute s
 			return
 		}
 
-		params := types.NewQueryBalanceParams(address, denom)
+		params := types2.NewQueryBalanceParams(address, denom)
 		bz, err := cdc.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -123,7 +121,7 @@ func getCollection(cdc *codec.LegacyAmino, cliCtx client.Context, queryRoute str
 	return func(w http.ResponseWriter, r *http.Request) {
 		denom := mux.Vars(r)["denom"]
 
-		params := types.NewQueryCollectionParams(denom)
+		params := types2.NewQueryCollectionParams(denom)
 		bz, err := cdc.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -158,7 +156,7 @@ func getNFT(cdc *codec.LegacyAmino, cliCtx client.Context, queryRoute string) ht
 		denom := vars["denom"]
 		id := vars["id"]
 
-		params := types.NewQueryNFTParams(denom, id)
+		params := types2.NewQueryNFTParams(denom, id)
 		bz, err := cdc.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

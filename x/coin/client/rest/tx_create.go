@@ -1,13 +1,12 @@
 package rest
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -52,7 +51,7 @@ func CoinCreateRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		var limitVolume, _ = sdk.NewIntFromString(req.LimitVolume)
 		var icon = req.Identity
 
-		msg := types.NewMsgCreateCoin(addr, title, symbol, uint(crr), initVolume, initReserve, limitVolume, icon)
+		msg := types2.NewMsgCreateCoin(addr, title, symbol, uint(crr), initVolume, initReserve, limitVolume, icon)
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

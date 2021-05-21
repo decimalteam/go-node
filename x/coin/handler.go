@@ -1,6 +1,7 @@
 package coin
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"bytes"
 	"encoding/base64"
 	"fmt"
@@ -22,7 +23,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 var e18 = big.NewFloat(1000000000000000000)
@@ -46,26 +46,26 @@ func NewHandler(k Keeper) sdk.Handler {
 		}()
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		case types.MsgCreateCoin:
+		case types2.MsgCreateCoin:
 			return handleMsgCreateCoin(ctx, k, msg)
-		case types.MsgUpdateCoin:
+		case types2.MsgUpdateCoin:
 			return handleMsgUpdateCoin(ctx, k, msg)
-		case types.MsgSendCoin:
+		case types2.MsgSendCoin:
 			return handleMsgSendCoin(ctx, k, msg)
-		case types.MsgMultiSendCoin:
+		case types2.MsgMultiSendCoin:
 			return handleMsgMultiSendCoin(ctx, k, msg)
-		case types.MsgBuyCoin:
+		case types2.MsgBuyCoin:
 			return handleMsgBuyCoin(ctx, k, msg)
-		case types.MsgSellCoin:
+		case types2.MsgSellCoin:
 			return handleMsgSellCoin(ctx, k, msg, false)
-		case types.MsgSellAllCoin:
+		case types2.MsgSellAllCoin:
 			msgSell := MsgSellCoin{
 				Sender:       msg.Sender,
 				CoinToSell:   msg.CoinToSell,
 				MinCoinToBuy: msg.MinCoinToBuy,
 			}
 			return handleMsgSellCoin(ctx, k, msgSell, true)
-		case types.MsgRedeemCheck:
+		case types2.MsgRedeemCheck:
 			return handleMsgRedeemCheck(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", ModuleName, msg)
@@ -92,12 +92,12 @@ func getCreateCoinCommission(symbol string) sdk.Int {
 	return sdk.NewInt(100)
 }
 
-func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*sdk.Result, error) {
+func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types2.MsgCreateCoin) (*sdk.Result, error) {
 	if msg.InitialReserve.LT(MinCoinReserve(ctx)) {
-		return nil, types.ErrInvalidCoinInitialReserve(ctx)
+		return nil, types2.ErrInvalidCoinInitialReserve(ctx)
 	}
 
-	var coin = types.Coin{
+	var coin = types2.Coin{
 		Title:       msg.Title,
 		CRR:         msg.ConstantReserveRatio,
 		Symbol:      strings.ToLower(msg.Symbol),
@@ -110,57 +110,57 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 
 	_, err := k.GetCoin(ctx, strings.ToLower(msg.Symbol))
 	if err == nil {
-		return nil, types.ErrCoinAlreadyExist(msg.Symbol)
+		return nil, types2.ErrCoinAlreadyExist(msg.Symbol)
 	}
 
 	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(coin.Symbol)))
 	if err != nil {
-		return nil, types.ErrCalculateCommission(err)
+		return nil, types2.ErrCalculateCommission(err)
 	}
 
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balance := acc.GetCoins()
 	if balance.AmountOf(cliUtils.GetBaseCoin()).LT(msg.InitialReserve) {
-		return nil, types.ErrInsufficientCoinReserve()
+		return nil, types2.ErrInsufficientCoinReserve()
 	}
 
 	if balance.AmountOf(feeCoin).LT(commission) {
-		return nil, types.ErrInsufficientFundsToPayCommission(commission.String())
+		return nil, types2.ErrInsufficientFundsToPayCommission(commission.String())
 	}
 
 	if feeCoin == cliUtils.GetBaseCoin() {
 		if balance.AmountOf(cliUtils.GetBaseCoin()).LT(commission.Add(msg.InitialReserve)) {
-			return nil, types.ErrInsufficientFunds(commission.Add(msg.InitialReserve).String(), balance.AmountOf(cliUtils.GetBaseCoin()).String())
+			return nil, types2.ErrInsufficientFunds(commission.Add(msg.InitialReserve).String(), balance.AmountOf(cliUtils.GetBaseCoin()).String())
 		}
 	}
 
 	err = k.UpdateBalance(ctx, cliUtils.GetBaseCoin(), msg.InitialReserve.Neg(), msg.Sender)
 	if err != nil {
-		return nil, types.ErrUpdateBalance(msg.Sender.String(), err.Error())
+		return nil, types2.ErrUpdateBalance(msg.Sender.String(), err.Error())
 	}
 
 	k.SetCoin(ctx, coin)
 	err = k.UpdateBalance(ctx, coin.Symbol, msg.InitialVolume, msg.Sender)
 	if err != nil {
-		return nil, types.ErrUpdateBalance(msg.Sender.String(), err.Error())
+		return nil, types2.ErrUpdateBalance(msg.Sender.String(), err.Error())
 	}
 
 	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
 	if err != nil {
-		return nil, types.ErrUpdateBalance(msg.Sender.String(), err.Error())
+		return nil, types2.ErrUpdateBalance(msg.Sender.String(), err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-		sdk.NewAttribute(types.AttributeSymbol, coin.Symbol),
-		sdk.NewAttribute(types.AttributeTitle, coin.Title),
-		sdk.NewAttribute(types.AttributeCRR, strconv.FormatUint(uint64(msg.ConstantReserveRatio), 10)),
-		sdk.NewAttribute(types.AttributeInitVolume, msg.InitialVolume.String()),
-		sdk.NewAttribute(types.AttributeInitReserve, msg.InitialReserve.String()),
-		sdk.NewAttribute(types.AttributeLimitVolume, msg.LimitVolume.String()),
-		sdk.NewAttribute(types.AttributeCommissionCreateCoin, sdk.NewCoin(strings.ToLower(feeCoin), commission).String()),
+		sdk.NewAttribute(types2.AttributeSymbol, coin.Symbol),
+		sdk.NewAttribute(types2.AttributeTitle, coin.Title),
+		sdk.NewAttribute(types2.AttributeCRR, strconv.FormatUint(uint64(msg.ConstantReserveRatio), 10)),
+		sdk.NewAttribute(types2.AttributeInitVolume, msg.InitialVolume.String()),
+		sdk.NewAttribute(types2.AttributeInitReserve, msg.InitialReserve.String()),
+		sdk.NewAttribute(types2.AttributeLimitVolume, msg.LimitVolume.String()),
+		sdk.NewAttribute(types2.AttributeCommissionCreateCoin, sdk.NewCoin(strings.ToLower(feeCoin), commission).String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
@@ -170,18 +170,18 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 // Updating coin handler
 ////////////////////////////////////////////////////////////////
 
-func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types.MsgUpdateCoin) (*sdk.Result, error) {
+func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types2.MsgUpdateCoin) (*sdk.Result, error) {
 	coin, err := k.GetCoin(ctx, strings.ToLower(msg.Symbol))
 	if err != nil {
-		return nil, types.ErrCoinAlreadyExist(msg.Symbol)
+		return nil, types2.ErrCoinAlreadyExist(msg.Symbol)
 	}
 
 	if !coin.Creator.Equals(msg.Sender) {
-		return nil, types.ErrUpdateOnlyForCreator()
+		return nil, types2.ErrUpdateOnlyForCreator()
 	}
 
 	if coin.Volume.GT(msg.LimitVolume) {
-		return nil, types.ErrLimitVolumeBroken(coin.Volume.String(), msg.LimitVolume.String())
+		return nil, types2.ErrLimitVolumeBroken(coin.Volume.String(), msg.LimitVolume.String())
 	}
 
 	coin.LimitVolume = msg.LimitVolume
@@ -196,36 +196,36 @@ func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types.MsgUpdateCoin) (*s
 // Transfer coins handlers
 ////////////////////////////////////////////////////////////////
 
-func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
+func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgSendCoin) (*sdk.Result, error) {
 	err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
 	if err != nil {
-		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
+		return nil, sdkerrors.New(types2.DefaultCodespace, 6, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-		sdk.NewAttribute(types.AttributeCoin, msg.Coin.String()),
-		sdk.NewAttribute(types.AttributeReceiver, msg.Receiver.String()),
+		sdk.NewAttribute(types2.AttributeCoin, msg.Coin.String()),
+		sdk.NewAttribute(types2.AttributeReceiver, msg.Receiver.String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoin) (*sdk.Result, error) {
+func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgMultiSendCoin) (*sdk.Result, error) {
 	for i := range msg.Sends {
 		err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Sends[i].Receiver, sdk.Coins{msg.Sends[i].Coin})
 		if err != nil {
-			return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
+			return nil, sdkerrors.New(types2.DefaultCodespace, 6, err.Error())
 		}
 
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-			sdk.NewAttribute(types.AttributeCoin, msg.Sends[i].Coin.String()),
-			sdk.NewAttribute(types.AttributeReceiver, msg.Sends[i].Receiver.String()),
+			sdk.NewAttribute(types2.AttributeCoin, msg.Sends[i].Coin.String()),
+			sdk.NewAttribute(types2.AttributeReceiver, msg.Sends[i].Receiver.String()),
 		))
 	}
 
@@ -236,7 +236,7 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 // Trading coins handlers
 ////////////////////////////////////////////////////////////////
 
-func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Result, error) {
+func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types2.MsgBuyCoin) (*sdk.Result, error) {
 	// Retrieve buyer account and it's balance of selling coins
 	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balance := account.GetCoins().AmountOf(strings.ToLower(msg.MaxCoinToSell.Denom))
@@ -244,25 +244,25 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 	// Retrieve the coin requested to buy
 	coinToBuy, err := k.GetCoin(ctx, msg.CoinToBuy.Denom)
 	if err != nil {
-		return nil, types.ErrCoinDoesNotExist(msg.CoinToBuy.Denom)
+		return nil, types2.ErrCoinDoesNotExist(msg.CoinToBuy.Denom)
 	}
 	if coinToBuy.Symbol != msg.CoinToBuy.Denom {
-		return nil, types.ErrRetrievedAnotherCoin(msg.CoinToBuy.Denom, coinToBuy.Symbol)
+		return nil, types2.ErrRetrievedAnotherCoin(msg.CoinToBuy.Denom, coinToBuy.Symbol)
 	}
 
 	// Retrieve the coin requested to sell
 	coinToSell, err := k.GetCoin(ctx, msg.MaxCoinToSell.Denom)
 	if err != nil {
-		return nil, types.ErrCoinDoesNotExist(msg.MaxCoinToSell.Denom)
+		return nil, types2.ErrCoinDoesNotExist(msg.MaxCoinToSell.Denom)
 	}
 	if coinToSell.Symbol != msg.MaxCoinToSell.Denom {
-		return nil, types.ErrRetrievedAnotherCoin(msg.MaxCoinToSell.Denom, coinToSell.Symbol)
+		return nil, types2.ErrRetrievedAnotherCoin(msg.MaxCoinToSell.Denom, coinToSell.Symbol)
 	}
 
 	// Ensure supply limit of the coin to buy does not overflow
 	if !coinToBuy.IsBase() {
 		if coinToBuy.Volume.Add(msg.CoinToBuy.Amount).GT(coinToBuy.LimitVolume) {
-			return nil, types.ErrTxBreaksVolumeLimit(coinToBuy.Volume.Add(msg.CoinToBuy.Amount).String(), coinToBuy.LimitVolume.String())
+			return nil, types2.ErrTxBreaksVolumeLimit(coinToBuy.Volume.Add(msg.CoinToBuy.Amount).String(), coinToBuy.LimitVolume.String())
 		}
 	}
 
@@ -276,7 +276,7 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 	case coinToBuy.IsBase():
 		// Buyer buys base coin for custom coin
 		if msg.CoinToBuy.Amount.GT(coinToSell.Reserve) {
-			return nil, types.ErrInsufficientCoinReserve()
+			return nil, types2.ErrInsufficientCoinReserve()
 		}
 
 		amountToSell = formulas.CalculateSaleAmount(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountToBuy)
@@ -286,7 +286,7 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 
 		amountInBaseCoin = formulas.CalculatePurchaseAmount(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountToBuy)
 		if amountInBaseCoin.GT(coinToSell.Reserve) {
-			return nil, types.ErrInsufficientCoinReserve()
+			return nil, types2.ErrInsufficientCoinReserve()
 		}
 
 		amountToSell = formulas.CalculateSaleAmount(coinToSell.Volume, coinToSell.Reserve, coinToSell.CRR, amountInBaseCoin)
@@ -294,29 +294,29 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 
 	// Ensure maximum amount of coins to sell (price guard)
 	if amountToSell.GT(msg.MaxCoinToSell.Amount) {
-		return nil, types.ErrMaximumValueToSellReached(msg.MaxCoinToSell.Amount.String(), amountToSell.String())
+		return nil, types2.ErrMaximumValueToSellReached(msg.MaxCoinToSell.Amount.String(), amountToSell.String())
 	}
 
 	// Ensure reserve of the coin to sell does not underflow
 	if !coinToSell.IsBase() {
-		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types.MinCoinReserve(ctx)) {
-			return nil, types.ErrTxBreaksMinReserveRule(ctx, amountInBaseCoin.String())
+		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types2.MinCoinReserve(ctx)) {
+			return nil, types2.ErrTxBreaksMinReserveRule(ctx, amountInBaseCoin.String())
 		}
 	}
 
 	// Ensure that buyer account holds enough coins to sell
 	if balance.LT(amountToSell) {
-		return nil, types.ErrInsufficientFunds(amountToSell.String(), balance.String())
+		return nil, types2.ErrInsufficientFunds(amountToSell.String(), balance.String())
 	}
 
 	// Update buyer account balances
 	err = k.UpdateBalance(ctx, msg.MaxCoinToSell.Denom, amountToSell.Neg(), msg.Sender)
 	if err != nil {
-		return nil, types.ErrUpdateBalance(account.GetAddress().String(), err.Error())
+		return nil, types2.ErrUpdateBalance(account.GetAddress().String(), err.Error())
 	}
 	err = k.UpdateBalance(ctx, msg.CoinToBuy.Denom, amountToBuy, msg.Sender)
 	if err != nil {
-		return nil, types.ErrUpdateBalance(account.GetAddress().String(), err.Error())
+		return nil, types2.ErrUpdateBalance(account.GetAddress().String(), err.Error())
 	}
 
 	// Update coins
@@ -330,17 +330,17 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 	// Emit transaction events
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-		sdk.NewAttribute(types.AttributeCoinToBuy, sdk.NewCoin(msg.CoinToBuy.Denom, amountToBuy).String()),
-		sdk.NewAttribute(types.AttributeCoinToSell, sdk.NewCoin(msg.MaxCoinToSell.Denom, amountToSell).String()),
-		sdk.NewAttribute(types.AttributeAmountInBaseCoin, amountInBaseCoin.String()),
+		sdk.NewAttribute(types2.AttributeCoinToBuy, sdk.NewCoin(msg.CoinToBuy.Denom, amountToBuy).String()),
+		sdk.NewAttribute(types2.AttributeCoinToSell, sdk.NewCoin(msg.MaxCoinToSell.Denom, amountToSell).String()),
+		sdk.NewAttribute(types2.AttributeAmountInBaseCoin, amountInBaseCoin.String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll bool) (*sdk.Result, error) {
+func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types2.MsgSellCoin, sellAll bool) (*sdk.Result, error) {
 	// Retrieve seller account and it's balance of selling coins
 	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell.Denom))
@@ -353,24 +353,24 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 	// Retrieve the coin requested to sell
 	coinToSell, err := k.GetCoin(ctx, msg.CoinToSell.Denom)
 	if err != nil {
-		return nil, types.ErrCoinDoesNotExist(msg.CoinToSell.Denom)
+		return nil, types2.ErrCoinDoesNotExist(msg.CoinToSell.Denom)
 	}
 	if coinToSell.Symbol != msg.CoinToSell.Denom {
-		return nil, types.ErrRetrievedAnotherCoin(msg.CoinToSell.Denom, coinToSell.Symbol)
+		return nil, types2.ErrRetrievedAnotherCoin(msg.CoinToSell.Denom, coinToSell.Symbol)
 	}
 
 	// Retrieve the coin requested to buy
 	coinToBuy, err := k.GetCoin(ctx, msg.MinCoinToBuy.Denom)
 	if err != nil {
-		return nil, types.ErrCoinDoesNotExist(msg.MinCoinToBuy.Denom)
+		return nil, types2.ErrCoinDoesNotExist(msg.MinCoinToBuy.Denom)
 	}
 	if coinToBuy.Symbol != msg.MinCoinToBuy.Denom {
-		return nil, types.ErrRetrievedAnotherCoin(msg.MinCoinToBuy.Denom, coinToBuy.Symbol)
+		return nil, types2.ErrRetrievedAnotherCoin(msg.MinCoinToBuy.Denom, coinToBuy.Symbol)
 	}
 
 	// Ensure that seller account holds enough coins to sell
 	if balance.LT(msg.CoinToSell.Amount) {
-		return nil, types.ErrInsufficientFunds(msg.CoinToSell.String(), balance.String())
+		return nil, types2.ErrInsufficientFunds(msg.CoinToSell.String(), balance.String())
 	}
 
 	// Calculate amount of buy coins which seller will receive
@@ -392,31 +392,31 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 
 	// Ensure minimum amount of coins to buy (price guard)
 	if amountToBuy.LT(msg.MinCoinToBuy.Amount) {
-		return nil, types.ErrMinimumValueToBuyReached(amountToBuy.String(), msg.MinCoinToBuy.Amount.String())
+		return nil, types2.ErrMinimumValueToBuyReached(amountToBuy.String(), msg.MinCoinToBuy.Amount.String())
 	}
 
 	// Ensure reserve of the coin to sell does not underflow
 	if !coinToSell.IsBase() {
-		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types.MinCoinReserve(ctx)) {
-			return nil, types.ErrTxBreaksMinReserveRule(ctx, amountInBaseCoin.String())
+		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types2.MinCoinReserve(ctx)) {
+			return nil, types2.ErrTxBreaksMinReserveRule(ctx, amountInBaseCoin.String())
 		}
 	}
 
 	// Ensure supply limit of the coin to buy does not overflow
 	if !coinToBuy.IsBase() {
 		if coinToBuy.Volume.Add(amountToBuy).GT(coinToBuy.LimitVolume) {
-			return nil, types.ErrTxBreaksVolumeLimit(coinToBuy.Volume.Add(amountToBuy).String(), coinToBuy.LimitVolume.String())
+			return nil, types2.ErrTxBreaksVolumeLimit(coinToBuy.Volume.Add(amountToBuy).String(), coinToBuy.LimitVolume.String())
 		}
 	}
 
 	// Update seller account balances
 	err = k.UpdateBalance(ctx, msg.CoinToSell.Denom, amountToSell.Neg(), msg.Sender)
 	if err != nil {
-		return nil, types.ErrUpdateBalance(msg.Sender.String(), err.Error())
+		return nil, types2.ErrUpdateBalance(msg.Sender.String(), err.Error())
 	}
 	err = k.UpdateBalance(ctx, msg.MinCoinToBuy.Denom, amountToBuy, msg.Sender)
 	if err != nil {
-		return nil, types.ErrUpdateBalance(msg.Sender.String(), err.Error())
+		return nil, types2.ErrUpdateBalance(msg.Sender.String(), err.Error())
 	}
 
 	// Update coins
@@ -434,11 +434,11 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 	// }
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-		sdk.NewAttribute(types.AttributeCoinToSell, sdk.NewCoin(msg.CoinToSell.Denom, amountToSell).String()),
-		sdk.NewAttribute(types.AttributeCoinToBuy, sdk.NewCoin(msg.MinCoinToBuy.Denom, amountToBuy).String()),
-		sdk.NewAttribute(types.AttributeAmountInBaseCoin, amountInBaseCoin.String()),
+		sdk.NewAttribute(types2.AttributeCoinToSell, sdk.NewCoin(msg.CoinToSell.Denom, amountToSell).String()),
+		sdk.NewAttribute(types2.AttributeCoinToBuy, sdk.NewCoin(msg.MinCoinToBuy.Denom, amountToBuy).String()),
+		sdk.NewAttribute(types2.AttributeAmountInBaseCoin, amountInBaseCoin.String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
@@ -448,33 +448,33 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 // Redeem check handler
 ////////////////////////////////////////////////////////////////
 
-func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (*sdk.Result, error) {
+func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types2.MsgRedeemCheck) (*sdk.Result, error) {
 	// Decode provided check from base58 format to raw bytes
 	checkBytes := base58.Decode(msg.Check)
 	if len(checkBytes) == 0 {
 		msgError := "unable to decode check from base58"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+		return nil, sdkerrors.New(types2.DefaultCodespace, types2.InvalidCheck, msgError)
 	}
 
 	// Parse provided check from raw bytes to ensure it is valid
-	check, err := types.ParseCheck(checkBytes)
+	check, err := types2.ParseCheck(checkBytes)
 	if err != nil {
 		msgError := fmt.Sprintf("unable to parse check: %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+		return nil, sdkerrors.New(types2.DefaultCodespace, types2.InvalidCheck, msgError)
 	}
 
 	// Decode provided proof from base64 format to raw bytes
 	proof, err := base64.StdEncoding.DecodeString(msg.Proof)
 	if err != nil {
 		msgError := "unable to decode proof from base64"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidProof, msgError)
+		return nil, sdkerrors.New(types2.DefaultCodespace, types2.InvalidProof, msgError)
 	}
 
 	// Recover issuer address from check signature
 	issuer, err := check.Sender()
 	if err != nil {
 		errMsg := fmt.Sprintf("unable to recover check issuer address: %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, errMsg)
+		return nil, sdkerrors.New(types2.DefaultCodespace, types2.InvalidCheck, errMsg)
 	}
 
 	account := k.AccountKeeper.GetAccount(ctx, issuer)
@@ -483,10 +483,10 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Retrieve the coin specified in the check
 	coin, err := k.GetCoin(ctx, check.Coin)
 	if err != nil {
-		return nil, types.ErrCoinDoesNotExist(check.Coin)
+		return nil, types2.ErrCoinDoesNotExist(check.Coin)
 	}
 	if coin.Symbol != check.Coin {
-		return nil, types.ErrRetrievedAnotherCoin(check.Coin, coin.Symbol)
+		return nil, types2.ErrRetrievedAnotherCoin(check.Coin, coin.Symbol)
 	}
 
 	feeCoin := cliUtils.GetBaseCoin()
@@ -495,44 +495,44 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Ensure that check issuer account holds enough coins
 	amount := sdk.NewIntFromBigInt(check.Amount)
 	if balance.LT(amount) {
-		return nil, types.ErrInsufficientFunds(check.Amount.String()+coin.Symbol, balance.String()+coin.Symbol)
+		return nil, types2.ErrInsufficientFunds(check.Amount.String()+coin.Symbol, balance.String()+coin.Symbol)
 	}
 
 	if feeCoin == strings.ToLower(check.Coin) {
 		if balance.LT(amount.Add(commission)) {
-			return nil, types.ErrInsufficientFunds(amount.String()+coin.Symbol, balance.String()+coin.Symbol)
+			return nil, types2.ErrInsufficientFunds(amount.String()+coin.Symbol, balance.String()+coin.Symbol)
 		}
 	}
 
 	// Ensure the proper chain ID is specified in the check
 	if check.ChainID != ctx.ChainID() {
 		errMsg := fmt.Sprintf("wanted chain ID %s, but check is issued for chain with ID %s", ctx.ChainID(), check.ChainID)
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidChainID, errMsg)
+		return nil, sdkerrors.New(types2.DefaultCodespace, types2.InvalidChainID, errMsg)
 	}
 
 	// Ensure nonce length
 	if len(check.Nonce) > 16 {
 		errMsg := "nonce is too big (should be up to 16 bytes)"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidNonce, errMsg)
+		return nil, sdkerrors.New(types2.DefaultCodespace, types2.InvalidNonce, errMsg)
 	}
 
 	// Check block number
 	if check.DueBlock < uint64(ctx.BlockHeight()) {
 		errMsg := fmt.Sprintf("check was expired at block %d", check.DueBlock)
-		return nil, sdkerrors.New(types.DefaultCodespace, types.CheckExpired, errMsg)
+		return nil, sdkerrors.New(types2.DefaultCodespace, types2.CheckExpired, errMsg)
 	}
 
 	// Ensure check is not redeemed yet
 	if k.IsCheckRedeemed(ctx, check) {
 		errMsg := "check was redeemed already"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.CheckRedeemed, errMsg)
+		return nil, sdkerrors.New(types2.DefaultCodespace, types2.CheckRedeemed, errMsg)
 	}
 
 	// Recover public key from check lock
 	publicKeyA, err := check.LockPubKey()
 	if err != nil {
 		msgError := fmt.Sprintf("unable to recover lock public key from check: %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+		return nil, sdkerrors.New(types2.DefaultCodespace, types2.InvalidCheck, msgError)
 	}
 
 	// Prepare bytes used to recover public key from provided proof
@@ -543,7 +543,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	})
 	if err != nil {
 		msgError := fmt.Sprintf("unable to RLP encode check sender address: %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+		return nil, sdkerrors.New(types2.DefaultCodespace, types2.InvalidCheck, msgError)
 	}
 	hw.Sum(senderAddressHash[:0])
 
@@ -553,7 +553,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Compare both public keys to ensure provided proof is correct
 	if !bytes.Equal(publicKeyA, publicKeyB) {
 		msgError := fmt.Sprintf("provided proof is invalid %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidProof, msgError)
+		return nil, sdkerrors.New(types2.DefaultCodespace, types2.InvalidProof, msgError)
 	}
 
 	// Set check redeemed
@@ -562,23 +562,23 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Update accounts balances
 	err = k.UpdateBalance(ctx, feeCoin, commission.Neg(), issuer)
 	if err != nil {
-		return nil, types.ErrInsufficientFundsToPayCommission(commission.String())
+		return nil, types2.ErrInsufficientFundsToPayCommission(commission.String())
 	}
 	err = k.BankKeeper.SendCoins(ctx, issuer, msg.Sender, sdk.Coins{sdk.NewCoin(coin.Symbol, amount)})
 	if err != nil {
-		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
+		return nil, sdkerrors.New(types2.DefaultCodespace, 6, err.Error())
 	}
 
 	// Emit event
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-		sdk.NewAttribute(types.AttributeIssuer, issuer.String()),
-		sdk.NewAttribute(types.AttributeCoin, sdk.NewCoin(check.Coin, sdk.NewIntFromBigInt(check.Amount)).String()),
-		sdk.NewAttribute(types.AttributeNonce, new(big.Int).SetBytes(check.Nonce).String()),
-		sdk.NewAttribute(types.AttributeDueBlock, strconv.FormatUint(check.DueBlock, 10)),
-		sdk.NewAttribute(types.AttributeCommissionRedeemCheck, sdk.NewCoin(feeCoin, commission).String()),
+		sdk.NewAttribute(types2.AttributeIssuer, issuer.String()),
+		sdk.NewAttribute(types2.AttributeCoin, sdk.NewCoin(check.Coin, sdk.NewIntFromBigInt(check.Amount)).String()),
+		sdk.NewAttribute(types2.AttributeNonce, new(big.Int).SetBytes(check.Nonce).String()),
+		sdk.NewAttribute(types2.AttributeDueBlock, strconv.FormatUint(check.DueBlock, 10)),
+		sdk.NewAttribute(types2.AttributeCommissionRedeemCheck, sdk.NewCoin(feeCoin, commission).String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

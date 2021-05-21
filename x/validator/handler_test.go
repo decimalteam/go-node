@@ -3,8 +3,8 @@ package validator
 import (
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/nft"
-	val "bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	val "bitbucket.org/decimalteam/go-node/x/validator/keeper"
+	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"github.com/stretchr/testify/assert"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/secp256k1"

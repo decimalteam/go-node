@@ -1,16 +1,16 @@
 package cli
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 func GetCmdBuyCoin(cdc *codec.LegacyAmino) *cobra.Command {
@@ -30,16 +30,16 @@ func GetCmdBuyCoin(cdc *codec.LegacyAmino) *cobra.Command {
 			// Check if coin to buy exists
 			coinToBuy, _ := cliUtils.GetCoin(cliCtx, coinToBuySymbol)
 			if coinToBuy.Symbol != coinToBuySymbol {
-				return types.ErrCoinDoesNotExist(coinToBuySymbol)
+				return types2.ErrCoinDoesNotExist(coinToBuySymbol)
 			}
 			// Check if coin to sell exists
 			coinToSell, _ := cliUtils.GetCoin(cliCtx, coinToSellSymbol)
 			if coinToSell.Symbol != coinToSellSymbol {
-				return types.ErrCoinDoesNotExist(coinToSellSymbol)
+				return types2.ErrCoinDoesNotExist(coinToSellSymbol)
 			}
 			// TODO: Calculate amounts and check limits
 			// Do basic validating
-			msg := types.NewMsgBuyCoin(cliCtx.GetFromAddress(), sdk.NewCoin(coinToBuySymbol, amountToBuy), sdk.NewCoin(coinToSellSymbol, maxAmountToSell))
+			msg := types2.NewMsgBuyCoin(cliCtx.GetFromAddress(), sdk.NewCoin(coinToBuySymbol, amountToBuy), sdk.NewCoin(coinToSellSymbol, maxAmountToSell))
 			err := msg.ValidateBasic()
 			if err != nil {
 				return err

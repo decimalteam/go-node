@@ -2,10 +2,9 @@ package rest
 
 import (
 	gcutils "bitbucket.org/decimalteam/go-node/x/gov/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"errors"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
@@ -31,7 +30,7 @@ func queryParamsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/gov/%s/%s", types.QueryParams, paramType), nil)
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/gov/%s/%s", types2.QueryParams, paramType), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -63,7 +62,7 @@ func queryProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		params := types.NewQueryProposalParams(proposalID)
+		params := types2.NewQueryProposalParams(proposalID)
 
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
@@ -116,7 +115,7 @@ func queryVoteHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		params := types.NewQueryVoteParams(proposalID, voterAddr)
+		params := types2.NewQueryVoteParams(proposalID, voterAddr)
 
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
@@ -130,7 +129,7 @@ func queryVoteHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		var vote types.Vote
+		var vote types2.Vote
 		if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &vote); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -140,7 +139,7 @@ func queryVoteHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		// which case the vote would be removed from state and should be queried for
 		// directly via a txs query.
 		if vote.Empty() {
-			bz, err := cliCtx.LegacyAmino.MarshalJSON(types.NewQueryProposalParams(proposalID))
+			bz, err := cliCtx.LegacyAmino.MarshalJSON(types2.NewQueryProposalParams(proposalID))
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return
@@ -191,7 +190,7 @@ func queryVotesOnProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		params := types.NewQueryProposalVotesParams(proposalID, page, limit)
+		params := types2.NewQueryProposalVotesParams(proposalID, page, limit)
 
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
@@ -205,7 +204,7 @@ func queryVotesOnProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		var proposal types.Proposal
+		var proposal types2.Proposal
 		if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &proposal); err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -214,7 +213,7 @@ func queryVotesOnProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		// For inactive proposals we must query the txs directly to get the votes
 		// as they're no longer in state.
 		propStatus := proposal.Status
-		if !(propStatus == types.StatusVotingPeriod || propStatus == types.StatusWaiting) {
+		if !(propStatus == types2.StatusVotingPeriod || propStatus == types2.StatusWaiting) {
 			res, err = gcutils.QueryVotesByTxQuery(cliCtx, params)
 		} else {
 			res, _, err = cliCtx.QueryWithData("custom/gov/votes", bz)
@@ -246,7 +245,7 @@ func queryProposalsWithParameterFn(cliCtx client.Context) http.HandlerFunc {
 		var (
 			voterAddr      sdk.AccAddress
 			depositorAddr  sdk.AccAddress
-			proposalStatus types.ProposalStatus
+			proposalStatus types2.ProposalStatus
 		)
 
 		if v := r.URL.Query().Get(RestVoter); len(v) != 0 {
@@ -266,21 +265,21 @@ func queryProposalsWithParameterFn(cliCtx client.Context) http.HandlerFunc {
 		}
 
 		if v := r.URL.Query().Get(RestProposalStatus); len(v) != 0 {
-			proposalStatus, err = types.ProposalStatusFromString(gcutils.NormalizeProposalStatus(v))
+			proposalStatus, err = types2.ProposalStatusFromString(gcutils.NormalizeProposalStatus(v))
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return
 			}
 		}
 
-		params := types.NewQueryProposalsParams(page, limit, proposalStatus, voterAddr, depositorAddr)
+		params := types2.NewQueryProposalsParams(page, limit, proposalStatus, voterAddr, depositorAddr)
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryProposals)
+		route := fmt.Sprintf("custom/%s/%s", types2.QuerierRoute, types2.QueryProposals)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -313,7 +312,7 @@ func queryTallyOnProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		params := types.NewQueryProposalParams(proposalID)
+		params := types2.NewQueryProposalParams(proposalID)
 
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {

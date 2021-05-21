@@ -1,6 +1,7 @@
 package cli
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	utils "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"strings"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 func GetCmdSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
@@ -31,7 +31,7 @@ func GetCmdSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			msg := types.NewMsgSendCoin(cliCtx.GetFromAddress(), sdk.NewCoin(coin, amount), receiver)
+			msg := types2.NewMsgSendCoin(cliCtx.GetFromAddress(), sdk.NewCoin(coin, amount), receiver)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -50,7 +50,7 @@ func GetCmdSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 			}
 			balance := acc.GetCoins()
 			if balance.AmountOf(strings.ToLower(coin)).LT(amount) {
-				return types.ErrInsufficientFunds(amount.String(), balance.AmountOf(strings.ToLower(coin)).String())
+				return types2.ErrInsufficientFunds(amount.String(), balance.AmountOf(strings.ToLower(coin)).String())
 			}
 			return auth.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},

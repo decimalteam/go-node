@@ -1,12 +1,12 @@
 package gov
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // InitGenesis - store genesis parameters
-func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, data GenesisState) {
+func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types2.SupplyKeeper, data GenesisState) {
 
 	k.SetProposalID(ctx, data.StartingProposalID)
 	k.SetTallyParams(ctx, data.TallyParams)

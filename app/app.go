@@ -3,7 +3,8 @@ package app
 import (
 	"bitbucket.org/decimalteam/go-node/x/capability"
 	"encoding/json"
-	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
+	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+
 	"io"
 	"os"
 
@@ -12,6 +13,10 @@ import (
 	tos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/codec/types"
+	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
+
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,6 +24,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
+
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	paramsKeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
+
+	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	appParams "bitbucket.org/decimalteam/go-node/app/params"
 
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils"
@@ -56,11 +73,11 @@ var (
 	)
 	// account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:       {auth.Burner, auth.Minter},
-		validator.BondedPoolName:    {auth.Burner, auth.Staking},
-		validator.NotBondedPoolName: {auth.Burner, auth.Staking},
-		swap.PoolName:               {auth.Minter, auth.Burner},
-		nft.ReservedPool:            {auth.Burner},
+		authTypes.FeeCollectorName:       {authTypes.Burner, authTypes.Minter},
+		validator.BondedPoolName:    {authTypes.Burner, authTypes.Staking},
+		validator.NotBondedPoolName: {authTypes.Burner, authTypes.Staking},
+		swap.PoolName:               {authTypes.Minter, authTypes.Burner},
+		nft.ReservedPool:            {authTypes.Burner},
 	}
 )
 
@@ -75,17 +92,19 @@ func MakeCodec() *codec.LegacyAmino {
 
 type newApp struct {
 	*bam.BaseApp
-	cdc *codec.LegacyAmino
+	cdc               *codec.LegacyAmino
+	appCodec          codec.Marshaler
+	interfaceRegistry types.InterfaceRegistry
 
 	// keys to access the substores
 	keys  map[string]*sdk.KVStoreKey
 	tkeys map[string]*sdk.TransientStoreKey
 
 	// Keepers
-	accountKeeper    auth.AccountKeeper
-	bankKeeper       bank.Keeper
-	supplyKeeper     auth.Keeper
-	paramsKeeper     params.Keeper
+	accountKeeper    authKeeper.AccountKeeper
+	bankKeeper       bankKeeper.Keeper
+	supplyKeeper     authKeeper.AccountKeeper
+	paramsKeeper     paramsKeeper.Keeper
 	coinKeeper       coin.Keeper
 	multisigKeeper   multisig.Keeper
 	validatorKeeper  validator.Keeper
@@ -102,19 +121,18 @@ type newApp struct {
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
 
-	// First define the top level codec that will be shared by the different modules
-	cdc := MakeCodec()
+	encodingConfig := appParams.NewEncodingConfig()
 
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
-	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
+	bApp := bam.NewBaseApp(appName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 
 	bApp.SetAppVersion(config.DecimalVersion)
 
 	// TODO: Add the keys that module requires
 	keys := sdk.NewKVStoreKeys(
-		bam.MainStoreKey,
-		auth.StoreKey,
-		params.StoreKey,
+		bam.Paramspace,
+		authTypes.StoreKey,
+		paramsTypes.StoreKey,
 		coin.StoreKey,
 		multisig.StoreKey,
 		validator.StoreKey,
@@ -122,53 +140,58 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		swap.StoreKey,
 	)
 
-	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
+	tkeys := sdk.NewTransientStoreKeys(paramsTypes.TStoreKey)
 
 	config := config.GetDefaultConfig(config.ChainID)
 
 	// Here you initialize your application with the store keys it requires
 	var app = &newApp{
 		BaseApp: bApp,
-		cdc:     cdc,
+		cdc:     encodingConfig.Amino,
+		appCodec: encodingConfig.Marshaler,
+		interfaceRegistry: encodingConfig.InterfaceRegistry,
 		keys:    keys,
 		tkeys:   tkeys,
 	}
 
 	// The ParamsKeeper handles parameter storage for the application
-	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey])
+	app.paramsKeeper = paramsKeeper.NewKeeper(app.appCodec, app.cdc, keys[paramsTypes.StoreKey], tkeys[paramsTypes.TStoreKey])
 	// Set specific subspaces
-	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
-	bankSupspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
-	coinSubspace := app.paramsKeeper.Subspace(coin.DefaultParamspace)
-	multisigSubspace := app.paramsKeeper.Subspace(multisig.DefaultParamspace)
-	validatorSubspace := app.paramsKeeper.Subspace(validator.DefaultParamSpace)
-	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
-	swapSubspace := app.paramsKeeper.Subspace(swap.DefaultParamspace)
-	capabilitySubspace := app.paramsKeeper.Subspace(capability.DefaultParamspace)
+	authSubspace := app.paramsKeeper.Subspace(authTypes.ModuleName)
+	bankSupspace := app.paramsKeeper.Subspace(bankTypes.ModuleName)
+	coinSubspace := app.paramsKeeper.Subspace(coin.ModuleName)
+	multisigSubspace := app.paramsKeeper.Subspace(multisig.ModuleName)
+	validatorSubspace := app.paramsKeeper.Subspace(validator.ModuleName)
+	govSubspace := app.paramsKeeper.Subspace(gov.ModuleName).WithKeyTable(gov.ParamKeyTable())
+	swapSubspace := app.paramsKeeper.Subspace(swap.ModuleName)
+	capabilitySubspace := app.paramsKeeper.Subspace(capability.ModuleName)
 
 	// The AccountKeeper handles address -> account lookups
-	app.accountKeeper = auth.NewAccountKeeper(
-		app.cdc,
-		keys[auth.StoreKey],
+	app.accountKeeper = authKeeper.NewAccountKeeper(
+		app.appCodec,
+		keys[authTypes.StoreKey],
 		authSubspace,
-		auth.ProtoBaseAccount,
+		authTypes.ProtoBaseAccount,
+		maccPerms,
 	)
 
 	// The BankKeeper allows you perform sdk.Coins interactions
-	app.bankKeeper = bank.NewBaseKeeper(
+	app.bankKeeper = bankKeeper.NewBaseKeeper(
+		app.appCodec,
+		keys[bankTypes.StoreKey],
 		app.accountKeeper,
 		bankSupspace,
 		app.ModuleAccountAddrs(),
 	)
 
 	// The SupplyKeeper collects transaction fees and renders them to the fee distribution module
-	app.supplyKeeper = auth.NewKeeper(
-		app.cdc,
-		keys[auth.StoreKey],
-		app.accountKeeper,
-		app.bankKeeper,
-		maccPerms,
-	)
+	//app.supplyKeeper = authKeeper.NewKeeper(
+	//	app.cdc,
+	//	keys[auth.StoreKey],
+	//	app.accountKeeper,
+	//	app.bankKeeper,
+	//	maccPerms,
+	//)
 
 	app.coinKeeper = coin.NewKeeper(
 		app.cdc,
@@ -199,7 +222,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.supplyKeeper,
 		app.multisigKeeper,
 		app.nftKeeper,
-		auth.FeeCollectorName,
+		authTypes.FeeCollectorName,
 	)
 
 	// register the proposal types
@@ -226,10 +249,10 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),
-		auth.NewAppModule(app.accountKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		auth.NewAppModule(app.appCodec, app.accountKeeper),
+		bank.NewAppModule(app.appCodec, app.bankKeeper, app.accountKeeper),
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
-		capability.NewAppModule(app.capabilityKeeper),
+		capability.NewAppModule(*app.cdc, app.capabilityKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
@@ -245,8 +268,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
 		validator.ModuleName,
-		auth.ModuleName,
-		bank.ModuleName,
+		authTypes.ModuleName,
+		bankTypes.ModuleName,
 		coin.ModuleName,
 		multisig.ModuleName,
 		genutil.ModuleName,
@@ -256,7 +279,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	)
 
 	// register all module routes and module queriers
-	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
+	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), app.cdc)
 
 	// The initChainer handles translating the genesis.json file into initial state for the network
 	app.SetInitChainer(app.InitChainer)
@@ -270,7 +293,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 			app.validatorKeeper,
 			app.coinKeeper,
 			app.supplyKeeper,
-			auth.DefaultSigVerificationGasConsumer,
+			ante.DefaultSigVerificationGasConsumer,
 		),
 	)
 
@@ -278,7 +301,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)
 
-	err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
+	err := app.LoadLatestVersion()
 	if err != nil {
 		tos.Exit(err.Error())
 	}
@@ -301,7 +324,7 @@ func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 		panic(err)
 	}
 
-	return app.mm.InitGenesis(ctx, genesisState)
+	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
 func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
@@ -311,14 +334,14 @@ func (app *newApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Re
 	return app.mm.EndBlock(ctx, req)
 }
 func (app *newApp) LoadHeight(height int64) error {
-	return app.LoadVersion(height, app.keys[bam.MainStoreKey])
+	return app.LoadVersion(height)
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (app *newApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		modAccAddrs[auth.NewModuleAddress(acc).String()] = true
+		modAccAddrs[authTypes.NewModuleAddress(acc).String()] = true
 	}
 	return modAccAddrs
 }

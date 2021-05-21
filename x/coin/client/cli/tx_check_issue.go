@@ -1,6 +1,7 @@
 package cli
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"crypto/sha256"
 	"fmt"
 	"math/big"
@@ -15,7 +16,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/mintkey"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,7 +25,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
@@ -45,7 +45,7 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			// Check if coin exists
 			coin, _ := cliUtils.GetCoin(cliCtx, coinSymbol)
 			if coin.Symbol != coinSymbol {
-				return types.ErrCoinDoesNotExist(coinSymbol)
+				return types2.ErrCoinDoesNotExist(coinSymbol)
 			}
 
 			// TODO: Check amount
@@ -55,7 +55,7 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			passphrasePrivKey, _ := crypto.ToECDSA(passphraseHash[:])
 
 			// Prepare check without lock
-			check := &types.Check{
+			check := &types2.Check{
 				ChainID:  cliCtx.ChainID,
 				Coin:     coin.Symbol,
 				Amount:   amount.BigInt(),
@@ -74,16 +74,16 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			privKeyArmored, err := txBldr.Keybase().ExportPrivKey(cliCtx.FromName, "", "")
 			if err != nil {
 				msgError := fmt.Sprintf("unable to retrieve armored private key for account %s: %s", cliCtx.FromName, err.Error())
-				return sdkerrors.New(types.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
+				return sdkerrors.New(types2.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
 			}
 			privKey, algo, err := mintkey.UnarmorDecryptPrivKey(privKeyArmored, "")
 			if err != nil {
 				msgError := fmt.Sprintf("unable to retrieve private key for account %s: %s", cliCtx.FromName, err.Error())
-				return sdkerrors.New(types.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
+				return sdkerrors.New(types2.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
 			}
 			if algo != "secp256k1" {
 				msgError := fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", cliCtx.FromName, algo)
-				return sdkerrors.New(types.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
+				return sdkerrors.New(types2.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
 			}
 			privKeySecp256k1, ok := privKey.(secp256k1.PrivKeySecp256k1)
 			if !ok {

@@ -1,26 +1,26 @@
 package cli
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
 	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	nftQueryCmd := &cobra.Command{
-		Use:   types.ModuleName,
+		Use:   types2.ModuleName,
 		Short: "Querying commands for the NFT module",
 		RunE:  client.ValidateCmd,
 	}
@@ -46,7 +46,7 @@ func GetCmdQueryCollectionSupply(queryRoute string, cdc *codec.LegacyAmino) *cob
 
 Example:
 $ %s query %s supply crypto-kitties
-`, version.ClientName, types.ModuleName,
+`, version.ClientName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(1),
@@ -54,7 +54,7 @@ $ %s query %s supply crypto-kitties
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			denom := args[0]
 
-			params := types.NewQueryCollectionParams(denom)
+			params := types2.NewQueryCollectionParams(denom)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
@@ -87,7 +87,7 @@ func GetCmdQueryOwner(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command 
 Example:
 $ %s query %s owner cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 $ %s query %s owner cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p crypto-kitties
-`, version.ClientName, types.ModuleName, version.ClientName, types.ModuleName,
+`, version.ClientName, types2.ModuleName, version.ClientName, types2.ModuleName,
 			),
 		),
 		Args: cobra.RangeArgs(1, 2),
@@ -103,7 +103,7 @@ $ %s query %s owner cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p crypto-kitties
 				denom = args[1]
 			}
 
-			params := types.NewQueryBalanceParams(address, denom)
+			params := types2.NewQueryBalanceParams(address, denom)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
@@ -120,7 +120,7 @@ $ %s query %s owner cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p crypto-kitties
 				return err
 			}
 
-			var out types.Owner
+			var out types2.Owner
 			err = cdc.UnmarshalJSON(res, &out)
 			if err != nil {
 				return err
@@ -141,7 +141,7 @@ func GetCmdQueryCollection(queryRoute string, cdc *codec.LegacyAmino) *cobra.Com
 
 Example:
 $ %s query %s collection crypto-kitties
-`, version.ClientName, types.ModuleName,
+`, version.ClientName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(1),
@@ -149,7 +149,7 @@ $ %s query %s collection crypto-kitties
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			denom := args[0]
 
-			params := types.NewQueryCollectionParams(denom)
+			params := types2.NewQueryCollectionParams(denom)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
@@ -160,7 +160,7 @@ $ %s query %s collection crypto-kitties
 				return err
 			}
 
-			var out types.Collections
+			var out types2.Collections
 			err = cdc.UnmarshalJSON(res, &out)
 			if err != nil {
 				return err
@@ -184,7 +184,7 @@ func GetCmdQueryDenoms(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command
 
 			Example:
 			$ %s query %s denoms
-			`, version.ClientName, types.ModuleName,
+			`, version.ClientName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(0),
@@ -196,7 +196,7 @@ func GetCmdQueryDenoms(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command
 				return err
 			}
 
-			var out types.SortedStringArray
+			var out types2.SortedStringArray
 			err = cdc.UnmarshalJSON(res, &out)
 			if err != nil {
 				return err
@@ -217,7 +217,7 @@ func GetCmdQueryNFT(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 
 Example:
 $ %s query %s token crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa
-`, version.ClientName, types.ModuleName,
+`, version.ClientName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(2),
@@ -226,7 +226,7 @@ $ %s query %s token crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f
 			denom := args[0]
 			id := args[1]
 
-			params := types.NewQueryNFTParams(denom, id)
+			params := types2.NewQueryNFTParams(denom, id)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err

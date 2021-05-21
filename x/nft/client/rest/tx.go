@@ -1,17 +1,15 @@
 package rest
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
 	"net/http"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	"github.com/gorilla/mux"
-
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 func registerTxRoutes(cliCtx client.Context, r *mux.Router,
@@ -80,7 +78,7 @@ func transferNFTHandler(cdc *codec.LegacyAmino, cliCtx client.Context) http.Hand
 		}
 
 		// create the message
-		msg := types.NewMsgTransferNFT(fromAddr, recipient, req.Denom, req.ID, quantity)
+		msg := types2.NewMsgTransferNFT(fromAddr, recipient, req.Denom, req.ID, quantity)
 
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
@@ -112,7 +110,7 @@ func editNFTMetadataHandler(cdc *codec.LegacyAmino, cliCtx client.Context) http.
 		}
 
 		// create the message
-		msg := types.NewMsgEditNFTMetadata(fromAddr, req.ID, req.Denom, req.TokenURI)
+		msg := types2.NewMsgEditNFTMetadata(fromAddr, req.ID, req.Denom, req.TokenURI)
 
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
@@ -152,7 +150,7 @@ func mintNFTHandler(cdc *codec.LegacyAmino, cliCtx client.Context) http.HandlerF
 		}
 
 		// create the message
-		msg := types.NewMsgMintNFT(fromAddr, req.Recipient, req.ID, req.Denom, req.TokenURI, quantity, sdk.NewInt(1), false)
+		msg := types2.NewMsgMintNFT(fromAddr, req.Recipient, req.ID, req.Denom, req.TokenURI, quantity, sdk.NewInt(1), false)
 
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
@@ -190,7 +188,7 @@ func burnNFTHandler(cdc *codec.LegacyAmino, cliCtx client.Context) http.HandlerF
 		}
 
 		// create the message
-		msg := types.NewMsgBurnNFT(fromAddr, req.ID, req.Denom, quantity)
+		msg := types2.NewMsgBurnNFT(fromAddr, req.ID, req.Denom, quantity)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
 }

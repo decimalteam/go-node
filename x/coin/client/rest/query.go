@@ -1,15 +1,13 @@
 package rest
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 func registerQueryRoutes(ctx client.Context, r *mux.Router) {
@@ -23,7 +21,7 @@ func getCoinsHandlerFunc(ctx client.Context) http.HandlerFunc {
 		if !ok {
 			return
 		}
-		res, _, err := ctx.QueryWithData(fmt.Sprintf("custom/coin/%s", types.QueryListCoins), nil)
+		res, _, err := ctx.QueryWithData(fmt.Sprintf("custom/coin/%s", types2.QueryListCoins), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -40,7 +38,7 @@ func getCoinHandlerFunc(ctx client.Context) http.HandlerFunc {
 		}
 		symbol := mux.Vars(r)["symbol"]
 
-		res, _, err := ctx.QueryWithData(fmt.Sprintf("custom/coin/%s/%s", types.QueryGetCoin, symbol), nil)
+		res, _, err := ctx.QueryWithData(fmt.Sprintf("custom/coin/%s/%s", types2.QueryGetCoin, symbol), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, "{\"msg\":\"Coin not found\"}")
 			return

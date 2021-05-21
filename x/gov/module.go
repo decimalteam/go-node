@@ -5,6 +5,7 @@ package gov
 import (
 	"bitbucket.org/decimalteam/go-node/x/gov/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/gov/client/rest"
+	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -12,8 +13,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
-
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -85,12 +84,12 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper        Keeper
-	accountKeeper types.AccountKeeper
-	supplyKeeper  types.SupplyKeeper
+	accountKeeper types2.AccountKeeper
+	supplyKeeper  types2.SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper, supplyKeeper types.SupplyKeeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper types2.AccountKeeper, supplyKeeper types2.SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,

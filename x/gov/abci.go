@@ -1,7 +1,7 @@
 package gov
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -20,8 +20,8 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
-					types.EventTypeInactiveProposal,
-					sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
+					types2.EventTypeInactiveProposal,
+					sdk.NewAttribute(types2.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
 				),
 			)
 		}
@@ -38,11 +38,11 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 			if passes {
 				proposal.Status = StatusPassed
-				tagValue = types.AttributeValueProposalPassed
+				tagValue = types2.AttributeValueProposalPassed
 				logMsg = "passed"
 			} else {
 				proposal.Status = StatusRejected
-				tagValue = types.AttributeValueProposalRejected
+				tagValue = types2.AttributeValueProposalRejected
 				logMsg = "rejected"
 			}
 
@@ -60,13 +60,13 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
-					types.EventTypeActiveProposal,
-					sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
-					sdk.NewAttribute(types.AttributeKeyProposalResult, tagValue),
-					sdk.NewAttribute(types.AttributeKeyResultVoteYes, tallyResults.Yes.String()),
-					sdk.NewAttribute(types.AttributeKeyResultVoteAbstain, tallyResults.Abstain.String()),
-					sdk.NewAttribute(types.AttributeKeyResultVoteNo, tallyResults.No.String()),
-					sdk.NewAttribute(types.AttributeKeyTotalVotingPower, totalVotingPower.String()),
+					types2.EventTypeActiveProposal,
+					sdk.NewAttribute(types2.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ProposalID)),
+					sdk.NewAttribute(types2.AttributeKeyProposalResult, tagValue),
+					sdk.NewAttribute(types2.AttributeKeyResultVoteYes, tallyResults.Yes.String()),
+					sdk.NewAttribute(types2.AttributeKeyResultVoteAbstain, tallyResults.Abstain.String()),
+					sdk.NewAttribute(types2.AttributeKeyResultVoteNo, tallyResults.No.String()),
+					sdk.NewAttribute(types2.AttributeKeyTotalVotingPower, totalVotingPower.String()),
 				),
 			)
 		}

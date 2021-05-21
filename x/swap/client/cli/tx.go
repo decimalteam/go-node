@@ -1,12 +1,11 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
+	types2 "bitbucket.org/decimalteam/go-node/x/swap/types"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,8 +18,8 @@ import (
 
 func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	swapTxCmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
+		Use:                        types2.ModuleName,
+		Short:                      fmt.Sprintf("%s transactions subcommands", types2.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -51,7 +50,7 @@ func GetCmdHTLT(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			transferType, err := types.TransferTypeFromString(args[0])
+			transferType, err := types2.TransferTypeFromString(args[0])
 			if err != nil {
 				return err
 			}
@@ -71,7 +70,7 @@ func GetCmdHTLT(cdc *codec.LegacyAmino) *cobra.Command {
 				copy(hash[:], h)
 			}
 
-			msg := types.NewMsgHTLT(
+			msg := types2.NewMsgHTLT(
 				transferType,
 				from,
 				recipient,
@@ -109,7 +108,7 @@ func GetCmdRedeem(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgRedeem(from, secret)
+			msg := types2.NewMsgRedeem(from, secret)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -140,7 +139,7 @@ func GetRefund(cdc *codec.LegacyAmino) *cobra.Command {
 			}
 			copy(hash[:], h)
 
-			msg := types.NewMsgRefund(from, hash)
+			msg := types2.NewMsgRefund(from, hash)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

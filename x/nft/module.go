@@ -5,8 +5,8 @@ package nft
 import (
 	"bitbucket.org/decimalteam/go-node/x/nft/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/nft/client/rest"
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/nft/simulation"
+	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -92,11 +92,11 @@ type AppModule struct {
 	keeper Keeper
 
 	// Account keeper is used for testing purposes only
-	accountKeeper types.AccountKeeper
+	accountKeeper types2.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper types2.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 

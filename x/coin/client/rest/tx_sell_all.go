@@ -1,6 +1,7 @@
 package rest
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	//"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -8,7 +9,6 @@ import (
 	"net/http"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client"
@@ -65,7 +65,7 @@ func CoinSellAllRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		//	return err
 		//}
 		// Do basic validating
-		msg := types.NewMsgSellAllCoin(cliCtx.GetFromAddress(), sdk.NewCoin(coinToSellSymbol, sdk.NewInt(0)), sdk.NewCoin(coinToBuySymbol, amountToBuy))
+		msg := types2.NewMsgSellAllCoin(cliCtx.GetFromAddress(), sdk.NewCoin(coinToSellSymbol, sdk.NewInt(0)), sdk.NewCoin(coinToBuySymbol, amountToBuy))
 		//err = msg.ValidateBasic()
 		//if err != nil {
 		//	return err

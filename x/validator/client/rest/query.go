@@ -8,8 +8,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"bitbucket.org/decimalteam/go-node/x/validator/types"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 )
 

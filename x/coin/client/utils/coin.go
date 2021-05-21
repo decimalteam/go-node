@@ -1,21 +1,20 @@
 package utils
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"fmt"
 	"strings"
 
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-
-	clientctx "github.com/cosmos/cosmos-sdk/client/context"
+	clientctx "github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // Check if coin exists
 func ExistsCoin(cliCtx clientctx.CLIContext, symbol string) (bool, error) {
-	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types.ModuleName, types.QueryGetCoin, symbol), nil)
+	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types2.ModuleName, types2.QueryGetCoin, symbol), nil)
 	if err == nil {
 		return res != nil, nil
 	} else {
@@ -24,9 +23,9 @@ func ExistsCoin(cliCtx clientctx.CLIContext, symbol string) (bool, error) {
 }
 
 // Return coin instance from State
-func GetCoin(cliCtx clientctx.CLIContext, symbol string) (types.Coin, error) {
-	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types.ModuleName, types.QueryGetCoin, symbol), nil)
-	coin := types.Coin{}
+func GetCoin(cliCtx clientctx.CLIContext, symbol string) (types2.Coin, error) {
+	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types2.ModuleName, types2.QueryGetCoin, symbol), nil)
+	coin := types2.Coin{}
 	if err = cliCtx.LegacyAmino.UnmarshalJSON(res, &coin); err != nil {
 		return coin, err
 	}
@@ -35,7 +34,7 @@ func GetCoin(cliCtx clientctx.CLIContext, symbol string) (types.Coin, error) {
 
 // Calculate amountToSell and amountToBuy for BuyCoin TX
 // In CLI part amountToSell is maxAmountToSell
-func BuyCoinCalculateAmounts(ctx sdk.Context, coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err *sdkerrors.Error) {
+func BuyCoinCalculateAmounts(ctx sdk.Context, coinToBuy types2.Coin, coinToSell types2.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err *sdkerrors.Error) {
 	var amountSellInBaseCoin sdk.Int
 	var amountBuyInBaseCoin sdk.Int
 	if coinToSell.IsBase() {
@@ -84,19 +83,19 @@ func BuyCoinCalculateAmounts(ctx sdk.Context, coinToBuy types.Coin, coinToSell t
 	}
 
 	if coinToBuy.Volume.Add(wantsBuy).GT(coinToBuy.LimitVolume) && !coinToBuy.IsBase() {
-		return sdk.Int{}, sdk.Int{}, types.ErrTxBreaksVolumeLimit(coinToBuy.Volume.Add(wantsBuy).String(), coinToBuy.LimitVolume.String())
+		return sdk.Int{}, sdk.Int{}, types2.ErrTxBreaksVolumeLimit(coinToBuy.Volume.Add(wantsBuy).String(), coinToBuy.LimitVolume.String())
 	}
 
 	coinToSellMinReserve := formulas.GetReserveLimitFromCRR(coinToSell.CRR)
 	if coinToSell.Reserve.Sub(amountSellInBaseCoin).LT(coinToSellMinReserve) && !coinToSell.IsBase() {
-		return sdk.Int{}, sdk.Int{}, types.ErrTxBreaksMinReserveRule(ctx, coinToSell.Reserve.Sub(amountSellInBaseCoin).String())
+		return sdk.Int{}, sdk.Int{}, types2.ErrTxBreaksMinReserveRule(ctx, coinToSell.Reserve.Sub(amountSellInBaseCoin).String())
 	}
 	return amountBuy, amountSell, nil
 }
 
 // Calculate amountToSell and amountToBuy for SellCoin TX
 // In CLI part amountToBuy is minAmountToBuy
-func SellCoinCalculateAmounts(ctx sdk.Context, coinToBuy types.Coin, coinToSell types.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err *sdkerrors.Error) {
+func SellCoinCalculateAmounts(ctx sdk.Context, coinToBuy types2.Coin, coinToSell types2.Coin, wantsBuy sdk.Int, wantsSell sdk.Int) (amountBuy sdk.Int, amountSell sdk.Int, err *sdkerrors.Error) {
 	var amountSellInBase sdk.Int
 
 	if coinToSell.IsBase() {
@@ -112,17 +111,17 @@ func SellCoinCalculateAmounts(ctx sdk.Context, coinToBuy types.Coin, coinToSell 
 	}
 
 	if coinToBuy.Volume.Add(amountBuy).GT(coinToBuy.LimitVolume) && !coinToBuy.IsBase() {
-		return sdk.Int{}, sdk.Int{}, types.ErrTxBreaksVolumeLimit(coinToBuy.Volume.Add(amountBuy).String(), coinToBuy.LimitVolume.String())
+		return sdk.Int{}, sdk.Int{}, types2.ErrTxBreaksVolumeLimit(coinToBuy.Volume.Add(amountBuy).String(), coinToBuy.LimitVolume.String())
 	}
 
 	coinToSellMinReserve := formulas.GetReserveLimitFromCRR(coinToSell.CRR)
 	if coinToSell.Reserve.Sub(amountSellInBase).LT(coinToSellMinReserve) && !coinToSell.IsBase() {
-		return sdk.Int{}, sdk.Int{}, types.ErrTxBreaksMinReserveRule(ctx, coinToSell.Reserve.Sub(amountSellInBase).String())
+		return sdk.Int{}, sdk.Int{}, types2.ErrTxBreaksMinReserveRule(ctx, coinToSell.Reserve.Sub(amountSellInBase).String())
 	}
 
 	// Limit minAmountToBuy in CLI
 	if amountBuy.LT(wantsBuy) {
-		return sdk.Int{}, sdk.Int{}, types.ErrMinimumValueToBuyReached(amountBuy.String(), wantsBuy.String())
+		return sdk.Int{}, sdk.Int{}, types2.ErrMinimumValueToBuyReached(amountBuy.String(), wantsBuy.String())
 	}
 
 	return amountBuy, wantsSell, nil

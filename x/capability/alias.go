@@ -1,14 +1,15 @@
 package capability
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/capability/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/capability/internal/types"
+	keeper2 "bitbucket.org/decimalteam/go-node/x/capability/keeper"
+	types2 "bitbucket.org/decimalteam/go-node/x/capability/types"
 )
 
 const (
-	ModuleName        = types.ModuleName
+	ModuleName        = types2.ModuleName
 	RouterKey         = types.RouterKey
-	StoreKey          = types.StoreKey
+	StoreKey          = types2.StoreKey
 	DefaultParamspace = types.DefaultParamspace
 	DefaultCodespace  = types.DefaultCodespace
 	//QueryParams       = types.QueryParams
@@ -17,21 +18,21 @@ const (
 
 var (
 	// functions aliases
-	NewKeeper           = keeper.NewKeeper
-	NewQuerier          = keeper.NewQuerier
-	RegisterCodec       = types.RegisterCodec
-	NewGenesisState     = types.NewGenesisState
-	DefaultGenesisState = types.DefaultGenesisState
-	ValidateGenesis     = types.ValidateGenesis
+	NewKeeper           = keeper2.NewKeeper
+	NewQuerier          = keeper2.NewQuerier
+	RegisterCodec       = types2.RegisterCodec
+	NewGenesisState     = types2.NewGenesisState
+	DefaultGenesisState = types2.DefaultGenesisState
+	ValidateGenesis     = types2.ValidateGenesis
 
 	// variable aliases
-	ModuleCdc = types.ModuleCdc
+	ModuleCdc = types2.ModuleCdc
 )
 
 type (
-	Keeper           = keeper.Keeper
+	Keeper           = keeper2.Keeper
 	CodeType         = types.CodeType
-	GenesisState     = types.GenesisState
+	GenesisState     = types2.GenesisState
 	Params           = types.Params
 	Coin             = types.Coin
 	MsgSendCoin      = types.MsgSendCoin

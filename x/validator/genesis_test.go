@@ -1,7 +1,7 @@
 package validator
 
 import (
-	val "bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
+	val "bitbucket.org/decimalteam/go-node/x/validator/keeper"
 	"testing"
 
 	"github.com/tendermint/tendermint/crypto/ed25519"
@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

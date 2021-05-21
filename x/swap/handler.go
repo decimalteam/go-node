@@ -1,7 +1,7 @@
 package swap
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
+	types2 "bitbucket.org/decimalteam/go-node/x/swap/types"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -21,25 +21,25 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		}()
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		case types.MsgHTLT:
+		case types2.MsgHTLT:
 			return handleMsgHTLT(ctx, keeper, msg)
-		case types.MsgRedeem:
+		case types2.MsgRedeem:
 			return handleMsgRedeem(ctx, keeper, msg)
-		case types.MsgRefund:
+		case types2.MsgRefund:
 			return handleMsgRefund(ctx, keeper, msg)
 		default:
-			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
+			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types2.ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
 		}
 	}
 }
 
-func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, error) {
+func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types2.MsgHTLT) (*sdk.Result, error) {
 	if k.HasSwap(ctx, msg.HashedSecret) {
-		return nil, types.ErrSwapAlreadyExist(msg.HashedSecret)
+		return nil, types2.ErrSwapAlreadyExist(msg.HashedSecret)
 	}
 
-	if msg.TransferType == types.TransferTypeOut {
+	if msg.TransferType == types2.TransferTypeOut {
 		ok, err := k.CheckBalance(ctx, msg.From, msg.Amount)
 		if err != nil {
 			return nil, err
@@ -47,7 +47,7 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 		if !ok {
 			return nil, sdkerrors.ErrInsufficientFunds
 		}
-	} else if msg.TransferType == types.TransferTypeIn {
+	} else if msg.TransferType == types2.TransferTypeIn {
 		ok, err := k.CheckPoolFunds(ctx, msg.Amount)
 		if err != nil {
 			return nil, err
@@ -58,13 +58,13 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 	}
 
 	var lockedTime int64
-	if msg.TransferType == types.TransferTypeOut {
+	if msg.TransferType == types2.TransferTypeOut {
 		lockedTime = ctx.BlockTime().Add(k.LockedTimeOut(ctx)).UnixNano()
-	} else if msg.TransferType == types.TransferTypeIn {
+	} else if msg.TransferType == types2.TransferTypeIn {
 		lockedTime = ctx.BlockTime().Add(k.LockedTimeIn(ctx)).UnixNano()
 	}
 
-	swap := types.NewSwap(
+	swap := types2.NewSwap(
 		msg.TransferType,
 		msg.HashedSecret,
 		msg.From,
@@ -75,12 +75,12 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 
 	k.SetSwap(ctx, swap)
 
-	if msg.TransferType == types.TransferTypeOut {
+	if msg.TransferType == types2.TransferTypeOut {
 		err := k.LockFunds(ctx, swap.From, swap.Amount)
 		if err != nil {
 			return nil, err
 		}
-	} else if msg.TransferType == types.TransferTypeIn {
+	} else if msg.TransferType == types2.TransferTypeIn {
 		if swap.Recipient != "" {
 			_, err := sdk.AccAddressFromBech32(swap.Recipient)
 			if err != nil {
@@ -92,41 +92,41 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
-			sdk.NewAttribute(types.AttributeKeyTimeLocked, time.Unix(0, int64(swap.Timestamp)).String()),
-			sdk.NewAttribute(types.AttributeKeyHashedSecret, hex.EncodeToString(swap.HashedSecret[:])),
-			sdk.NewAttribute(types.AttributeKeyRecipient, swap.Recipient),
-			sdk.NewAttribute(types.AttributeKeyAmount, swap.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyTransferType, swap.TransferType.String()),
+			sdk.NewAttribute(types2.AttributeKeyTimeLocked, time.Unix(0, int64(swap.Timestamp)).String()),
+			sdk.NewAttribute(types2.AttributeKeyHashedSecret, hex.EncodeToString(swap.HashedSecret[:])),
+			sdk.NewAttribute(types2.AttributeKeyRecipient, swap.Recipient),
+			sdk.NewAttribute(types2.AttributeKeyAmount, swap.Amount.String()),
+			sdk.NewAttribute(types2.AttributeKeyTransferType, swap.TransferType.String()),
 		),
 	)
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Result, error) {
+func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types2.MsgRedeem) (*sdk.Result, error) {
 	hash := sha256.Sum256(msg.Secret)
 
 	swap, ok := k.GetSwap(ctx, hash)
 	if !ok {
-		return nil, types.ErrSwapNotFound()
+		return nil, types2.ErrSwapNotFound()
 	}
 
 	if swap.Redeemed {
-		return nil, types.ErrAlreadyRedeemed()
+		return nil, types2.ErrAlreadyRedeemed()
 	}
 
 	if ctx.BlockTime().UnixNano() >= int64(swap.Timestamp) {
-		return nil, types.ErrExpired()
+		return nil, types2.ErrExpired()
 	}
 
 	if getHash(msg.Secret) != swap.HashedSecret {
-		return nil, types.ErrWrongSecret()
+		return nil, types2.ErrWrongSecret()
 	}
 
 	var err error
-	if swap.TransferType == types.TransferTypeIn {
+	if swap.TransferType == types2.TransferTypeIn {
 		var recipientAddr sdk.AccAddress
 		if swap.Recipient == "" {
 			recipientAddr = msg.From
@@ -148,28 +148,28 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Resul
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
-			sdk.NewAttribute(types.AttributeKeySecret, hex.EncodeToString(msg.Secret)),
-			sdk.NewAttribute(types.AttributeKeyHashedSecret, hex.EncodeToString(swap.HashedSecret[:])),
+			sdk.NewAttribute(types2.AttributeKeySecret, hex.EncodeToString(msg.Secret)),
+			sdk.NewAttribute(types2.AttributeKeyHashedSecret, hex.EncodeToString(swap.HashedSecret[:])),
 		),
 	)
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Result, error) {
+func handleMsgRefund(ctx sdk.Context, k Keeper, msg types2.MsgRefund) (*sdk.Result, error) {
 	swap, ok := k.GetSwap(ctx, msg.HashedSecret)
 	if !ok {
-		return nil, types.ErrSwapNotFound()
+		return nil, types2.ErrSwapNotFound()
 	}
 
 	if ctx.BlockTime().UnixNano() < int64(swap.Timestamp) {
-		return nil, types.ErrNotExpired()
+		return nil, types2.ErrNotExpired()
 	}
 
 	if swap.Refunded {
-		return nil, types.ErrAlreadyRefunded()
+		return nil, types2.ErrAlreadyRefunded()
 	}
 
 	err := k.UnlockFunds(ctx, swap.From, swap.Amount)
@@ -180,9 +180,9 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Resul
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
-			sdk.NewAttribute(types.AttributeKeyHashedSecret, hex.EncodeToString(msg.HashedSecret[:])),
+			sdk.NewAttribute(types2.AttributeKeyHashedSecret, hex.EncodeToString(msg.HashedSecret[:])),
 		),
 	)
 

@@ -2,9 +2,8 @@ package rest
 
 import (
 	gcutils "bitbucket.org/decimalteam/go-node/x/gov/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -29,7 +28,7 @@ func postProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		content := types.Content{
+		content := types2.Content{
 			Title:       req.Title,
 			Description: req.Description,
 		}
@@ -43,7 +42,7 @@ func postProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgSubmitProposal(content, req.Proposer, votingStartBlock, votingEndBlock)
+		msg := types2.NewMsgSubmitProposal(content, req.Proposer, votingStartBlock, votingEndBlock)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -78,14 +77,14 @@ func voteHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		voteOption, err := types.VoteOptionFromString(gcutils.NormalizeVoteOption(req.Option))
+		voteOption, err := types2.VoteOptionFromString(gcutils.NormalizeVoteOption(req.Option))
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
 		// create the message
-		msg := types.NewMsgVote(req.Voter, proposalID, voteOption)
+		msg := types2.NewMsgVote(req.Voter, proposalID, voteOption)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

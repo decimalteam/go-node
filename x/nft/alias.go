@@ -6,97 +6,97 @@
 package nft
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/keeper"
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
+	keeper2 "bitbucket.org/decimalteam/go-node/x/nft/keeper"
+	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
 )
 
 const (
-	QuerySupply       = keeper.QuerySupply
-	QueryOwner        = keeper.QueryOwner
-	QueryOwnerByDenom = keeper.QueryOwnerByDenom
-	QueryCollection   = keeper.QueryCollection
-	QueryDenoms       = keeper.QueryDenoms
-	QueryNFT          = keeper.QueryNFT
-	ReservedPool      = types.ReservedPool
-	ModuleName        = types.ModuleName
-	StoreKey          = types.StoreKey
-	QuerierRoute      = types.QuerierRoute
-	RouterKey         = types.RouterKey
+	QuerySupply       = keeper2.QuerySupply
+	QueryOwner        = keeper2.QueryOwner
+	QueryOwnerByDenom = keeper2.QueryOwnerByDenom
+	QueryCollection   = keeper2.QueryCollection
+	QueryDenoms       = keeper2.QueryDenoms
+	QueryNFT          = keeper2.QueryNFT
+	ReservedPool      = types2.ReservedPool
+	ModuleName        = types2.ModuleName
+	StoreKey          = types2.StoreKey
+	QuerierRoute      = types2.QuerierRoute
+	RouterKey         = types2.RouterKey
 )
 
 var (
 	// functions aliases
-	RegisterInvariants       = keeper.RegisterInvariants
-	AllInvariants            = keeper.AllInvariants
-	SupplyInvariant          = keeper.SupplyInvariant
-	NewKeeper                = keeper.NewKeeper
-	NewQuerier               = keeper.NewQuerier
-	RegisterCodec            = types.RegisterCodec
-	NewCollection            = types.NewCollection
-	EmptyCollection          = types.EmptyCollection
-	NewCollections           = types.NewCollections
-	ErrInvalidCollection     = types.ErrInvalidCollection
-	ErrUnknownCollection     = types.ErrUnknownCollection
-	ErrInvalidNFT            = types.ErrInvalidNFT
-	ErrNFTAlreadyExists      = types.ErrNFTAlreadyExists
-	ErrUnknownNFT            = types.ErrUnknownNFT
-	ErrEmptyMetadata         = types.ErrEmptyMetadata
-	ErrNotAllowedBurn        = types.ErrNotAllowedBurn
-	ErrNotAllowedMint        = types.ErrNotAllowedMint
-	NewGenesisState          = types.NewGenesisState
-	DefaultGenesisState      = types.DefaultGenesisState
-	ValidateGenesis          = types.ValidateGenesis
-	GetCollectionKey         = types.GetCollectionKey
-	SplitOwnerKey            = types.SplitOwnerKey
-	GetOwnersKey             = types.GetOwnersKey
-	GetOwnerKey              = types.GetOwnerKey
-	NewMsgTransferNFT        = types.NewMsgTransferNFT
-	NewMsgEditNFTMetadata    = types.NewMsgEditNFTMetadata
-	NewMsgMintNFT            = types.NewMsgMintNFT
-	NewMsgBurnNFT            = types.NewMsgBurnNFT
-	NewBaseNFT               = types.NewBaseNFT
-	NewNFTs                  = types.NewNFTs
-	NewIDCollection          = types.NewIDCollection
-	NewOwner                 = types.NewOwner
-	NewQueryCollectionParams = types.NewQueryCollectionParams
-	NewQueryBalanceParams    = types.NewQueryBalanceParams
-	NewQueryNFTParams        = types.NewQueryNFTParams
+	RegisterInvariants       = keeper2.RegisterInvariants
+	AllInvariants            = keeper2.AllInvariants
+	SupplyInvariant          = keeper2.SupplyInvariant
+	NewKeeper                = keeper2.NewKeeper
+	NewQuerier               = keeper2.NewQuerier
+	RegisterCodec            = types2.RegisterCodec
+	NewCollection            = types2.NewCollection
+	EmptyCollection          = types2.EmptyCollection
+	NewCollections           = types2.NewCollections
+	ErrInvalidCollection     = types2.ErrInvalidCollection
+	ErrUnknownCollection     = types2.ErrUnknownCollection
+	ErrInvalidNFT            = types2.ErrInvalidNFT
+	ErrNFTAlreadyExists      = types2.ErrNFTAlreadyExists
+	ErrUnknownNFT            = types2.ErrUnknownNFT
+	ErrEmptyMetadata         = types2.ErrEmptyMetadata
+	ErrNotAllowedBurn        = types2.ErrNotAllowedBurn
+	ErrNotAllowedMint        = types2.ErrNotAllowedMint
+	NewGenesisState          = types2.NewGenesisState
+	DefaultGenesisState      = types2.DefaultGenesisState
+	ValidateGenesis          = types2.ValidateGenesis
+	GetCollectionKey         = types2.GetCollectionKey
+	SplitOwnerKey            = types2.SplitOwnerKey
+	GetOwnersKey             = types2.GetOwnersKey
+	GetOwnerKey              = types2.GetOwnerKey
+	NewMsgTransferNFT        = types2.NewMsgTransferNFT
+	NewMsgEditNFTMetadata    = types2.NewMsgEditNFTMetadata
+	NewMsgMintNFT            = types2.NewMsgMintNFT
+	NewMsgBurnNFT            = types2.NewMsgBurnNFT
+	NewBaseNFT               = types2.NewBaseNFT
+	NewNFTs                  = types2.NewNFTs
+	NewIDCollection          = types2.NewIDCollection
+	NewOwner                 = types2.NewOwner
+	NewQueryCollectionParams = types2.NewQueryCollectionParams
+	NewQueryBalanceParams    = types2.NewQueryBalanceParams
+	NewQueryNFTParams        = types2.NewQueryNFTParams
 
 	// variable aliases
-	ModuleCdc                = types.ModuleCdc
-	EventTypeTransfer        = types.EventTypeTransfer
-	EventTypeEditNFTMetadata = types.EventTypeEditNFTMetadata
-	EventTypeMintNFT         = types.EventTypeMintNFT
-	EventTypeBurnNFT         = types.EventTypeBurnNFT
-	AttributeValueCategory   = types.AttributeValueCategory
-	AttributeKeySender       = types.AttributeKeySender
-	AttributeKeyRecipient    = types.AttributeKeyRecipient
-	AttributeKeyOwner        = types.AttributeKeyOwner
-	AttributeKeyNFTID        = types.AttributeKeyNFTID
-	AttributeKeyNFTTokenURI  = types.AttributeKeyNFTTokenURI
-	AttributeKeyDenom        = types.AttributeKeyDenom
-	CollectionsKeyPrefix     = types.CollectionsKeyPrefix
-	OwnersKeyPrefix          = types.OwnersKeyPrefix
+	ModuleCdc                = types2.ModuleCdc
+	EventTypeTransfer        = types2.EventTypeTransfer
+	EventTypeEditNFTMetadata = types2.EventTypeEditNFTMetadata
+	EventTypeMintNFT         = types2.EventTypeMintNFT
+	EventTypeBurnNFT         = types2.EventTypeBurnNFT
+	AttributeValueCategory   = types2.AttributeValueCategory
+	AttributeKeySender       = types2.AttributeKeySender
+	AttributeKeyRecipient    = types2.AttributeKeyRecipient
+	AttributeKeyOwner        = types2.AttributeKeyOwner
+	AttributeKeyNFTID        = types2.AttributeKeyNFTID
+	AttributeKeyNFTTokenURI  = types2.AttributeKeyNFTTokenURI
+	AttributeKeyDenom        = types2.AttributeKeyDenom
+	CollectionsKeyPrefix     = types2.CollectionsKeyPrefix
+	OwnersKeyPrefix          = types2.OwnersKeyPrefix
 )
 
 type (
-	Keeper                = keeper.Keeper
-	Collection            = types.Collection
-	Collections           = types.Collections
-	CollectionJSON        = types.CollectionJSON
-	GenesisState          = types.GenesisState
-	MsgTransferNFT        = types.MsgTransferNFT
-	MsgEditNFTMetadata    = types.MsgEditNFTMetadata
-	MsgMintNFT            = types.MsgMintNFT
-	MsgBurnNFT            = types.MsgBurnNFT
-	BaseNFT               = types.BaseNFT
-	NFTs                  = types.NFTs
-	NFTJSON               = types.NFTJSON
-	IDCollection          = types.IDCollection
-	IDCollections         = types.IDCollections
-	Owner                 = types.Owner
-	TokenOwner            = types.TokenOwner
-	QueryCollectionParams = types.QueryCollectionParams
-	QueryBalanceParams    = types.QueryBalanceParams
-	QueryNFTParams        = types.QueryNFTParams
+	Keeper                = keeper2.Keeper
+	Collection            = types2.Collection
+	Collections           = types2.Collections
+	CollectionJSON        = types2.CollectionJSON
+	GenesisState          = types2.GenesisState
+	MsgTransferNFT        = types2.MsgTransferNFT
+	MsgEditNFTMetadata    = types2.MsgEditNFTMetadata
+	MsgMintNFT            = types2.MsgMintNFT
+	MsgBurnNFT            = types2.MsgBurnNFT
+	BaseNFT               = types2.BaseNFT
+	NFTs                  = types2.NFTs
+	NFTJSON               = types2.NFTJSON
+	IDCollection          = types2.IDCollection
+	IDCollections         = types2.IDCollections
+	Owner                 = types2.Owner
+	TokenOwner            = types2.TokenOwner
+	QueryCollectionParams = types2.QueryCollectionParams
+	QueryBalanceParams    = types2.QueryBalanceParams
+	QueryNFTParams        = types2.QueryNFTParams
 )

@@ -32,5 +32,5 @@ Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. \
 done
 
 # move proto files to the right places
-cp -r bitbucket.org/decimalteam/go-node ./
-rm -rf bitbucket.org
+# cp -r bitbucket.org/decimalteam/go-node ./
+# rm -rf bitbucket.org

@@ -1,7 +1,7 @@
 package capability
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/capability/internal/keeper"
+	keeper2 "bitbucket.org/decimalteam/go-node/x/capability/keeper"
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -86,10 +86,10 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }
 type AppModule struct {
 	AppModuleBasic
 
-	keeper keeper.Keeper
+	keeper keeper2.Keeper
 }
 
-func NewAppModule(cdc codec.LegacyAmino, keeper keeper.Keeper) AppModule {
+func NewAppModule(cdc codec.LegacyAmino, keeper keeper2.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(&cdc),
 		keeper:         keeper,

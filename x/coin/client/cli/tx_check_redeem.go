@@ -1,6 +1,7 @@
 package cli
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
@@ -19,8 +20,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	utils "github.com/cosmos/cosmos-sdk/x/auth/client"
-
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 func GetCmdRedeemCheck(cdc *codec.LegacyAmino) *cobra.Command {
@@ -39,14 +38,14 @@ func GetCmdRedeemCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			checkBytes := base58.Decode(checkBase58)
 			if len(checkBytes) == 0 {
 				msgError := "unable to decode check from base58"
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+				return sdkerrors.New(types2.DefaultCodespace, types2.InvalidCheck, msgError)
 			}
 
 			// Parse provided check from raw bytes to ensure it is valid
-			_, err := types.ParseCheck(checkBytes)
+			_, err := types2.ParseCheck(checkBytes)
 			if err != nil {
 				msgError := fmt.Sprintf("unable to parse check: %s", err.Error())
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+				return sdkerrors.New(types2.DefaultCodespace, types2.InvalidCheck, msgError)
 			}
 
 			// Prepare private key from passphrase
@@ -54,7 +53,7 @@ func GetCmdRedeemCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			passphrasePrivKey, err := crypto.ToECDSA(passphraseHash[:])
 			if err != nil {
 				msgError := fmt.Sprintf("unable to create private key from passphrase: %s", err.Error())
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidPassphrase, msgError)
+				return sdkerrors.New(types2.DefaultCodespace, types2.InvalidPassphrase, msgError)
 			}
 
 			// Prepare bytes to sign by private key generated from passphrase
@@ -65,7 +64,7 @@ func GetCmdRedeemCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			})
 			if err != nil {
 				msgError := fmt.Sprintf("unable to RLP encode check receiver address: %s", err.Error())
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidPassphrase, msgError)
+				return sdkerrors.New(types2.DefaultCodespace, types2.InvalidPassphrase, msgError)
 			}
 			hw.Sum(receiverAddressHash[:0])
 
@@ -73,12 +72,12 @@ func GetCmdRedeemCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			signature, err := crypto.Sign(receiverAddressHash[:], passphrasePrivKey)
 			if err != nil {
 				msgError := fmt.Sprintf("unable to sign check receiver address by private key generated from passphrase: %s", err.Error())
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidPassphrase, msgError)
+				return sdkerrors.New(types2.DefaultCodespace, types2.InvalidPassphrase, msgError)
 			}
 			proofBase64 := base64.StdEncoding.EncodeToString(signature)
 
 			// Prepare redeem check message
-			msg := types.NewMsgRedeemCheck(cliCtx.FromAddress, checkBase58, proofBase64)
+			msg := types2.NewMsgRedeemCheck(cliCtx.FromAddress, checkBase58, proofBase64)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

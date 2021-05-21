@@ -1,6 +1,7 @@
 package cli
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/multisig/types"
 	"fmt"
 	"strconv"
 	"strings"
@@ -8,21 +9,18 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-
-	"bitbucket.org/decimalteam/go-node/x/multisig/internal/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	multisigTxCmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
+		Use:                        types2.ModuleName,
+		Short:                      fmt.Sprintf("%s transactions subcommands", types2.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -74,7 +72,7 @@ func getCmdCreateWallet(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateWallet(cliCtx.GetFromAddress(), owners, weights, uint(threshold))
+			msg := types2.NewMsgCreateWallet(cliCtx.GetFromAddress(), owners, weights, uint(threshold))
 			if err != nil {
 				return err
 			}
@@ -130,7 +128,7 @@ func getCmdCreateTransaction(cdc *codec.LegacyAmino) *cobra.Command {
 			// 	}
 			// }
 
-			msg := types.NewMsgCreateTransaction(cliCtx.GetFromAddress(), wallet, receiver, coins)
+			msg := types2.NewMsgCreateTransaction(cliCtx.GetFromAddress(), wallet, receiver, coins)
 			if err != nil {
 				return err
 			}
@@ -159,7 +157,7 @@ func getCmdSignTransaction(cdc *codec.LegacyAmino) *cobra.Command {
 
 			txID := args[0]
 
-			msg := types.NewMsgSignTransaction(cliCtx.GetFromAddress(), txID)
+			msg := types2.NewMsgSignTransaction(cliCtx.GetFromAddress(), txID)
 			if err != nil {
 				return err
 			}

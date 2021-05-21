@@ -1,6 +1,7 @@
 package cli
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
 	"bufio"
 	"errors"
 	"fmt"
@@ -10,15 +11,13 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 // Edit metadata flags
@@ -29,7 +28,7 @@ const (
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd(storeKey string, cdc *codec.LegacyAmino) *cobra.Command {
 	nftTxCmd := &cobra.Command{
-		Use:   types.ModuleName,
+		Use:   types2.ModuleName,
 		Short: "NFT transactions subcommands",
 		RunE:  client.ValidateCmd,
 	}
@@ -59,7 +58,7 @@ dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p dx1l2rsakp388kuv9k8qzq6lrm9taddae7fpx5
 crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa \
 --from mykey
 `,
-				version.ClientName, types.ModuleName,
+				version.ClientName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(5),
@@ -86,7 +85,7 @@ crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa 
 				return errors.New("invalid quantity")
 			}
 
-			msg := types.NewMsgTransferNFT(sender, recipient, denom, tokenID, quantity)
+			msg := types2.NewMsgTransferNFT(sender, recipient, denom, tokenID, quantity)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -105,7 +104,7 @@ Example:
 $ %s tx %s edit-metadata crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa \
 --tokenURI path_to_token_URI_JSON --from mykey
 `,
-				version.ClientName, types.ModuleName,
+				version.ClientName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(2),
@@ -118,7 +117,7 @@ $ %s tx %s edit-metadata crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd42
 			tokenID := args[1]
 			tokenURI := viper.GetString(flagTokenURI)
 
-			msg := types.NewMsgEditNFTMetadata(cliCtx.GetFromAddress(), tokenID, denom, tokenURI)
+			msg := types2.NewMsgEditNFTMetadata(cliCtx.GetFromAddress(), tokenID, denom, tokenURI)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -140,7 +139,7 @@ Example:
 $ %s tx %s mint crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa \
 dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 `,
-				version.ClientName, types.ModuleName,
+				version.ClientName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(6),
@@ -174,7 +173,7 @@ dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 				allowMint = true
 			}
 
-			msg := types.NewMsgMintNFT(cliCtx.GetFromAddress(), recipient, tokenID, denom, tokenURI, quantity, reserve, allowMint)
+			msg := types2.NewMsgMintNFT(cliCtx.GetFromAddress(), recipient, tokenID, denom, tokenURI, quantity, reserve, allowMint)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -197,7 +196,7 @@ Example:
 $ %s tx %s burn crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa \
 --from mykey
 `,
-				version.ClientName, types.ModuleName,
+				version.ClientName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(3),
@@ -214,7 +213,7 @@ $ %s tx %s burn crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65
 				return errors.New("invalid quantity")
 			}
 
-			msg := types.NewMsgBurnNFT(cliCtx.GetFromAddress(), tokenID, denom, quantity)
+			msg := types2.NewMsgBurnNFT(cliCtx.GetFromAddress(), tokenID, denom, quantity)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

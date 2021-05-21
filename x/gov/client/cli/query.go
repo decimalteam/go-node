@@ -2,10 +2,10 @@ package cli
 
 import (
 	gcutils "bitbucket.org/decimalteam/go-node/x/gov/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,7 +20,7 @@ import (
 func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	// Group gov queries under a subcommand
 	govQueryCmd := &cobra.Command{
-		Use:                        types.ModuleName,
+		Use:                        types2.ModuleName,
 		Short:                      "Querying commands for the governance module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -71,7 +71,7 @@ $ %s query gov proposal 1
 				return err
 			}
 
-			var proposal types.Proposal
+			var proposal types2.Proposal
 			cdc.MustUnmarshalJSON(res, &proposal)
 			return cliCtx.PrintOutput(proposal) // nolint:errcheck
 		},
@@ -103,9 +103,9 @@ $ %s query gov proposals --page=2 --limit=100
 
 			var depositorAddr sdk.AccAddress
 			var voterAddr sdk.AccAddress
-			var proposalStatus types.ProposalStatus
+			var proposalStatus types2.ProposalStatus
 
-			params := types.NewQueryProposalsParams(page, limit, proposalStatus, voterAddr, depositorAddr)
+			params := types2.NewQueryProposalsParams(page, limit, proposalStatus, voterAddr, depositorAddr)
 
 			if len(bechVoterAddr) != 0 {
 				voterAddr, err := sdk.AccAddressFromBech32(bechVoterAddr)
@@ -116,7 +116,7 @@ $ %s query gov proposals --page=2 --limit=100
 			}
 
 			if len(strProposalStatus) != 0 {
-				proposalStatus, err := types.ProposalStatusFromString(gcutils.NormalizeProposalStatus(strProposalStatus))
+				proposalStatus, err := types2.ProposalStatusFromString(gcutils.NormalizeProposalStatus(strProposalStatus))
 				if err != nil {
 					return err
 				}
@@ -135,7 +135,7 @@ $ %s query gov proposals --page=2 --limit=100
 				return err
 			}
 
-			var matchingProposals types.Proposals
+			var matchingProposals types2.Proposals
 			err = cdc.UnmarshalJSON(res, &matchingProposals)
 			if err != nil {
 				return err
@@ -193,7 +193,7 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 				return err
 			}
 
-			params := types.NewQueryVoteParams(proposalID, voterAddr)
+			params := types2.NewQueryVoteParams(proposalID, voterAddr)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
@@ -204,7 +204,7 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 				return err
 			}
 
-			var vote types.Vote
+			var vote types2.Vote
 
 			// XXX: Allow the decoding to potentially fail as the vote may have been
 			// pruned from state. If so, decoding will fail and so we need to check the
@@ -255,7 +255,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 
-			params := types.NewQueryProposalVotesParams(proposalID, page, limit)
+			params := types2.NewQueryProposalVotesParams(proposalID, page, limit)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
@@ -267,11 +267,11 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
 			}
 
-			var proposal types.Proposal
+			var proposal types2.Proposal
 			cdc.MustUnmarshalJSON(res, &proposal)
 
 			propStatus := proposal.Status
-			if !(propStatus == types.StatusVotingPeriod) {
+			if !(propStatus == types2.StatusVotingPeriod) {
 				res, err = gcutils.QueryVotesByTxQuery(cliCtx, params)
 			} else {
 				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/votes", queryRoute), bz)
@@ -281,7 +281,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 				return err
 			}
 
-			var votes types.Votes
+			var votes types2.Votes
 			cdc.MustUnmarshalJSON(res, &votes)
 			return cliCtx.PrintOutput(votes)
 		},
@@ -323,7 +323,7 @@ $ %s query gov tally 1
 			}
 
 			// Construct query
-			params := types.NewQueryProposalParams(proposalID)
+			params := types2.NewQueryProposalParams(proposalID)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
@@ -335,7 +335,7 @@ $ %s query gov tally 1
 				return err
 			}
 
-			var tally types.TallyResult
+			var tally types2.TallyResult
 			cdc.MustUnmarshalJSON(res, &tally)
 			return cliCtx.PrintOutput(tally)
 		},
@@ -364,10 +364,10 @@ $ %s query gov params
 				return err
 			}
 
-			var tallyParams types.TallyParams
+			var tallyParams types2.TallyParams
 			cdc.MustUnmarshalJSON(tp, &tallyParams)
 
-			return cliCtx.PrintOutput(types.NewParams(tallyParams))
+			return cliCtx.PrintOutput(types2.NewParams(tallyParams))
 		},
 	}
 }
@@ -400,7 +400,7 @@ $ %s query gov param deposit
 			var out fmt.Stringer
 			switch args[0] {
 			case "tallying":
-				var param types.TallyParams
+				var param types2.TallyParams
 				cdc.MustUnmarshalJSON(res, &param)
 				out = param
 			default:

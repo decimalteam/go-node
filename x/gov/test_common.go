@@ -5,6 +5,8 @@ package gov
 import (
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/coin"
+	keeper2 "bitbucket.org/decimalteam/go-node/x/gov/keeper"
+	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bytes"
@@ -18,8 +20,6 @@ import (
 	"sort"
 	"testing"
 
-	keep "bitbucket.org/decimalteam/go-node/x/gov/internal/keeper"
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -43,8 +43,8 @@ var (
 
 type testInput struct {
 	ctx      sdk.Context
-	keeper   keep.Keeper
-	router   types.Router
+	keeper   keeper2.Keeper
+	router   types2.Router
 	vk       validator.Keeper
 	ck       coin.Keeper
 	sk       supply.Keeper
@@ -53,7 +53,7 @@ type testInput struct {
 	privKeys []crypto.PrivKey
 }
 
-func getTestInput(t *testing.T, numGenAccs int, genState types.GenesisState, genAccs []authexported.Account) testInput {
+func getTestInput(t *testing.T, numGenAccs int, genState types2.GenesisState, genAccs []authexported.Account) testInput {
 
 	_config := sdk.GetConfig()
 	_config.SetBech32PrefixForAccount(config.DecimalPrefixAccAddr, config.DecimalPrefixAccPub)
@@ -94,14 +94,14 @@ func getTestInput(t *testing.T, numGenAccs int, genState types.GenesisState, gen
 
 	cdc := codec.New()
 	validator.RegisterCodec(cdc)
-	types.RegisterCodec(cdc)
+	types2.RegisterCodec(cdc)
 	supply.RegisterCodec(cdc)
 	coin.RegisterCodec(cdc)
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)
 	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/gov/base_account", nil)
 	codec.RegisterCrypto(cdc)
 
-	govAcc := supply.NewEmptyModuleAccount(types.ModuleName, supply.Burner)
+	govAcc := supply.NewEmptyModuleAccount(types2.ModuleName, supply.Burner)
 	notBondedPool := supply.NewEmptyModuleAccount(validator.NotBondedPoolName, supply.Burner, supply.Staking)
 	bondPool := supply.NewEmptyModuleAccount(validator.BondedPoolName, supply.Burner, supply.Staking)
 	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName, supply.Burner, supply.Minter)
@@ -127,11 +127,11 @@ func getTestInput(t *testing.T, numGenAccs int, genState types.GenesisState, gen
 		blacklistedAddrs,
 	)
 
-	rtr := types.NewRouter()
+	rtr := types2.NewRouter()
 
 	maccPerms := map[string][]string{
 		auth.FeeCollectorName:       {supply.Burner, supply.Minter},
-		types.ModuleName:            {supply.Burner},
+		types2.ModuleName:           {supply.Burner},
 		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
 		validator.BondedPoolName:    {supply.Burner, supply.Staking},
 	}
@@ -151,10 +151,10 @@ func getTestInput(t *testing.T, numGenAccs int, genState types.GenesisState, gen
 	sk := validator.NewKeeper(cdc, keyValidator, pk.Subspace(validator.DefaultParamSpace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, nftKeeper, auth.FeeCollectorName)
 	sk.SetParams(ctx, validator.DefaultParams())
 
-	keeper := keep.NewKeeper(
+	keeper := keeper2.NewKeeper(
 		cdc, keyCoin, pk.Subspace(DefaultParamspace).WithKeyTable(ParamKeyTable()), supplyKeeper, sk, rtr,
 	)
-	keeper.SetTallyParams(ctx, types.DefaultParams().TallyParams)
+	keeper.SetTallyParams(ctx, types2.DefaultParams().TallyParams)
 	keeper.SetProposalID(ctx, 1)
 
 	var (
@@ -206,7 +206,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, stakingKeeper validator.Keepe
 
 		validators := validator.InitGenesis(ctx, stakingKeeper, supplyKeeper, stakingGenesis)
 		if genState.IsEmpty() {
-			InitGenesis(ctx, keeper, supplyKeeper, types.DefaultGenesisState())
+			InitGenesis(ctx, keeper, supplyKeeper, types2.DefaultGenesisState())
 		} else {
 			InitGenesis(ctx, keeper, supplyKeeper, genState)
 		}

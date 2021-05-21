@@ -2,14 +2,11 @@ package cli
 
 import (
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
+	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	tx2 "github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	auth "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
 )
 
@@ -26,18 +23,18 @@ func GetCmdUpdateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 			var symbol = args[0]
 			var limitVolume, ok = sdk.NewIntFromString(args[1])
 			if !ok {
-				return types.ErrInvalidLimitVolume
+				return types2.ErrInvalidLimitVolume
 			}
 			var identity = args[2]
 
-			msg := types.NewMsgUpdateCoin(cliCtx.GetFromAddress(), symbol, limitVolume, identity)
+			msg := types2.NewMsgUpdateCoin(cliCtx.GetFromAddress(), symbol, limitVolume, identity)
 			// Check if coin does not exist yet
 			coinExists, err := cliUtils.ExistsCoin(cliCtx, symbol)
 			if err != nil {
 				return err
 			}
 			if !coinExists {
-				return types.ErrCoinDoesNotExist(symbol)
+				return types2.ErrCoinDoesNotExist(symbol)
 			}
 
 			return tx2.GenerateOrBroadcastTxCLI(cliCtx, txBldr, []sdk.Msg{msg})

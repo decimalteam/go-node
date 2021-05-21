@@ -1,24 +1,22 @@
 package cli
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/multisig/types"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
-
-	"bitbucket.org/decimalteam/go-node/x/multisig/internal/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	// Group multisig queries under a subcommand
 	multisigQueryCmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
+		Use:                        types2.ModuleName,
+		Short:                      fmt.Sprintf("Querying commands for the %s module", types2.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -53,7 +51,7 @@ func listWalletsCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Comman
 				return nil
 			}
 
-			var out types.QueryWallets
+			var out types2.QueryWallets
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
@@ -77,7 +75,7 @@ func getWalletCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command 
 				return nil
 			}
 
-			var out types.Wallet
+			var out types2.Wallet
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
@@ -101,7 +99,7 @@ func listTransactionsCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.C
 				return nil
 			}
 
-			var out types.QueryTransactions
+			var out types2.QueryTransactions
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
@@ -125,7 +123,7 @@ func getTransactionCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Com
 				return nil
 			}
 
-			var out types.Transaction
+			var out types2.Transaction
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},

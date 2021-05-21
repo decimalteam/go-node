@@ -1,11 +1,10 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
+	types2 "bitbucket.org/decimalteam/go-node/x/swap/types"
 	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -17,8 +16,8 @@ import (
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	swapQueryCmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
+		Use:                        types2.ModuleName,
+		Short:                      fmt.Sprintf("Querying commands for the %s module", types2.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -45,20 +44,20 @@ func GetCmdQuerySwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var hash types.Hash
+			var hash types2.Hash
 			copy(hash[:], hashRaw)
 
-			bz, err := cdc.MarshalJSON(types.NewQuerySwapParams(hash))
+			bz, err := cdc.MarshalJSON(types2.NewQuerySwapParams(hash))
 			if err != nil {
 				return err
 			}
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types.QuerySwap), bz)
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types2.QuerySwap), bz)
 			if err != nil {
 				return err
 			}
 
-			var swap types.Swap
+			var swap types2.Swap
 			cdc.MustUnmarshalJSON(res, &swap)
 
 			return cliCtx.PrintOutput(swap)
@@ -74,12 +73,12 @@ func GetCmdQueryActiveSwap(storeName string, cdc *codec.LegacyAmino) *cobra.Comm
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			bz, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types.QueryActiveSwaps), nil)
+			bz, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types2.QueryActiveSwaps), nil)
 			if err != nil {
 				return err
 			}
 
-			var swaps types.Swaps
+			var swaps types2.Swaps
 			if err := cdc.UnmarshalJSON(bz, &swaps); err != nil {
 				return err
 			}

@@ -65,7 +65,7 @@ func main() {
 		keys.Commands(),
 		flags.LineBreak,
 		version.Cmd,
-		flags.NewCompletionCmd(rootCmd, true),
+		cli.NewCompletionCmd(rootCmd, true),
 	)
 
 	executor := cli.PrepareMainCmd(rootCmd, "AU", app.DefaultCLIHome)

@@ -5,7 +5,7 @@ package swap
 import (
 	"bitbucket.org/decimalteam/go-node/x/swap/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/swap/client/rest"
-	"bitbucket.org/decimalteam/go-node/x/swap/internal/keeper"
+	keeper2 "bitbucket.org/decimalteam/go-node/x/swap/keeper"
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -126,7 +126,7 @@ func (AppModule) QuerierRoute() string {
 
 // NewQuerierHandler returns no sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return keeper.NewQuerier(am.keeper)
+	return keeper2.NewQuerier(am.keeper)
 }
 
 // LegacyQuerierHandler returns no sdk.Querier.

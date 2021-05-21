@@ -1,14 +1,15 @@
 package capability
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/capability/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/capability/internal/types"
+	keeper2 "bitbucket.org/decimalteam/go-node/x/capability/keeper"
+	types2 "bitbucket.org/decimalteam/go-node/x/capability/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // InitGenesis initializes the capability module's state from a provided genesis
 // state.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper2.Keeper, genState types2.GenesisState) {
 	if err := k.InitializeIndex(ctx, genState.Index); err != nil {
 		panic(err)
 	}
@@ -21,7 +22,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 }
 
 // ExportGenesis returns the capability module's exported genesis.
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k keeper2.Keeper) *types2.GenesisState {
 	index := k.GetLatestIndex(ctx)
 	owners := []types.GenesisOwners{}
 
@@ -38,7 +39,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		owners = append(owners, genOwner)
 	}
 
-	return &types.GenesisState{
+	return &types2.GenesisState{
 		Index:  index,
 		Owners: owners,
 	}

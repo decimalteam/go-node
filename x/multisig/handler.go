@@ -1,6 +1,7 @@
 package multisig
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/multisig/types"
 	"fmt"
 	"runtime/debug"
 	"strconv"
@@ -10,7 +11,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
-	"bitbucket.org/decimalteam/go-node/x/multisig/internal/types"
 )
 
 // NewHandler creates an sdk.Handler for all the multisig type messages
@@ -30,7 +30,7 @@ func NewHandler(k Keeper) sdk.Handler {
 		case MsgSignTransaction:
 			return handleMsgSignTransaction(ctx, k, msg, true)
 		default:
-			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
+			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types2.ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
 		}
 	}
@@ -64,12 +64,12 @@ func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) 
 	// Emit transaction events
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-		sdk.NewAttribute(types.AttributeKeyOwners, helpers.JoinAccAddresses(msg.Owners)),
-		sdk.NewAttribute(types.AttributeKeyWeights, helpers.JoinUints(msg.Weights)),
-		sdk.NewAttribute(types.AttributeKeyThreshold, strconv.FormatUint(uint64(msg.Threshold), 10)),
-		sdk.NewAttribute(types.AttributeKeyWallet, wallet.Address.String()),
+		sdk.NewAttribute(types2.AttributeKeyOwners, helpers.JoinAccAddresses(msg.Owners)),
+		sdk.NewAttribute(types2.AttributeKeyWeights, helpers.JoinUints(msg.Weights)),
+		sdk.NewAttribute(types2.AttributeKeyThreshold, strconv.FormatUint(uint64(msg.Threshold), 10)),
+		sdk.NewAttribute(types2.AttributeKeyWallet, wallet.Address.String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
@@ -94,7 +94,7 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 	// Ensure there are enough coins on the multisig wallet
 	for _, coin := range msg.Coins {
 		if walletCoins.AmountOf(strings.ToLower(coin.Denom)).LT(coin.Amount) {
-			return nil, types.ErrInsufficientFunds(coin.String())
+			return nil, types2.ErrInsufficientFunds(coin.String())
 		}
 	}
 
@@ -128,12 +128,12 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 	// Emit transaction events
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-		sdk.NewAttribute(types.AttributeKeyWallet, msg.Wallet.String()),
-		sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver.String()),
-		sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
-		sdk.NewAttribute(types.AttributeKeyTransaction, transaction.ID),
+		sdk.NewAttribute(types2.AttributeKeyWallet, msg.Wallet.String()),
+		sdk.NewAttribute(types2.AttributeKeyReceiver, msg.Receiver.String()),
+		sdk.NewAttribute(types2.AttributeKeyCoins, msg.Coins.String()),
+		sdk.NewAttribute(types2.AttributeKeyTransaction, transaction.ID),
 	))
 	ctx.EventManager().EmitEvents(signEvents.Events)
 
@@ -206,13 +206,13 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 	events := sdk.Events{
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-			sdk.NewAttribute(types.AttributeKeyWallet, wallet.Address.String()),
-			sdk.NewAttribute(types.AttributeKeyTransaction, msg.TxID),
-			sdk.NewAttribute(types.AttributeKeySignerWeight, strconv.FormatUint(uint64(weight), 10)),
-			sdk.NewAttribute(types.AttributeKeyConfirmations, strconv.FormatUint(uint64(confirmations), 10)),
-			sdk.NewAttribute(types.AttributeKeyConfirmed, strconv.FormatBool(confirmed)),
+			sdk.NewAttribute(types2.AttributeKeyWallet, wallet.Address.String()),
+			sdk.NewAttribute(types2.AttributeKeyTransaction, msg.TxID),
+			sdk.NewAttribute(types2.AttributeKeySignerWeight, strconv.FormatUint(uint64(weight), 10)),
+			sdk.NewAttribute(types2.AttributeKeyConfirmations, strconv.FormatUint(uint64(confirmations), 10)),
+			sdk.NewAttribute(types2.AttributeKeyConfirmed, strconv.FormatBool(confirmed)),
 		),
 	}
 	if !emitEvents {

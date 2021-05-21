@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -32,13 +32,13 @@ func (p Proposer) String() string {
 // QueryVotesByTxQuery will query for votes via a direct txs tags query. It
 // will fetch and build votes directly from the returned txs and return a JSON
 // marshalled result or any error that occurred.
-func QueryVotesByTxQuery(cliCtx client.Context, params types.QueryProposalVotesParams) ([]byte, error) {
+func QueryVotesByTxQuery(cliCtx client.Context, params types2.QueryProposalVotesParams) ([]byte, error) {
 	var (
 		events = []string{
-			fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeyAction, types.TypeMsgVote),
-			fmt.Sprintf("%s.%s='%s'", types.EventTypeProposalVote, types.AttributeKeyProposalID, []byte(fmt.Sprintf("%d", params.ProposalID))),
+			fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeyAction, types2.TypeMsgVote),
+			fmt.Sprintf("%s.%s='%s'", types2.EventTypeProposalVote, types2.AttributeKeyProposalID, []byte(fmt.Sprintf("%d", params.ProposalID))),
 		}
-		votes      []types.Vote
+		votes      []types2.Vote
 		nextTxPage = defaultPage
 		totalLimit = params.Limit * params.Page
 	)
@@ -51,10 +51,10 @@ func QueryVotesByTxQuery(cliCtx client.Context, params types.QueryProposalVotesP
 		nextTxPage++
 		for _, info := range searchResult.Txs {
 			for _, msg := range info.Tx.GetMsgs() {
-				if msg.Type() == types.TypeMsgVote {
-					voteMsg := msg.(types.MsgVote)
+				if msg.Type() == types2.TypeMsgVote {
+					voteMsg := msg.(types2.MsgVote)
 
-					votes = append(votes, types.Vote{
+					votes = append(votes, types2.Vote{
 						Voter:      voteMsg.Voter,
 						ProposalID: params.ProposalID,
 						Option:     voteMsg.Option,
@@ -68,7 +68,7 @@ func QueryVotesByTxQuery(cliCtx client.Context, params types.QueryProposalVotesP
 	}
 	start, end := client.Paginate(len(votes), params.Page, params.Limit, 100)
 	if start < 0 || end < 0 {
-		votes = []types.Vote{}
+		votes = []types2.Vote{}
 	} else {
 		votes = votes[start:end]
 	}
@@ -79,10 +79,10 @@ func QueryVotesByTxQuery(cliCtx client.Context, params types.QueryProposalVotesP
 }
 
 // QueryVoteByTxQuery will query for a single vote via a direct txs tags query.
-func QueryVoteByTxQuery(cliCtx client.Context, params types.QueryVoteParams) ([]byte, error) {
+func QueryVoteByTxQuery(cliCtx client.Context, params types2.QueryVoteParams) ([]byte, error) {
 	events := []string{
-		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeyAction, types.TypeMsgVote),
-		fmt.Sprintf("%s.%s='%s'", types.EventTypeProposalVote, types.AttributeKeyProposalID, []byte(fmt.Sprintf("%d", params.ProposalID))),
+		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeyAction, types2.TypeMsgVote),
+		fmt.Sprintf("%s.%s='%s'", types2.EventTypeProposalVote, types2.AttributeKeyProposalID, []byte(fmt.Sprintf("%d", params.ProposalID))),
 		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeySender, []byte(params.Voter.String())),
 	}
 
@@ -95,10 +95,10 @@ func QueryVoteByTxQuery(cliCtx client.Context, params types.QueryVoteParams) ([]
 	for _, info := range searchResult.Txs {
 		for _, msg := range info.Tx.GetMsgs() {
 			// there should only be a single vote under the given conditions
-			if msg.Type() == types.TypeMsgVote {
-				voteMsg := msg.(types.MsgVote)
+			if msg.Type() == types2.TypeMsgVote {
+				voteMsg := msg.(types2.MsgVote)
 
-				vote := types.Vote{
+				vote := types2.Vote{
 					Voter:      voteMsg.Voter,
 					ProposalID: params.ProposalID,
 					Option:     voteMsg.Option,
@@ -120,8 +120,8 @@ func QueryVoteByTxQuery(cliCtx client.Context, params types.QueryVoteParams) ([]
 // ID.
 func QueryProposerByTxQuery(cliCtx client.Context, proposalID uint64) (Proposer, error) {
 	events := []string{
-		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeyAction, types.TypeMsgSubmitProposal),
-		fmt.Sprintf("%s.%s='%s'", types.EventTypeSubmitProposal, types.AttributeKeyProposalID, []byte(fmt.Sprintf("%d", proposalID))),
+		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeyAction, types2.TypeMsgSubmitProposal),
+		fmt.Sprintf("%s.%s='%s'", types2.EventTypeSubmitProposal, types2.AttributeKeyProposalID, []byte(fmt.Sprintf("%d", proposalID))),
 	}
 
 	// NOTE: SearchTxs is used to facilitate the txs query which does not currently
@@ -134,8 +134,8 @@ func QueryProposerByTxQuery(cliCtx client.Context, proposalID uint64) (Proposer,
 	for _, info := range searchResult.Txs {
 		for _, msg := range info.Tx.GetMsgs() {
 			// there should only be a single proposal under the given conditions
-			if msg.Type() == types.TypeMsgSubmitProposal {
-				subMsg := msg.(types.MsgSubmitProposal)
+			if msg.Type() == types2.TypeMsgSubmitProposal {
+				subMsg := msg.(types2.MsgSubmitProposal)
 				return NewProposer(proposalID, subMsg.Proposer.String()), nil
 			}
 		}
@@ -146,7 +146,7 @@ func QueryProposerByTxQuery(cliCtx client.Context, proposalID uint64) (Proposer,
 
 // QueryProposalByID takes a proposalID and returns a proposal
 func QueryProposalByID(proposalID uint64, cliCtx client.Context, queryRoute string) ([]byte, error) {
-	params := types.NewQueryProposalParams(proposalID)
+	params := types2.NewQueryProposalParams(proposalID)
 	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
 		return nil, err
@@ -164,13 +164,13 @@ func QueryProposalByID(proposalID uint64, cliCtx client.Context, queryRoute stri
 func NormalizeVoteOption(option string) string {
 	switch option {
 	case "Yes", "yes":
-		return types.OptionYes.String()
+		return types2.OptionYes.String()
 
 	case "Abstain", "abstain":
-		return types.OptionAbstain.String()
+		return types2.OptionAbstain.String()
 
 	case "No", "no":
-		return types.OptionNo.String()
+		return types2.OptionNo.String()
 
 	default:
 		return ""

@@ -2,8 +2,8 @@ package cli
 
 import (
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-	"github.com/cosmos/cosmos-sdk/client/context"
+	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -20,7 +20,7 @@ func GetCmdMultiSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			sends := make([]types.Send, len(args)/2)
+			sends := make([]types2.Send, len(args)/2)
 			coins := make([]sdk.Coin, len(args)/2)
 
 			for i, value := range args {
@@ -40,7 +40,7 @@ func GetCmdMultiSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 				}
 			}
 
-			msg := types.NewMsgMultiSendCoin(cliCtx.GetFromAddress(), sends)
+			msg := types2.NewMsgMultiSendCoin(cliCtx.GetFromAddress(), sends)
 
 			// Check if enough balance
 			acc, err := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
@@ -54,7 +54,7 @@ func GetCmdMultiSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 					wantFunds += send.Coin.String() + ", "
 				}
 				wantFunds = wantFunds[:len(wantFunds)-2]
-				return types.ErrInsufficientFunds(wantFunds, balance.String())
+				return types2.ErrInsufficientFunds(wantFunds, balance.String())
 			}
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
