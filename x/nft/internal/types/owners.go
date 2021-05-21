@@ -47,7 +47,7 @@ func (idCollection IDCollection) AddID(id string) IDCollection {
 func (idCollection IDCollection) DeleteID(id string) (IDCollection, error) {
 	index := idCollection.IDs.find(id)
 	if index == -1 {
-		return idCollection, ErrUnknownNFT()
+		return idCollection, ErrUnknownNFT(id)
 	}
 
 	idCollection.IDs = append(idCollection.IDs[:index], idCollection.IDs[index+1:]...)
@@ -130,10 +130,9 @@ func (owner Owner) GetIDCollection(denom string) (IDCollection, bool) {
 
 // UpdateIDCollection updates the ID Collection of an owner
 func (owner Owner) UpdateIDCollection(idCollection IDCollection) (Owner, error) {
-	denom := idCollection.Denom
-	index := owner.IDCollections.find(denom)
+	index := owner.IDCollections.find(idCollection.Denom)
 	if index == -1 {
-		return owner, ErrUnknownCollection()
+		return owner, ErrUnknownCollection(idCollection.Denom)
 	}
 
 	owner.IDCollections = append(append(owner.IDCollections[:index], idCollection), owner.IDCollections[index+1:]...)
@@ -145,7 +144,7 @@ func (owner Owner) UpdateIDCollection(idCollection IDCollection) (Owner, error) 
 func (owner Owner) DeleteID(denom string, id string) (Owner, error) {
 	idCollection, found := owner.GetIDCollection(denom)
 	if !found {
-		return owner, ErrUnknownNFT()
+		return owner, ErrUnknownNFT(denom)
 	}
 	idCollection, err := idCollection.DeleteID(id)
 	if err != nil {

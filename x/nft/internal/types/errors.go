@@ -33,11 +33,11 @@ func ErrInvalidCollection(denom string) *sdkerrors.Error {
 	)
 }
 
-func ErrUnknownCollection() *sdkerrors.Error {
+func ErrUnknownCollection(denom string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnknownCollection,
-		fmt.Sprintf("unknown NFT collection"),
+		fmt.Sprintf("unknown NFT collection: %s", denom),
 	)
 }
 
@@ -49,11 +49,11 @@ func ErrInvalidNFT() *sdkerrors.Error {
 	)
 }
 
-func ErrUnknownNFT() *sdkerrors.Error {
+func ErrUnknownNFT(denom string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnknownNFT,
-		fmt.Sprintf("unknown NFT"),
+		fmt.Sprintf("unknown NFT: %s", denom),
 	)
 }
 
@@ -73,11 +73,11 @@ func ErrEmptyMetadata() *sdkerrors.Error {
 	)
 }
 
-func ErrInvalidQuantity() *sdkerrors.Error {
+func ErrInvalidQuantity(quantity string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidQuantity,
-		fmt.Sprintf("invalid NFT quantity"),
+		fmt.Sprintf("invalid NFT quantity: %s", quantity),
 	)
 }
 

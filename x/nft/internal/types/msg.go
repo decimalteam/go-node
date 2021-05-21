@@ -58,7 +58,7 @@ func (msg MsgMintNFT) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid recipient address")
 	}
 	if !msg.Quantity.IsPositive() {
-		return ErrInvalidQuantity()
+		return ErrInvalidQuantity(msg.Quantity.String())
 	}
 	if !msg.Reserve.IsPositive() || msg.Reserve.LT(minReserve) {
 		return ErrInvalidReserve()
@@ -120,7 +120,7 @@ func (msg MsgBurnNFT) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
 	}
 	if !msg.Quantity.IsPositive() {
-		return ErrInvalidQuantity()
+		return ErrInvalidQuantity(msg.Quantity.String())
 	}
 
 	return nil
@@ -181,7 +181,7 @@ func (msg MsgTransferNFT) ValidateBasic() error {
 		return ErrInvalidCollection(msg.ID)
 	}
 	if !msg.Quantity.IsPositive() {
-		return ErrInvalidQuantity()
+		return ErrInvalidQuantity(msg.Quantity.String())
 	}
 
 	return nil

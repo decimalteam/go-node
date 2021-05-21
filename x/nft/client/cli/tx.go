@@ -82,7 +82,7 @@ crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa 
 
 			quantity, ok := sdk.NewIntFromString(args[4])
 			if !ok {
-				return types.ErrInvalidQuantity()
+				return types.ErrInvalidQuantity(args[2])
 			}
 
 			msg := types.NewMsgTransferNFT(sender, recipient, denom, tokenID, quantity)
@@ -160,12 +160,12 @@ dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 
 			quantity, ok := sdk.NewIntFromString(args[3])
 			if !ok {
-				return types.ErrInvalidQuantity()
+				return types.ErrInvalidQuantity(args[2])
 			}
 
 			reserve, ok := sdk.NewIntFromString(args[4])
 			if !ok {
-				return types.ErrInvalidQuantity()
+				return types.ErrInvalidQuantity(args[2])
 			}
 
 			var allowMint bool
@@ -210,7 +210,7 @@ $ %s tx %s burn crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65
 
 			quantity, ok := sdk.NewIntFromString(args[2])
 			if !ok {
-				return types.ErrInvalidQuantity()
+				return types.ErrInvalidQuantity(args[2])
 			}
 
 			msg := types.NewMsgBurnNFT(cliCtx.GetFromAddress(), tokenID, denom, quantity)

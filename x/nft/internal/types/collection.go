@@ -34,7 +34,7 @@ func (collection Collection) GetNFT(id string) (nft exported.NFT, err error) {
 	if found {
 		return nft, nil
 	}
-	return nil, ErrUnknownNFT()
+	return nil, ErrUnknownNFT(id)
 }
 
 // ContainsNFT returns whether or not a Collection contains an NFT
@@ -50,7 +50,7 @@ func (collection Collection) AddNFT(nft exported.NFT) (Collection, error) {
 	if exists {
 		collNFT, err := collection.GetNFT(id)
 		if err != nil {
-			return collection, ErrUnknownNFT()
+			return collection, ErrUnknownNFT(id)
 		}
 		ownerAddress := nft.GetOwners().GetOwners()[0].GetAddress()
 		quantity := nft.GetOwners().GetOwners()[0].GetQuantity()
@@ -77,7 +77,7 @@ func (collection Collection) UpdateNFT(nft exported.NFT) (Collection, error) {
 	nfts, ok := collection.NFTs.Update(nft.GetID(), nft)
 
 	if !ok {
-		return collection, ErrUnknownNFT()
+		return collection, ErrUnknownNFT(nft.GetID())
 	}
 	collection.NFTs = nfts
 	return collection, nil
@@ -87,7 +87,7 @@ func (collection Collection) UpdateNFT(nft exported.NFT) (Collection, error) {
 func (collection Collection) DeleteNFT(nft exported.NFT) (Collection, error) {
 	nfts, ok := collection.NFTs.Remove(nft.GetID())
 	if !ok {
-		return collection, ErrUnknownNFT()
+		return collection, ErrUnknownNFT(nft.GetID())
 	}
 	collection.NFTs = nfts
 	return collection, nil

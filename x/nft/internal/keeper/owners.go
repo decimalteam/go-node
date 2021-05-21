@@ -107,7 +107,7 @@ func (k Keeper) IterateOwners(ctx sdk.Context, handler func(owner types.Owner) (
 func (k Keeper) SwapOwners(ctx sdk.Context, denom string, id string, oldAddress sdk.AccAddress, newAddress sdk.AccAddress) (err error) {
 	oldOwnerIDCollection, found := k.GetOwnerByDenom(ctx, oldAddress, denom)
 	if !found {
-		return types.ErrUnknownCollection()
+		return types.ErrUnknownCollection(denom)
 	}
 	oldOwnerIDCollection, err = oldOwnerIDCollection.DeleteID(id)
 	if err != nil {

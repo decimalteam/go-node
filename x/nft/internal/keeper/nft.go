@@ -16,7 +16,7 @@ func (k Keeper) IsNFT(ctx sdk.Context, denom, id string) (exists bool) {
 func (k Keeper) GetNFT(ctx sdk.Context, denom, id string) (exported.NFT, error) {
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
-		return nil, types.ErrUnknownCollection()
+		return nil, types.ErrUnknownCollection(denom)
 	}
 	nft, err := collection.GetNFT(id)
 
@@ -60,7 +60,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom string, nft exported.NFT) error {
 func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) error {
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
-		return types.ErrUnknownCollection()
+		return types.ErrUnknownCollection(denom)
 	}
 	nft, err := collection.GetNFT(id)
 	if err != nil {
@@ -68,7 +68,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) e
 	}
 	ownerIDCollection, found := k.GetOwnerByDenom(ctx, nft.GetCreator(), denom)
 	if !found {
-		return types.ErrUnknownCollection()
+		return types.ErrUnknownCollection(denom)
 	}
 
 	if quantity.GT(nft.GetOwners().GetOwner(nft.GetCreator()).GetQuantity()) {

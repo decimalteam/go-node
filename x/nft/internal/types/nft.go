@@ -122,7 +122,7 @@ func (bnft *BaseNFT) UnmarshalJSON(b []byte) error {
 func TransferNFT(nft exported.NFT, sender, recipient sdk.AccAddress, quantity sdk.Int) (exported.NFT, error) {
 	senderOwner := nft.GetOwners().GetOwner(sender)
 	if senderOwner.GetQuantity().LT(quantity) {
-		return nil, ErrInvalidQuantity()
+		return nil, ErrInvalidQuantity(quantity.String())
 	}
 
 	senderOwner = senderOwner.SetQuantity(senderOwner.GetQuantity().Sub(quantity))
