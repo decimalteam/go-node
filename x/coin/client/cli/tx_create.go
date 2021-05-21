@@ -30,7 +30,7 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 			var crr, err = strconv.ParseUint(args[2], 10, 8)
 			// If error when convert crr
 			if err != nil {
-				return types.ErrInvalidCRR()
+				return types.ErrInvalidCRR(args[2])
 			}
 			var initReserve, _ = sdk.NewIntFromString(args[3])
 			var initVolume, _ = sdk.NewIntFromString(args[4])

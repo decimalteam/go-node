@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -64,11 +65,19 @@ const (
 
 var ErrInvalidLimitVolume = errors.New("invalid limitVolume")
 
-func ErrInvalidCRR() *sdkerrors.Error {
+func ErrInvalidCRR(crr string) *sdkerrors.Error {
+
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"desc": fmt.Sprintf("coin CRR must be between 10 and 100, crr is: %s", crr),
+			"crr":  crr,
+		},
+	)
+
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCRR,
-		"coin CRR must be between 10 and 100",
+		string(jsonData),
 	)
 }
 
@@ -112,11 +121,11 @@ func ErrRetrievedAnotherCoin(symbolWant, symbolRetrieved string) *sdkerrors.Erro
 	)
 }
 
-func ErrInvalidCoinTitle() *sdkerrors.Error {
+func ErrInvalidCoinTitle(title string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCoinTitle,
-		fmt.Sprintf("invalid coin title. Allowed up to %d bytes", maxCoinNameBytes),
+		fmt.Sprintf("invalid coin title: %s. Allowed up to %d bytes", title, maxCoinNameBytes),
 	)
 }
 
@@ -128,11 +137,11 @@ func ErrInvalidCoinInitialVolume(initialVolume string) *sdkerrors.Error {
 	)
 }
 
-func ErrInvalidCoinInitialReserve(ctx sdk.Context) *sdkerrors.Error {
+func ErrInvalidCoinInitialReserve(reserve string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCoinInitialReserve,
-		fmt.Sprintf("coin initial reserve should be greater than or equal to %s", MinCoinReserve(ctx).String()),
+		fmt.Sprintf("coin initial reserve should be greater than or equal to %s", reserve),
 	)
 }
 
