@@ -81,11 +81,11 @@ func ErrInvalidQuantity(quantity string) *sdkerrors.Error {
 	)
 }
 
-func ErrInvalidReserve() *sdkerrors.Error {
+func ErrInvalidReserve(reserve string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidReserve,
-		fmt.Sprintf("invalid NFT reserve"),
+		fmt.Sprintf("invalid NFT reserve: %s", reserve),
 	)
 }
 
@@ -105,18 +105,18 @@ func ErrNotAllowedMint() *sdkerrors.Error {
 	)
 }
 
-func ErrInvalidDenom() *sdkerrors.Error {
+func ErrInvalidDenom(denom string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidDenom,
-		fmt.Sprintf("invalid denom name"),
+		fmt.Sprintf("invalid denom name: %s", denom),
 	)
 }
 
-func ErrInvalidTokenID() *sdkerrors.Error {
+func ErrInvalidTokenID(name string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidTokenID,
-		fmt.Sprintf("invalid token name"),
+		fmt.Sprintf("invalid token name: %s", name),
 	)
 }

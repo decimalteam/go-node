@@ -61,13 +61,13 @@ func (msg MsgMintNFT) ValidateBasic() error {
 		return ErrInvalidQuantity(msg.Quantity.String())
 	}
 	if !msg.Reserve.IsPositive() || msg.Reserve.LT(minReserve) {
-		return ErrInvalidReserve()
+		return ErrInvalidReserve(msg.Reserve.String())
 	}
 	if match, _ := regexp.MatchString(regName, msg.Denom); !match {
-		return ErrInvalidDenom()
+		return ErrInvalidDenom(msg.Denom)
 	}
 	if match, _ := regexp.MatchString(regName, msg.ID); !match {
-		return ErrInvalidTokenID()
+		return ErrInvalidTokenID(msg.ID)
 	}
 
 	return nil
