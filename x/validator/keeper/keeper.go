@@ -2,12 +2,12 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/auth"
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"bitbucket.org/decimalteam/go-node/x/coin"
@@ -24,8 +24,8 @@ type Keeper struct {
 	cdc              *codec.LegacyAmino
 	paramSpace       types.ParamSubspace
 	CoinKeeper       coin.Keeper
-	AccountKeeper    auth.AccountKeeper
-	supplyKeeper     supply.Keeper
+	AccountKeeper    authKeeper.AccountKeeper
+	baseKeeper       bankKeeper.BaseKeeper
 	multisigKeeper   multisig.Keeper
 	nftKeeper        nft.Keeper
 	hooks            types.ValidatorHooks
@@ -33,14 +33,24 @@ type Keeper struct {
 }
 
 // NewKeeper creates a validator keeper
-func NewKeeper(cdc *codec.LegacyAmino, key sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper, accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper, multisigKeeper multisig.Keeper, nftKeeper nft.Keeper, feeCollectorName string) Keeper {
+func NewKeeper(
+	cdc *codec.LegacyAmino,
+	key sdk.StoreKey,
+	paramSpace types.ParamSubspace,
+	coinKeeper coin.Keeper,
+	accountKeeper authKeeper.AccountKeeper,
+	baseKeeper bankKeeper.BaseKeeper,
+	multisigKeeper multisig.Keeper,
+	nftKeeper nft.Keeper,
+	feeCollectorName string,
+) Keeper {
 
 	// ensure bonded and not bonded module accounts are set
-	if addr := supplyKeeper.GetModuleAddress(types.BondedPoolName); addr == nil {
+	if addr := accountKeeper.GetModuleAddress(types.BondedPoolName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.BondedPoolName))
 	}
 
-	if addr := supplyKeeper.GetModuleAddress(types.NotBondedPoolName); addr == nil {
+	if addr := accountKeeper.GetModuleAddress(types.NotBondedPoolName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.NotBondedPoolName))
 	}
 
@@ -50,7 +60,7 @@ func NewKeeper(cdc *codec.LegacyAmino, key sdk.StoreKey, paramSpace types.ParamS
 		paramSpace:       paramSpace.WithKeyTable(ParamKeyTable()),
 		CoinKeeper:       coinKeeper,
 		AccountKeeper:    accountKeeper,
-		supplyKeeper:     supplyKeeper,
+		baseKeeper:       baseKeeper,
 		multisigKeeper:   multisigKeeper,
 		nftKeeper:        nftKeeper,
 		FeeCollectorName: feeCollectorName,

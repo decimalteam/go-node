@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gorilla/mux"
@@ -17,7 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/client/cli"
@@ -100,8 +101,8 @@ func (AppModuleBasic) PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeI
 // BuildCreateValidatorMsg - used for gen-tx
 func (AppModuleBasic) BuildCreateValidatorMsg(
 	cliCtx client.Context,
-	txBldr authtypes.TxBuilder,
-) (authtypes.TxBuilder, sdk.Msg, error) {
+	txBldr client.TxBuilder,
+) (client.TxBuilder, sdk.Msg, error) {
 	return cli.BuildCreateValidatorMsg(cliCtx, txBldr)
 }
 
@@ -109,17 +110,20 @@ func (AppModuleBasic) BuildCreateValidatorMsg(
 type AppModule struct {
 	AppModuleBasic
 
-	keeper       Keeper
-	supplyKeeper supply.Keeper
-	coinKeeper   coin.Keeper
+	keeper     Keeper
+	accKeeper  authKeeper.AccountKeeper
+	coinKeeper coin.Keeper
+	bankKeeper bankKeeper.BaseKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper, supplyKeeper supply.Keeper, coinKeeper coin.Keeper) AppModule {
+func NewAppModule(k Keeper, accKeeper authKeeper.AccountKeeper, bankKeeper bankKeeper.BaseKeeper, coinKeeper coin.Keeper) AppModule {
+
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
-		supplyKeeper:   supplyKeeper,
+		accKeeper:      accKeeper,
+		bankKeeper:     bankKeeper,
 		coinKeeper:     coinKeeper,
 	}
 }
@@ -167,7 +171,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	return InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
+	return InitGenesis(ctx, am.accKeeper, am.keeper, am.bankKeeper, genesisState)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the validator
@@ -185,5 +189,5 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 // EndBlock returns the end blocker for the validator module. It returns no validator
 // updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return EndBlocker(ctx, am.keeper, am.coinKeeper, am.supplyKeeper, true)
+	return EndBlocker(ctx, am.keeper, am.coinKeeper, am.accKeeper, am.bankKeeper, true)
 }

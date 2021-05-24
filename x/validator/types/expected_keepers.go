@@ -2,27 +2,29 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankExported "github.com/cosmos/cosmos-sdk/x/bank/exported"
+
+	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // ParamSubspace defines the expected Subspace interfacace
 type ParamSubspace interface {
-	WithKeyTable(table params.KeyTable) params.Subspace
+	WithKeyTable(table paramsTypes.KeyTable) paramsTypes.Subspace
 	Get(ctx sdk.Context, key []byte, ptr interface{})
-	GetParamSet(ctx sdk.Context, ps params.ParamSet)
-	SetParamSet(ctx sdk.Context, ps params.ParamSet)
+	GetParamSet(ctx sdk.Context, ps paramsTypes.ParamSet)
+	SetParamSet(ctx sdk.Context, ps paramsTypes.ParamSet)
 }
 
 // supplyKeeper defines the expected supply Keeper (noalias)
 type SupplyKeeper interface {
-	GetSupply(ctx sdk.Context) supplyexported.SupplyI
+	GetSupply(ctx sdk.Context) bankExported.SupplyI
 
 	GetModuleAddress(name string) sdk.AccAddress
-	GetModuleAccount(ctx sdk.Context, moduleName string) supplyexported.ModuleAccountI
+	GetModuleAccount(ctx sdk.Context, moduleName string) authTypes.ModuleAccountI
 
 	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
-	SetModuleAccount(sdk.Context, supplyexported.ModuleAccountI)
+	SetModuleAccount(sdk.Context, authTypes.ModuleAccountI)
 
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderPool, recipientPool string, amt sdk.Coins) error
 	UndelegateCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error

@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Staking params default values
@@ -44,7 +44,7 @@ var (
 	KeyMaxDelegations    = []byte("MaxDelegations")
 )
 
-var _ params.ParamSet = (*Params)(nil)
+var _ paramsTypes.ParamSet = (*Params)(nil)
 
 // Params defines the high level settings for staking
 type Params struct {
@@ -72,14 +72,14 @@ func NewParams(unbondingTime time.Duration, maxValidators, maxEntries, historica
 }
 
 // Implements params.ParamSet
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyUnbondingTime, &p.UnbondingTime, validateUnbondingTime),
-		params.NewParamSetPair(KeyMaxValidators, &p.MaxValidators, validateMaxValidators),
-		params.NewParamSetPair(KeyMaxEntries, &p.MaxEntries, validateMaxEntries),
-		params.NewParamSetPair(KeyHistoricalEntries, &p.HistoricalEntries, validateHistoricalEntries),
-		params.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
-		params.NewParamSetPair(KeyMaxDelegations, &p.MaxDelegations, validateMaxDelegations),
+func (p *Params) ParamSetPairs() paramsTypes.ParamSetPairs {
+	return paramsTypes.ParamSetPairs{
+		paramsTypes.NewParamSetPair(KeyUnbondingTime, &p.UnbondingTime, validateUnbondingTime),
+		paramsTypes.NewParamSetPair(KeyMaxValidators, &p.MaxValidators, validateMaxValidators),
+		paramsTypes.NewParamSetPair(KeyMaxEntries, &p.MaxEntries, validateMaxEntries),
+		paramsTypes.NewParamSetPair(KeyHistoricalEntries, &p.HistoricalEntries, validateHistoricalEntries),
+		paramsTypes.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
+		paramsTypes.NewParamSetPair(KeyMaxDelegations, &p.MaxDelegations, validateMaxDelegations),
 	}
 }
 
@@ -110,11 +110,11 @@ func (p Params) String() string {
 
 // unmarshal the current staking params value from store key or panic
 func MustUnmarshalParams(cdc *codec.LegacyAmino, value []byte) Params {
-	params, err := UnmarshalParams(cdc, value)
+	p, err := UnmarshalParams(cdc, value)
 	if err != nil {
 		panic(err)
 	}
-	return params
+	return p
 }
 
 // unmarshal the current staking params value from store key

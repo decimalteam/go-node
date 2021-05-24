@@ -6,9 +6,9 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 // BeginBlocker check for infraction evidence or downtime of validators
@@ -26,7 +26,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 	// who contributed to valid infractions
 	for _, evidence := range req.ByzantineValidators {
 		switch evidence.Type {
-		case tmtypes.ABCIEvidenceTypeDuplicateVote:
+		case abci.EvidenceType_DUPLICATE_VOTE:
 			k.HandleDoubleSign(ctx, evidence.Validator.Address, evidence.Height, evidence.Time, evidence.Validator.Power)
 		default:
 			k.Logger(ctx).Error(fmt.Sprintf("ignored unknown evidence type: %s", evidence.Type))
@@ -35,7 +35,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 }
 
 // EndBlocker called every block, process inflation, update validator set.
-func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, withRewards bool) []abci.ValidatorUpdate {
+func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, accKeeper keeper.AccountKeeper, bKeeper bankKeeper.BaseKeeper, withRewards bool) []abci.ValidatorUpdate {
 	// Calculate validator set changes.
 	//
 	// NOTE: ApplyAndReturnValidatorSetUpdates has to come before
@@ -83,8 +83,9 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		panic(err)
 	}
 
-	feeCollector := supplyKeeper.GetModuleAccount(ctx, k.FeeCollectorName)
-	feesCollectedInt := feeCollector.GetCoins()
+	feeCollector := accKeeper.GetModuleAccount(ctx, k.FeeCollectorName)
+
+	feesCollectedInt := bKeeper.GetAllBalances(ctx, feeCollector.GetAddress())
 	for _, fee := range feesCollectedInt {
 		if fee.Denom == k.BondDenom(ctx) {
 			rewards = rewards.Add(fee.Amount)
@@ -97,7 +98,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 			rewards = rewards.Add(feeInBaseCoin)
 		}
 	}
-	err = supplyKeeper.BurnCoins(ctx, k.FeeCollectorName, feesCollectedInt)
+	err = bKeeper.BurnCoins(ctx, k.FeeCollectorName, feesCollectedInt)
 	if err != nil {
 		panic(err)
 	}
@@ -127,7 +128,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		}
 	}
 
-	err = supplyKeeper.MintCoins(ctx, k.FeeCollectorName, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), remainder)))
+	err = bKeeper.MintCoins(ctx, k.FeeCollectorName, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), remainder)))
 	if err != nil {
 		panic(err)
 	}

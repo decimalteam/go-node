@@ -3,22 +3,22 @@ package keeper
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // GetBondedPool returns the bonded tokens pool's module account
-func (k Keeper) GetBondedPool(ctx sdk.Context) (bondedPool exported.ModuleAccountI) {
-	return k.supplyKeeper.GetModuleAccount(ctx, types.BondedPoolName)
+func (k Keeper) GetBondedPool(ctx sdk.Context) (bondedPool authTypes.ModuleAccountI) {
+	return k.AccountKeeper.GetModuleAccount(ctx, types.BondedPoolName)
 }
 
 // GetNotBondedPool returns the not bonded tokens pool's module account
-func (k Keeper) GetNotBondedPool(ctx sdk.Context) (notBondedPool exported.ModuleAccountI) {
-	return k.supplyKeeper.GetModuleAccount(ctx, types.NotBondedPoolName)
+func (k Keeper) GetNotBondedPool(ctx sdk.Context) (notBondedPool authTypes.ModuleAccountI) {
+	return k.AccountKeeper.GetModuleAccount(ctx, types.NotBondedPoolName)
 }
 
 // bondedTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
 func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, coins sdk.Coins) {
-	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.BondedPoolName, types.NotBondedPoolName, coins)
+	err := k.baseKeeper.SendCoinsFromModuleToModule(ctx, types.BondedPoolName, types.NotBondedPoolName, coins)
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +26,7 @@ func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, coins sdk.Coins) {
 
 // notBondedTokensToBonded transfers coins from the not bonded to the bonded pool within staking
 func (k Keeper) notBondedTokensToBonded(ctx sdk.Context, coins sdk.Coins) {
-	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.NotBondedPoolName, types.BondedPoolName, coins)
+	err := k.baseKeeper.SendCoinsFromModuleToModule(ctx, types.NotBondedPoolName, types.BondedPoolName, coins)
 	if err != nil {
 		panic(err)
 	}
@@ -41,7 +41,7 @@ func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	err := k.supplyKeeper.BurnCoins(ctx, types.BondedPoolName, coinsBurn)
+	err := k.baseKeeper.BurnCoins(ctx, types.BondedPoolName, coinsBurn)
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (k Keeper) burnNotBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	err := k.supplyKeeper.BurnCoins(ctx, types.NotBondedPoolName, coinsBurn)
+	err := k.baseKeeper.BurnCoins(ctx, types.NotBondedPoolName, coinsBurn)
 	if err != nil {
 		return err
 	}
@@ -67,12 +67,13 @@ func (k Keeper) burnNotBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 // TotalBondedTokens total staking tokens supply which is bonded
 func (k Keeper) TotalBondedTokens(ctx sdk.Context) sdk.Int {
 	bondedPool := k.GetBondedPool(ctx)
-	return bondedPool.GetCoins().AmountOf(k.BondDenom(ctx))
+
+	return k.baseKeeper.GetAllBalances(ctx, bondedPool.GetAddress()).AmountOf(k.BondDenom(ctx))
 }
 
 // StakingTokenSupply staking tokens from the total supply
 func (k Keeper) StakingTokenSupply(ctx sdk.Context) sdk.Int {
-	return k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(k.BondDenom(ctx))
+	return k.baseKeeper.GetSupply(ctx).GetTotal().AmountOf(k.BondDenom(ctx))
 }
 
 // BondedRatio the fraction of the staking tokens which are currently bonded
@@ -81,7 +82,8 @@ func (k Keeper) BondedRatio(ctx sdk.Context) sdk.Dec {
 
 	stakeSupply := k.StakingTokenSupply(ctx)
 	if stakeSupply.IsPositive() {
-		return bondedPool.GetCoins().AmountOf(k.BondDenom(ctx)).ToDec().QuoInt(stakeSupply)
+
+		return k.baseKeeper.GetAllBalances(ctx, bondedPool.GetAddress()).AmountOf(k.BondDenom(ctx)).ToDec().QuoInt(stakeSupply)
 	}
 	return sdk.ZeroDec()
 }

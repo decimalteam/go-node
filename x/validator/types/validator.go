@@ -104,7 +104,7 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 		RewardAddress:           v.RewardAddress,
 		Online:                  v.Online,
 		AccumRewards:            v.AccumRewards,
-	})
+	}), nil
 }
 
 // UnmarshalJSON unmarshals the validator from JSON using Bech32

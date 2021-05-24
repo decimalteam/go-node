@@ -3,12 +3,12 @@ package cli
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -26,7 +26,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	validatorQueryCmd.AddCommand(flags.GetCommands(
+	validatorQueryCmd.AddCommand(
 		GetCmdQueryDelegation(queryRoute, cdc),
 		GetCmdQueryDelegations(queryRoute, cdc),
 		GetCmdQueryUnbondingDelegation(queryRoute, cdc),
@@ -36,7 +36,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 		GetCmdQueryValidatorDelegations(queryRoute, cdc),
 		GetCmdQueryValidatorUnbondingDelegations(queryRoute, cdc),
 		GetCmdQueryParams(queryRoute, cdc),
-		GetCmdQueryPool(queryRoute, cdc))...)
+		GetCmdQueryPool(queryRoute, cdc))
 
 	return validatorQueryCmd
 
@@ -44,7 +44,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 
 // GetCmdQueryValidator implements the validator query command.
 func GetCmdQueryValidator(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "validator [validator-addr]",
 		Short: "Query a validator",
 		Long: strings.TrimSpace(
@@ -53,19 +53,19 @@ func GetCmdQueryValidator(storeName string, cdc *codec.LegacyAmino) *cobra.Comma
 Example:
 $ %s query validator validator dxvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			addr, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 
-			res, _, err := cliCtx.QueryStore(types.GetValidatorKey(addr), storeName)
+			res, _, err := clientCtx.QueryStore(types.GetValidatorKey(addr), storeName)
 			if err != nil {
 				return err
 			}
@@ -78,14 +78,18 @@ $ %s query validator validator dxvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
 			if err != nil {
 				return err
 			}
-			return cliCtx.PrintOutput(validator)
+			return clientCtx.PrintObjectLegacy(validator)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryValidators implements the query all validators command.
 func GetCmdQueryValidators(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "validators",
 		Short: "Query for all validators",
 		Args:  cobra.NoArgs,
@@ -95,13 +99,13 @@ func GetCmdQueryValidators(storeName string, cdc *codec.LegacyAmino) *cobra.Comm
 Example:
 $ %s query validator validators
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			resKVs, _, err := cliCtx.QuerySubspace([]byte{types.ValidatorsKey}, storeName)
+			resKVs, _, err := clientCtx.QuerySubspace([]byte{types.ValidatorsKey}, storeName)
 			if err != nil {
 				return err
 			}
@@ -115,14 +119,18 @@ $ %s query validator validators
 				validators = append(validators, validator)
 			}
 
-			return cliCtx.PrintOutput(validators)
+			return clientCtx.PrintObjectLegacy(validators)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryValidatorUnbondingDelegations implements the query all unbonding delegatations from a validator command.
 func GetCmdQueryValidatorUnbondingDelegations(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "unbonding-delegations-from [validator-addr]",
 		Short: "Query all unbonding delegatations from a validator",
 		Long: strings.TrimSpace(
@@ -131,12 +139,12 @@ func GetCmdQueryValidatorUnbondingDelegations(queryRoute string, cdc *codec.Lega
 Example:
 $ %s query validator unbonding-delegations-from cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			valAddr, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
@@ -149,21 +157,25 @@ $ %s query validator unbonding-delegations-from cosmosvaloper1gghjut3ccd8ay0zduz
 			}
 
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryValidatorUnbondingDelegations)
-			res, _, err := cliCtx.QueryWithData(route, bz)
+			res, _, err := clientCtx.QueryWithData(route, bz)
 			if err != nil {
 				return err
 			}
 
 			var ubds types.UnbondingDelegations
 			cdc.MustUnmarshalJSON(res, &ubds)
-			return cliCtx.PrintOutput(ubds)
+			return clientCtx.PrintObjectLegacy(ubds)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryDelegation the query delegation command.
 func GetCmdQueryDelegation(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "delegation [delegator-addr] [validator-addr] [coin]",
 		Short: "Query a delegation based on address and validator address",
 		Long: strings.TrimSpace(
@@ -172,12 +184,12 @@ func GetCmdQueryDelegation(queryRoute string, cdc *codec.LegacyAmino) *cobra.Com
 Example:
 $ %s query validator delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			delAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -197,7 +209,7 @@ $ %s query validator delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p co
 			}
 
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryDelegation)
-			res, _, err := cliCtx.QueryWithData(route, bz)
+			res, _, err := clientCtx.QueryWithData(route, bz)
 			if err != nil {
 				return err
 			}
@@ -207,15 +219,19 @@ $ %s query validator delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p co
 				return err
 			}
 
-			return cliCtx.PrintOutput(resp)
+			return clientCtx.PrintObjectLegacy(resp)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryDelegations implements the command to query all the delegations
 // made from one delegator.
 func GetCmdQueryDelegations(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "delegations [delegator-addr]",
 		Short: "Query all delegations made by one delegator",
 		Long: strings.TrimSpace(
@@ -224,12 +240,12 @@ func GetCmdQueryDelegations(queryRoute string, cdc *codec.LegacyAmino) *cobra.Co
 Example:
 $ %s query validator delegations cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			delAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -242,7 +258,7 @@ $ %s query validator delegations cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 			}
 
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryDelegatorDelegations)
-			res, _, err := cliCtx.QueryWithData(route, bz)
+			res, _, err := clientCtx.QueryWithData(route, bz)
 			if err != nil {
 				return err
 			}
@@ -252,15 +268,19 @@ $ %s query validator delegations cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 				return err
 			}
 
-			return cliCtx.PrintOutput(resp)
+			return clientCtx.PrintObjectLegacy(resp)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryValidatorDelegations implements the command to query all the
 // delegations to a specific validator.
 func GetCmdQueryValidatorDelegations(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "delegations-to [validator-addr]",
 		Short: "Query all delegations made to one validator",
 		Long: strings.TrimSpace(
@@ -269,12 +289,12 @@ func GetCmdQueryValidatorDelegations(queryRoute string, cdc *codec.LegacyAmino) 
 Example:
 $ %s query validator delegations-to cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			valAddr, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
@@ -287,7 +307,7 @@ $ %s query validator delegations-to cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9
 			}
 
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryValidatorDelegations)
-			res, _, err := cliCtx.QueryWithData(route, bz)
+			res, _, err := clientCtx.QueryWithData(route, bz)
 			if err != nil {
 				return err
 			}
@@ -297,15 +317,19 @@ $ %s query validator delegations-to cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9
 				return err
 			}
 
-			return cliCtx.PrintOutput(resp)
+			return clientCtx.PrintObjectLegacy(resp)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryUnbondingDelegation implements the command to query a single
 // unbonding-delegation record.
 func GetCmdQueryUnbondingDelegation(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "unbonding-delegation [delegator-addr] [validator-addr]",
 		Short: "Query an unbonding-delegation record based on delegator and validator address",
 		Long: strings.TrimSpace(
@@ -314,12 +338,12 @@ func GetCmdQueryUnbondingDelegation(queryRoute string, cdc *codec.LegacyAmino) *
 Example:
 $ %s query validator unbonding-delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			valAddr, err := sdk.ValAddressFromBech32(args[1])
 			if err != nil {
@@ -337,20 +361,24 @@ $ %s query validator unbonding-delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9l
 			}
 
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryUnbondingDelegation)
-			res, _, err := cliCtx.QueryWithData(route, bz)
+			res, _, err := clientCtx.QueryWithData(route, bz)
 			if err != nil {
 				return err
 			}
 
-			return cliCtx.PrintOutput(types.MustUnmarshalUBD(cdc, res))
+			return clientCtx.PrintObjectLegacy(types.MustUnmarshalUBD(cdc, res))
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryUnbondingDelegations implements the command to query all the
 // unbonding-delegation records for a delegator.
 func GetCmdQueryUnbondingDelegations(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "unbonding-delegations [delegator-addr]",
 		Short: "Query all unbonding-delegations records for one delegator",
 		Long: strings.TrimSpace(
@@ -359,12 +387,12 @@ func GetCmdQueryUnbondingDelegations(queryRoute string, cdc *codec.LegacyAmino) 
 Example:
 $ %s query validator unbonding-delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			delegatorAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -377,7 +405,7 @@ $ %s query validator unbonding-delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9l
 			}
 
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryDelegatorUnbondingDelegations)
-			res, _, err := cliCtx.QueryWithData(route, bz)
+			res, _, err := clientCtx.QueryWithData(route, bz)
 			if err != nil {
 				return err
 			}
@@ -387,14 +415,18 @@ $ %s query validator unbonding-delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9l
 				return err
 			}
 
-			return cliCtx.PrintOutput(ubds)
+			return clientCtx.PrintObjectLegacy(ubds)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryPool implements the pool query command.
 func GetCmdQueryPool(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "pool",
 		Args:  cobra.NoArgs,
 		Short: "Query the current validator pool values",
@@ -404,13 +436,13 @@ func GetCmdQueryPool(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 Example:
 $ %s query validator pool
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			bz, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/pool", storeName), nil)
+			bz, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/pool", storeName), nil)
 			if err != nil {
 				return err
 			}
@@ -420,14 +452,18 @@ $ %s query validator pool
 				return err
 			}
 
-			return cliCtx.PrintOutput(pool)
+			return clientCtx.PrintObjectLegacy(pool)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryParams implements the params query command.
 func GetCmdQueryParams(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "params",
 		Args:  cobra.NoArgs,
 		Short: "Query the current validator parameters information",
@@ -437,21 +473,25 @@ func GetCmdQueryParams(storeName string, cdc *codec.LegacyAmino) *cobra.Command 
 Example:
 $ %s query validator params
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			route := fmt.Sprintf("custom/%s/%s", storeName, types.QueryParameters)
-			bz, _, err := cliCtx.QueryWithData(route, nil)
+			bz, _, err := clientCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
 
 			var params types.Params
 			cdc.MustUnmarshalJSON(bz, &params)
-			return cliCtx.PrintOutput(params)
+			return clientCtx.PrintObjectLegacy(params)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }

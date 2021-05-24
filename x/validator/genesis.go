@@ -4,6 +4,8 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	"github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	"log"
@@ -14,9 +16,7 @@ import (
 // setting the indexes. In addition, it also sets any delegations found in
 // data. Finally, it updates the bonded validators.
 // Returns final validator set after applying all declaration and delegations
-func InitGenesis(ctx sdk.Context, keeper Keeper,
-	supplyKeeper types.SupplyKeeper, data GenesisState) []abci.ValidatorUpdate {
-
+func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Keeper, bankKeeper keeper.BaseKeeper, data GenesisState) []abci.ValidatorUpdate {
 	var updates []abci.ValidatorUpdate
 	bondedTokens := sdk.NewCoins()
 	notBondedTokens := sdk.NewCoins()
@@ -104,11 +104,14 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 
 	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
 	// add coins if not provided on genesis
-	if bondedPool.GetCoins().IsZero() {
-		if err := bondedPool.SetCoins(bondedTokens); err != nil {
+
+	addr := bondedPool.GetAddress()
+
+	if bankKeeper.GetAllBalances(ctx, addr).IsZero() {
+		if err := bankKeeper.SetBalances(ctx, addr, bondedTokens); err != nil {
 			panic(err)
 		}
-		supplyKeeper.SetModuleAccount(ctx, bondedPool)
+		accKeeper.SetModuleAccount(ctx, bondedPool)
 	}
 
 	notBondedPool := keeper.GetNotBondedPool(ctx)
@@ -116,11 +119,12 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 		panic(fmt.Sprintf("%s module account has not been set", types.NotBondedPoolName))
 	}
 
-	if notBondedPool.GetCoins().IsZero() {
-		if err := notBondedPool.SetCoins(notBondedTokens); err != nil {
+	if bankKeeper.GetAllBalances(ctx, addr).IsZero() {
+		if err := bankKeeper.SetBalances(ctx, addr, notBondedTokens); err != nil {
 			panic(err)
 		}
-		supplyKeeper.SetModuleAccount(ctx, notBondedPool)
+
+		accKeeper.SetModuleAccount(ctx, notBondedPool)
 	}
 
 	// don't need to run Tendermint updates if we exported

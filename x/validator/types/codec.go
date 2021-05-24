@@ -5,21 +5,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // RegisterLegacyAminoCodec registers concrete types on codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-
-	// RegisterInterface(protoName string, iface interface{}, impls ...proto.Message)
-
-	// RegisterImplementations registers impls as concrete implementations of
-	// the interface iface.
-	//
-	// Ex:
-	//  registry.RegisterImplementations((*sdk.Msg)(nil), &MsgSend{}, &MsgMultiSend{})
-	// RegisterImplementations(iface interface{}, impls ...proto.Message)
-
-
 	cdc.RegisterConcrete(MsgDeclareCandidate{}, "validator/declare_candidate", nil)
 	cdc.RegisterConcrete(MsgDelegate{}, "validator/delegate", nil)
 	cdc.RegisterConcrete(MsgDelegateNFT{}, "validator/delegate_nft", nil)
@@ -36,18 +26,19 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(UnbondingDelegationNFTEntry{}, "validator/unbonding_delegation_nft_entry", nil)
 }
 
-// ModuleCdc defines the module codec
-var ModuleCdc *codec.ProtoCodec
-
-type registry struct {
-
+func RegisterInterfaces(registry types.InterfaceRegistry) {
+	registry.RegisterImplementations((*sdk.Msg)(nil), &struct{}{})
 }
 
-func (registry)
+// ModuleCdc defines the module codec
+var (
+	amino = codec.NewLegacyAmino()
+
+	ModuleCdc = codec.NewAminoCodec(amino)
+)
 
 func init() {
-	ModuleCdc = codec.NewProtoCodec()
-	RegisterLegacyAminoCodec(ModuleCdc)
-	codec2.RegisterCrypto(ModuleCdc)
-	ModuleCdc.Seal()
+	RegisterLegacyAminoCodec(amino)
+	codec2.RegisterCrypto(amino)
+	amino.Seal()
 }

@@ -102,8 +102,7 @@ type newApp struct {
 
 	// Keepers
 	accountKeeper    authKeeper.AccountKeeper
-	bankKeeper       bankKeeper.Keeper
-	supplyKeeper     authKeeper.AccountKeeper
+	bankKeeper       bankKeeper.BaseKeeper
 	paramsKeeper     paramsKeeper.Keeper
 	coinKeeper       coin.Keeper
 	multisigKeeper   multisig.Keeper
@@ -254,7 +253,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		capability.NewAppModule(*app.cdc, app.capabilityKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
-		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
+		validator.NewAppModule(app.validatorKeeper, app.accountKeeper, app.bankKeeper, app.coinKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		swap.NewAppModule(app.swapKeeper),
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),

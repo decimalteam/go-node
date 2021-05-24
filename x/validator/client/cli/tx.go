@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	tx "github.com/cosmos/cosmos-sdk/client/tx"
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -10,14 +11,11 @@ import (
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto"
 
+	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-
-	"bitbucket.org/decimalteam/go-node/x/validator/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -30,7 +28,7 @@ func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	validatorTxCmd.AddCommand(flags.PostCommands(
+	validatorTxCmd.AddCommand(
 		GetCmdDeclareCandidate(cdc),
 		GetDelegate(cdc),
 		GetDelegateNFT(cdc),
@@ -39,7 +37,7 @@ func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 		GetSetOffline(cdc),
 		GetUnbond(cdc),
 		GetEditCandidate(cdc),
-	)...)
+	)
 
 	return validatorTxCmd
 }
@@ -51,12 +49,11 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:   "declare [pub_key] [coin] [commission] --from name/address",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			valAddress := cliCtx.GetFromAddress()
+			valAddress := clientCtx.GetFromAddress()
 
-			stake, err := sdk.ParseCoin(args[1])
+			stake, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -87,7 +84,7 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
 		},
 	}
 
@@ -103,6 +100,8 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd.MarkFlagRequired(FlagAmount)
 	cmd.MarkFlagRequired(FlagPubKey)
 	cmd.MarkFlagRequired(FlagMoniker)
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -166,14 +165,14 @@ func PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string
 }
 
 // BuildCreateValidatorMsg makes a new MsgCreateValidator.
-func BuildCreateValidatorMsg(cliCtx client.Context, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
+func BuildCreateValidatorMsg(clientCtx client.Context, txBldr client.TxBuilder) (client.TxBuilder, sdk.Msg, error) {
 	amounstStr := viper.GetString(FlagAmount)
-	amount, err := sdk.ParseCoin(amounstStr)
+	amount, err := sdk.ParseCoinNormalized(amounstStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
 
-	valAddr := cliCtx.GetFromAddress()
+	valAddr := clientCtx.GetFromAddress()
 	rewardAddr := valAddr
 	rewardAddrStr := viper.GetString(FlagRewardAddress)
 	if len(rewardAddrStr) > 0 {
@@ -218,17 +217,16 @@ func BuildCreateValidatorMsg(cliCtx client.Context, txBldr auth.TxBuilder) (auth
 
 // GetDelegate .
 func GetDelegate(cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Short: "Delegate coins",
 		Use:   "delegate [validator_address] [coin] --from name/address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			delAddress := cliCtx.GetFromAddress()
+			delAddress := clientCtx.GetFromAddress()
 
-			coin, err := sdk.ParseCoin(args[1])
+			coin, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -239,21 +237,24 @@ func GetDelegate(cdc *codec.LegacyAmino) *cobra.Command {
 			}
 
 			msg := types.NewMsgDelegate(valAddress, delAddress, coin)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 func GetDelegateNFT(cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Short: "Delegate NFT",
 		Use:   "delegate-nft [validator_address] [tokenID] [denom] [quantity] --from name/address",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			delAddress := cliCtx.GetFromAddress()
+			delAddress := clientCtx.GetFromAddress()
 
 			quantity, ok := sdk.NewIntFromString(args[3])
 			if !ok {
@@ -269,9 +270,13 @@ func GetDelegateNFT(cdc *codec.LegacyAmino) *cobra.Command {
 			denom := args[2]
 
 			msg := types.NewMsgDelegateNFT(valAddress, delAddress, tokenID, denom, quantity)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetSetOnline .
@@ -281,13 +286,12 @@ func GetSetOnline(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:   "set-online --from name/address",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			valAddress := cliCtx.GetFromAddress()
+			valAddress := clientCtx.GetFromAddress()
 
 			msg := types.NewMsgSetOnline(sdk.ValAddress(valAddress))
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
 		},
 	}
 }
@@ -299,61 +303,62 @@ func GetSetOffline(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:   "set-offline --from name/address",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			valAddress := cliCtx.GetFromAddress()
+			valAddress := clientCtx.GetFromAddress()
 
 			msg := types.NewMsgSetOffline(sdk.ValAddress(valAddress))
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
 		},
 	}
 }
 
 // GetUnbond .
 func GetUnbond(cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Short: "Unbond delegation",
 		Use:   "unbond [validator-address] [coin] --from name/address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			valAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 
-			delAddress := cliCtx.GetFromAddress()
+			delAddress := clientCtx.GetFromAddress()
 
-			coin, err := sdk.ParseCoin(args[1])
+			coin, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {
 				return err
 			}
 
 			msg := types.NewMsgUnbond(valAddress, delAddress, coin)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetUnbondNFT .
 func GetUnbondNFT(cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Short: "Unbond-nft delegation",
 		Use:   "unbond-nft [validator-address] [tokenID] [denom] [quantity] --from name/address",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			valAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 
-			delAddress := cliCtx.GetFromAddress()
+			delAddress := clientCtx.GetFromAddress()
 
 			quantity, ok := sdk.NewIntFromString(args[3])
 			if !ok {
@@ -364,9 +369,13 @@ func GetUnbondNFT(cdc *codec.LegacyAmino) *cobra.Command {
 			denom := args[2]
 
 			msg := types.NewMsgUnbondNFT(valAddress, delAddress, tokenID, denom, quantity)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetEditCandidate .
@@ -376,8 +385,7 @@ func GetEditCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:   "edit-candidate [validator-address] [reward-address]",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			valAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
@@ -398,12 +406,13 @@ func GetEditCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 			)
 
 			msg := types.NewMsgEditCandidate(valAddress, rewardAddress, description)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
 		},
 	}
 
 	cmd.Flags().AddFlagSet(FsDescriptionEdit)
 	cmd.Flags().AddFlagSet(FsCommissionUpdate)
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }

@@ -3,22 +3,23 @@ package rest
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"bytes"
+	"net/http"
+
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
-func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
+func registerTxRoutes(clientCtx client.Context, r *mux.Router) {
 	r.HandleFunc(
 		"/validator/delegators/{delegatorAddr}/delegations",
-		postDelegationsHandlerFn(cliCtx),
+		postDelegationsHandlerFn(clientCtx),
 	).Methods("POST")
 	r.HandleFunc(
 		"/validator/delegators/{delegatorAddr}/unbonding_delegations",
-		postUnbondingDelegationsHandlerFn(cliCtx),
+		postUnbondingDelegationsHandlerFn(clientCtx),
 	).Methods("POST")
 }
 
@@ -40,11 +41,11 @@ type (
 	}
 )
 
-func postDelegationsHandlerFn(cliCtx client.Context) http.HandlerFunc {
+func postDelegationsHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req DelegateRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
+		if !rest.ReadRESTReq(w, r, clientCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -70,15 +71,15 @@ func postDelegationsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(clientCtx, w, req.BaseReq, []sdk.Msg{msg})
 	}
 }
 
-func postUnbondingDelegationsHandlerFn(cliCtx client.Context) http.HandlerFunc {
+func postUnbondingDelegationsHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req UndelegateRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
+		if !rest.ReadRESTReq(w, r, clientCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -104,6 +105,6 @@ func postUnbondingDelegationsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(clientCtx, w, req.BaseReq, []sdk.Msg{msg})
 	}
 }

@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"time"
 
+	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Default parameter namespace
@@ -14,8 +14,8 @@ const (
 )
 
 // ParamTable for staking module
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&types.Params{})
+func ParamKeyTable() paramsTypes.KeyTable {
+	return paramsTypes.NewKeyTable().RegisterParamSet(&types.Params{})
 }
 
 // UnbondingTime

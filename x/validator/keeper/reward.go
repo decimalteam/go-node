@@ -40,7 +40,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		}
 
 		daoVal := rewards.ToDec().Mul(DAOCommission).TruncateInt()
-		_, err = k.CoinKeeper.BankKeeper.AddCoins(ctx, daoWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), daoVal)))
+		err = k.CoinKeeper.BankKeeper.AddCoins(ctx, daoWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), daoVal)))
 		if err != nil {
 			return err
 		}
@@ -55,7 +55,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		)
 
 		developVal := rewards.ToDec().Mul(DevelopCommission).TruncateInt()
-		_, err = k.CoinKeeper.BankKeeper.AddCoins(ctx, developWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), developVal)))
+		err = k.CoinKeeper.BankKeeper.AddCoins(ctx, developWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), developVal)))
 		if err != nil {
 			return err
 		}
