@@ -22,7 +22,6 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(7),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 			// Parsing parameters to variables
 			var title = args[0]
