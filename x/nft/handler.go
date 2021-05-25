@@ -42,11 +42,10 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types.MsgTransferNFT, k keeper.Ke
 		return nil, err
 	}
 
-	nft, err = types.TransferNFT(nft, msg.Sender, msg.Recipient, msg.Quantity)
+	nft, err = types.TransferNFT(nft, msg.Sender, msg.Recipient, sdk.NewInt(1))
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(nft)
 
 	collection, found := k.GetCollection(ctx, msg.Denom)
 	if !found {
@@ -145,8 +144,8 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 		return nil, ErrNotAllowedBurn
 	}
 
-	// remove  NFT
-	err = k.DeleteNFT(ctx, msg.Denom, msg.ID, msg.Quantity)
+	// remove NFT
+	err = k.DeleteNFT(ctx, msg.Denom, msg.ID, sdk.NewInt(1))
 	if err != nil {
 		return nil, err
 	}
