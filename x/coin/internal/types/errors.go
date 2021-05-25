@@ -462,7 +462,7 @@ func ErrInvalidAmount() *sdkerrors.Error {
 func ErrInvalidCheck(data string) *sdkerrors.Error {
 	jsonData, _ := json.Marshal(
 		map[string]string{
-			"code":      getCodeString(CodeInvalidAmount),
+			"code":      getCodeString(CodeInvalidCheck),
 			"codespace": DefaultCodespace,
 			"desc":      fmt.Sprintf("amount should be greater than 0"),
 		},
@@ -477,7 +477,7 @@ func ErrInvalidCheck(data string) *sdkerrors.Error {
 func ErrInvalidProof(error string) *sdkerrors.Error {
 	jsonData, _ := json.Marshal(
 		map[string]string{
-			"code":      getCodeString(CodeInvalidAmount),
+			"code":      getCodeString(CodeInvalidProof),
 			"codespace": DefaultCodespace,
 			"desc":      fmt.Sprintf("provided proof is invalid %s", error),
 			"error":     error,
@@ -490,125 +490,245 @@ func ErrInvalidProof(error string) *sdkerrors.Error {
 	)
 }
 
-func ErrInvalidPassphrase(data string) *sdkerrors.Error {
+func ErrInvalidPassphrase(error string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeInvalidAmount),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("unable to create private key from passphrase: %s", error),
+			"error":     error,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidPassphrase,
-		fmt.Sprintf("unable to create private key from passphrase: %s", data),
+		string(jsonData),
 	)
 }
 
 func ErrInvalidChainID(wanted string, issued string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeInvalidChainID),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("wanted chain ID %s, but check is issued for chain with ID %s", wanted, issued),
+			"wanted":    wanted,
+			"issued":    issued,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidChainID,
-		fmt.Sprintf("wanted chain ID %s, but check is issued for chain with ID %s", wanted, issued),
+		string(jsonData),
 	)
 }
 
 func ErrInvalidNonce() *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeInvalidNonce),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("nonce is too big (should be up to 16 bytes)"),
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidNonce,
-		fmt.Sprintf("nonce is too big (should be up to 16 bytes)"),
+		string(jsonData),
 	)
 }
 
-func ErrCheckExpired(date uint64) *sdkerrors.Error {
+func ErrCheckExpired(block uint64) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeCheckExpired),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("check was expired at block %d", block),
+			"block":     strconv.FormatInt(int64(block), 10),
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeCheckExpired,
-		fmt.Sprintf("check was expired at block %s", date),
+		string(jsonData),
 	)
 }
 
 func ErrCheckRedeemed() *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeCheckRedeemed),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("check was redeemed already"),
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeCheckRedeemed,
-		fmt.Sprintf("check was redeemed already"),
+		string(jsonData),
 	)
 }
 
-func ErrUnableDecodeCheck() *sdkerrors.Error {
+func ErrUnableDecodeCheck(check string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeUnableDecodeCheck),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("unable to decode check from base58 %s", check),
+			"check":     check,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableDecodeCheck,
-		fmt.Sprintf("unable to decode check from base58"),
+		string(jsonData),
 	)
 }
 
-func ErrUnableRPLEncodeCheck(err string) *sdkerrors.Error {
+func ErrUnableRPLEncodeCheck(error string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeUnableRPLEncodeCheck),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("unable to RLP encode check receiver address: %s", error),
+			"error":     error,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableRPLEncodeCheck,
-		fmt.Sprintf("unable to RLP encode check receiver address: %s", err),
+		string(jsonData),
 	)
 }
 
-func ErrUnableSignCheck(err string) *sdkerrors.Error {
+func ErrUnableSignCheck(error string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeUnableSignCheck),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("unable to sign check receiver address by private key generated from passphrase: %s", error),
+			"error":     error,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableSignCheck,
-		fmt.Sprintf("unable to sign check receiver address by private key generated from passphrase: %s", err),
+		string(jsonData),
 	)
 }
 
 func ErrUnableDecodeProof() *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeUnableDecodeProof),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("unable to decode proof from base64"),
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableDecodeProof,
-		fmt.Sprintf("unable to decode proof from base64"),
+		string(jsonData),
 	)
 }
 
-func ErrUnableRecoverAddress(err string) *sdkerrors.Error {
+func ErrUnableRecoverAddress(error string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeUnableRecoverAddress),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("unable to recover check issuer address: %s", error),
+			"error":     error,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableRecoverAddress,
-		fmt.Sprintf("unable to recover check issuer address: %s", err),
+		string(jsonData),
 	)
 }
 
-func ErrUnableRecoverLockPkey(err string) *sdkerrors.Error {
+func ErrUnableRecoverLockPkey(error string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeUnableRecoverLockPkey),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("unable to recover lock public key from check: %s", error),
+			"error":     error,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableRecoverLockPkey,
-		fmt.Sprintf("unable to recover lock public key from check: %s", err),
+		string(jsonData),
 	)
 }
 
 // AccountKeys Errors
 
 func ErrInvalidPkey() *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeInvalidPkey),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("invalid private key"),
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidPkey,
-		fmt.Sprintf("invalid private key"),
+		string(jsonData),
 	)
 }
 
-func ErrUnableRetriveArmoredPkey(name string, err string) *sdkerrors.Error {
+func ErrUnableRetriveArmoredPkey(name string, error string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeUnableRetriveArmoredPkey),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("unable to retrieve armored private key for account %s: %s", name, error),
+			"name":      name,
+			"error":     error,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableRetriveArmoredPkey,
-		fmt.Sprintf("unable to retrieve armored private key for account %s: %s", name, err),
+		string(jsonData),
 	)
 }
 
-func ErrUnableRetrivePkey(name string, err string) *sdkerrors.Error {
+func ErrUnableRetrivePkey(name string, error string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeUnableRetrivePkey),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("unable to retrieve private key for account %s: %s", name, error),
+			"name":      name,
+			"error":     error,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableRetrivePkey,
-		fmt.Sprintf("unable to retrieve private key for account %s: %s", name, err),
+		string(jsonData),
 	)
 }
 
 func ErrUnableRetriveSECPPkey(name string, algo string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeUnableRetriveSECPPkey),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", name, algo),
+			"name":      name,
+			"algo":      algo,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableRetriveSECPPkey,
-		fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", name, algo),
+		string(jsonData),
 	)
 }
 

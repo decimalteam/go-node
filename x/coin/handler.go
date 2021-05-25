@@ -452,7 +452,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Decode provided check from base58 format to raw bytes
 	checkBytes := base58.Decode(msg.Check)
 	if len(checkBytes) == 0 {
-		return nil, types.ErrUnableDecodeCheck()
+		return nil, types.ErrUnableDecodeCheck(msg.Check)
 	}
 
 	// Parse provided check from raw bytes to ensure it is valid
