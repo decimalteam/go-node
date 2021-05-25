@@ -1,15 +1,14 @@
 package nft_test
 
-/*
 import (
-
-	"fmt"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	simapp "bitbucket.org/decimalteam/go-node/x/nft/app"
 	"bitbucket.org/decimalteam/go-node/x/nft"
+	"fmt"
+	"testing"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
@@ -28,13 +27,12 @@ var (
 	tokenURI2 = "https://google.com/token-2.json"
 )
 
-func createTestApp(isCheckTx bool) (*simapp.SimApp, sdk.Context) {
-	app := simapp.Setup(isCheckTx)
-	ctx := app.BaseApp.NewContext(isCheckTx, abci.Header{})
+func createTestApp(t *testing.T, isCheckTx bool) (sdk.Context, *codec.Codec, keeper.Keeper) {
+	ctx, nftKeeper := keeper.CreateTestInput(t, isCheckTx, 0)
 
-	return app, ctx
+	return ctx, types.MakeTestCodec(), nftKeeper
 }
-/*
+
 // CheckInvariants checks the invariants
 func CheckInvariants(k nft.Keeper, ctx sdk.Context) bool {
 	collectionsSupply := make(map[string]int)
@@ -60,4 +58,3 @@ func CheckInvariants(k nft.Keeper, ctx sdk.Context) bool {
 	}
 	return true
 }
-*/
