@@ -49,7 +49,7 @@ func (msg MsgSubmitProposal) ValidateBasic() error {
 	}
 
 	if msg.VotingStartBlock >= msg.VotingEndBlock {
-		return ErrInvalidStartEndBlocks()
+		return ErrInvalidStartEndBlocks(msg.VotingStartBlock, msg.VotingEndBlock)
 	}
 
 	if msg.VotingEndBlock-msg.VotingStartBlock > 1296000 {
