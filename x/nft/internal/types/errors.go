@@ -1,8 +1,10 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"strconv"
 )
 
 type CodeType = uint32
@@ -26,97 +28,193 @@ const (
 )
 
 func ErrInvalidCollection(denom string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeInvalidCollection),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("invalid NFT collection: %s", denom),
+			"denom":     denom,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCollection,
-		fmt.Sprintf("invalid NFT collection: %s", denom),
+		string(jsonData),
 	)
 }
 
 func ErrUnknownCollection(denom string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeUnknownCollection),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("unknown NFT collection: %s", denom),
+			"denom":     denom,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnknownCollection,
-		fmt.Sprintf("unknown NFT collection: %s", denom),
+		string(jsonData),
 	)
 }
 
 func ErrInvalidNFT() *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeInvalidNFT),
+			"codespace": DefaultCodespace,
+			"desc":      "invalid NFT",
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidNFT,
-		fmt.Sprintf("invalid NFT"),
+		string(jsonData),
 	)
 }
 
 func ErrUnknownNFT(denom string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeUnknownNFT),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("unknown NFT: %s", denom),
+			"denom":     denom,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnknownNFT,
-		fmt.Sprintf("unknown NFT: %s", denom),
+		string(jsonData),
 	)
 }
 
 func ErrNFTAlreadyExists() *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeNFTAlreadyExists),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("NFT already exists"),
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNFTAlreadyExists,
-		fmt.Sprintf("NFT already exists"),
+		string(jsonData),
 	)
 }
 
 func ErrEmptyMetadata() *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeUnknownNFT),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("NFT metadata can't be empty"),
+			"denom":     denom,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeEmptyMetadata,
-		fmt.Sprintf("NFT metadata can't be empty"),
+		string(jsonData),
 	)
 }
 
 func ErrInvalidQuantity(quantity string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeInvalidQuantity),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("invalid NFT quantity: %s", quantity),
+			"quantity":  quantity,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidQuantity,
-		fmt.Sprintf("invalid NFT quantity: %s", quantity),
+		string(jsonData),
 	)
 }
 
 func ErrInvalidReserve(reserve string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeInvalidReserve),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("invalid NFT reserve: %s", reserve),
+			"reserve":   reserve,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidReserve,
-		fmt.Sprintf("invalid NFT reserve: %s", reserve),
+		string(jsonData),
 	)
 }
 
 func ErrNotAllowedBurn() *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeNotAllowedBurn),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("only the creator can burn a token"),
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNotAllowedBurn,
-		fmt.Sprintf("only the creator can burn a token"),
+		string(jsonData),
 	)
 }
 
 func ErrNotAllowedMint() *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeNotAllowedMint),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("only the creator can mint a token"),
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNotAllowedMint,
-		fmt.Sprintf("only the creator can mint a token"),
+		string(jsonData),
 	)
 }
 
 func ErrInvalidDenom(denom string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeInvalidDenom),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("invalid denom name: %s", denom),
+			"denom":     denom,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidDenom,
-		fmt.Sprintf("invalid denom name: %s", denom),
+		string(jsonData),
 	)
 }
 
 func ErrInvalidTokenID(name string) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeInvalidTokenID),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("invalid token name: %s", name),
+			"name":      name,
+		},
+	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidTokenID,
-		fmt.Sprintf("invalid token name: %s", name),
+		string(jsonData),
 	)
+}
+
+func getCodeString(code CodeType) string {
+	return strconv.FormatInt(int64(code), 10)
 }
