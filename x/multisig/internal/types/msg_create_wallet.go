@@ -48,10 +48,10 @@ func (msg MsgCreateWallet) ValidateBasic() error {
 	}
 	// Validate owner count
 	if len(msg.Owners) < MinOwnerCount {
-		return ErrInvalidOwnerCount(MaxOwnerCount, false)
+		return ErrInvalidOwnerCount(false)
 	}
 	if len(msg.Owners) > MaxOwnerCount {
-		return ErrInvalidOwnerCount(MaxOwnerCount, true)
+		return ErrInvalidOwnerCount(true)
 	}
 	// Validate weight count
 	if len(msg.Owners) != len(msg.Weights) {
