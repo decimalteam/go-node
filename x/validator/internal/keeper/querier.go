@@ -298,7 +298,7 @@ func queryHistoricalInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 
 	hi, found := k.GetHistoricalInfo(ctx, params.Height)
 	if !found {
-		return nil, types.ErrNoHistoricalInfo()
+		return nil, types.ErrNoHistoricalInfo(params.Height)
 	}
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, hi)
