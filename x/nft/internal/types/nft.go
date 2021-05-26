@@ -69,7 +69,6 @@ func (bnft BaseNFT) GetAllowMint() bool {
 }
 
 func (bnft BaseNFT) String() string {
-
 	return fmt.Sprintf(`ID:				%s
 Owners:			%s
 TokenURI:		%s`,

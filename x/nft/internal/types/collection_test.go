@@ -133,8 +133,9 @@ func TestCollectionSupplyMethod(t *testing.T) {
 }
 
 func TestCollectionStringMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	quantity := sdk.NewInt(1)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, quantity, sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, quantity, sdk.NewInt(101), true)
 	nfts := NewNFTs(testNFT, testNFT2)
 	collection := NewCollection(denom, nfts)
 	require.Equal(t, collection.String(),
@@ -142,12 +143,12 @@ func TestCollectionStringMethod(t *testing.T) {
 NFTs:
 
 ID:				%s
-Owners:			%s
+Owners:			%s %s
 TokenURI:		%s
 ID:				%s
-Owners:			%s
-TokenURI:		%s`, denom, id, address.String(), tokenURI,
-			id2, address2.String(), tokenURI2))
+Owners:			%s %s
+TokenURI:		%s`, denom, id, address.String(), quantity.String(), tokenURI,
+			id2, address2.String(), quantity.String(), tokenURI2))
 }
 
 // ---------------------------------------- Collections ---------------------------------------------------
@@ -247,11 +248,14 @@ func TestCollectionsStringMethod(t *testing.T) {
 	collections := NewCollections()
 	require.Equal(t, collections.String(), "")
 
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	quantity := sdk.NewInt(1)
+	reserve := sdk.NewInt(101)
+
+	testNFT := NewBaseNFT(id, address, address, tokenURI, quantity, reserve, true)
 	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, quantity, reserve, true)
 	nfts2 := NewNFTs(testNFT2)
 	collection2 := NewCollection(denom2, nfts2)
 
@@ -260,15 +264,15 @@ func TestCollectionsStringMethod(t *testing.T) {
 NFTs:
 
 ID:				%s
-Owners:			%s
+Owners:			%s %s
 TokenURI:		%s
 Denom: 				%s
 NFTs:
 
 ID:				%s
-Owners:			%s
-TokenURI:		%s`, denom, id, address.String(), tokenURI,
-		denom2, id2, address2.String(), tokenURI2), collections.String())
+Owners:			%s %s
+TokenURI:		%s`, denom, id, address.String(), quantity.String(), tokenURI,
+		denom2, id2, address2.String(), quantity.String(), tokenURI2), collections.String())
 }
 
 func TestCollectionsEmptyMethod(t *testing.T) {

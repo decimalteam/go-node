@@ -35,11 +35,12 @@ func TestBaseNFTSetMethods(t *testing.T) {
 }
 
 func TestBaseNFTStringFormat(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	quantity := sdk.NewInt(1)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, quantity, sdk.NewInt(101), true)
 	expected := fmt.Sprintf(`ID:				%s
-Owners:			%s
+Owners:			%s %s
 TokenURI:		%s`,
-		id, address.String(), tokenURI)
+		id, address.String(), quantity.String(), tokenURI)
 	require.Equal(t, expected, testNFT.String())
 }
 
@@ -174,11 +175,12 @@ func TestNFTsRemoveMethod(t *testing.T) {
 }
 
 func TestNFTsStringMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	quantity := sdk.NewInt(1)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, quantity, sdk.NewInt(101), true)
 	nfts := NewNFTs(testNFT)
 	require.Equal(t, nfts.String(), fmt.Sprintf(`ID:				%s
-Owners:			%s
-TokenURI:		%s`, id, address, tokenURI))
+Owners:			%s %s
+TokenURI:		%s`, id, address.String(), quantity.String(), tokenURI))
 }
 
 func TestNFTsEmptyMethod(t *testing.T) {
