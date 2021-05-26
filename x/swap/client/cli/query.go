@@ -33,12 +33,13 @@ func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 }
 
 func GetCmdQuerySwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "swap [hashed_secret]",
 		Short: "Query a swap",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			//cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			hashRaw, err := hex.DecodeString(args[0])
 			if err != nil {
@@ -52,7 +53,7 @@ func GetCmdQuerySwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types2.QuerySwap), bz)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types2.QuerySwap), bz)
 			if err != nil {
 				return err
 			}
@@ -60,9 +61,14 @@ func GetCmdQuerySwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 			var swap types2.Swap
 			cdc.MustUnmarshalJSON(res, &swap)
 
-			return cliCtx.PrintOutput(swap)
+			//return cliCtx.PrintOutput(swap)
+			return clientCtx.PrintObjectLegacy(swap)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 func GetCmdQueryActiveSwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
