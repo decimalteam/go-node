@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	appTypes "bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
@@ -332,9 +333,9 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 		var sendName string
 		switch {
 		case validator.IsBonded():
-			sendName = types.BondedPoolName
+			sendName = appTypes.BondedPoolName
 		case validator.IsUnbonding(), validator.IsUnbonded():
-			sendName = types.NotBondedPoolName
+			sendName = appTypes.NotBondedPoolName
 		default:
 			panic("invalid validator status")
 		}
@@ -521,7 +522,7 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 				switch entry := entry.(type) {
 				case types.UnbondingDelegationEntry:
 					amt := sdk.NewCoins(entry.Balance)
-					err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, ubd.DelegatorAddress, amt)
+					err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, appTypes.NotBondedPoolName, ubd.DelegatorAddress, amt)
 					if err != nil {
 						return err
 					}

@@ -24,7 +24,7 @@ type BaseNFT struct {
 }
 
 // NewBaseNFT creates a new NFT instance
-func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity, reserve sdk.Int, allowMint bool) *BaseNFT {
+func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity, reserve sdk.Int, allowMint bool) exported.NFT {
 	return &BaseNFT{
 		ID: id,
 		Owners: &TokenOwners{Owners: []exported.TokenOwner{&TokenOwner{
@@ -69,6 +69,7 @@ func (bnft BaseNFT) GetAllowMint() bool {
 }
 
 func (bnft BaseNFT) String() string {
+
 	return fmt.Sprintf(`ID:				%s
 Owners:			%s
 TokenURI:		%s`,

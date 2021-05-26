@@ -1,6 +1,5 @@
 package types
 
-/*
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -143,10 +142,10 @@ func TestCollectionStringMethod(t *testing.T) {
 NFTs:
 
 ID:				%s
-Owner:			%s
+Owners:			%s
 TokenURI:		%s
 ID:				%s
-Owner:			%s
+Owners:			%s
 TokenURI:		%s`, denom, id, address.String(), tokenURI,
 			id2, address2.String(), tokenURI2))
 }
@@ -261,13 +260,13 @@ func TestCollectionsStringMethod(t *testing.T) {
 NFTs:
 
 ID:				%s
-Owner:			%s
+Owners:			%s
 TokenURI:		%s
 Denom: 				%s
 NFTs:
 
 ID:				%s
-Owner:			%s
+Owners:			%s
 TokenURI:		%s`, denom, id, address.String(), tokenURI,
 		denom2, id2, address2.String(), tokenURI2), collections.String())
 }
@@ -309,11 +308,14 @@ func TestCollectionsSortInterface(t *testing.T) {
 }
 
 func TestCollectionMarshalAndUnmarshalJSON(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	quantity := sdk.NewInt(1)
+	reserve := sdk.NewInt(101)
+
+	testNFT := NewBaseNFT(id, address, address, tokenURI, quantity, reserve, true)
 	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, quantity, reserve, true)
 	nfts2 := NewNFTs(testNFT2)
 	collection2 := NewCollection(denom2, nfts2)
 
@@ -321,9 +323,9 @@ func TestCollectionMarshalAndUnmarshalJSON(t *testing.T) {
 
 	bz, err := collections.MarshalJSON()
 	require.NoError(t, err)
-	require.Equal(t, string(bz), fmt.Sprintf(`{"%s":{"nfts":{"%s":{"id":"%s","owner":"%s","token_uri":"%s"}}},"%s":{"nfts":{"%s":{"id":"%s","owner":"%s","token_uri":"%s"}}}}`,
-		denom, id, id, address.String(), tokenURI,
-		denom2, id2, id2, address2.String(), tokenURI2,
+	require.Equal(t, string(bz), fmt.Sprintf(`{"%s":{"denom":"%s","nfts":{"%s":{"id":"%s","owners":{"owners":[{"address":"%s","quantity":"%s"}]},"creator":"%s","token_uri":"%s","reserve":"%s","allow_mint":%t}}},"%s":{"denom":"%s","nfts":{"%s":{"id":"%s","owners":{"owners":[{"address":"%s","quantity":"%s"}]},"creator":"%s","token_uri":"%s","reserve":"%s","allow_mint":%t}}}}`,
+		denom, denom, id, id, address.String(), quantity.String(), address.String(), tokenURI, reserve.String(), testNFT.GetAllowMint(),
+		denom2, denom2, id2, id2, address2.String(), quantity.String(), address2.String(), tokenURI2, reserve.String(), testNFT2.GetAllowMint(),
 	))
 
 	var newCollections Collections
@@ -332,4 +334,4 @@ func TestCollectionMarshalAndUnmarshalJSON(t *testing.T) {
 
 	err = newCollections.UnmarshalJSON([]byte{})
 	require.Error(t, err)
-}*/
+}

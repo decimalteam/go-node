@@ -3,7 +3,6 @@ package types
 import (
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"fmt"
-
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"

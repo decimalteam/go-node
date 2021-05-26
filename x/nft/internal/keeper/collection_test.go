@@ -1,6 +1,13 @@
 package keeper_test
 
-/*
+import (
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/keeper"
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+	"testing"
+)
+
 func TestSetCollection(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 
@@ -16,7 +23,7 @@ func TestSetCollection(t *testing.T) {
 		false,
 	)
 
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
 	require.NoError(t, err)
 
 	// collection should exist
@@ -57,7 +64,7 @@ func TestGetCollection(t *testing.T) {
 
 	// MintNFT shouldn't fail when collection does not exist
 	nft := types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(2), sdk.NewInt(101), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
 	require.NoError(t, err)
 
 	// collection should exist
@@ -77,7 +84,7 @@ func TestGetCollections(t *testing.T) {
 
 	// MintNFT shouldn't fail when collection does not exist
 	nft := types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
 	require.NoError(t, err)
 
 	// collections should equal 1
@@ -88,4 +95,3 @@ func TestGetCollections(t *testing.T) {
 	msg, fail := keeper.SupplyInvariant(NFTKeeper)(ctx)
 	require.False(t, fail, msg)
 }
-*/

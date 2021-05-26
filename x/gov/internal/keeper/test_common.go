@@ -5,6 +5,7 @@ package keeper // noalias
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
+	appTypes "bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/nft"
@@ -91,7 +92,7 @@ func makeTestCodec() *codec.Codec {
 
 func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context, auth.AccountKeeper, Keeper, validator.Keeper, supply.Keeper, coin.Keeper) {
 
-	initTokens := validator.TokensFromConsensusPower(initPower)
+	initTokens := appTypes.TokensFromConsensusPower(initPower)
 
 	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
 	keyGov := sdk.NewKVStoreKey(types.StoreKey)
@@ -128,17 +129,17 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	cdc := makeTestCodec()
 
 	maccPerms := map[string][]string{
-		auth.FeeCollectorName:       {supply.Burner},
-		types.ModuleName:            nil,
-		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
-		validator.BondedPoolName:    {supply.Burner, supply.Staking},
+		auth.FeeCollectorName:      {supply.Burner},
+		types.ModuleName:           nil,
+		appTypes.NotBondedPoolName: {supply.Burner, supply.Staking},
+		appTypes.BondedPoolName:    {supply.Burner, supply.Staking},
 	}
 
 	// create module accounts
 	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName, supply.Burner, supply.Minter)
 	govAcc := supply.NewEmptyModuleAccount(types.ModuleName, supply.Burner)
-	notBondedPool := supply.NewEmptyModuleAccount(validator.NotBondedPoolName, supply.Burner, supply.Staking)
-	bondPool := supply.NewEmptyModuleAccount(validator.BondedPoolName, supply.Burner, supply.Staking)
+	notBondedPool := supply.NewEmptyModuleAccount(appTypes.NotBondedPoolName, supply.Burner, supply.Staking)
+	bondPool := supply.NewEmptyModuleAccount(appTypes.BondedPoolName, supply.Burner, supply.Staking)
 
 	blacklistedAddrs := make(map[string]bool)
 	blacklistedAddrs[feeCollectorAcc.GetAddress().String()] = true
@@ -161,7 +162,7 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 	multisigKeeper := multisig.NewKeeper(cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), accountKeeper, coinKeeper, bankKeeper)
 
-	nftKeeper := nft.NewKeeper(cdc, keyNFT, supplyKeeper, validator.DefaultBondDenom)
+	nftKeeper := nft.NewKeeper(cdc, keyNFT, supplyKeeper, appTypes.DefaultBondDenom)
 
 	sk := validator.NewKeeper(cdc, keyStaking, pk.Subspace(validator.DefaultParamSpace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, nftKeeper, auth.FeeCollectorName)
 	sk.SetParams(ctx, validator.DefaultParams())
@@ -175,8 +176,8 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	keeper.SetProposalID(ctx, types.DefaultStartingProposalID)
 	keeper.SetTallyParams(ctx, types.DefaultTallyParams())
 
-	initCoins := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens))
-	totalSupply := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens.MulRaw(int64(len(TestAddrs)))))
+	initCoins := sdk.NewCoins(sdk.NewCoin(appTypes.DefaultBondDenom, initTokens))
+	totalSupply := sdk.NewCoins(sdk.NewCoin(appTypes.DefaultBondDenom, initTokens.MulRaw(int64(len(TestAddrs)))))
 	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 
 	for _, addr := range TestAddrs {
@@ -205,7 +206,7 @@ func createValidators(ctx sdk.Context, vk validator.Keeper, coinKeeper coin.Keep
 
 	handler := validator.NewHandler(vk)
 
-	valTokens := validator.TokensFromConsensusPower(powers[0])
+	valTokens := appTypes.TokensFromConsensusPower(powers[0])
 	valCreateMsg := validator.NewMsgDeclareCandidate(
 		valOpAddr1, valOpPk1, sdk.ZeroDec(), sdk.NewCoin(vk.BondDenom(ctx), valTokens),
 		validator.Description{}, sdk.AccAddress(valOpAddr1),
@@ -216,7 +217,7 @@ func createValidators(ctx sdk.Context, vk validator.Keeper, coinKeeper coin.Keep
 		panic(err)
 	}
 
-	valTokens = validator.TokensFromConsensusPower(powers[1])
+	valTokens = appTypes.TokensFromConsensusPower(powers[1])
 	valCreateMsg = validator.NewMsgDeclareCandidate(
 		valOpAddr2, valOpPk2, sdk.ZeroDec(), sdk.NewCoin(vk.BondDenom(ctx), valTokens),
 		validator.Description{}, sdk.AccAddress(valOpAddr2),
@@ -227,7 +228,7 @@ func createValidators(ctx sdk.Context, vk validator.Keeper, coinKeeper coin.Keep
 		panic(err)
 	}
 
-	valTokens = validator.TokensFromConsensusPower(powers[2])
+	valTokens = appTypes.TokensFromConsensusPower(powers[2])
 	valCreateMsg = validator.NewMsgDeclareCandidate(
 		valOpAddr3, valOpPk3, sdk.ZeroDec(), sdk.NewCoin(vk.BondDenom(ctx), valTokens),
 		validator.Description{}, sdk.AccAddress(valOpAddr3),

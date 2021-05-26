@@ -1,6 +1,5 @@
 package nft_test
 
-/*
 import (
 	"testing"
 
@@ -25,15 +24,18 @@ func TestInitGenesis(t *testing.T) {
 
 	owners := []nft.Owner{owner, owner2}
 
-	nft1 := nft.NewBaseNFT(id, address, address, tokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	nft2 := nft.NewBaseNFT(id2, address, address, tokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	nft3 := nft.NewBaseNFT(id3, address, address, tokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	quantity := sdk.NewInt(1)
+	reserve := sdk.NewInt(101)
+
+	nft1 := nft.NewBaseNFT(id, address, address, tokenURI1, quantity, reserve, true)
+	nft2 := nft.NewBaseNFT(id2, address, address, tokenURI1, quantity, reserve, true)
+	nft3 := nft.NewBaseNFT(id3, address, address, tokenURI1, quantity, reserve, true)
 	nfts := nft.NewNFTs(nft1, nft2, nft3)
 	collection := nft.NewCollection(denom, nfts)
 
-	nftx := nft.NewBaseNFT(id, address2, address2, tokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	nft2x := nft.NewBaseNFT(id2, address2, address2, tokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	nft3x := nft.NewBaseNFT(id3, address2, address2, tokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	nftx := nft.NewBaseNFT(id, address2, address2, tokenURI1, quantity, reserve, true)
+	nft2x := nft.NewBaseNFT(id2, address2, address2, tokenURI1, quantity, reserve, true)
+	nft3x := nft.NewBaseNFT(id3, address2, address2, tokenURI1, quantity, reserve, true)
 	nftsx := nft.NewNFTs(nftx, nft2x, nft3x)
 	collection2 := nft.NewCollection(denom2, nftsx)
 
@@ -61,4 +63,4 @@ func TestInitGenesis(t *testing.T) {
 	require.Equal(t, len(genesisState.Collections), len(exportedGenesisState.Collections))
 	require.Equal(t, genesisState.Collections[0].String(), exportedGenesisState.Collections[0].String())
 	require.Equal(t, genesisState.Collections[1].String(), exportedGenesisState.Collections[1].String())
-}*/
+}

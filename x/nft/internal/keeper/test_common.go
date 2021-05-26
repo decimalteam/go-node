@@ -1,12 +1,11 @@
 package keeper
 
-/*
 import (
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	nftTypes "bitbucket.org/decimalteam/go-node/x/nft/internal/types"
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -15,7 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/stretchr/testify/require"
-	types2 "github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	types3 "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
@@ -51,19 +50,19 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
 	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
 
-	ctx := sdk.NewContext(ms, types2.Header{ChainID: "foochainid"}, isCheckTx, log.NewNopLogger())
+	ctx := sdk.NewContext(ms, abcitypes.Header{ChainID: "foochainid"}, isCheckTx, log.NewNopLogger())
 	ctx = ctx.WithConsensusParams(
-		&types2.ConsensusParams{
-			Validator: &types2.ValidatorParams{
+		&abcitypes.ConsensusParams{
+			Validator: &abcitypes.ValidatorParams{
 				PubKeyTypes: []string{types3.ABCIPubKeyTypeEd25519},
 			},
 		},
 	)
-	cdc := keeper.MakeTestCodec()
+	cdc := nftTypes.MakeTestCodec()
 
 	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName, supply.Burner, supply.Minter)
-	notBondedPool := supply.NewEmptyModuleAccount(validator.NotBondedPoolName, supply.Burner, supply.Staking)
-	bondPool := supply.NewEmptyModuleAccount(validator.BondedPoolName, supply.Burner, supply.Staking)
+	notBondedPool := supply.NewEmptyModuleAccount(types.NotBondedPoolName, supply.Burner, supply.Staking)
+	bondPool := supply.NewEmptyModuleAccount(types.BondedPoolName, supply.Burner, supply.Staking)
 
 	blacklistedAddrs := make(map[string]bool)
 	blacklistedAddrs[feeCollectorAcc.String()] = true
@@ -86,16 +85,16 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	)
 
 	maccPerms := map[string][]string{
-		auth.FeeCollectorName:       nil,
-		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
-		validator.BondedPoolName:    {supply.Burner, supply.Staking},
-		nftTypes.ReservedPool:       {supply.Burner},
+		auth.FeeCollectorName:   nil,
+		types.NotBondedPoolName: {supply.Burner, supply.Staking},
+		types.BondedPoolName:    {supply.Burner, supply.Staking},
+		nftTypes.ReservedPool:   {supply.Burner},
 	}
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bk, maccPerms)
 
-	initTokens := validator.TokensFromConsensusPower(initPower)
-	initCoins := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens))
-	totalSupply := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens.MulRaw(int64(len(keeper.Addrs)))))
+	initTokens := types.TokensFromConsensusPower(initPower)
+	initCoins := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, initTokens))
+	totalSupply := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, initTokens.MulRaw(int64(len(keeper.Addrs)))))
 
 	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 
@@ -107,7 +106,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 		Symbol: coinConfig.SymbolBaseCoin,
 		Volume: coinConfig.InitialVolumeBaseCoin,
 	})
-	nftkeeper := NewKeeper(cdc, keyCoin, supplyKeeper, validator.DefaultBondDenom)
+	nftkeeper := NewKeeper(cdc, keyCoin, supplyKeeper, types.DefaultBondDenom)
 
 	// set module accounts
 	err = notBondedPool.SetCoins(totalSupply)
@@ -126,4 +125,4 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	}
 
 	return ctx, nftkeeper
-}*/
+}

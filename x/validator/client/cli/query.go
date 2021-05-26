@@ -1,6 +1,7 @@
 package cli
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"strings"
@@ -416,7 +417,7 @@ $ %s query validator pool
 				return err
 			}
 
-			var pool types.Pool
+			var pool types2.Pool
 			if err := cdc.UnmarshalJSON(bz, &pool); err != nil {
 				return err
 			}

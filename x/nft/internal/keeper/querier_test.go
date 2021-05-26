@@ -1,6 +1,5 @@
 package keeper_test
 
-/*
 import (
 	"strconv"
 	"testing"
@@ -33,7 +32,7 @@ func TestQuerySupply(t *testing.T) {
 
 	// MintNFT shouldn't fail when collection does not exist
 	nft := nftTypes.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
 	require.NoError(t, err)
 
 	querier := keeper.NewQuerier(NFTKeeper)
@@ -77,7 +76,7 @@ func TestQueryCollection(t *testing.T) {
 
 	// MintNFT shouldn't fail when collection does not exist
 	nft := nftTypes.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(100), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
 	require.NoError(t, err)
 
 	querier := keeper.NewQuerier(NFTKeeper)
@@ -123,11 +122,11 @@ func TestQueryOwner(t *testing.T) {
 
 	// MintNFT shouldn't fail when collection does not exist
 	nft := nftTypes.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(100), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
 	require.NoError(t, err)
 
 	denom2 := "test_denom2"
-	err = NFTKeeper.MintNFT(ctx, denom2, nft)
+	_, err = NFTKeeper.MintNFT(ctx, denom2, nft)
 	require.NoError(t, err)
 
 	querier := keeper.NewQuerier(NFTKeeper)
@@ -191,7 +190,7 @@ func TestQueryNFT(t *testing.T) {
 
 	// MintNFT shouldn't fail when collection does not exist
 	nft := nftTypes.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(100), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
 	require.NoError(t, err)
 
 	querier := keeper.NewQuerier(NFTKeeper)
@@ -237,10 +236,10 @@ func TestQueryDenoms(t *testing.T) {
 
 	// MintNFT shouldn't fail when collection does not exist
 	nft := nftTypes.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(100), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
 	require.NoError(t, err)
 
-	err = NFTKeeper.MintNFT(ctx, denom2, nft)
+	_, err = NFTKeeper.MintNFT(ctx, denom2, nft)
 	require.NoError(t, err)
 
 	querier := keeper.NewQuerier(NFTKeeper)
@@ -265,4 +264,3 @@ func TestQueryDenoms(t *testing.T) {
 		require.Equal(t, denomInQuestion, denoms[key])
 	}
 }
-*/

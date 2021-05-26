@@ -1,6 +1,5 @@
 package keeper_test
 
-/*
 import (
 	"testing"
 
@@ -29,7 +28,7 @@ var (
 )
 
 func createTestApp(t *testing.T, isCheckTx bool) (sdk.Context, *codec.Codec, keeper.Keeper) {
-	ctx, nftKeeper := keeper.CreateTestInput(t, isCheckTx, 0)
+	ctx, nftKeeper := keeper.CreateTestInput(t, isCheckTx, 1000)
 
 	return ctx, types.MakeTestCodec(), nftKeeper
-}*/
+}

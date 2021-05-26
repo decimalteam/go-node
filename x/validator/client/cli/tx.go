@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
+	appTypes "bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -160,7 +161,7 @@ func PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string
 		viper.Set(FlagMoniker, viper.GetString(flags.FlagName))
 	}
 	if viper.GetString(FlagAmount) == "" {
-		viper.Set(FlagAmount, types.TokensFromConsensusPower(100).String()+types.DefaultBondDenom)
+		viper.Set(FlagAmount, appTypes.TokensFromConsensusPower(100).String()+appTypes.DefaultBondDenom)
 	}
 	if viper.GetString(FlagCommissionRate) == "" {
 		viper.Set(FlagCommissionRate, "0.1")

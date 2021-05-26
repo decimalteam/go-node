@@ -1,17 +1,24 @@
 package keeper_test
 
-/*
+import (
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/keeper"
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+	"testing"
+)
+
 func TestMintNFT(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 
 	// MintNFT shouldn't fail when collection does not exist
 	nft := types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
 	require.NoError(t, err)
 
 	// MintNFT shouldn't fail when collection exists
 	nft2 := types.NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	err = NFTKeeper.MintNFT(ctx, denom, nft2)
+	_, err = NFTKeeper.MintNFT(ctx, denom, nft2)
 	require.NoError(t, err)
 }
 
@@ -20,7 +27,7 @@ func TestGetNFT(t *testing.T) {
 
 	// MintNFT shouldn't fail when collection does not exist
 	nft := types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
 	require.NoError(t, err)
 
 	// GetNFT should get the NFT
@@ -32,7 +39,7 @@ func TestGetNFT(t *testing.T) {
 
 	// MintNFT shouldn't fail when collection exists
 	nft2 := types.NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	err = NFTKeeper.MintNFT(ctx, denom, nft2)
+	_, err = NFTKeeper.MintNFT(ctx, denom, nft2)
 	require.NoError(t, err)
 
 	// GetNFT should get the NFT when collection exists
@@ -89,7 +96,7 @@ func TestDeleteNFT(t *testing.T) {
 
 	// MintNFT should not fail when collection does not exist
 	nft := types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	err = NFTKeeper.MintNFT(ctx, denom, nft)
+	_, err = NFTKeeper.MintNFT(ctx, denom, nft)
 	require.NoError(t, err)
 
 	// DeleteNFT should fail when NFT doesn't exist but collection does exist
@@ -124,11 +131,10 @@ func TestIsNFT(t *testing.T) {
 
 	// MintNFT shouldn't fail when collection does not exist
 	nft := types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
 	require.NoError(t, err)
 
 	// IsNFT should return true
 	isNFT = NFTKeeper.IsNFT(ctx, denom, id)
 	require.True(t, isNFT)
 }
-*/

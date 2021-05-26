@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/types"
 	"bytes"
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -394,7 +395,7 @@ func (v Validator) GetConsensusPower() int64 {
 
 // potential consensus-engine power
 func (v Validator) PotentialConsensusPower() int64 {
-	return TokensToConsensusPower(v.Tokens)
+	return types.TokensToConsensusPower(v.Tokens)
 }
 
 // ABCIValidatorUpdate returns an abci.ValidatorUpdate from a staking validator type

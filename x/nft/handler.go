@@ -79,7 +79,7 @@ func HandleMsgEditNFTMetadata(ctx sdk.Context, msg types.MsgEditNFTMetadata, k k
 	}
 
 	// update NFT
-	nft.EditMetadata(msg.TokenURI)
+	nft = nft.EditMetadata(msg.TokenURI)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(

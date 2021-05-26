@@ -1,6 +1,5 @@
 package nft_test
 
-/*
 import (
 	"fmt"
 	"testing"
@@ -45,7 +44,7 @@ func TestTransferNFTMsg(t *testing.T) {
 	require.Error(t, err)
 
 	// Create token (collection and owner)
-	err = NFTKeeper.MintNFT(ctx, denom, basenft)
+	_, err = NFTKeeper.MintNFT(ctx, denom, basenft)
 	require.Nil(t, err)
 	require.True(t, CheckInvariants(NFTKeeper, ctx))
 
@@ -65,6 +64,8 @@ func TestTransferNFTMsg(t *testing.T) {
 				require.Equal(t, value, denom)
 			case nftID:
 				require.Equal(t, value, id)
+			case tokenURI:
+				require.Equal(t, value, tokenURI)
 			case sender:
 				require.Equal(t, value, address.String())
 			case recipient:
@@ -88,7 +89,7 @@ func TestTransferNFTMsg(t *testing.T) {
 	require.True(t, CheckInvariants(NFTKeeper, ctx))
 
 	// Create token (collection and owner)
-	err = NFTKeeper.MintNFT(ctx, denom2, basenft)
+	_, err = NFTKeeper.MintNFT(ctx, denom2, basenft)
 	require.Nil(t, err)
 	require.True(t, CheckInvariants(NFTKeeper, ctx))
 
@@ -108,7 +109,7 @@ func TestEditNFTMetadataMsg(t *testing.T) {
 	basenft := types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
 
 	// Create token (collection and address)
-	err := NFTKeeper.MintNFT(ctx, denom, basenft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, basenft)
 	require.Nil(t, err)
 
 	// Define MsgTransferNft
@@ -138,6 +139,8 @@ func TestEditNFTMetadataMsg(t *testing.T) {
 				require.Equal(t, value, address.String())
 			case tokenURI:
 				require.Equal(t, value, tokenURI2)
+			case recipient:
+				require.Equal(t, value, address.String())
 			default:
 				require.Fail(t, fmt.Sprintf("unrecognized event %s", key))
 			}
@@ -203,7 +206,7 @@ func TestBurnNFTMsg(t *testing.T) {
 	basenft := types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
 
 	// Create token (collection and address)
-	err := NFTKeeper.MintNFT(ctx, denom, basenft)
+	_, err := NFTKeeper.MintNFT(ctx, denom, basenft)
 	require.Nil(t, err)
 
 	exists := NFTKeeper.IsNFT(ctx, denom, id)
@@ -251,4 +254,4 @@ func TestBurnNFTMsg(t *testing.T) {
 	require.Equal(t, 0, ownerReturned.Supply())
 
 	require.True(t, CheckInvariants(NFTKeeper, ctx))
-}*/
+}

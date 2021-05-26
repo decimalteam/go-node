@@ -1,6 +1,5 @@
 package nft_test
 
-/*
 import (
 	"bitbucket.org/decimalteam/go-node/x/nft"
 	"fmt"
@@ -15,21 +14,23 @@ import (
 
 // nolint: deadcode unused
 var (
+	addrs = types.CreateTestAddrs(3)
+
 	denom1    = "test-denom"
 	denom2    = "test-denom2"
 	denom3    = "test-denom3"
 	id        = "1"
 	id2       = "2"
 	id3       = "3"
-	address   = types.CreateTestAddrs(1)[0]
-	address2  = types.CreateTestAddrs(2)[1]
-	address3  = types.CreateTestAddrs(3)[2]
+	address   = addrs[0]
+	address2  = addrs[1]
+	address3  = addrs[2]
 	tokenURI1 = "https://google.com/token-1.json"
 	tokenURI2 = "https://google.com/token-2.json"
 )
 
 func createTestApp(t *testing.T, isCheckTx bool) (sdk.Context, *codec.Codec, keeper.Keeper) {
-	ctx, nftKeeper := keeper.CreateTestInput(t, isCheckTx, 0)
+	ctx, nftKeeper := keeper.CreateTestInput(t, isCheckTx, 1000)
 
 	return ctx, types.MakeTestCodec(), nftKeeper
 }
@@ -58,4 +59,4 @@ func CheckInvariants(k nft.Keeper, ctx sdk.Context) bool {
 		}
 	}
 	return true
-}*/
+}

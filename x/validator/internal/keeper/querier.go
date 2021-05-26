@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"errors"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -317,7 +318,7 @@ func queryPool(ctx sdk.Context, k Keeper) ([]byte, error) {
 		return nil, errors.New("pool accounts haven't been set")
 	}
 
-	pool := types.NewPool(
+	pool := types2.NewPool(
 		notBondedPool.GetCoins(),
 		bondedPool.GetCoins(),
 	)

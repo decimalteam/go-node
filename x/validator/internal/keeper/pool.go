@@ -1,24 +1,24 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	appTypes "bitbucket.org/decimalteam/go-node/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 )
 
 // GetBondedPool returns the bonded tokens pool's module account
 func (k Keeper) GetBondedPool(ctx sdk.Context) (bondedPool exported.ModuleAccountI) {
-	return k.supplyKeeper.GetModuleAccount(ctx, types.BondedPoolName)
+	return k.supplyKeeper.GetModuleAccount(ctx, appTypes.BondedPoolName)
 }
 
 // GetNotBondedPool returns the not bonded tokens pool's module account
 func (k Keeper) GetNotBondedPool(ctx sdk.Context) (notBondedPool exported.ModuleAccountI) {
-	return k.supplyKeeper.GetModuleAccount(ctx, types.NotBondedPoolName)
+	return k.supplyKeeper.GetModuleAccount(ctx, appTypes.NotBondedPoolName)
 }
 
 // bondedTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
 func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, coins sdk.Coins) {
-	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.BondedPoolName, types.NotBondedPoolName, coins)
+	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, appTypes.BondedPoolName, appTypes.NotBondedPoolName, coins)
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +26,7 @@ func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, coins sdk.Coins) {
 
 // notBondedTokensToBonded transfers coins from the not bonded to the bonded pool within staking
 func (k Keeper) notBondedTokensToBonded(ctx sdk.Context, coins sdk.Coins) {
-	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.NotBondedPoolName, types.BondedPoolName, coins)
+	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, appTypes.NotBondedPoolName, appTypes.BondedPoolName, coins)
 	if err != nil {
 		panic(err)
 	}
@@ -41,7 +41,7 @@ func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	err := k.supplyKeeper.BurnCoins(ctx, types.BondedPoolName, coinsBurn)
+	err := k.supplyKeeper.BurnCoins(ctx, appTypes.BondedPoolName, coinsBurn)
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (k Keeper) burnNotBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	err := k.supplyKeeper.BurnCoins(ctx, types.NotBondedPoolName, coinsBurn)
+	err := k.supplyKeeper.BurnCoins(ctx, appTypes.NotBondedPoolName, coinsBurn)
 	if err != nil {
 		return err
 	}

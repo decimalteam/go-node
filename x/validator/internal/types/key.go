@@ -2,9 +2,10 @@ package types
 
 import (
 	"encoding/binary"
-	"math/big"
 	"strconv"
 	"time"
+
+	"bitbucket.org/decimalteam/go-node/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -66,25 +67,12 @@ func GetValidatorByConsAddrKey(addr sdk.ConsAddress) []byte {
 //	return consensusPower.Mul(sdk.PowerReduction)
 //}
 
-// PowerReduction is the amount of staking tokens required for 1 unit of consensus-engine power
-var PowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-
-// TokensToConsensusPower - convert input tokens to potential consensus-engine power
-func TokensToConsensusPower(tokens sdk.Int) int64 {
-	return (tokens.Quo(PowerReduction)).Int64()
-}
-
-// TokensFromConsensusPower - convert input power to tokens
-func TokensFromConsensusPower(power int64) sdk.Int {
-	return sdk.NewInt(power).Mul(PowerReduction)
-}
-
 // get the validator by power index.
 // Power index is the key used in the power-store, and represents the relative
 // power ranking of the validator.
 // VALUE: validator operator address ([]byte)
 func GetValidatorsByPowerIndexKey(validator Validator, power sdk.Int) []byte {
-	consensusPower := TokensToConsensusPower(power)
+	consensusPower := types.TokensToConsensusPower(power)
 	consensusPowerBytes := make([]byte, 16)
 	binary.BigEndian.PutUint64(consensusPowerBytes[:], uint64(consensusPower))
 

@@ -1,6 +1,5 @@
 package types
 
-/*
 import (
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 	"fmt"
@@ -23,7 +22,7 @@ func TestBaseNFTGetMethods(t *testing.T) {
 func TestBaseNFTSetMethods(t *testing.T) {
 	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
 
-	testNFT.SetOwners(
+	testNFT = testNFT.SetOwners(
 		&TokenOwners{
 			Owners: []exported.TokenOwner{&TokenOwner{
 				Address:  address2,
@@ -31,16 +30,16 @@ func TestBaseNFTSetMethods(t *testing.T) {
 			}}})
 	require.Equal(t, address2, testNFT.GetOwners().GetOwners()[0].GetAddress())
 
-	testNFT.EditMetadata(tokenURI2)
+	testNFT = testNFT.EditMetadata(tokenURI2)
 	require.Equal(t, tokenURI2, testNFT.GetTokenURI())
 }
 
 func TestBaseNFTStringFormat(t *testing.T) {
 	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
 	expected := fmt.Sprintf(`ID:				%s
-Owner:			%s
+Owners:			%s
 TokenURI:		%s`,
-		id, address, tokenURI)
+		id, address.String(), tokenURI)
 	require.Equal(t, expected, testNFT.String())
 }
 
@@ -178,7 +177,7 @@ func TestNFTsStringMethod(t *testing.T) {
 	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
 	nfts := NewNFTs(testNFT)
 	require.Equal(t, nfts.String(), fmt.Sprintf(`ID:				%s
-Owner:			%s
+Owners:			%s
 TokenURI:		%s`, id, address, tokenURI))
 }
 
@@ -229,4 +228,4 @@ func TestNFTsSortInterface(t *testing.T) {
 	nfts.Sort()
 	require.True(t, nfts.Less(0, 1))
 	require.False(t, nfts.Less(1, 0))
-}*/
+}

@@ -1,6 +1,5 @@
 package types
 
-/*
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -48,8 +47,9 @@ func TestMsgTransferNFTValidateBasicMethod(t *testing.T) {
 func TestMsgTransferNFTGetSignBytesMethod(t *testing.T) {
 	newMsgTransferNFT := NewMsgTransferNFT(address, address2, denom, id, []sdk.Int{})
 	sortedBytes := newMsgTransferNFT.GetSignBytes()
-	require.Equal(t, string(sortedBytes), fmt.Sprintf(`{"type":"cosmos-sdk/MsgTransferNFT","value":{"denom":"%s","id":"%s","recipient":"%s","sender":"%s"}}`,
-		denom, id, address2, address,
+
+	require.Equal(t, string(sortedBytes), fmt.Sprintf(`{"type":"nft/msg_transfer","value":{"denom":"%s","id":"%s","recipient":"%s","sender":"%s","sub_token_ids":%v}}`,
+		denom, id, address2, address, newMsgTransferNFT.SubTokenIDs,
 	))
 }
 
@@ -94,7 +94,7 @@ func TestMsgEditNFTMetadataValidateBasicMethod(t *testing.T) {
 func TestMsgEditNFTMetadataGetSignBytesMethod(t *testing.T) {
 	newMsgEditNFTMetadata := NewMsgEditNFTMetadata(address, id, denom, tokenURI)
 	sortedBytes := newMsgEditNFTMetadata.GetSignBytes()
-	require.Equal(t, string(sortedBytes), fmt.Sprintf(`{"type":"cosmos-sdk/MsgEditNFTMetadata","value":{"denom":"%s","id":"%s","sender":"%s","token_uri":"%s"}}`,
+	require.Equal(t, string(sortedBytes), fmt.Sprintf(`{"type":"nft/msg_edit_metadata","value":{"denom":"%s","id":"%s","sender":"%s","token_uri":"%s"}}`,
 		denom, id, address.String(), tokenURI,
 	))
 }
@@ -152,8 +152,8 @@ func TestMsgMsgMintNFTValidateBasicMethod(t *testing.T) {
 func TestMsgMintNFTGetSignBytesMethod(t *testing.T) {
 	newMsgMintNFT := NewMsgMintNFT(address, address2, id, denom, tokenURI, sdk.NewInt(1), sdk.NewInt(100), true)
 	sortedBytes := newMsgMintNFT.GetSignBytes()
-	require.Equal(t, string(sortedBytes), fmt.Sprintf(`{"type":"cosmos-sdk/MsgMintNFT","value":{"denom":"%s","id":"%s","recipient":"%s","sender":"%s","token_uri":"%s"}}`,
-		denom, id, address2.String(), address.String(), tokenURI,
+	require.Equal(t, string(sortedBytes), fmt.Sprintf(`{"type":"nft/msg_mint","value":{"allow_mint":%t,"denom":"%s","id":"%s","quantity":"%v","recipient":"%s","reserve":"%v","sender":"%s","token_uri":"%s"}}`,
+		newMsgMintNFT.AllowMint, denom, id, newMsgMintNFT.Quantity, address2.String(), newMsgMintNFT.Reserve, address.String(), tokenURI,
 	))
 }
 
@@ -197,8 +197,8 @@ func TestMsgMsgBurnNFTValidateBasicMethod(t *testing.T) {
 func TestMsgBurnNFTGetSignBytesMethod(t *testing.T) {
 	newMsgBurnNFT := NewMsgBurnNFT(address, id, denom, []sdk.Int{})
 	sortedBytes := newMsgBurnNFT.GetSignBytes()
-	require.Equal(t, string(sortedBytes), fmt.Sprintf(`{"type":"cosmos-sdk/MsgBurnNFT","value":{"denom":"%s","id":"%s","sender":"%s"}}`,
-		denom, id, address.String(),
+	require.Equal(t, string(sortedBytes), fmt.Sprintf(`{"type":"nft/msg_burn","value":{"denom":"%s","id":"%s","sender":"%s","sub_token_ids":%v}}`,
+		denom, id, address.String(), newMsgBurnNFT.SubTokenIDs,
 	))
 }
 
@@ -207,4 +207,4 @@ func TestMsgBurnNFTGetSignersMethod(t *testing.T) {
 	signers := newMsgBurnNFT.GetSigners()
 	require.Equal(t, 1, len(signers))
 	require.Equal(t, address.String(), signers[0].String())
-}*/
+}
