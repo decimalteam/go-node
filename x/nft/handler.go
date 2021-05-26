@@ -79,6 +79,10 @@ func HandleMsgEditNFTMetadata(ctx sdk.Context, msg types.MsgEditNFTMetadata, k k
 		return nil, err
 	}
 
+	if !nft.GetCreator().Equals(msg.Sender) {
+		return nil, ErrNotAllowedMint
+	}
+
 	// update NFT
 	nft.EditMetadata(msg.TokenURI)
 

@@ -52,6 +52,12 @@ func (k Keeper) SetSubToken(ctx sdk.Context, denom, id string, subTokenID int64,
 	store.Set(subTokenKey, bz)
 }
 
+func (k Keeper) RemoveSubToken(ctx sdk.Context, denom, id string, subTokenID int64) {
+	store := ctx.KVStore(k.storeKey)
+	subTokenKey := types.GetSubTokenKey(denom, id, subTokenID)
+	store.Delete(subTokenKey)
+}
+
 func (k Keeper) GetLastSubTokenID(ctx sdk.Context, denom, id string) int64 {
 	store := ctx.KVStore(k.storeKey)
 	lastSubTokenIDKey := types.GetLastSubTokenIDKey(denom, id)
@@ -78,7 +84,12 @@ func (k Keeper) SetLastSubTokenID(ctx sdk.Context, denom, id string, lastSubToke
 func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk.Int,
 	creator, owner sdk.AccAddress, tokenURI string, allowMint bool) (int64, error) {
 
-	err := k.ReserveTokens(ctx,
+	nft, err := k.GetNFT(ctx, denom, id)
+	if err == nil {
+		reserve = nft.GetReserve()
+	}
+
+	err = k.ReserveTokens(ctx,
 		sdk.NewCoins(
 			sdk.NewCoin(
 				k.baseDenom,
@@ -91,6 +102,10 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 
 	lastSubTokenID := k.GetLastSubTokenID(ctx, denom, id)
 
+	if lastSubTokenID == 0 {
+		lastSubTokenID = 1
+	}
+
 	tempSubTokenID := lastSubTokenID
 	subTokenIDs := make([]int64, quantity.Int64())
 	for i := int64(0); i < quantity.Int64(); i++ {
@@ -98,7 +113,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 		tempSubTokenID++
 	}
 
-	nft := types.NewBaseNFT(id, creator, owner, tokenURI, reserve, subTokenIDs, allowMint)
+	nft = types.NewBaseNFT(id, creator, owner, tokenURI, reserve, subTokenIDs, allowMint)
 	collection, found := k.GetCollection(ctx, denom)
 	if found {
 		collection, err = collection.AddNFT(nft)
@@ -137,13 +152,14 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 
 	owner := nft.GetOwners().GetOwner(nft.GetCreator())
 	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
-	for _, id := range subTokenIDs {
-		if ownerSubTokenIDs.Find(id) == -1 {
+	for _, subTokenID := range subTokenIDs {
+		if ownerSubTokenIDs.Find(subTokenID) == -1 {
 			return sdkerrors.Wrap(types.ErrNotAllowedBurn,
 				fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(),
 					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
 		}
-		owner = owner.RemoveSubTokenID(id)
+		owner = owner.RemoveSubTokenID(subTokenID)
+		k.RemoveSubToken(ctx, denom, id, subTokenID)
 	}
 
 	nft = nft.SetOwners(nft.

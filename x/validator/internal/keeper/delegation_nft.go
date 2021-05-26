@@ -92,7 +92,7 @@ func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, de
 
 	delegation, found := k.GetDelegationNFT(ctx, validator.ValAddress, delAddr, tokenID, denom)
 	if !found {
-		delegation = types.NewDelegationNFT(delAddr, validator.ValAddress, tokenID, denom, subTokenIDs,
+		delegation = types.NewDelegationNFT(delAddr, validator.ValAddress, tokenID, denom, []int64{},
 			sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt()))
 	}
 	for _, id := range subTokenIDs {
