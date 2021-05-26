@@ -30,6 +30,20 @@ func (k Keeper) GetNFT(ctx sdk.Context, denom, id string) (exported.NFT, error) 
 	return nft, err
 }
 
+func (k Keeper) GetSubToken(ctx sdk.Context, denom, id string, subTokenID sdk.Int) sdk.Int {
+	store := ctx.KVStore(k.storeKey)
+	subTokenKey := types.GetSubTokenKey(denom, id, subTokenID)
+	bz := store.Get(subTokenKey)
+	if bz == nil {
+		return sdk.Int{}
+	}
+
+	subToken := sdk.ZeroInt()
+
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &subToken)
+	return subToken
+}
+
 func (k Keeper) SetSubToken(ctx sdk.Context, denom, id string, subTokenID sdk.Int, reserve sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	subTokenKey := types.GetSubTokenKey(denom, id, subTokenID)

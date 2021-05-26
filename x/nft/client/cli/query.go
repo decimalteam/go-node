@@ -31,6 +31,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdQueryCollection(queryRoute, cdc),
 		GetCmdQueryDenoms(queryRoute, cdc),
 		GetCmdQueryNFT(queryRoute, cdc),
+		GetCmdQuerySubTokens(queryRoute, cdc),
 	)...)
 
 	return nftQueryCmd
@@ -166,8 +167,6 @@ $ %s query %s collection crypto-kitties
 				return err
 			}
 
-			fmt.Printf("%T", out[0].NFTs[0])
-
 			return cliCtx.PrintOutput(out)
 		},
 	}
@@ -238,6 +237,47 @@ $ %s query %s token crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f
 			}
 
 			var out exported.NFT
+			err = cdc.UnmarshalJSON(res, &out)
+			if err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(out)
+		},
+	}
+}
+
+func GetCmdQuerySubTokens(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "sub_tokens [denom] [ID] [sub_token_ids]",
+		Short: "query a single NFT from a collection",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			denom := args[0]
+			id := args[1]
+			subTokenIDsStr := strings.Split(args[2], ",")
+			subTokenIDs := make([]sdk.Int, len(subTokenIDsStr))
+			for i, d := range subTokenIDsStr {
+				subTokenID, ok := sdk.NewIntFromString(d)
+				if !ok {
+					return fmt.Errorf("invalid subTokenID")
+				}
+				subTokenIDs[i] = subTokenID
+			}
+
+			params := types.NewQuerySubTokensParams(denom, id, subTokenIDs)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/sub_tokens", queryRoute), bz)
+			if err != nil {
+				return err
+			}
+
+			var out types.ResponseSubTokens
 			err = cdc.UnmarshalJSON(res, &out)
 			if err != nil {
 				return err

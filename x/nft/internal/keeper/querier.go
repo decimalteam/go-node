@@ -20,6 +20,7 @@ const (
 	QueryCollection   = "collection"
 	QueryDenoms       = "denoms"
 	QueryNFT          = "nft"
+	QuerySubTokens    = "sub_tokens"
 )
 
 // NewQuerier is the module level router for state queries
@@ -38,6 +39,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryDenoms(ctx, path[1:], req, k)
 		case QueryNFT:
 			return queryNFT(ctx, path[1:], req, k)
+		case QuerySubTokens:
+			return querySubTokens(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown nft query endpoint")
 		}
@@ -151,6 +154,32 @@ func queryNFT(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper) (
 	}
 
 	bz, err := types.ModuleCdc.MarshalJSON(nft)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func querySubTokens(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QuerySubTokensParams
+
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, err.Error())
+	}
+
+	var response types.ResponseSubTokens
+
+	for _, id := range params.SubTokenIDs {
+		reserve := k.GetSubToken(ctx, params.Denom, params.TokenID, id)
+		response = append(response, types.ResponseSubToken{
+			ID:      id,
+			Reserve: reserve,
+		})
+	}
+
+	bz, err := types.ModuleCdc.MarshalJSON(response)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

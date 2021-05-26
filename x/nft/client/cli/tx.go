@@ -214,7 +214,7 @@ $ %s tx %s burn crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65
 			denom := args[0]
 			tokenID := args[1]
 
-			subTokenIDsStr := strings.Split(args[3], ",")
+			subTokenIDsStr := strings.Split(args[2], ",")
 			subTokenIDs := make([]sdk.Int, len(subTokenIDsStr))
 			for i, d := range subTokenIDsStr {
 				subTokenID, ok := sdk.NewIntFromString(d)
