@@ -72,14 +72,15 @@ func GetCmdQuerySwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 }
 
 func GetCmdQueryActiveSwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "active-swap",
 		Args:  cobra.NoArgs,
 		Short: "Query all active swaps",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			//cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			bz, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types2.QueryActiveSwaps), nil)
+			bz, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types2.QueryActiveSwaps), nil)
 			if err != nil {
 				return err
 			}
@@ -89,9 +90,13 @@ func GetCmdQueryActiveSwap(storeName string, cdc *codec.LegacyAmino) *cobra.Comm
 				return err
 			}
 
-			return cliCtx.PrintOutput(swaps)
+			return clientCtx.PrintObjectLegacy(swaps)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 func GetCmdQueryPool(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
