@@ -29,18 +29,15 @@ const (
 //
 // - Owners: 0x01<address_bytes_key><denom_bytes_key>: <Owner>
 var (
-	CollectionsKeyPrefix = []byte{0x60, 0x00} // key for NFT collections
-	OwnersKeyPrefix      = []byte{0x60, 0x01} // key for balance of NFTs held by an address
+	CollectionsKeyPrefix    = []byte{0x60, 0x00} // key for NFT collections
+	OwnersKeyPrefix         = []byte{0x60, 0x01} // key for balance of NFTs held by an address
+	SubTokenKeyPrefix       = []byte{0x60, 0x02}
+	LastSubTokenIDKeyPrefix = []byte{0x60, 0x03}
 )
 
 // GetCollectionKey gets the key of a collection
 func GetCollectionKey(denom string) []byte {
-	h := tmhash.New()
-	_, err := h.Write([]byte(denom))
-	if err != nil {
-		panic(err)
-	}
-	bs := h.Sum(nil)
+	bs := getHash(denom)
 
 	return append(CollectionsKeyPrefix, bs...)
 }
@@ -62,12 +59,28 @@ func GetOwnersKey(address sdk.AccAddress) []byte {
 
 // GetOwnerKey gets the key of a collection owned by an account address
 func GetOwnerKey(address sdk.AccAddress, denom string) []byte {
+	bs := getHash(denom)
+
+	return append(GetOwnersKey(address), bs...)
+}
+
+func GetSubTokenKey(denom, id string, subTokenID sdk.Int) []byte {
+	bs := getHash(denom)
+	bsID := getHash(id)
+	return append(append(append(SubTokenKeyPrefix, bs...), bsID...), []byte(subTokenID.String())...)
+}
+
+func GetLastSubTokenIDKey(denom, id string) []byte {
+	bs := getHash(denom)
+	bsID := getHash(id)
+	return append(append(LastSubTokenIDKeyPrefix, bs...), bsID...)
+}
+
+func getHash(denom string) []byte {
 	h := tmhash.New()
 	_, err := h.Write([]byte(denom))
 	if err != nil {
 		panic(err)
 	}
-	bs := h.Sum(nil)
-
-	return append(GetOwnersKey(address), bs...)
+	return h.Sum(nil)
 }

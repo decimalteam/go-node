@@ -1,5 +1,6 @@
 package nft_test
 
+/*
 import (
 	"bitbucket.org/decimalteam/go-node/x/nft"
 	"fmt"
@@ -57,4 +58,4 @@ func CheckInvariants(k nft.Keeper, ctx sdk.Context) bool {
 		}
 	}
 	return true
-}
+}*/

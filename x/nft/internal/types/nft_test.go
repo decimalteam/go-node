@@ -1,5 +1,6 @@
 package types
 
+/*
 import (
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 	"fmt"
@@ -228,4 +229,4 @@ func TestNFTsSortInterface(t *testing.T) {
 	nfts.Sort()
 	require.True(t, nfts.Less(0, 1))
 	require.False(t, nfts.Less(1, 0))
-}
+}*/

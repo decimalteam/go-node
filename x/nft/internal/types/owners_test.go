@@ -1,5 +1,6 @@
 package types
 
+/*
 import (
 	"fmt"
 	"testing"
@@ -190,4 +191,4 @@ func TestOwnerDeleteIDMethod(t *testing.T) {
 
 	returnedCollection, _ := owner.GetIDCollection(denom)
 	require.Equal(t, len(returnedCollection.IDs), 1)
-}
+}*/

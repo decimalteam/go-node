@@ -1,5 +1,6 @@
 package nft_test
 
+/*
 import (
 	"testing"
 
@@ -60,4 +61,4 @@ func TestInitGenesis(t *testing.T) {
 	require.Equal(t, len(genesisState.Collections), len(exportedGenesisState.Collections))
 	require.Equal(t, genesisState.Collections[0].String(), exportedGenesisState.Collections[0].String())
 	require.Equal(t, genesisState.Collections[1].String(), exportedGenesisState.Collections[1].String())
-}
+}*/

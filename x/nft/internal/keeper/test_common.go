@@ -1,5 +1,6 @@
 package keeper
 
+/*
 import (
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/coin"
@@ -125,4 +126,4 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	}
 
 	return ctx, nftkeeper
-}
+}*/

@@ -1,15 +1,6 @@
 package keeper_test
 
-import (
-	"testing"
-
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/keeper"
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/stretchr/testify/require"
-)
-
+/*
 func TestMintNFT(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 
@@ -140,3 +131,4 @@ func TestIsNFT(t *testing.T) {
 	isNFT = NFTKeeper.IsNFT(ctx, denom, id)
 	require.True(t, isNFT)
 }
+*/

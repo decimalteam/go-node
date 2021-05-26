@@ -30,34 +30,74 @@ func (k Keeper) GetNFT(ctx sdk.Context, denom, id string) (exported.NFT, error) 
 	return nft, err
 }
 
+func (k Keeper) SetSubToken(ctx sdk.Context, denom, id string, subTokenID sdk.Int, reserve sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	subTokenKey := types.GetSubTokenKey(denom, id, subTokenID)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reserve)
+	store.Set(subTokenKey, bz)
+}
+
+func (k Keeper) GetLastSubTokenID(ctx sdk.Context, denom, id string) sdk.Int {
+	store := ctx.KVStore(k.storeKey)
+	lastSubTokenIDKey := types.GetLastSubTokenIDKey(denom, id)
+	bz := store.Get(lastSubTokenIDKey)
+	if bz == nil {
+		return sdk.ZeroInt()
+	}
+
+	lastTokenID := sdk.ZeroInt()
+
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &lastTokenID)
+	return lastTokenID
+}
+
+func (k Keeper) SetLastSubTokenID(ctx sdk.Context, denom, id string, lastSubTokenID sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	lastSubTokenIDKey := types.GetLastSubTokenIDKey(denom, id)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(lastSubTokenID.String())
+	store.Set(lastSubTokenIDKey, bz)
+}
+
 // MintNFT mints an NFT and manages that NFTs existence within Collections and Owners
-func (k Keeper) MintNFT(ctx sdk.Context, denom string, nft exported.NFT) error {
+func (k Keeper) MintNFT(ctx sdk.Context, denom string, nft exported.NFT) (sdk.Int, error) {
+	quantity := nft.GetOwners().GetOwners()[0].GetQuantity()
+
 	err := k.ReserveTokens(ctx,
 		sdk.NewCoins(
 			sdk.NewCoin(
 				k.baseDenom,
-				nft.GetReserve().Mul(nft.GetOwners().GetOwners()[0].GetQuantity()), // reserve * quantity
+				nft.GetReserve().Mul(quantity), // reserve * quantity
 			)),
 		nft.GetCreator())
 	if err != nil {
-		return err
+		return sdk.Int{}, err
 	}
 
 	collection, found := k.GetCollection(ctx, denom)
 	if found {
 		collection, err = collection.AddNFT(nft)
 		if err != nil {
-			return err
+			return sdk.Int{}, err
 		}
 	} else {
 		collection = types.NewCollection(denom, types.NewNFTs(nft))
 	}
 	k.SetCollection(ctx, denom, collection)
 
+	lastSubTokenID := k.GetLastSubTokenID(ctx, denom, nft.GetID())
+
+	newLastSubTokenID := lastSubTokenID.Add(quantity)
+
+	for i := lastSubTokenID; i.LT(newLastSubTokenID); i = i.AddRaw(1) {
+		k.SetSubToken(ctx, denom, nft.GetID(), i, nft.GetReserve())
+	}
+
+	k.SetLastSubTokenID(ctx, denom, nft.GetID(), newLastSubTokenID)
+
 	ownerIDCollection, _ := k.GetOwnerByDenom(ctx, nft.GetCreator(), denom)
 	ownerIDCollection = ownerIDCollection.AddID(nft.GetID())
 	k.SetOwnerByDenom(ctx, nft.GetCreator(), denom, ownerIDCollection.IDs)
-	return err
+	return newLastSubTokenID, err
 }
 
 // DeleteNFT deletes an existing NFT from store
