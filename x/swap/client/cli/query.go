@@ -23,11 +23,11 @@ func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	swapQueryCmd.AddCommand(flags.GetCommands(
+	swapQueryCmd.AddCommand(
 		GetCmdQuerySwap(queryRoute, cdc),
 		GetCmdQueryActiveSwap(queryRoute, cdc),
 		GetCmdQueryPool(queryRoute, cdc),
-	)...)
+	)
 
 	return swapQueryCmd
 }
