@@ -89,19 +89,19 @@ func (msg MsgMintNFT) GetSigners() []sdk.AccAddress {
 /* --------------------------------------------------------------------------- */
 
 type MsgBurnNFT struct {
-	Sender   sdk.AccAddress `json:"sender"`
-	ID       string         `json:"id"`
-	Denom    string         `json:"denom"`
-	Quantity sdk.Int        `json:"quantity"`
+	Sender      sdk.AccAddress `json:"sender"`
+	ID          string         `json:"id"`
+	Denom       string         `json:"denom"`
+	SubTokenIDs []sdk.Int      `json:"sub_token_ids"`
 }
 
 // NewMsgBurnNFT is a constructor function for MsgBurnNFT
-func NewMsgBurnNFT(sender sdk.AccAddress, id string, denom string, quantity sdk.Int) MsgBurnNFT {
+func NewMsgBurnNFT(sender sdk.AccAddress, id string, denom string, subTokenIDs []sdk.Int) MsgBurnNFT {
 	return MsgBurnNFT{
-		Sender:   sender,
-		ID:       strings.TrimSpace(id),
-		Denom:    strings.TrimSpace(denom),
-		Quantity: quantity,
+		Sender:      sender,
+		ID:          strings.TrimSpace(id),
+		Denom:       strings.TrimSpace(denom),
+		SubTokenIDs: subTokenIDs,
 	}
 }
 
@@ -142,21 +142,21 @@ func (msg MsgBurnNFT) GetSigners() []sdk.AccAddress {
 /* --------------------------------------------------------------------------- */
 
 type MsgTransferNFT struct {
-	Sender    sdk.AccAddress `json:"sender"`
-	Recipient sdk.AccAddress `json:"recipient"`
-	ID        string         `json:"id"`
-	Denom     string         `json:"denom"`
-	Quantity  sdk.Int        `json:"quantity"`
+	Sender      sdk.AccAddress `json:"sender"`
+	Recipient   sdk.AccAddress `json:"recipient"`
+	ID          string         `json:"id"`
+	Denom       string         `json:"denom"`
+	SubTokenIDs []sdk.Int      `json:"sub_token_ids"`
 }
 
 // NewMsgTransferNFT is a constructor function for MsgSetName
-func NewMsgTransferNFT(sender, recipient sdk.AccAddress, denom, id string, quantity sdk.Int) MsgTransferNFT {
+func NewMsgTransferNFT(sender, recipient sdk.AccAddress, denom, id string, subTokenIDs []sdk.Int) MsgTransferNFT {
 	return MsgTransferNFT{
-		Sender:    sender,
-		Recipient: recipient,
-		Denom:     strings.TrimSpace(denom),
-		ID:        strings.TrimSpace(id),
-		Quantity:  quantity,
+		Sender:      sender,
+		Recipient:   recipient,
+		Denom:       strings.TrimSpace(denom),
+		ID:          strings.TrimSpace(id),
+		SubTokenIDs: subTokenIDs,
 	}
 }
 
@@ -247,16 +247,4 @@ func (msg MsgEditNFTMetadata) GetSignBytes() []byte {
 // GetSigners Implements Msg.
 func (msg MsgEditNFTMetadata) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
-}
-
-/* --------------------------------------------------------------------------- */
-// MsgDelegateNFT
-/* --------------------------------------------------------------------------- */
-
-type MsgDelegateNFT struct {
-	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
-	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-	ID               string         `json:"id"`
-	Denom            string         `json:"denom"`
-	Quantity         sdk.Int        `json:"quantity"`
 }

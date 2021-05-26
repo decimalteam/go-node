@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -248,7 +249,7 @@ func GetDelegate(cdc *codec.Codec) *cobra.Command {
 func GetDelegateNFT(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Delegate NFT",
-		Use:   "delegate-nft [validator_address] [tokenID] [denom] [quantity] --from name/address",
+		Use:   "delegate-nft [validator_address] [tokenID] [denom] [sub_token_ids] --from name/address",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -256,9 +257,14 @@ func GetDelegateNFT(cdc *codec.Codec) *cobra.Command {
 
 			delAddress := cliCtx.GetFromAddress()
 
-			quantity, ok := sdk.NewIntFromString(args[3])
-			if !ok {
-				return fmt.Errorf("invalid quantity")
+			subTokenIDsStr := strings.Split(args[3], ",")
+			subTokenIDs := make([]sdk.Int, len(subTokenIDsStr))
+			for i, d := range subTokenIDsStr {
+				subTokenID, ok := sdk.NewIntFromString(d)
+				if !ok {
+					return fmt.Errorf("invalid quantity")
+				}
+				subTokenIDs[i] = subTokenID
 			}
 
 			valAddress, err := sdk.ValAddressFromBech32(args[0])
@@ -269,7 +275,7 @@ func GetDelegateNFT(cdc *codec.Codec) *cobra.Command {
 			tokenID := args[1]
 			denom := args[2]
 
-			msg := types.NewMsgDelegateNFT(valAddress, delAddress, tokenID, denom, quantity)
+			msg := types.NewMsgDelegateNFT(valAddress, delAddress, tokenID, denom, subTokenIDs)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -343,7 +349,7 @@ func GetUnbond(cdc *codec.Codec) *cobra.Command {
 func GetUnbondNFT(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Short: "Unbond-nft delegation",
-		Use:   "unbond-nft [validator-address] [tokenID] [denom] [quantity] --from name/address",
+		Use:   "unbond-nft [validator-address] [tokenID] [denom] [sub_token_ids] --from name/address",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -356,15 +362,20 @@ func GetUnbondNFT(cdc *codec.Codec) *cobra.Command {
 
 			delAddress := cliCtx.GetFromAddress()
 
-			quantity, ok := sdk.NewIntFromString(args[3])
-			if !ok {
-				return fmt.Errorf("invalid quantity")
+			subTokenIDsStr := strings.Split(args[3], ",")
+			subTokenIDs := make([]sdk.Int, len(subTokenIDsStr))
+			for i, d := range subTokenIDsStr {
+				subTokenID, ok := sdk.NewIntFromString(d)
+				if !ok {
+					return fmt.Errorf("invalid quantity")
+				}
+				subTokenIDs[i] = subTokenID
 			}
 
 			tokenID := args[1]
 			denom := args[2]
 
-			msg := types.NewMsgUnbondNFT(valAddress, delAddress, tokenID, denom, quantity)
+			msg := types.NewMsgUnbondNFT(valAddress, delAddress, tokenID, denom, subTokenIDs)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

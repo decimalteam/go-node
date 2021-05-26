@@ -105,16 +105,16 @@ type MsgDelegateNFT struct {
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
 	TokenID          string         `json:"id"`
 	Denom            string         `json:"denom"`
-	Quantity         sdk.Int        `json:"quantity"`
+	SubTokenIDs      []sdk.Int      `json:"sub_token_ids"`
 }
 
-func NewMsgDelegateNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, quantity sdk.Int) MsgDelegateNFT {
+func NewMsgDelegateNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, subTokenIDs []sdk.Int) MsgDelegateNFT {
 	return MsgDelegateNFT{
 		DelegatorAddress: delegatorAddr,
 		ValidatorAddress: validatorAddr,
 		TokenID:          tokenID,
 		Denom:            denom,
-		Quantity:         quantity,
+		SubTokenIDs:      subTokenIDs,
 	}
 }
 
@@ -247,16 +247,16 @@ type MsgUnbondNFT struct {
 	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
 	TokenID          string         `json:"id"`
 	Denom            string         `json:"denom"`
-	Quantity         sdk.Int        `json:"quantity"`
+	SubTokenIDs      []sdk.Int      `json:"sub_token_ids"`
 }
 
-func NewMsgUnbondNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, quantity sdk.Int) MsgUnbondNFT {
+func NewMsgUnbondNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, subTokenIDs []sdk.Int) MsgUnbondNFT {
 	return MsgUnbondNFT{
 		ValidatorAddress: validatorAddr,
 		DelegatorAddress: delegatorAddr,
 		TokenID:          tokenID,
 		Denom:            denom,
-		Quantity:         quantity,
+		SubTokenIDs:      subTokenIDs,
 	}
 }
 

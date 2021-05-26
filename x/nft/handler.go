@@ -42,11 +42,10 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types.MsgTransferNFT, k keeper.Ke
 		return nil, err
 	}
 
-	nft, err = types.TransferNFT(nft, msg.Sender, msg.Recipient, msg.Quantity)
+	nft, err = types.TransferNFT(nft, msg.Sender, msg.Recipient, sdk.NewInt(1))
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(nft)
 
 	collection, found := k.GetCollection(ctx, msg.Denom)
 	if !found {
@@ -108,7 +107,7 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 		}
 	}
 	nft = types.NewBaseNFT(msg.ID, msg.Sender, msg.Recipient, msg.TokenURI, msg.Quantity, msg.Reserve, msg.AllowMint)
-	err = k.MintNFT(ctx, msg.Denom, nft)
+	lastSubTokenID, err := k.MintNFT(ctx, msg.Denom, nft)
 	if err != nil {
 		return nil, err
 	}
@@ -120,6 +119,7 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
 			sdk.NewAttribute(types.AttributeKeyNFTID, msg.ID),
 			sdk.NewAttribute(types.AttributeKeyNFTTokenURI, msg.TokenURI),
+			sdk.NewAttribute(types.AttributeKeySubTokenIDStartRange, lastSubTokenID.Sub(msg.Quantity).String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -142,8 +142,8 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 		return nil, ErrNotAllowedBurn()
 	}
 
-	// remove  NFT
-	err = k.DeleteNFT(ctx, msg.Denom, msg.ID, msg.Quantity)
+	// remove NFT
+	err = k.DeleteNFT(ctx, msg.Denom, msg.ID, sdk.NewInt(1))
 	if err != nil {
 		return nil, err
 	}

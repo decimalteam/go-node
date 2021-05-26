@@ -144,7 +144,7 @@ func handleMsgDelegateNFT(ctx sdk.Context, k Keeper, msg types.MsgDelegateNFT) (
 		return nil, types.ErrNoValidatorFound()
 	}
 
-	err = k.DelegateNFT(ctx, msg.DelegatorAddress, msg.TokenID, msg.Denom, msg.Quantity, val)
+	err = k.DelegateNFT(ctx, msg.DelegatorAddress, msg.TokenID, msg.Denom, sdk.NewInt(1), val)
 	if err != nil {
 		e := sdkerrors.Error{}
 		if errors.As(err, &e) {
@@ -165,7 +165,7 @@ func handleMsgDelegateNFT(ctx sdk.Context, k Keeper, msg types.MsgDelegateNFT) (
 }
 
 func handleMsgUnbondNFT(ctx sdk.Context, k Keeper, msg types.MsgUnbondNFT) (*sdk.Result, error) {
-	completionTime, err := k.UndelegateNFT(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.TokenID, msg.Denom, msg.Quantity)
+	completionTime, err := k.UndelegateNFT(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.TokenID, msg.Denom, sdk.NewInt(1))
 	if err != nil {
 		e := sdkerrors.Error{}
 		if errors.As(err, &e) {

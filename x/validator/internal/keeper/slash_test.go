@@ -83,7 +83,7 @@ func TestSlashBondedDelegationNFT(t *testing.T) {
 	reserve := sdk.NewInt(100)
 
 	// create nft
-	err := nftKeeper.MintNFT(ctx, denom, nft.NewBaseNFT(
+	_, err := nftKeeper.MintNFT(ctx, denom, nft.NewBaseNFT(
 		tokenID,
 		delAddr,
 		delAddr,
