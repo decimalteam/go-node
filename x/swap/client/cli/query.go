@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/version"
+	//todo check it - not resolved
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/spf13/cobra"
 	"strings"
