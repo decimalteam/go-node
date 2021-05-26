@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -72,11 +73,11 @@ func transferNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.Handle
 			return
 		}
 
-		subTokenIDs := make([]sdk.Int, len(req.SubTokenIDs))
+		subTokenIDs := make([]int64, len(req.SubTokenIDs))
 		for i, d := range req.SubTokenIDs {
-			subTokenID, ok := sdk.NewIntFromString(d)
-			if !ok {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid quantity")
+			subTokenID, err := strconv.ParseInt(d, 10, 64)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid subTokenID")
 				return
 			}
 			subTokenIDs[i] = subTokenID
@@ -186,11 +187,11 @@ func burnNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFun
 			return
 		}
 
-		subTokenIDs := make([]sdk.Int, len(req.SubTokenIDs))
+		subTokenIDs := make([]int64, len(req.SubTokenIDs))
 		for i, d := range req.SubTokenIDs {
-			subTokenID, ok := sdk.NewIntFromString(d)
-			if !ok {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid quantity")
+			subTokenID, err := strconv.ParseInt(d, 10, 64)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid subTokenID")
 				return
 			}
 			subTokenIDs[i] = subTokenID

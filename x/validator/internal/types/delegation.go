@@ -185,8 +185,8 @@ func (d *UnbondingDelegation) AddEntry(creationHeight int64,
 	d.Entries = append(d.Entries, NewUnbondingDelegationEntry(creationHeight, minTime, balance))
 }
 
-func (d *UnbondingDelegation) AddNFTEntry(creationHeight int64, minTime time.Time, tokenID, denom string, quantity sdk.Int, balance sdk.Coin) {
-	d.Entries = append(d.Entries, NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, quantity, balance))
+func (d *UnbondingDelegation) AddNFTEntry(creationHeight int64, minTime time.Time, tokenID, denom string, subTokenIDs []int64, balance sdk.Coin) {
+	d.Entries = append(d.Entries, NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, subTokenIDs, balance))
 }
 
 // RemoveEntry - remove entry at index i to the unbonding delegation

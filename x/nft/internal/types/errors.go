@@ -17,4 +17,5 @@ var (
 	ErrNotAllowedMint    = sdkerrors.Register(ModuleName, 10, "only the creator can mint a token")
 	ErrInvalidDenom      = sdkerrors.Register(ModuleName, 11, "invalid denom name")
 	ErrInvalidTokenID    = sdkerrors.Register(ModuleName, 12, "invalid token name")
+	ErrInvalidSubTokenID = sdkerrors.Register(ModuleName, 13, "invalid subTokenID")
 )

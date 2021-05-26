@@ -99,4 +99,5 @@ type (
 	QueryCollectionParams = types.QueryCollectionParams
 	QueryBalanceParams    = types.QueryBalanceParams
 	QueryNFTParams        = types.QueryNFTParams
+	SortedIntArray        = types.SortedIntArray
 )

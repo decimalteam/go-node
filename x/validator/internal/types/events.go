@@ -48,6 +48,7 @@ const (
 	AttributeKeyDenom                      = "denom"
 	AttributeKeyID                         = "id"
 	AttributeKeyQuantity                   = "quantity"
+	AttributeKeySubTokenIDs                = "sub_token_ids"
 
 	AttributeValueDoubleSign       = "double_sign"
 	AttributeValueMissingSignature = "missing_signature"

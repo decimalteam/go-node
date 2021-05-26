@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -35,8 +35,9 @@ const (
 
 	CodeErrNoHistoricalInfo CodeType = 700
 
-	CodeDelegatorStakeIsTooLow CodeType = 800
-	CodeEmptyDelegatorAddress  CodeType = 801
+	CodeDelegatorStakeIsTooLow    CodeType = 800
+	CodeEmptyDelegatorAddress     CodeType = 801
+	CodeOwnerDoesNotOwnSubTokenID CodeType = 802
 
 	CodeInsufficientCoinToPayCommission CodeType = 900
 	CodeInsufficientFunds               CodeType = 901
@@ -158,6 +159,10 @@ func ErrValidatorAlreadyOnline() *sdkerrors.Error {
 
 func ErrValidatorAlreadyOffline() *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeValidatorAlreadyOffline, "validator already offline")
+}
+
+func ErrOwnerDoesNotOwnSubTokenID(owner sdk.AccAddress, subTokenID int64) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeOwnerDoesNotOwnSubTokenID, fmt.Sprintf("the owner %s does not own the token with ID = %d", owner.String(), subTokenID))
 }
 
 func ErrInternal(err string) *sdkerrors.Error {

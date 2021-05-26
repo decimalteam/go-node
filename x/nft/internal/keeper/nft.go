@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -30,79 +31,88 @@ func (k Keeper) GetNFT(ctx sdk.Context, denom, id string) (exported.NFT, error) 
 	return nft, err
 }
 
-func (k Keeper) GetSubToken(ctx sdk.Context, denom, id string, subTokenID sdk.Int) sdk.Int {
+func (k Keeper) GetSubToken(ctx sdk.Context, denom, id string, subTokenID int64) (sdk.Int, bool) {
 	store := ctx.KVStore(k.storeKey)
 	subTokenKey := types.GetSubTokenKey(denom, id, subTokenID)
 	bz := store.Get(subTokenKey)
 	if bz == nil {
-		return sdk.Int{}
+		return sdk.Int{}, false
 	}
 
-	subToken := sdk.ZeroInt()
+	reserve := sdk.ZeroInt()
 
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &subToken)
-	return subToken
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &reserve)
+	return reserve, true
 }
 
-func (k Keeper) SetSubToken(ctx sdk.Context, denom, id string, subTokenID sdk.Int, reserve sdk.Int) {
+func (k Keeper) SetSubToken(ctx sdk.Context, denom, id string, subTokenID int64, reserve sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	subTokenKey := types.GetSubTokenKey(denom, id, subTokenID)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reserve)
 	store.Set(subTokenKey, bz)
 }
 
-func (k Keeper) GetLastSubTokenID(ctx sdk.Context, denom, id string) sdk.Int {
+func (k Keeper) GetLastSubTokenID(ctx sdk.Context, denom, id string) int64 {
 	store := ctx.KVStore(k.storeKey)
 	lastSubTokenIDKey := types.GetLastSubTokenIDKey(denom, id)
 	bz := store.Get(lastSubTokenIDKey)
 	if bz == nil {
-		return sdk.ZeroInt()
+		return 0
 	}
 
-	lastTokenID := sdk.ZeroInt()
-
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &lastTokenID)
-	return lastTokenID
+	b := make([]byte, 8)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &b)
+	return int64(binary.LittleEndian.Uint64(b))
 }
 
-func (k Keeper) SetLastSubTokenID(ctx sdk.Context, denom, id string, lastSubTokenID sdk.Int) {
+func (k Keeper) SetLastSubTokenID(ctx sdk.Context, denom, id string, lastSubTokenID int64) {
 	store := ctx.KVStore(k.storeKey)
 	lastSubTokenIDKey := types.GetLastSubTokenIDKey(denom, id)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(lastSubTokenID.String())
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(lastSubTokenID))
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(b)
 	store.Set(lastSubTokenIDKey, bz)
 }
 
 // MintNFT mints an NFT and manages that NFTs existence within Collections and Owners
-func (k Keeper) MintNFT(ctx sdk.Context, denom string, nft exported.NFT) (sdk.Int, error) {
-	quantity := nft.GetOwners().GetOwners()[0].GetQuantity()
+func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk.Int,
+	creator, owner sdk.AccAddress, tokenURI string, allowMint bool) (int64, error) {
 
 	err := k.ReserveTokens(ctx,
 		sdk.NewCoins(
 			sdk.NewCoin(
 				k.baseDenom,
-				nft.GetReserve().Mul(quantity), // reserve * quantity
+				reserve.Mul(quantity), // reserve * quantity
 			)),
-		nft.GetCreator())
+		creator)
 	if err != nil {
-		return sdk.Int{}, err
+		return 0, err
 	}
 
+	lastSubTokenID := k.GetLastSubTokenID(ctx, denom, id)
+
+	tempSubTokenID := lastSubTokenID
+	subTokenIDs := make([]int64, quantity.Int64())
+	for i := int64(0); i < quantity.Int64(); i++ {
+		subTokenIDs[i] = tempSubTokenID
+		tempSubTokenID++
+	}
+
+	nft := types.NewBaseNFT(id, creator, owner, tokenURI, reserve, subTokenIDs, allowMint)
 	collection, found := k.GetCollection(ctx, denom)
 	if found {
 		collection, err = collection.AddNFT(nft)
 		if err != nil {
-			return sdk.Int{}, err
+			return 0, err
 		}
 	} else {
 		collection = types.NewCollection(denom, types.NewNFTs(nft))
 	}
 	k.SetCollection(ctx, denom, collection)
 
-	lastSubTokenID := k.GetLastSubTokenID(ctx, denom, nft.GetID())
+	newLastSubTokenID := lastSubTokenID + quantity.Int64()
 
-	newLastSubTokenID := lastSubTokenID.Add(quantity)
-
-	for i := lastSubTokenID; i.LT(newLastSubTokenID); i = i.AddRaw(1) {
+	for i := lastSubTokenID; i < newLastSubTokenID; i++ {
 		k.SetSubToken(ctx, denom, nft.GetID(), i, nft.GetReserve())
 	}
 
@@ -115,7 +125,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom string, nft exported.NFT) (sdk.In
 }
 
 // DeleteNFT deletes an existing NFT from store
-func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) error {
+func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64) error {
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrUnknownCollection, fmt.Sprintf("collection of %s doesn't exist", denom))
@@ -124,34 +134,21 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) e
 	if err != nil {
 		return err
 	}
-	ownerIDCollection, found := k.GetOwnerByDenom(ctx, nft.GetCreator(), denom)
-	if !found {
-		return sdkerrors.Wrap(types.ErrUnknownCollection,
-			fmt.Sprintf("id collection #%s doesn't exist for owner %s", denom, nft.GetCreator()),
-		)
-	}
 
-	if quantity.GT(nft.GetOwners().GetOwner(nft.GetCreator()).GetQuantity()) {
-		return sdkerrors.Wrap(types.ErrNotAllowedBurn,
-			fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(), nft.GetOwners().GetOwner(nft.GetCreator()).GetQuantity().String()))
-	}
-
-	if quantity.Equal(nft.GetOwners().GetOwner(nft.GetCreator()).GetQuantity()) {
-		ownerIDCollection, err = ownerIDCollection.DeleteID(nft.GetID())
-		if err != nil {
-			return err
+	owner := nft.GetOwners().GetOwner(nft.GetCreator())
+	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
+	for _, id := range subTokenIDs {
+		if ownerSubTokenIDs.Find(id) == -1 {
+			return sdkerrors.Wrap(types.ErrNotAllowedBurn,
+				fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(),
+					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
 		}
-		k.SetOwnerByDenom(ctx, nft.GetCreator(), denom, ownerIDCollection.IDs)
+		owner = owner.RemoveSubTokenID(id)
 	}
-
-	owner := nft.GetOwners().
-		GetOwner(nft.GetCreator())
 
 	nft = nft.SetOwners(nft.
 		GetOwners().
-		SetOwner(
-			owner.
-				SetQuantity(owner.GetQuantity().Sub(quantity))))
+		SetOwner(owner))
 
 	collection, err = collection.UpdateNFT(nft)
 	if err != nil {
@@ -161,7 +158,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) e
 	k.SetCollection(ctx, denom, collection)
 
 	err = k.BurnTokens(ctx, sdk.NewCoins(
-		sdk.NewCoin(k.baseDenom, nft.GetReserve().Mul(quantity))))
+		sdk.NewCoin(k.baseDenom, nft.GetReserve().MulRaw(int64(len(subTokenIDs))))))
 	if err != nil {
 		return err
 	}

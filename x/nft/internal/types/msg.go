@@ -95,11 +95,11 @@ type MsgBurnNFT struct {
 	Sender      sdk.AccAddress `json:"sender"`
 	ID          string         `json:"id"`
 	Denom       string         `json:"denom"`
-	SubTokenIDs []sdk.Int      `json:"sub_token_ids"`
+	SubTokenIDs []int64        `json:"sub_token_ids"`
 }
 
 // NewMsgBurnNFT is a constructor function for MsgBurnNFT
-func NewMsgBurnNFT(sender sdk.AccAddress, id string, denom string, subTokenIDs []sdk.Int) MsgBurnNFT {
+func NewMsgBurnNFT(sender sdk.AccAddress, id string, denom string, subTokenIDs []int64) MsgBurnNFT {
 	return MsgBurnNFT{
 		Sender:      sender,
 		ID:          strings.TrimSpace(id),
@@ -149,11 +149,11 @@ type MsgTransferNFT struct {
 	Recipient   sdk.AccAddress `json:"recipient"`
 	ID          string         `json:"id"`
 	Denom       string         `json:"denom"`
-	SubTokenIDs []sdk.Int      `json:"sub_token_ids"`
+	SubTokenIDs []int64        `json:"sub_token_ids"`
 }
 
 // NewMsgTransferNFT is a constructor function for MsgSetName
-func NewMsgTransferNFT(sender, recipient sdk.AccAddress, denom, id string, subTokenIDs []sdk.Int) MsgTransferNFT {
+func NewMsgTransferNFT(sender, recipient sdk.AccAddress, denom, id string, subTokenIDs []int64) MsgTransferNFT {
 	return MsgTransferNFT{
 		Sender:      sender,
 		Recipient:   recipient,

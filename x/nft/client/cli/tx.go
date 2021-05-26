@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -82,10 +83,10 @@ crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa 
 			tokenID := args[3]
 
 			subTokenIDsStr := strings.Split(args[4], ",")
-			subTokenIDs := make([]sdk.Int, len(subTokenIDsStr))
+			subTokenIDs := make([]int64, len(subTokenIDsStr))
 			for i, d := range subTokenIDsStr {
-				subTokenID, ok := sdk.NewIntFromString(d)
-				if !ok {
+				subTokenID, err := strconv.ParseInt(d, 10, 64)
+				if err != nil {
 					return fmt.Errorf("invalid subTokenID")
 				}
 				subTokenIDs[i] = subTokenID
@@ -215,10 +216,10 @@ $ %s tx %s burn crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65
 			tokenID := args[1]
 
 			subTokenIDsStr := strings.Split(args[2], ",")
-			subTokenIDs := make([]sdk.Int, len(subTokenIDsStr))
+			subTokenIDs := make([]int64, len(subTokenIDsStr))
 			for i, d := range subTokenIDsStr {
-				subTokenID, ok := sdk.NewIntFromString(d)
-				if !ok {
+				subTokenID, err := strconv.ParseInt(d, 10, 64)
+				if err != nil {
 					return fmt.Errorf("invalid subTokenID")
 				}
 				subTokenIDs[i] = subTokenID
