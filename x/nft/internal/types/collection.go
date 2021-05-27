@@ -69,7 +69,12 @@ func (collection Collection) AddNFT(nft exported.NFT) (Collection, error) {
 			owner = owner.SetQuantity(owner.GetQuantity().Add(quantity))
 			collNFT = collNFT.SetOwners(collNFT.GetOwners().SetOwner(owner))
 		}
-		collection.NFTs.Update(id, collNFT)
+		updatedNFTs, found := collection.NFTs.Update(id, collNFT)
+
+		if !found {
+			return collection, sdkerrors.Wrap(ErrUnknownNFT, fmt.Sprintf("Could not update NFT #%s", collNFT.GetID()))
+		}
+		collection.NFTs = updatedNFTs
 	} else {
 		collection.NFTs = collection.NFTs.Append(nft)
 	}

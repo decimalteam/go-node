@@ -12,35 +12,35 @@ import (
 // ---------------------------------------- BaseNFT ---------------------------------------------------
 
 func TestBaseNFTGetMethods(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 
-	require.Equal(t, id, testNFT.GetID())
-	require.Equal(t, address, testNFT.GetOwners().GetOwners()[0].GetAddress())
-	require.Equal(t, tokenURI, testNFT.GetTokenURI())
+	require.Equal(t, ID1, testNFT.GetID())
+	require.Equal(t, Addrs[0], testNFT.GetOwners().GetOwners()[0].GetAddress())
+	require.Equal(t, TokenURI1, testNFT.GetTokenURI())
 }
 
 func TestBaseNFTSetMethods(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 
 	testNFT = testNFT.SetOwners(
 		&TokenOwners{
 			Owners: []exported.TokenOwner{&TokenOwner{
-				Address:  address2,
+				Address:  Addrs[1],
 				Quantity: sdk.NewInt(1),
 			}}})
-	require.Equal(t, address2, testNFT.GetOwners().GetOwners()[0].GetAddress())
+	require.Equal(t, Addrs[1], testNFT.GetOwners().GetOwners()[0].GetAddress())
 
-	testNFT = testNFT.EditMetadata(tokenURI2)
-	require.Equal(t, tokenURI2, testNFT.GetTokenURI())
+	testNFT = testNFT.EditMetadata(TokenURI2)
+	require.Equal(t, TokenURI2, testNFT.GetTokenURI())
 }
 
 func TestBaseNFTStringFormat(t *testing.T) {
 	quantity := sdk.NewInt(1)
-	testNFT := NewBaseNFT(id, address, address, tokenURI, quantity, sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, quantity, sdk.NewInt(101), true)
 	expected := fmt.Sprintf(`ID:				%s
 Owners:			%s %s
 TokenURI:		%s`,
-		id, address.String(), quantity.String(), tokenURI)
+		ID1, Addrs[0].String(), quantity.String(), TokenURI1)
 	require.Equal(t, expected, testNFT.String())
 }
 
@@ -50,21 +50,21 @@ func TestNewNFTs(t *testing.T) {
 	emptyNFTs := NewNFTs()
 	require.Equal(t, len(emptyNFTs), 0)
 
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 	oneNFTs := NewNFTs(testNFT)
 	require.Equal(t, len(oneNFTs), 1)
 
-	testNFT2 := NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 	twoNFTs := NewNFTs(testNFT, testNFT2)
 	require.Equal(t, len(twoNFTs), 2)
 }
 
 func TestNFTsAppendMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 	nfts := NewNFTs(testNFT)
 	require.Equal(t, len(nfts), 1)
 
-	testNFT2 := NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 	nfts2 := NewNFTs(testNFT2)
 
 	nfts = nfts.Append(nfts2...)
@@ -73,15 +73,15 @@ func TestNFTsAppendMethod(t *testing.T) {
 	var id3 = string('3')
 	var id4 = string('4')
 	var id5 = string('5')
-	testNFT3 := NewBaseNFT(id3, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT4 := NewBaseNFT(id4, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT5 := NewBaseNFT(id5, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT3 := NewBaseNFT(id3, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT4 := NewBaseNFT(id4, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT5 := NewBaseNFT(id5, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 
 	nfts3 := NewNFTs(testNFT5, testNFT3, testNFT4)
 	nfts = nfts.Append(nfts3...)
 	require.Equal(t, len(nfts), 5)
 
-	nft, found := nfts.Find(id2)
+	nft, found := nfts.Find(ID2)
 	require.True(t, found)
 	require.Equal(t, nft.String(), testNFT2.String())
 
@@ -95,22 +95,22 @@ func TestNFTsAppendMethod(t *testing.T) {
 }
 
 func TestNFTsFindMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT2 := NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 
 	var id3 = string('3')
 	var id4 = string('4')
 	var id5 = string('5')
-	testNFT3 := NewBaseNFT(id3, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT4 := NewBaseNFT(id4, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT5 := NewBaseNFT(id5, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT3 := NewBaseNFT(id3, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT4 := NewBaseNFT(id4, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT5 := NewBaseNFT(id5, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 
 	nfts := NewNFTs(testNFT, testNFT3, testNFT4, testNFT5, testNFT2)
-	nft, found := nfts.Find(id)
+	nft, found := nfts.Find(ID1)
 	require.True(t, found)
 	require.Equal(t, nft.String(), testNFT.String())
 
-	nft, found = nfts.Find(id2)
+	nft, found = nfts.Find(ID2)
 	require.True(t, found)
 	require.Equal(t, nft.String(), testNFT2.String())
 
@@ -133,72 +133,72 @@ func TestNFTsFindMethod(t *testing.T) {
 }
 
 func TestNFTsUpdateMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT2 := NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 	nfts := NewNFTs(testNFT)
 	var success bool
-	nfts, success = nfts.Update(id, testNFT2)
+	nfts, success = nfts.Update(ID1, testNFT2)
 	require.True(t, success)
 
-	nft, found := nfts.Find(id2)
+	nft, found := nfts.Find(ID2)
 	require.True(t, found)
 	require.Equal(t, nft.String(), testNFT2.String())
 
-	nft, found = nfts.Find(id)
+	nft, found = nfts.Find(ID1)
 	require.False(t, found)
 	require.Nil(t, nft)
 
 	var returnedNFTs NFTs
-	returnedNFTs, success = nfts.Update(id, testNFT2)
+	returnedNFTs, success = nfts.Update(ID1, testNFT2)
 	require.False(t, success)
 	require.Equal(t, returnedNFTs.String(), nfts.String())
 }
 
 func TestNFTsRemoveMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT2 := NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 	nfts := NewNFTs(testNFT, testNFT2)
 
 	var success bool
-	nfts, success = nfts.Remove(id)
+	nfts, success = nfts.Remove(ID1)
 	require.True(t, success)
 	require.Equal(t, len(nfts), 1)
 
-	nfts, success = nfts.Remove(id2)
+	nfts, success = nfts.Remove(ID2)
 	require.True(t, success)
 	require.Equal(t, len(nfts), 0)
 
 	var returnedNFTs NFTs
-	returnedNFTs, success = nfts.Remove(id2)
+	returnedNFTs, success = nfts.Remove(ID2)
 	require.False(t, success)
 	require.Equal(t, nfts.String(), returnedNFTs.String())
 }
 
 func TestNFTsStringMethod(t *testing.T) {
 	quantity := sdk.NewInt(1)
-	testNFT := NewBaseNFT(id, address, address, tokenURI, quantity, sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, quantity, sdk.NewInt(101), true)
 	nfts := NewNFTs(testNFT)
 	require.Equal(t, nfts.String(), fmt.Sprintf(`ID:				%s
 Owners:			%s %s
-TokenURI:		%s`, id, address.String(), quantity.String(), tokenURI))
+TokenURI:		%s`, ID1, Addrs[0].String(), quantity.String(), TokenURI1))
 }
 
 func TestNFTsEmptyMethod(t *testing.T) {
 	nfts := NewNFTs()
 	require.True(t, nfts.Empty())
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 	nfts = NewNFTs(testNFT)
 	require.False(t, nfts.Empty())
 }
 
 func TestNFTsMarshalUnmarshalJSON(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(1), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(1), true)
 	nfts := NewNFTs(testNFT)
 	bz, err := nfts.MarshalJSON()
 	require.NoError(t, err)
 	require.Equal(t, string(bz),
 		fmt.Sprintf(`{"%s":{"id":"%s","owners":{"owners":[{"address":"%s","quantity":"1"}]},"creator":"%s","token_uri":"%s","reserve":"1","allow_mint":true}}`,
-			id, id, address.String(), address.String(), tokenURI))
+			ID1, ID1, Addrs[0].String(), Addrs[0].String(), TokenURI1))
 
 	var unmarshalledNFTs NFTs
 	err = unmarshalledNFTs.UnmarshalJSON(bz)
@@ -211,8 +211,8 @@ func TestNFTsMarshalUnmarshalJSON(t *testing.T) {
 }
 
 func TestNFTsSortInterface(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT2 := NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
 
 	nfts := NewNFTs(testNFT)
 	require.Equal(t, nfts.Len(), 1)

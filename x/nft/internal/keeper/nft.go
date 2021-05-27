@@ -153,7 +153,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) e
 			owner.
 				SetQuantity(owner.GetQuantity().Sub(quantity))))
 
-	collection, err = collection.UpdateNFT(nft)
+	collection, err = collection.DeleteNFT(nft)
 	if err != nil {
 		return err
 	}

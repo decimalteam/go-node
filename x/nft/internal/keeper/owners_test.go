@@ -1,4 +1,4 @@
-package keeper_test
+package keeper
 
 import (
 	"testing"
@@ -7,128 +7,127 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 func TestGetOwners(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 
-	nft := types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
+	nft := types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft)
 	require.NoError(t, err)
 
-	nft2 := types.NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err = NFTKeeper.MintNFT(ctx, denom, nft)
+	nft2 := types.NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	_, err = NFTKeeper.MintNFT(ctx, Denom1, nft)
 	require.NoError(t, err)
 
-	nft3 := types.NewBaseNFT(id3, address3, address3, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err = NFTKeeper.MintNFT(ctx, denom, nft3)
+	nft3 := types.NewBaseNFT(ID3, Addrs[2], Addrs[2], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	_, err = NFTKeeper.MintNFT(ctx, Denom1, nft3)
 	require.NoError(t, err)
 
 	owners := NFTKeeper.GetOwners(ctx)
 	require.Equal(t, 3, len(owners))
 
-	nft = types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err = NFTKeeper.MintNFT(ctx, denom2, nft)
+	nft = types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	_, err = NFTKeeper.MintNFT(ctx, Denom2, nft)
 	require.NoError(t, err)
 
-	nft2 = types.NewBaseNFT(id2, address2, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err = NFTKeeper.MintNFT(ctx, denom2, nft2)
+	nft2 = types.NewBaseNFT(ID2, Addrs[1], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	_, err = NFTKeeper.MintNFT(ctx, Denom2, nft2)
 	require.NoError(t, err)
 
-	nft3 = types.NewBaseNFT(id3, address3, address3, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err = NFTKeeper.MintNFT(ctx, denom2, nft3)
+	nft3 = types.NewBaseNFT(ID3, Addrs[2], Addrs[2], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	_, err = NFTKeeper.MintNFT(ctx, Denom2, nft3)
 	require.NoError(t, err)
 
 	owners = NFTKeeper.GetOwners(ctx)
 	require.Equal(t, 3, len(owners))
 
-	msg, fail := keeper.SupplyInvariant(NFTKeeper)(ctx)
+	msg, fail := SupplyInvariant(NFTKeeper)(ctx)
 	require.False(t, fail, msg)
 }
 
 func TestSetOwner(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 
-	nft := types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
+	nft := types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft)
 	require.NoError(t, err)
 
-	idCollection := types.NewIDCollection(denom, []string{id, id2, id3})
-	owner := types.NewOwner(address, idCollection)
+	idCollection := types.NewIDCollection(Denom1, []string{ID1, ID2, ID3})
+	owner := types.NewOwner(Addrs[0], idCollection)
 
-	oldOwner := NFTKeeper.GetOwner(ctx, address)
+	oldOwner := NFTKeeper.GetOwner(ctx, Addrs[0])
 
 	NFTKeeper.SetOwner(ctx, owner)
 
-	newOwner := NFTKeeper.GetOwner(ctx, address)
+	newOwner := NFTKeeper.GetOwner(ctx, Addrs[0])
 	require.NotEqual(t, oldOwner.String(), newOwner.String())
 	require.Equal(t, owner.String(), newOwner.String())
 
 	// for invariant sanity
 	NFTKeeper.SetOwner(ctx, oldOwner)
 
-	msg, fail := keeper.SupplyInvariant(NFTKeeper)(ctx)
+	msg, fail := SupplyInvariant(NFTKeeper)(ctx)
 	require.False(t, fail, msg)
 }
 
 func TestSetOwners(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 
-	// create NFT where id = "id" with owner = "address"
-	nft := types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
+	// create NFT where ID1 = "ID1" with owner = "Addrs[0]"
+	nft := types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft)
 	require.NoError(t, err)
 
-	// create NFT where id = "id2" with owner = "address2"
-	nft = types.NewBaseNFT(id2, address2, address2, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err = NFTKeeper.MintNFT(ctx, denom, nft)
+	// create NFT where ID1 = "ID2" with owner = "Addrs[1]"
+	nft = types.NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	_, err = NFTKeeper.MintNFT(ctx, Denom1, nft)
 	require.NoError(t, err)
 
-	// create two owners (address and address2) with the same id collections of "id", "id2"  "id3"
-	idCollection := types.NewIDCollection(denom, []string{id, id2, id3})
-	owner := types.NewOwner(address, idCollection)
-	owner2 := types.NewOwner(address2, idCollection)
+	// create two owners (Addrs[0] and Addrs[1]) with the same ID1 collections of "ID1", "ID2"  "ID3"
+	idCollection := types.NewIDCollection(Denom1, []string{ID1, ID2, ID3})
+	owner := types.NewOwner(Addrs[0], idCollection)
+	owner2 := types.NewOwner(Addrs[1], idCollection)
 
 	// get both owners that were created during the NFT mint process
-	oldOwner := NFTKeeper.GetOwner(ctx, address)
-	oldOwner2 := NFTKeeper.GetOwner(ctx, address2)
+	oldOwner := NFTKeeper.GetOwner(ctx, Addrs[0])
+	oldOwner2 := NFTKeeper.GetOwner(ctx, Addrs[1])
 
 	// replace previous old owners with updated versions (that have multiple ids)
 	NFTKeeper.SetOwners(ctx, []types.Owner{owner, owner2})
 
-	newOwner := NFTKeeper.GetOwner(ctx, address)
+	newOwner := NFTKeeper.GetOwner(ctx, Addrs[0])
 	require.NotEqual(t, oldOwner.String(), newOwner.String())
 	require.Equal(t, owner.String(), newOwner.String())
 
-	newOwner2 := NFTKeeper.GetOwner(ctx, address2)
+	newOwner2 := NFTKeeper.GetOwner(ctx, Addrs[1])
 	require.NotEqual(t, oldOwner2.String(), newOwner2.String())
 	require.Equal(t, owner2.String(), newOwner2.String())
 
 	// replace old owners for invariance sanity
 	NFTKeeper.SetOwners(ctx, []types.Owner{oldOwner, oldOwner2})
 
-	msg, fail := keeper.SupplyInvariant(NFTKeeper)(ctx)
+	msg, fail := SupplyInvariant(NFTKeeper)(ctx)
 	require.False(t, fail, msg)
 }
 
 func TestSwapOwners(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 
-	nft := types.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err := NFTKeeper.MintNFT(ctx, denom, nft)
+	nft := types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft)
 	require.NoError(t, err)
 
-	err = NFTKeeper.SwapOwners(ctx, denom, id, address, address2)
+	err = NFTKeeper.SwapOwners(ctx, Denom1, ID1, Addrs[0], Addrs[1])
 	require.NoError(t, err)
 
-	err = NFTKeeper.SwapOwners(ctx, denom, id, address, address2)
+	err = NFTKeeper.SwapOwners(ctx, Denom1, ID1, Addrs[0], Addrs[1])
 	require.Error(t, err)
 
-	err = NFTKeeper.SwapOwners(ctx, denom2, id, address, address2)
+	err = NFTKeeper.SwapOwners(ctx, Denom2, ID1, Addrs[0], Addrs[1])
 	require.Error(t, err)
 
-	msg, fail := keeper.SupplyInvariant(NFTKeeper)(ctx)
+	msg, fail := SupplyInvariant(NFTKeeper)(ctx)
 	require.False(t, fail, msg)
 }

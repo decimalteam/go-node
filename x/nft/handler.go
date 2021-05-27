@@ -51,7 +51,9 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types.MsgTransferNFT, k keeper.Ke
 	if !found {
 		return nil, ErrUnknownCollection
 	}
-	collection.NFTs.Update(msg.ID, nft)
+
+	collection.NFTs, _ = collection.NFTs.Update(msg.ID, nft)
+
 	k.SetCollection(ctx, msg.Denom, collection)
 
 	ctx.EventManager().EmitEvents(sdk.Events{

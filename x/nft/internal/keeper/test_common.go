@@ -5,13 +5,15 @@ import (
 	"bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 	nftTypes "bitbucket.org/decimalteam/go-node/x/nft/internal/types"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	exported2 "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/stretchr/testify/require"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
@@ -58,7 +60,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 			},
 		},
 	)
-	cdc := nftTypes.MakeTestCodec()
+	cdc := MakeTestCodec()
 
 	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName, supply.Burner, supply.Minter)
 	notBondedPool := supply.NewEmptyModuleAccount(types.NotBondedPoolName, supply.Burner, supply.Staking)
@@ -94,7 +96,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 	initTokens := types.TokensFromConsensusPower(initPower)
 	initCoins := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, initTokens))
-	totalSupply := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, initTokens.MulRaw(int64(len(keeper.Addrs)))))
+	totalSupply := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, initTokens.MulRaw(int64(len(nftTypes.Addrs)))))
 
 	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 
@@ -116,8 +118,8 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	supplyKeeper.SetModuleAccount(ctx, bondPool)
 	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
 
-	// fill all the addresses with some coins, set the loose pool tokens simultaneously
-	for _, addr := range keeper.Addrs {
+	// fill all the Addrs with some coins, set the loose pool tokens simultaneously
+	for _, addr := range nftTypes.Addrs {
 		_, err := bk.AddCoins(ctx, addr, initCoins)
 		if err != nil {
 			panic(err)
@@ -125,4 +127,32 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	}
 
 	return ctx, nftkeeper
+}
+
+// MakeTestCodec creates a codec for testing
+func MakeTestCodec() *codec.Codec {
+	var cdc = codec.New()
+
+	// Register Msgs
+	cdc.RegisterInterface((*exported.NFT)(nil), nil)
+	cdc.RegisterInterface((*exported.TokenOwners)(nil), nil)
+	cdc.RegisterInterface((*exported.TokenOwner)(nil), nil)
+	cdc.RegisterConcrete(&nftTypes.BaseNFT{}, "nft/BaseNFT", nil)
+	cdc.RegisterConcrete(&nftTypes.IDCollection{}, "nft/IDCollection", nil)
+	cdc.RegisterConcrete(&nftTypes.Collection{}, "nft/Collection", nil)
+	cdc.RegisterConcrete(&nftTypes.Owner{}, "nft/Owner", nil)
+	cdc.RegisterConcrete(&nftTypes.TokenOwner{}, "nft/TokenOwner", nil)
+	cdc.RegisterConcrete(&nftTypes.TokenOwners{}, "nft/TokenOwners", nil)
+	cdc.RegisterConcrete(nftTypes.MsgTransferNFT{}, "nft/msg_transfer", nil)
+	cdc.RegisterConcrete(nftTypes.MsgEditNFTMetadata{}, "nft/msg_edit_metadata", nil)
+	cdc.RegisterConcrete(nftTypes.MsgMintNFT{}, "nft/msg_mint", nil)
+	cdc.RegisterConcrete(nftTypes.MsgBurnNFT{}, "nft/msg_burn", nil)
+
+	// Register AppAccount
+	cdc.RegisterInterface((*exported2.Account)(nil), nil)
+	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/coin/base_account", nil)
+	supply.RegisterCodec(cdc)
+	codec.RegisterCrypto(cdc)
+
+	return cdc
 }

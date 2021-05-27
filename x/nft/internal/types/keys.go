@@ -34,6 +34,8 @@ var (
 	LastSubTokenIDKeyPrefix = []byte{0x60, 0x03}
 )
 
+const OwnerKeyHashLength = 54
+
 // GetCollectionKey gets the key of a collection
 func GetCollectionKey(denom string) []byte {
 	bs := getHash(denom)
@@ -43,10 +45,10 @@ func GetCollectionKey(denom string) []byte {
 
 // SplitOwnerKey gets an address and denom from an owner key
 func SplitOwnerKey(key []byte) (sdk.AccAddress, []byte) {
-	if len(key) != 53 {
+	if len(key) != OwnerKeyHashLength {
 		panic(fmt.Sprintf("unexpected key length %d", len(key)))
 	}
-	address := key[1 : sdk.AddrLen+1]
+	address := key[2 : sdk.AddrLen+2]
 	denomHashBz := key[sdk.AddrLen+1:]
 	return sdk.AccAddress(address), denomHashBz
 }
