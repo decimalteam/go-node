@@ -125,6 +125,9 @@ func (msg MsgBurnNFT) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
 	}
+	if CheckUnique(msg.SubTokenIDs) {
+		return ErrNotUniqueSubTokenIDs
+	}
 
 	return nil
 }
@@ -182,6 +185,9 @@ func (msg MsgTransferNFT) ValidateBasic() error {
 	}
 	if strings.TrimSpace(msg.ID) == "" {
 		return ErrInvalidCollection
+	}
+	if CheckUnique(msg.SubTokenIDs) {
+		return ErrNotUniqueSubTokenIDs
 	}
 
 	return nil
@@ -250,4 +256,16 @@ func (msg MsgEditNFTMetadata) GetSignBytes() []byte {
 // GetSigners Implements Msg.
 func (msg MsgEditNFTMetadata) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
+}
+
+/* --------------------------------------------------------------------------- */
+func CheckUnique(arr []int64) bool {
+	for _, el := range arr {
+		for _, el2 := range arr {
+			if el == el2 {
+				return false
+			}
+		}
+	}
+	return true
 }

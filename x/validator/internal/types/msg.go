@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -137,6 +138,9 @@ func (msg MsgDelegateNFT) ValidateBasic() error {
 	}
 	if msg.DelegatorAddress.Empty() {
 		return ErrEmptyDelegatorAddr()
+	}
+	if nft.CheckUnique(msg.SubTokenIDs) {
+		return nft.ErrNotUniqueSubTokenIDs
 	}
 	return nil
 }
@@ -279,6 +283,9 @@ func (msg MsgUnbondNFT) ValidateBasic() error {
 	}
 	if msg.DelegatorAddress.Empty() {
 		return ErrEmptyDelegatorAddr()
+	}
+	if nft.CheckUnique(msg.SubTokenIDs) {
+		return nft.ErrNotUniqueSubTokenIDs
 	}
 	return nil
 }
