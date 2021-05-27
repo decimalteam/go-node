@@ -28,17 +28,17 @@ var (
 	_ module.AppModuleSimulation = AppModule{}
 )
 
-// AppModuleBasic app moduleKey basics object
+// AppModuleBasic app module basics object
 type AppModuleBasic struct{}
 
 var _ module.AppModuleBasic = AppModuleBasic{}
 
-// Name defines moduleKey name
+// Name defines module name
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
 
-// RegisterCodec registers moduleKey codec
+// RegisterCodec registers module codec
 func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 	RegisterCodec(cdc)
 }
@@ -48,7 +48,7 @@ func (AppModuleBasic) DefaultGenesis() json.RawMessage {
 	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
 }
 
-// ValidateGenesis moduleKey validate genesis
+// ValidateGenesis module validate genesis
 func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 	var data GenesisState
 	err := ModuleCdc.UnmarshalJSON(bz, &data)
@@ -63,19 +63,19 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router
 	rest.RegisterRoutes(ctx, rtr, ModuleCdc, RouterKey)
 }
 
-// GetTxCmd gets the root tx command of this moduleKey
+// GetTxCmd gets the root tx command of this module
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetTxCmd(StoreKey, cdc)
 }
 
-// GetQueryCmd gets the root query command of this moduleKey
+// GetQueryCmd gets the root query command of this module
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(RouterKey, cdc)
 }
 
 //____________________________________________________________________________
 
-// AppModule supply app moduleKey
+// AppModule supply app module
 type AppModule struct {
 	AppModuleBasic
 
@@ -95,37 +95,37 @@ func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper) AppModule {
 	}
 }
 
-// Name defines moduleKey name
+// Name defines module name
 func (AppModule) Name() string {
 	return ModuleName
 }
 
-// RegisterInvariants registers the nft moduleKey invariants
+// RegisterInvariants registers the nft module invariants
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	RegisterInvariants(ir, am.keeper)
 }
 
-// Route moduleKey message route name
+// Route module message route name
 func (AppModule) Route() string {
 	return RouterKey
 }
 
-// NewHandler moduleKey handler
+// NewHandler module handler
 func (am AppModule) NewHandler() sdk.Handler {
 	return GenericHandler(am.keeper)
 }
 
-// QuerierRoute moduleKey querier route name
+// QuerierRoute module querier route name
 func (AppModule) QuerierRoute() string {
 	return QuerierRoute
 }
 
-// NewQuerierHandler moduleKey querier
+// NewQuerierHandler module querier
 func (am AppModule) NewQuerierHandler() sdk.Querier {
 	return NewQuerier(am.keeper)
 }
 
-// InitGenesis moduleKey init-genesis
+// InitGenesis module init-genesis
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
@@ -133,21 +133,21 @@ func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.Va
 	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis moduleKey export genesis
+// ExportGenesis module export genesis
 func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
 	return ModuleCdc.MustMarshalJSON(gs)
 }
 
-// BeginBlock moduleKey begin-block
+// BeginBlock module begin-block
 func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
-// EndBlock moduleKey end-block
+// EndBlock module end-block
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 
-// RegisterStoreDecoder registers a decoder for nft moduleKey's types
+// RegisterStoreDecoder registers a decoder for nft module's types
 func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
@@ -155,7 +155,7 @@ func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 // ProposalContents doesn't return any content functions for governance proposals.
 func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent { return nil }
 
-// GenerateGenesisState creates a randomized GenState of the nft moduleKey.
+// GenerateGenesisState creates a randomized GenState of the nft module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
@@ -163,7 +163,7 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 // RandomizedParams doesn't create randomized nft param changes for the simulator.
 func (AppModule) RandomizedParams(_ *rand.Rand) []sim.ParamChange { return nil }
 
-// WeightedOperations doesn't return any operation for the nft moduleKey.
+// WeightedOperations doesn't return any operation for the nft module.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
 	return nil
 	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
