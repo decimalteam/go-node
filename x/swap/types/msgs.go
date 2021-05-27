@@ -54,6 +54,16 @@ type MsgHTLT struct {
 	Amount       sdk.Coins      `json:"amount"`
 }
 
+func (msg MsgHTLT) Reset() {
+}
+
+func (msg MsgHTLT) String() string {
+	return ""
+}
+
+func (msg MsgHTLT) ProtoMessage() {
+}
+
 func NewMsgHTLT(transferType TransferType, from sdk.AccAddress, recipient string, hashedSecret Hash, amount sdk.Coins) MsgHTLT {
 	return MsgHTLT{TransferType: transferType, From: from, Recipient: recipient, HashedSecret: hashedSecret, Amount: amount}
 }
@@ -92,6 +102,16 @@ func NewMsgRedeem(from sdk.AccAddress, secret Secret) MsgRedeem {
 	return MsgRedeem{From: from, Secret: secret}
 }
 
+func (msg MsgRedeem) Reset() {
+}
+
+func (msg MsgRedeem) String() string {
+	return ""
+}
+
+func (msg MsgRedeem) ProtoMessage() {
+}
+
 func (msg MsgRedeem) Route() string { return RouterKey }
 
 func (msg MsgRedeem) Type() string { return TypeMsgRedeem }
@@ -119,6 +139,16 @@ type MsgRefund struct {
 
 func NewMsgRefund(from sdk.AccAddress, hash [32]byte) MsgRefund {
 	return MsgRefund{From: from, HashedSecret: hash}
+}
+
+func (msg MsgRefund) Reset() {
+}
+
+func (msg MsgRefund) String() string {
+	return ""
+}
+
+func (msg MsgRefund) ProtoMessage() {
 }
 
 func (msg MsgRefund) Route() string { return RouterKey }
