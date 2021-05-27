@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/params/types"
 	"time"
 )
 
@@ -32,10 +32,10 @@ func NewParams(lockedTimeOut, lockedTimeIn time.Duration) Params {
 }
 
 // Implements params.ParamSet
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyLockedTimeOut, &p.LockedTimeOut, validateLockedTime),
-		params.NewParamSetPair(KeyLockedTimeIn, &p.LockedTimeIn, validateLockedTime),
+func (p *Params) ParamSetPairs() types.ParamSetPairs {
+	return types.ParamSetPairs{
+		types.NewParamSetPair(KeyLockedTimeOut, &p.LockedTimeOut, validateLockedTime),
+		types.NewParamSetPair(KeyLockedTimeIn, &p.LockedTimeIn, validateLockedTime),
 	}
 }
 
