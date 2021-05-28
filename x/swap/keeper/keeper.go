@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
@@ -17,12 +17,19 @@ type Keeper struct {
 	cdc           *codec.LegacyAmino
 	paramSpace    types2.ParamSubspace
 	coinKeeper    coin.Keeper
-	accountKeeper auth.AccountKeeper
+	accountKeeper keeper.AccountKeeper
 	supplyKeeper  supply.Keeper
+
 }
 
-func NewKeeper(cdc *codec.LegacyAmino, storeKey sdk.StoreKey, paramSpace types2.ParamSubspace, coinKeeper coin.Keeper,
-	accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper) Keeper {
+func NewKeeper(
+	cdc *codec.LegacyAmino,
+	storeKey sdk.StoreKey,
+	paramSpace types2.ParamSubspace,
+	coinKeeper coin.Keeper,
+	accountKeeper keeper.AccountKeeper,
+	supplyKeeper supply.Keeper,
+	) Keeper {
 	if addr := supplyKeeper.GetModuleAddress(types2.PoolName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types2.PoolName))
 	}
