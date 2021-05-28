@@ -18,11 +18,12 @@ func TestSetCollection(t *testing.T) {
 		Addrs[0],
 		TokenURI1,
 		sdk.NewInt(1),
-		sdk.NewInt(101),
+		[]int64{},
 		false,
 	)
 
-	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft)
+	//_, err := NFTKeeper.MintNFT(ctx, Denom1, nft)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
 	// collection should exist
@@ -36,7 +37,7 @@ func TestSetCollection(t *testing.T) {
 		Addrs[0],
 		TokenURI1,
 		sdk.NewInt(1),
-		sdk.NewInt(101),
+		[]int64{},
 		true,
 	)
 	collection2, err2 := collection.AddNFT(nft2)
@@ -62,8 +63,16 @@ func TestGetCollection(t *testing.T) {
 	require.False(t, exists)
 
 	// MintNFT shouldn't fail when collection does not exist
-	nft := types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(2), sdk.NewInt(101), true)
-	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft)
+	nft := types.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(1),
+		[]int64{},
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
 	// collection should exist
@@ -82,8 +91,16 @@ func TestGetCollections(t *testing.T) {
 	require.Empty(t, collections)
 
 	// MintNFT shouldn't fail when collection does not exist
-	nft := types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft)
+	nft := types.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(1),
+		[]int64{},
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
 	// collections should equal 1

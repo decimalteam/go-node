@@ -151,13 +151,6 @@ func (k Keeper) UpdateNFT(ctx sdk.Context, denom string, nft exported.NFT) (err 
 	if err != nil {
 		return err
 	}
-	// if the owner changed then update the owners KVStore too
-	//if !oldNFT.GetOwner().Equals(nft.GetOwner()) {
-	//	err = k.SwapOwners(ctx, denom, nft.GetID(), oldNFT.GetOwner(), nft.GetOwner())
-	//	if err != nil {
-	//		return err
-	//	}
-	//}
 
 	collection.NFTs, _ = collection.NFTs.Update(oldNFT.GetID(), nft)
 
@@ -191,6 +184,9 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 	nft = nft.SetOwners(nft.
 		GetOwners().
 		SetOwner(owner))
+
+	nftOwner, _ := k.GetOwner(ctx, nft.GetCreator()).DeleteID(denom, nft.GetID())
+	k.SetOwner(ctx, nftOwner)
 
 	collection, err = collection.DeleteNFT(nft)
 	if err != nil {

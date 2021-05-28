@@ -31,8 +31,17 @@ func TestQuerySupply(t *testing.T) {
 	ctx, cdc, NFTKeeper := createTestApp(t, false)
 
 	// MintNFT shouldn't fail when collection does not exist
-	basenft := nftTypes.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err := NFTKeeper.MintNFT(ctx, Denom1, basenft)
+	nft := nftTypes.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(1),
+		[]int64{},
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
+
 	require.NoError(t, err)
 
 	querier := NewQuerier(NFTKeeper)
@@ -75,8 +84,16 @@ func TestQueryCollection(t *testing.T) {
 	ctx, cdc, NFTKeeper := createTestApp(t, false)
 
 	// MintNFT shouldn't fail when collection does not exist
-	basenft := nftTypes.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(100), true)
-	_, err := NFTKeeper.MintNFT(ctx, Denom1, basenft)
+	nft := nftTypes.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(1),
+		[]int64{},
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
 	querier := NewQuerier(NFTKeeper)
@@ -121,11 +138,20 @@ func TestQueryOwner(t *testing.T) {
 	ctx, cdc, NFTKeeper := createTestApp(t, false)
 
 	// MintNFT shouldn't fail when collection does not exist
-	nft := nftTypes.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(100), true)
-	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft)
+
+	nft := nftTypes.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(1),
+		[]int64{},
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
-	_, err = NFTKeeper.MintNFT(ctx, Denom2, nft)
+	_, err = NFTKeeper.MintNFT(ctx, Denom2, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
 	querier := NewQuerier(NFTKeeper)
@@ -177,11 +203,12 @@ func TestQueryOwner(t *testing.T) {
 
 	cdc.MustUnmarshalJSON(res, &out)
 
-	// build the owner using both denoms TODO: add sorting to ensure the objects are the same
+	// build the owner using both denoms
 	idCollection2 := nftTypes.NewIDCollection(Denom2, []string{ID1})
 	owner = nftTypes.NewOwner(Addrs[0], idCollection2, idCollection1)
 
 	out.IDCollections = out.IDCollections.Sort()
+	owner.IDCollections = owner.IDCollections.Sort()
 
 	require.Equal(t, out.String(), owner.String())
 }
@@ -190,8 +217,16 @@ func TestQueryNFT(t *testing.T) {
 	ctx, cdc, NFTKeeper := createTestApp(t, false)
 
 	// MintNFT shouldn't fail when collection does not exist
-	nft := nftTypes.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(100), true)
-	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft)
+	nft := nftTypes.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(1),
+		[]int64{1},
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
 	querier := NewQuerier(NFTKeeper)
@@ -236,11 +271,19 @@ func TestQueryDenoms(t *testing.T) {
 	ctx, cdc, NFTKeeper := createTestApp(t, false)
 
 	// MintNFT shouldn't fail when collection does not exist
-	nft := nftTypes.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(100), true)
-	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft)
+	nft := nftTypes.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(1),
+		[]int64{},
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
-	_, err = NFTKeeper.MintNFT(ctx, Denom2, nft)
+	_, err = NFTKeeper.MintNFT(ctx, Denom2, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
 	querier := NewQuerier(NFTKeeper)
