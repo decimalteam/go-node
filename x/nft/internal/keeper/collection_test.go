@@ -31,13 +31,14 @@ func TestSetCollection(t *testing.T) {
 	require.True(t, exists)
 
 	// create a new NFT and add it to the collection created with the NFT mint
+	subTokenIDs := []int64{2, 5, 3, 6}
 	nft2 := types.NewBaseNFT(
 		ID2,
 		Addrs[0],
 		Addrs[0],
 		TokenURI1,
 		sdk.NewInt(100),
-		[]int64{},
+		subTokenIDs,
 		true,
 	)
 	collection2, err2 := collection.AddNFT(nft2)
@@ -47,6 +48,10 @@ func TestSetCollection(t *testing.T) {
 	collection2, exists = NFTKeeper.GetCollection(ctx, Denom1)
 	require.True(t, exists)
 	require.Len(t, collection2.NFTs, 2)
+
+	collectionNFT, _ := collection2.GetNFT(nft2.GetID())
+
+	require.Equal(t, len(subTokenIDs), len(collectionNFT.GetOwners().GetOwner(Addrs[0]).GetSubTokenIDs()))
 
 	// reset collection for invariant sanity
 	NFTKeeper.SetCollection(ctx, Denom1, collection)
