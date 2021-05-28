@@ -162,7 +162,7 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 		return types.ErrNoValidatorFound()
 	}
 
-	decreasedAmount := sdk.Int{}
+	decreasedAmount := sdk.ZeroInt()
 	// subtract shares from delegation
 	for _, id := range subTokenIDs {
 		index := nftTypes.SortedIntArray(delegation.SubTokenIDs).Sort().Find(id)
