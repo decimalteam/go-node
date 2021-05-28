@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"strconv"
+	"strings"
 	"testing"
 
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
@@ -65,7 +66,7 @@ func TestQuerySupply(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	supplyResp := string(res)
+	supplyResp := strings.Trim(string(res), "\"")
 	supply, _ := strconv.Atoi(supplyResp)
 	require.Equal(t, 1, supply)
 }
