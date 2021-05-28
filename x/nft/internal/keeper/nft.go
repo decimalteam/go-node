@@ -114,6 +114,32 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom string, nft exported.NFT) (sdk.In
 	return newLastSubTokenID, err
 }
 
+// UpdateNFT updates an already existing NFTs
+func (k Keeper) UpdateNFT(ctx sdk.Context, denom string, nft exported.NFT) (err error) {
+	collection, found := k.GetCollection(ctx, denom)
+	if !found {
+		return sdkerrors.Wrap(types.ErrUnknownCollection, fmt.Sprintf("collection #%s doesn't exist", denom))
+	}
+
+	oldNFT, err := collection.GetNFT(nft.GetID())
+
+	if err != nil {
+		return err
+	}
+	// if the owner changed then update the owners KVStore too
+	//if !oldNFT.GetOwner().Equals(nft.GetOwner()) {
+	//	err = k.SwapOwners(ctx, denom, nft.GetID(), oldNFT.GetOwner(), nft.GetOwner())
+	//	if err != nil {
+	//		return err
+	//	}
+	//}
+
+	collection.NFTs, _ = collection.NFTs.Update(oldNFT.GetID(), nft)
+
+	k.SetCollection(ctx, denom, collection)
+	return nil
+}
+
 // DeleteNFT deletes an existing NFT from store
 func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, quantity sdk.Int) error {
 	collection, found := k.GetCollection(ctx, denom)

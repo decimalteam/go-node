@@ -80,8 +80,13 @@ func HandleMsgEditNFTMetadata(ctx sdk.Context, msg types.MsgEditNFTMetadata, k k
 		return nil, err
 	}
 
-	// update NFT
 	nft = nft.EditMetadata(msg.TokenURI)
+
+	err = k.UpdateNFT(ctx, msg.Denom, nft)
+
+	if err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
