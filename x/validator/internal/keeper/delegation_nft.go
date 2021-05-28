@@ -1,10 +1,12 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"time"
+
+	nftTypes "bitbucket.org/decimalteam/go-node/x/nft"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 func (k Keeper) GetDelegationNFT(ctx sdk.Context, valAddr sdk.ValAddress, delAddr sdk.AccAddress, tokenID, denom string) (types.DelegationNFT, bool) {
@@ -33,20 +35,30 @@ func (k Keeper) RemoveDelegationNFT(ctx sdk.Context, delegation types.Delegation
 
 func (k Keeper) SetUnbondingDelegationNFTEntry(ctx sdk.Context,
 	delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-	creationHeight int64, minTime time.Time, tokenID, denom string, quantity sdk.Int) types.UnbondingDelegation {
+	creationHeight int64, minTime time.Time, tokenID, denom string, subTokenIDs []int64) types.UnbondingDelegation {
+
+	balance := sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+
+	for _, id := range subTokenIDs {
+		subToken, found := k.nftKeeper.GetSubToken(ctx, denom, tokenID, id)
+		if !found {
+			panic(fmt.Sprintf("subToken with ID = %d not found", id))
+		}
+		balance.Amount = balance.Amount.Add(subToken)
+	}
 
 	ubd, found := k.GetUnbondingDelegation(ctx, delegatorAddr, validatorAddr)
 	if found {
-		ubd.AddNFTEntry(creationHeight, minTime, tokenID, denom, quantity)
+		ubd.AddNFTEntry(creationHeight, minTime, tokenID, denom, subTokenIDs, balance)
 	} else {
 		ubd = types.NewUnbondingDelegation(delegatorAddr, validatorAddr,
-			types.NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, quantity))
+			types.NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, subTokenIDs, balance))
 	}
 	k.SetUnbondingDelegation(ctx, ubd)
 	return ubd
 }
 
-func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, denom string, quantity sdk.Int, validator types.Validator) error {
+func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, denom string, subTokenIDs []int64, validator types.Validator) error {
 	nft, err := k.nftKeeper.GetNFT(ctx, denom, tokenID)
 	if err != nil {
 		return err
@@ -57,11 +69,15 @@ func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, de
 		return fmt.Errorf("not found owner %s", delAddr.String())
 	}
 
-	if quantity.GT(owner.GetQuantity()) {
-		return fmt.Errorf("not enough quantity: %s < %s", owner.GetQuantity().String(), quantity.String())
+	subTokenIDs = nftTypes.SortedIntArray(subTokenIDs).Sort()
+
+	for _, id := range subTokenIDs {
+		if nftTypes.SortedIntArray(owner.GetSubTokenIDs()).Find(id) == -1 {
+			return fmt.Errorf("the owner %s does not own the token with ID = %d", owner.GetAddress().String(), id)
+		}
+		owner = owner.RemoveSubTokenID(id)
 	}
 
-	owner = owner.SetQuantity(owner.GetQuantity().Sub(quantity))
 	nft = nft.SetOwners(nft.GetOwners().SetOwner(owner))
 
 	collection, ok := k.nftKeeper.GetCollection(ctx, denom)
@@ -77,12 +93,17 @@ func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, de
 	k.nftKeeper.SetCollection(ctx, denom, collection)
 
 	delegation, found := k.GetDelegationNFT(ctx, validator.ValAddress, delAddr, tokenID, denom)
-	if found {
-		delegation.Quantity = delegation.Quantity.Add(quantity)
-		delegation.Coin.Amount = delegation.Quantity.Mul(nft.GetReserve())
-	} else {
-		delegation = types.NewDelegationNFT(delAddr, validator.ValAddress, tokenID, denom, quantity,
-			sdk.NewCoin(k.BondDenom(ctx), quantity.Mul(nft.GetReserve())))
+	if !found {
+		delegation = types.NewDelegationNFT(delAddr, validator.ValAddress, tokenID, denom, []int64{},
+			sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt()))
+	}
+	for _, id := range subTokenIDs {
+		subToken, found := k.nftKeeper.GetSubToken(ctx, denom, tokenID, id)
+		if !found {
+			return fmt.Errorf("subToken with ID = %d not found", id)
+		}
+		delegation.SubTokenIDs = append(delegation.SubTokenIDs, id)
+		delegation.Coin.Amount = delegation.Coin.Amount.Add(subToken)
 	}
 
 	k.SetDelegationNFT(ctx, delegation)
@@ -99,7 +120,7 @@ func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, de
 }
 
 func (k Keeper) UndelegateNFT(
-	ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, tokenID, denom string, quantity sdk.Int,
+	ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, tokenID, denom string, subTokenIDs []int64,
 ) (time.Time, error) {
 
 	_, foundErr := k.GetValidator(ctx, valAddr)
@@ -107,20 +128,20 @@ func (k Keeper) UndelegateNFT(
 		return time.Time{}, types.ErrNoDelegatorForAddress()
 	}
 
-	err := k.unbondNFT(ctx, delAddr, valAddr, tokenID, denom, quantity)
+	err := k.unbondNFT(ctx, delAddr, valAddr, tokenID, denom, subTokenIDs)
 	if err != nil {
 		return time.Time{}, err
 	}
 
 	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
-	ubd := k.SetUnbondingDelegationNFTEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, tokenID, denom, quantity)
+	ubd := k.SetUnbondingDelegationNFTEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, tokenID, denom, subTokenIDs)
 	k.InsertUBDQueue(ctx, ubd, completionTime)
 
 	return completionTime, nil
 }
 
 // unbond a particular delegation and perform associated store operations
-func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, tokenID, denom string, quantity sdk.Int) error {
+func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, tokenID, denom string, subTokenIDs []int64) error {
 	// check if a delegation object exists in the store
 	delegation, found := k.GetDelegationNFT(ctx, valAddr, delAddr, tokenID, denom)
 	if !found {
@@ -131,8 +152,10 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 	k.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
 
 	// ensure that we have enough shares to remove
-	if delegation.Quantity.LT(quantity) {
-		return types.ErrNotEnoughDelegationShares(delegation.Coin.Amount.String())
+	for _, id := range subTokenIDs {
+		if nftTypes.SortedIntArray(delegation.SubTokenIDs).Sort().Find(id) == -1 {
+			return types.ErrOwnerDoesNotOwnSubTokenID(delAddr, id)
+		}
 	}
 
 	// get validator
@@ -141,17 +164,22 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 		return types.ErrNoValidatorFound()
 	}
 
-	token, err := k.nftKeeper.GetNFT(ctx, denom, tokenID)
-	if err != nil {
-		return types.ErrInternal(err.Error())
+	decreasedAmount := sdk.ZeroInt()
+	// subtract shares from delegation
+	for _, id := range subTokenIDs {
+		index := nftTypes.SortedIntArray(delegation.SubTokenIDs).Sort().Find(id)
+		delegation.SubTokenIDs = append(delegation.SubTokenIDs[:index], delegation.SubTokenIDs[index+1:]...)
+
+		subToken, found := k.nftKeeper.GetSubToken(ctx, denom, tokenID, id)
+		if !found {
+			return fmt.Errorf("subToken with ID = %d not found", id)
+		}
+		delegation.Coin.Amount = delegation.Coin.Amount.Sub(subToken)
+		decreasedAmount = decreasedAmount.Add(subToken)
 	}
 
-	// subtract shares from delegation
-	delegation.Quantity = delegation.Quantity.Sub(quantity)
-	delegation.Coin.Amount = delegation.Quantity.Mul(token.GetReserve())
-
 	// remove the delegation
-	if delegation.Quantity.IsZero() {
+	if len(delegation.SubTokenIDs) == 0 {
 		k.RemoveDelegationNFT(ctx, delegation)
 	} else {
 		k.SetDelegationNFT(ctx, delegation)
@@ -161,8 +189,7 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 
-	amountBase := quantity.Mul(token.GetReserve())
-	decreasedTokens := k.DecreaseValidatorTokens(ctx, validator, amountBase)
+	decreasedTokens := k.DecreaseValidatorTokens(ctx, validator, decreasedAmount)
 
 	if decreasedTokens.IsZero() && validator.IsUnbonded() {
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period

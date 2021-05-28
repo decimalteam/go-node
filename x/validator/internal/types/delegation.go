@@ -185,8 +185,8 @@ func (d *UnbondingDelegation) AddEntry(creationHeight int64,
 	d.Entries = append(d.Entries, NewUnbondingDelegationEntry(creationHeight, minTime, balance))
 }
 
-func (d *UnbondingDelegation) AddNFTEntry(creationHeight int64, minTime time.Time, tokenID, denom string, quantity sdk.Int) {
-	d.Entries = append(d.Entries, NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, quantity))
+func (d *UnbondingDelegation) AddNFTEntry(creationHeight int64, minTime time.Time, tokenID, denom string, subTokenIDs []int64, balance sdk.Coin) {
+	d.Entries = append(d.Entries, NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, subTokenIDs, balance))
 }
 
 // RemoveEntry - remove entry at index i to the unbonding delegation
@@ -198,7 +198,7 @@ func (d UnbondingDelegation) GetEvents(ctxTime time.Time) sdk.Events {
 	events := sdk.Events{}
 	for _, entry := range d.Entries {
 		if entry.IsMature(ctxTime) {
-			events.AppendEvent(entry.GetEvent().AppendAttributes(
+			events = events.AppendEvent(entry.GetEvent().AppendAttributes(
 				sdk.NewAttribute(AttributeKeyValidator, d.ValidatorAddress.String()),
 				sdk.NewAttribute(AttributeKeyDelegator, d.DelegatorAddress.String()),
 				sdk.NewAttribute(AttributeKeyCoin, entry.GetBalance().String()),

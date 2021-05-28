@@ -76,11 +76,13 @@ func MakeTestCodec() *codec.Codec {
 	cdc.RegisterConcrete(types.MsgDelegate{}, "test/validator/delegate", nil)
 	cdc.RegisterInterface((*exported.UnbondingDelegationEntryI)(nil), nil)
 	cdc.RegisterConcrete(types.UnbondingDelegationEntry{}, "validator/unbonding_delegation_entry", nil)
+	cdc.RegisterConcrete(types.UnbondingDelegationNFTEntry{}, "validator/unbonding_delegation_nft_entry", nil)
 
 	// Register AppAccount
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)
 	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/validator/base_account", nil)
 	supply.RegisterCodec(cdc)
+	nft.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
 
 	return cdc
@@ -89,7 +91,7 @@ func MakeTestCodec() *codec.Codec {
 // Hogpodge of all sorts of input required for testing.
 // `initPower` is converted to an amount of tokens.
 // If `initPower` is 0, no addrs get created.
-func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context, auth.AccountKeeper, Keeper, supply.Keeper, coin.Keeper) {
+func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context, auth.AccountKeeper, Keeper, supply.Keeper, coin.Keeper, nft.Keeper) {
 	keyStaking := sdk.NewKVStoreKey(types.StoreKey)
 	tkeyStaking := sdk.NewTransientStoreKey(types.TStoreKey)
 	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
@@ -98,7 +100,6 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
 	keyCoin := sdk.NewKVStoreKey(coin.StoreKey)
 	keyMultisig := sdk.NewKVStoreKey(multisig.StoreKey)
-	keyNFT := sdk.NewKVStoreKey(nft.StoreKey)
 
 	db := dbm.NewMemDB()
 	ms := store.NewCommitMultiStore(db)
@@ -158,6 +159,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 		auth.FeeCollectorName:   nil,
 		types.NotBondedPoolName: {supply.Burner, supply.Staking},
 		types.BondedPoolName:    {supply.Burner, supply.Staking},
+		nft.ReservedPool:        {supply.Burner},
 	}
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bk, maccPerms)
 
@@ -178,7 +180,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 	multisigKeeper := multisig.NewKeeper(cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), accountKeeper, coinKeeper, bk)
 
-	nftKeeper := nft.NewKeeper(cdc, keyNFT, supplyKeeper, types.DefaultBondDenom)
+	nftKeeper := nft.NewKeeper(cdc, keyCoin, supplyKeeper, types.DefaultBondDenom)
 
 	keeper := NewKeeper(cdc, keyStaking, pk.Subspace(DefaultParamspace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, nftKeeper, auth.FeeCollectorName)
 	keeper.SetParams(ctx, types.DefaultParams())
@@ -199,7 +201,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 		}
 	}
 
-	return ctx, accountKeeper, keeper, supplyKeeper, coinKeeper
+	return ctx, accountKeeper, keeper, supplyKeeper, coinKeeper, nftKeeper
 }
 
 func NewPubKey(pk string) (res crypto.PubKey) {

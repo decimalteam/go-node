@@ -92,19 +92,19 @@ func (msg MsgMintNFT) GetSigners() []sdk.AccAddress {
 /* --------------------------------------------------------------------------- */
 
 type MsgBurnNFT struct {
-	Sender   sdk.AccAddress `json:"sender"`
-	ID       string         `json:"id"`
-	Denom    string         `json:"denom"`
-	Quantity sdk.Int        `json:"quantity"`
+	Sender      sdk.AccAddress `json:"sender"`
+	ID          string         `json:"id"`
+	Denom       string         `json:"denom"`
+	SubTokenIDs []int64        `json:"sub_token_ids"`
 }
 
 // NewMsgBurnNFT is a constructor function for MsgBurnNFT
-func NewMsgBurnNFT(sender sdk.AccAddress, id string, denom string, quantity sdk.Int) MsgBurnNFT {
+func NewMsgBurnNFT(sender sdk.AccAddress, id string, denom string, subTokenIDs []int64) MsgBurnNFT {
 	return MsgBurnNFT{
-		Sender:   sender,
-		ID:       strings.TrimSpace(id),
-		Denom:    strings.TrimSpace(denom),
-		Quantity: quantity,
+		Sender:      sender,
+		ID:          strings.TrimSpace(id),
+		Denom:       strings.TrimSpace(denom),
+		SubTokenIDs: subTokenIDs,
 	}
 }
 
@@ -125,8 +125,8 @@ func (msg MsgBurnNFT) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
 	}
-	if !msg.Quantity.IsPositive() {
-		return ErrInvalidQuantity
+	if CheckUnique(msg.SubTokenIDs) {
+		return ErrNotUniqueSubTokenIDs
 	}
 
 	return nil
@@ -148,21 +148,21 @@ func (msg MsgBurnNFT) GetSigners() []sdk.AccAddress {
 /* --------------------------------------------------------------------------- */
 
 type MsgTransferNFT struct {
-	Sender    sdk.AccAddress `json:"sender"`
-	Recipient sdk.AccAddress `json:"recipient"`
-	ID        string         `json:"id"`
-	Denom     string         `json:"denom"`
-	Quantity  sdk.Int        `json:"quantity"`
+	Sender      sdk.AccAddress `json:"sender"`
+	Recipient   sdk.AccAddress `json:"recipient"`
+	ID          string         `json:"id"`
+	Denom       string         `json:"denom"`
+	SubTokenIDs []int64        `json:"sub_token_ids"`
 }
 
 // NewMsgTransferNFT is a constructor function for MsgSetName
-func NewMsgTransferNFT(sender, recipient sdk.AccAddress, denom, id string, quantity sdk.Int) MsgTransferNFT {
+func NewMsgTransferNFT(sender, recipient sdk.AccAddress, denom, id string, subTokenIDs []int64) MsgTransferNFT {
 	return MsgTransferNFT{
-		Sender:    sender,
-		Recipient: recipient,
-		Denom:     strings.TrimSpace(denom),
-		ID:        strings.TrimSpace(id),
-		Quantity:  quantity,
+		Sender:      sender,
+		Recipient:   recipient,
+		Denom:       strings.TrimSpace(denom),
+		ID:          strings.TrimSpace(id),
+		SubTokenIDs: subTokenIDs,
 	}
 }
 
@@ -186,8 +186,8 @@ func (msg MsgTransferNFT) ValidateBasic() error {
 	if strings.TrimSpace(msg.ID) == "" {
 		return ErrInvalidCollection
 	}
-	if !msg.Quantity.IsPositive() {
-		return ErrInvalidQuantity
+	if CheckUnique(msg.SubTokenIDs) {
+		return ErrNotUniqueSubTokenIDs
 	}
 
 	return nil
@@ -256,4 +256,16 @@ func (msg MsgEditNFTMetadata) GetSignBytes() []byte {
 // GetSigners Implements Msg.
 func (msg MsgEditNFTMetadata) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
+}
+
+/* --------------------------------------------------------------------------- */
+func CheckUnique(arr []int64) bool {
+	for _, el := range arr {
+		for _, el2 := range arr {
+			if el == el2 {
+				return false
+			}
+		}
+	}
+	return true
 }

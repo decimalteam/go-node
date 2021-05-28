@@ -54,6 +54,8 @@ var (
 	NewMsgUnbond           = types.NewMsgUnbond
 	NewMsgSetOnline        = types.NewMsgSetOnline
 	NewMsgSetOffline       = types.NewMsgSetOffline
+	NewMsgDelegateNFT      = types.NewMsgDelegateNFT
+	NewMsgUnbondNFT        = types.NewMsgUnbondNFT
 
 	NewValidator = types.NewValidator
 
@@ -83,6 +85,8 @@ type (
 	MsgUnbond           = types.MsgUnbond
 	MsgSetOnline        = types.MsgSetOnline
 	MsgSetOffline       = types.MsgSetOffline
+	MsgUnbondNFT        = types.MsgUnbondNFT
+	MsgDelegateNFT      = types.MsgDelegateNFT
 
 	UnbondingDelegation      = types.UnbondingDelegation
 	UnbondingDelegationEntry = types.UnbondingDelegationEntry

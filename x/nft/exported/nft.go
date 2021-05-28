@@ -19,8 +19,9 @@ type NFT interface {
 
 type TokenOwner interface {
 	GetAddress() sdk.AccAddress
-	GetQuantity() sdk.Int
-	SetQuantity(quantity sdk.Int) TokenOwner
+	GetSubTokenIDs() []int64
+	SetSubTokenID(id int64) TokenOwner
+	RemoveSubTokenID(id int64) TokenOwner
 	String() string
 }
 

@@ -37,4 +37,8 @@ var (
 	SwapServiceAddress    = types.SwapServiceAddress
 
 	NewKeeper = keeper.NewKeeper
+
+	NewMsgRedeem = types.NewMsgRedeem
+	NewMsgHTLT   = types.NewMsgHTLT
+	NewMsgRefund = types.NewMsgRefund
 )

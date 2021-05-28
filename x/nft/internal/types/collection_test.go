@@ -12,9 +12,9 @@ import (
 // ---------------------------------------- Collection ---------------------------------------------------
 
 func TestNewCollection(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	testNFT2 := NewBaseNFT(id2, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT, &testNFT2)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT, testNFT2)
 	collection := NewCollection(fmt.Sprintf("      %s      ", denom), nfts)
 	require.Equal(t, collection.Denom, denom)
 	require.Equal(t, len(collection.NFTs), 2)
@@ -27,8 +27,8 @@ func TestEmptyCollection(t *testing.T) {
 }
 
 func TestCollectionGetNFTMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
 	returnedNFT, err := collection.GetNFT(id)
@@ -41,8 +41,8 @@ func TestCollectionGetNFTMethod(t *testing.T) {
 }
 
 func TestCollectionContainsNFTMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
 	contains := collection.ContainsNFT(id)
@@ -53,54 +53,54 @@ func TestCollectionContainsNFTMethod(t *testing.T) {
 }
 
 func TestCollectionAddNFTMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	testNFT2 := NewBaseNFT(id2, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
-	newCollection, err := collection.AddNFT(&testNFT)
+	newCollection, err := collection.AddNFT(testNFT)
 	require.Error(t, err)
 	require.Equal(t, collection.String(), newCollection.String())
 
-	newCollection, err = collection.AddNFT(&testNFT2)
+	newCollection, err = collection.AddNFT(testNFT2)
 	require.NoError(t, err)
 	require.NotEqual(t, collection.String(), newCollection.String())
 	require.Equal(t, len(newCollection.NFTs), 2)
 }
 
 func TestCollectionUpdateNFTMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	testNFT2 := NewBaseNFT(id2, address2, tokenURI2, sdk.NewInt(1))
-	testNFT3 := NewBaseNFT(id, address2, tokenURI2, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT3 := NewBaseNFT(id, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
-	newCollection, err := collection.UpdateNFT(&testNFT2)
+	newCollection, err := collection.UpdateNFT(testNFT2)
 	require.Error(t, err)
 	require.Equal(t, collection.String(), newCollection.String())
 
-	collection, err = collection.UpdateNFT(&testNFT3)
+	collection, err = collection.UpdateNFT(testNFT3)
 	require.NoError(t, err)
 
 	returnedNFT, err := collection.GetNFT(id)
 	require.NoError(t, err)
 
-	require.Equal(t, returnedNFT.GetOwners(), address2)
+	require.Equal(t, returnedNFT.GetOwners().GetOwners()[0].GetAddress(), address2)
 	require.Equal(t, returnedNFT.GetTokenURI(), tokenURI2)
 }
 
 func TestCollectionDeleteNFTMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	testNFT2 := NewBaseNFT(id2, address2, tokenURI2, sdk.NewInt(1))
-	testNFT3 := NewBaseNFT(id3, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT, &testNFT2)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT3 := NewBaseNFT(id3, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT, testNFT2)
 	collection := NewCollection(denom, nfts)
 
-	newCollection, err := collection.DeleteNFT(&testNFT3)
+	newCollection, err := collection.DeleteNFT(testNFT3)
 	require.Error(t, err)
 	require.Equal(t, collection.String(), newCollection.String())
 
-	collection, err = collection.DeleteNFT(&testNFT2)
+	collection, err = collection.DeleteNFT(testNFT2)
 	require.NoError(t, err)
 	require.Equal(t, len(collection.NFTs), 1)
 
@@ -113,30 +113,30 @@ func TestCollectionSupplyMethod(t *testing.T) {
 	empty := EmptyCollection()
 	require.Equal(t, empty.Supply(), 0)
 
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	testNFT2 := NewBaseNFT(id2, address2, tokenURI2, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT, &testNFT2)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT, testNFT2)
 	collection := NewCollection(denom, nfts)
 
 	require.Equal(t, collection.Supply(), 2)
 
-	collection, err := collection.DeleteNFT(&testNFT)
+	collection, err := collection.DeleteNFT(testNFT)
 	require.Nil(t, err)
 	require.Equal(t, collection.Supply(), 1)
 
-	collection, err = collection.DeleteNFT(&testNFT2)
+	collection, err = collection.DeleteNFT(testNFT2)
 	require.Nil(t, err)
 	require.Equal(t, collection.Supply(), 0)
 
-	collection, err = collection.AddNFT(&testNFT)
+	collection, err = collection.AddNFT(testNFT)
 	require.Nil(t, err)
 	require.Equal(t, collection.Supply(), 1)
 }
 
 func TestCollectionStringMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	testNFT2 := NewBaseNFT(id2, address2, tokenURI2, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT, &testNFT2)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT, testNFT2)
 	collection := NewCollection(denom, nfts)
 	require.Equal(t, collection.String(),
 		fmt.Sprintf(`Denom: 				%s
@@ -157,26 +157,26 @@ func TestNewCollections(t *testing.T) {
 	emptyCollections := NewCollections()
 	require.Empty(t, emptyCollections)
 
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
-	testNFT2 := NewBaseNFT(id2, address2, tokenURI2, sdk.NewInt(1))
-	nfts2 := NewNFTs(&testNFT2)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts2 := NewNFTs(testNFT2)
 	collection2 := NewCollection(denom2, nfts2)
 
 	collections := NewCollections(collection, collection2)
 	require.Equal(t, len(collections), 2)
 }
 func TestCollectionsAppendMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
 	collections := NewCollections(collection)
 
-	testNFT2 := NewBaseNFT(id2, address2, tokenURI2, sdk.NewInt(1))
-	nfts2 := NewNFTs(&testNFT2)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts2 := NewNFTs(testNFT2)
 	collection2 := NewCollection(denom2, nfts2)
 	collections2 := NewCollections(collection2)
 
@@ -184,12 +184,12 @@ func TestCollectionsAppendMethod(t *testing.T) {
 	require.Equal(t, len(collections), 2)
 }
 func TestCollectionsFindMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
-	testNFT2 := NewBaseNFT(id2, address2, tokenURI2, sdk.NewInt(1))
-	nfts2 := NewNFTs(&testNFT2)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts2 := NewNFTs(testNFT2)
 	collection2 := NewCollection(denom2, nfts2)
 
 	collections := NewCollections(collection)
@@ -218,8 +218,8 @@ func TestCollectionsFindMethod(t *testing.T) {
 }
 
 func TestCollectionsRemoveMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
 	collections := NewCollections(collection)
@@ -228,8 +228,8 @@ func TestCollectionsRemoveMethod(t *testing.T) {
 	require.False(t, removed)
 	require.Equal(t, returnedCollections.String(), collections.String())
 
-	testNFT2 := NewBaseNFT(id2, address2, tokenURI2, sdk.NewInt(1))
-	nfts2 := NewNFTs(&testNFT2)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts2 := NewNFTs(testNFT2)
 	collection2 := NewCollection(denom2, nfts2)
 
 	collections = NewCollections(collection, collection2)
@@ -248,12 +248,12 @@ func TestCollectionsStringMethod(t *testing.T) {
 	collections := NewCollections()
 	require.Equal(t, collections.String(), "")
 
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
-	testNFT2 := NewBaseNFT(id2, address2, tokenURI2, sdk.NewInt(1))
-	nfts2 := NewNFTs(&testNFT2)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts2 := NewNFTs(testNFT2)
 	collection2 := NewCollection(denom2, nfts2)
 
 	collections = NewCollections(collection, collection2)
@@ -276,8 +276,8 @@ func TestCollectionsEmptyMethod(t *testing.T) {
 	collections := NewCollections()
 	require.True(t, collections.Empty())
 
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
 	collections = NewCollections(collection)
@@ -285,12 +285,12 @@ func TestCollectionsEmptyMethod(t *testing.T) {
 }
 
 func TestCollectionsSortInterface(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
-	testNFT2 := NewBaseNFT(id2, address2, tokenURI2, sdk.NewInt(1))
-	nfts2 := NewNFTs(&testNFT2)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts2 := NewNFTs(testNFT2)
 	collection2 := NewCollection(denom2, nfts2)
 
 	collections := NewCollections(collection, collection2)
@@ -309,12 +309,12 @@ func TestCollectionsSortInterface(t *testing.T) {
 }
 
 func TestCollectionMarshalAndUnmarshalJSON(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, tokenURI, sdk.NewInt(1))
-	nfts := NewNFTs(&testNFT)
+	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts := NewNFTs(testNFT)
 	collection := NewCollection(denom, nfts)
 
-	testNFT2 := NewBaseNFT(id2, address2, tokenURI2, sdk.NewInt(1))
-	nfts2 := NewNFTs(&testNFT2)
+	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	nfts2 := NewNFTs(testNFT2)
 	collection2 := NewCollection(denom2, nfts2)
 
 	collections := NewCollections(collection, collection2)
@@ -332,5 +332,4 @@ func TestCollectionMarshalAndUnmarshalJSON(t *testing.T) {
 
 	err = newCollections.UnmarshalJSON([]byte{})
 	require.Error(t, err)
-}
-*/
+}*/

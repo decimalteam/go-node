@@ -1,13 +1,13 @@
 package rest
 
 import (
-	"net/http"
-
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -42,11 +42,11 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router,
 }
 
 type transferNFTReq struct {
-	BaseReq   rest.BaseReq `json:"base_req"`
-	Denom     string       `json:"denom"`
-	ID        string       `json:"id"`
-	Recipient string       `json:"recipient"`
-	Quantity  string       `json:"quantity"`
+	BaseReq     rest.BaseReq `json:"base_req"`
+	Denom       string       `json:"denom"`
+	ID          string       `json:"id"`
+	Recipient   string       `json:"recipient"`
+	SubTokenIDs []string     `json:"subTokenIDs"`
 }
 
 func transferNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
@@ -73,14 +73,18 @@ func transferNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.Handle
 			return
 		}
 
-		quantity, ok := sdk.NewIntFromString(req.Quantity)
-		if !ok {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid quantity")
-			return
+		subTokenIDs := make([]int64, len(req.SubTokenIDs))
+		for i, d := range req.SubTokenIDs {
+			subTokenID, err := strconv.ParseInt(d, 10, 64)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid subTokenID")
+				return
+			}
+			subTokenIDs[i] = subTokenID
 		}
 
 		// create the message
-		msg := types.NewMsgTransferNFT(fromAddr, recipient, req.Denom, req.ID, quantity)
+		msg := types.NewMsgTransferNFT(fromAddr, recipient, req.Denom, req.ID, subTokenIDs)
 
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
@@ -159,10 +163,10 @@ func mintNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFun
 }
 
 type burnNFTReq struct {
-	BaseReq  rest.BaseReq `json:"base_req"`
-	Denom    string       `json:"denom"`
-	ID       string       `json:"id"`
-	Quantity string       `json:"quantity"`
+	BaseReq     rest.BaseReq `json:"base_req"`
+	Denom       string       `json:"denom"`
+	ID          string       `json:"id"`
+	SubTokenIDs []string     `json:"subTokenIDs"`
 }
 
 func burnNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
@@ -183,14 +187,18 @@ func burnNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFun
 			return
 		}
 
-		quantity, ok := sdk.NewIntFromString(req.Quantity)
-		if !ok {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid quantity")
-			return
+		subTokenIDs := make([]int64, len(req.SubTokenIDs))
+		for i, d := range req.SubTokenIDs {
+			subTokenID, err := strconv.ParseInt(d, 10, 64)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid subTokenID")
+				return
+			}
+			subTokenIDs[i] = subTokenID
 		}
 
 		// create the message
-		msg := types.NewMsgBurnNFT(fromAddr, req.ID, req.Denom, quantity)
+		msg := types.NewMsgBurnNFT(fromAddr, req.ID, req.Denom, subTokenIDs)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
 }

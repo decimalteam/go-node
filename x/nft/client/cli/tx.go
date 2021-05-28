@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -47,7 +48,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 // GetCmdTransferNFT is the CLI command for sending a TransferNFT transaction
 func GetCmdTransferNFT(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "transfer [sender] [recipient] [denom] [tokenID] [quantity]",
+		Use:   "transfer [sender] [recipient] [denom] [tokenID] [sub_token_ids]",
 		Short: "transfer a NFT to a recipient",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Transfer a NFT from a given collection that has a 
@@ -81,12 +82,17 @@ crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa 
 			denom := args[2]
 			tokenID := args[3]
 
-			quantity, ok := sdk.NewIntFromString(args[4])
-			if !ok {
-				return errors.New("invalid quantity")
+			subTokenIDsStr := strings.Split(args[4], ",")
+			subTokenIDs := make([]int64, len(subTokenIDsStr))
+			for i, d := range subTokenIDsStr {
+				subTokenID, err := strconv.ParseInt(d, 10, 64)
+				if err != nil {
+					return fmt.Errorf("invalid subTokenID")
+				}
+				subTokenIDs[i] = subTokenID
 			}
 
-			msg := types.NewMsgTransferNFT(sender, recipient, denom, tokenID, quantity)
+			msg := types.NewMsgTransferNFT(sender, recipient, denom, tokenID, subTokenIDs)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -209,12 +215,17 @@ $ %s tx %s burn crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65
 			denom := args[0]
 			tokenID := args[1]
 
-			quantity, ok := sdk.NewIntFromString(args[2])
-			if !ok {
-				return errors.New("invalid quantity")
+			subTokenIDsStr := strings.Split(args[2], ",")
+			subTokenIDs := make([]int64, len(subTokenIDsStr))
+			for i, d := range subTokenIDsStr {
+				subTokenID, err := strconv.ParseInt(d, 10, 64)
+				if err != nil {
+					return fmt.Errorf("invalid subTokenID")
+				}
+				subTokenIDs[i] = subTokenID
 			}
 
-			msg := types.NewMsgBurnNFT(cliCtx.GetFromAddress(), tokenID, denom, quantity)
+			msg := types.NewMsgBurnNFT(cliCtx.GetFromAddress(), tokenID, denom, subTokenIDs)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

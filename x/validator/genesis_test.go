@@ -16,7 +16,7 @@ import (
 )
 
 func TestInitGenesis(t *testing.T) {
-	ctx, _, keeper, supplyKeeper, _ := val.CreateTestInput(t, false, 1000)
+	ctx, _, keeper, supplyKeeper, _, _ := val.CreateTestInput(t, false, 1000)
 
 	valTokens := types.TokensFromConsensusPower(1)
 

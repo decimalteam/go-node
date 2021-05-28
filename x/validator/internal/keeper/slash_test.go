@@ -14,7 +14,7 @@ import (
 // setup helper function - creates two validators
 func setupHelper(t *testing.T, power int64) (sdk.Context, Keeper, types.Params) {
 	// setup
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, power)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, power)
 
 	params := keeper.GetParams(ctx)
 	numVals := int64(3)
@@ -68,6 +68,59 @@ func TestRevocation(t *testing.T) {
 	require.False(t, val.IsJailed())
 }
 
+/*
+func TestSlashBondedDelegationNFT(t *testing.T) {
+	ctx, _, keeper, _, _, nftKeeper := CreateTestInput(t, false, 100)
+
+	valAddr := addrVals[0]
+	delAddr := sdk.AccAddress(addrVals[0])
+	amt := types.TokensFromConsensusPower(100)
+
+	// NFT params
+	const denom = "denom1"
+	const tokenID = "token1"
+	quantity := sdk.NewInt(100)
+	reserve := sdk.NewInt(100)
+
+	// create nft
+	_, err := nftKeeper.MintNFT(ctx, denom,
+		tokenID,
+		reserve,
+		quantity,
+		delAddr,
+		delAddr,
+		"",
+		true,
+	)
+	require.NoError(t, err)
+
+	bondedCoins := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), amt))
+
+	bondedPool := keeper.GetBondedPool(ctx)
+	err = bondedPool.SetCoins(bondedCoins)
+	require.NoError(t, err)
+	keeper.supplyKeeper.SetModuleAccount(ctx, bondedPool)
+
+	// set validator
+	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), delAddr, types.Description{})
+	validator.Online = true
+	del := types.NewDelegation(delAddr, validator.ValAddress, sdk.NewCoin(keeper.BondDenom(ctx), amt))
+	keeper.SetDelegation(ctx, del)
+	validator = TestingUpdateValidator(keeper, ctx, validator, true)
+	keeper.SetValidatorByConsAddr(ctx, validator)
+
+	// set nft delegation
+	delegationNFT := types.NewDelegationNFT(delAddr, valAddr, tokenID, denom, quantity,
+		sdk.NewCoin(keeper.BondDenom(ctx), quantity.Mul(reserve)))
+	keeper.SetDelegationNFT(ctx, delegationNFT)
+
+	keeper.Slash(ctx, validator.GetConsAddr(), ctx.BlockHeight(), types.SlashFractionDowntime)
+
+	delegationNFT, ok := keeper.GetDelegationNFT(ctx, valAddr, delAddr, tokenID, denom)
+	require.True(t, ok)
+	require.Equal(t, sdk.NewInt(99), delegationNFT.Quantity)
+}
+*/
 // tests slashUnbondingDelegation
 func TestSlashUnbondingDelegation(t *testing.T) {
 	ctx, keeper, _ := setupHelper(t, 10)

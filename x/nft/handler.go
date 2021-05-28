@@ -3,6 +3,7 @@ package nft
 import (
 	"fmt"
 	"runtime/debug"
+	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -42,11 +43,10 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types.MsgTransferNFT, k keeper.Ke
 		return nil, err
 	}
 
-	nft, err = types.TransferNFT(nft, msg.Sender, msg.Recipient, msg.Quantity)
+	nft, err = types.TransferNFT(nft, msg.Sender, msg.Recipient, msg.SubTokenIDs)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(nft)
 
 	collection, found := k.GetCollection(ctx, msg.Denom)
 	if !found {
@@ -77,6 +77,10 @@ func HandleMsgEditNFTMetadata(ctx sdk.Context, msg types.MsgEditNFTMetadata, k k
 	nft, err := k.GetNFT(ctx, msg.Denom, msg.ID)
 	if err != nil {
 		return nil, err
+	}
+
+	if !nft.GetCreator().Equals(msg.Sender) {
+		return nil, ErrNotAllowedMint
 	}
 
 	// update NFT
@@ -110,8 +114,8 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 			return nil, ErrNotAllowedMint
 		}
 	}
-	nft = types.NewBaseNFT(msg.ID, msg.Sender, msg.Recipient, msg.TokenURI, msg.Quantity, msg.Reserve, msg.AllowMint)
-	err = k.MintNFT(ctx, msg.Denom, nft)
+
+	lastSubTokenID, err := k.MintNFT(ctx, msg.Denom, msg.ID, msg.Reserve, msg.Quantity, msg.Sender, msg.Recipient, msg.TokenURI, msg.AllowMint)
 	if err != nil {
 		return nil, err
 	}
@@ -123,6 +127,7 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
 			sdk.NewAttribute(types.AttributeKeyNFTID, msg.ID),
 			sdk.NewAttribute(types.AttributeKeyNFTTokenURI, msg.TokenURI),
+			sdk.NewAttribute(types.AttributeKeySubTokenIDStartRange, strconv.FormatInt(lastSubTokenID-msg.Quantity.Int64(), 10)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -145,8 +150,8 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 		return nil, ErrNotAllowedBurn
 	}
 
-	// remove  NFT
-	err = k.DeleteNFT(ctx, msg.Denom, msg.ID, msg.Quantity)
+	// remove NFT
+	err = k.DeleteNFT(ctx, msg.Denom, msg.ID, msg.SubTokenIDs)
 	if err != nil {
 		return nil, err
 	}
