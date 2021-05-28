@@ -1,6 +1,7 @@
 package nft
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,27 +16,27 @@ func TestInitGenesis(t *testing.T) {
 	require.Equal(t, 0, len(genesisState.Collections))
 
 	ids := []string{ID1, ID2, ID3}
-	idCollection := NewIDCollection(Denom1, ids)
-	idCollection2 := NewIDCollection(Denom2, ids)
-	owner := NewOwner(Addrs[0], idCollection)
+	idCollection := types.NewIDCollection(Denom1, ids)
+	idCollection2 := types.NewIDCollection(Denom2, ids)
+	owner := types.NewOwner(Addrs[0], idCollection)
 
-	owner2 := NewOwner(Addrs[1], idCollection2)
+	owner2 := types.NewOwner(Addrs[1], idCollection2)
 
 	owners := []Owner{owner, owner2}
 
-	quantity := sdk.NewInt(1)
-	reserve := sdk.NewInt(101)
+	reserve := sdk.NewInt(100)
+	subTokenIds := []int64{}
 
-	nft1 := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, quantity, reserve, true)
-	nft2 := NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, quantity, reserve, true)
-	nft3 := NewBaseNFT(ID3, Addrs[0], Addrs[0], TokenURI1, quantity, reserve, true)
-	nfts := NewNFTs(nft1, nft2, nft3)
+	nft1 := types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIds, true)
+	nft2 := types.NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIds, true)
+	nft3 := types.NewBaseNFT(ID3, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIds, true)
+	nfts := types.NewNFTs(nft1, nft2, nft3)
 	collection := NewCollection(Denom1, nfts)
 
-	nftx := NewBaseNFT(ID1, Addrs[1], Addrs[1], TokenURI1, quantity, reserve, true)
-	nft2x := NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI1, quantity, reserve, true)
-	nft3x := NewBaseNFT(ID3, Addrs[1], Addrs[1], TokenURI1, quantity, reserve, true)
-	nftsx := NewNFTs(nftx, nft2x, nft3x)
+	nftx := types.NewBaseNFT(ID1, Addrs[1], Addrs[1], TokenURI1, reserve, subTokenIds, true)
+	nft2x := types.NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI1, reserve, subTokenIds, true)
+	nft3x := types.NewBaseNFT(ID3, Addrs[1], Addrs[1], TokenURI1, reserve, subTokenIds, true)
+	nftsx := types.NewNFTs(nftx, nft2x, nft3x)
 	collection2 := NewCollection(Denom2, nftsx)
 
 	collections := NewCollections(collection, collection2)

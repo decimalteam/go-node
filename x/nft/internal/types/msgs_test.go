@@ -14,7 +14,7 @@ func TestNewMsgTransferNFT(t *testing.T) {
 	newMsgTransferNFT := NewMsgTransferNFT(Addrs[0], Addrs[1],
 		fmt.Sprintf("     %s     ", Denom1),
 		fmt.Sprintf("     %s     ", ID1),
-		[]sdk.Int{},
+		[]int64{},
 	)
 	require.Equal(t, newMsgTransferNFT.Sender, Addrs[0])
 	require.Equal(t, newMsgTransferNFT.Recipient, Addrs[1])
@@ -23,29 +23,29 @@ func TestNewMsgTransferNFT(t *testing.T) {
 }
 
 func TestMsgTransferNFTValidateBasicMethod(t *testing.T) {
-	newMsgTransferNFT := NewMsgTransferNFT(Addrs[0], Addrs[1], "", ID1, []sdk.Int{})
+	newMsgTransferNFT := NewMsgTransferNFT(Addrs[0], Addrs[1], "", ID1, []int64{})
 	err := newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, "", []sdk.Int{})
+	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, "", []int64{})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgTransferNFT = NewMsgTransferNFT(nil, Addrs[1], Denom1, "", []sdk.Int{})
+	newMsgTransferNFT = NewMsgTransferNFT(nil, Addrs[1], Denom1, "", []int64{})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], nil, Denom1, "", []sdk.Int{})
+	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], nil, Denom1, "", []int64{})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, ID1, []sdk.Int{})
+	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, ID1, []int64{})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.NoError(t, err)
 }
 
 func TestMsgTransferNFTGetSignBytesMethod(t *testing.T) {
-	newMsgTransferNFT := NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, ID1, []sdk.Int{})
+	newMsgTransferNFT := NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, ID1, []int64{})
 	sortedBytes := newMsgTransferNFT.GetSignBytes()
 
 	require.Equal(t, string(sortedBytes), fmt.Sprintf(`{"type":"nft/msg_transfer","value":{"denom":"%s","id":"%s","recipient":"%s","sender":"%s","sub_token_ids":%v}}`,
@@ -54,7 +54,7 @@ func TestMsgTransferNFTGetSignBytesMethod(t *testing.T) {
 }
 
 func TestMsgTransferNFTGetSignersMethod(t *testing.T) {
-	newMsgTransferNFT := NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, ID1, []sdk.Int{})
+	newMsgTransferNFT := NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, ID1, []int64{})
 	signers := newMsgTransferNFT.GetSigners()
 	require.Equal(t, 1, len(signers))
 	require.Equal(t, Addrs[0].String(), signers[0].String())
@@ -168,7 +168,7 @@ func TestNewMsgBurnNFT(t *testing.T) {
 	newMsgBurnNFT := NewMsgBurnNFT(Addrs[0],
 		fmt.Sprintf("     %s     ", ID1),
 		fmt.Sprintf("     %s     ", Denom1),
-		[]sdk.Int{},
+		[]int64{},
 	)
 
 	require.Equal(t, newMsgBurnNFT.Sender.String(), Addrs[0].String())
@@ -177,25 +177,25 @@ func TestNewMsgBurnNFT(t *testing.T) {
 }
 
 func TestMsgMsgBurnNFTValidateBasicMethod(t *testing.T) {
-	newMsgBurnNFT := NewMsgBurnNFT(nil, ID1, Denom1, []sdk.Int{})
+	newMsgBurnNFT := NewMsgBurnNFT(nil, ID1, Denom1, []int64{})
 	err := newMsgBurnNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgBurnNFT = NewMsgBurnNFT(Addrs[0], "", Denom1, []sdk.Int{})
+	newMsgBurnNFT = NewMsgBurnNFT(Addrs[0], "", Denom1, []int64{})
 	err = newMsgBurnNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgBurnNFT = NewMsgBurnNFT(Addrs[0], ID1, "", []sdk.Int{})
+	newMsgBurnNFT = NewMsgBurnNFT(Addrs[0], ID1, "", []int64{})
 	err = newMsgBurnNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgBurnNFT = NewMsgBurnNFT(Addrs[0], ID1, Denom1, []sdk.Int{})
+	newMsgBurnNFT = NewMsgBurnNFT(Addrs[0], ID1, Denom1, []int64{})
 	err = newMsgBurnNFT.ValidateBasic()
 	require.NoError(t, err)
 }
 
 func TestMsgBurnNFTGetSignBytesMethod(t *testing.T) {
-	newMsgBurnNFT := NewMsgBurnNFT(Addrs[0], ID1, Denom1, []sdk.Int{})
+	newMsgBurnNFT := NewMsgBurnNFT(Addrs[0], ID1, Denom1, []int64{})
 	sortedBytes := newMsgBurnNFT.GetSignBytes()
 	require.Equal(t, string(sortedBytes), fmt.Sprintf(`{"type":"nft/msg_burn","value":{"denom":"%s","id":"%s","sender":"%s","sub_token_ids":%v}}`,
 		Denom1, ID1, Addrs[0].String(), newMsgBurnNFT.SubTokenIDs,
@@ -203,7 +203,7 @@ func TestMsgBurnNFTGetSignBytesMethod(t *testing.T) {
 }
 
 func TestMsgBurnNFTGetSignersMethod(t *testing.T) {
-	newMsgBurnNFT := NewMsgBurnNFT(Addrs[0], ID1, Denom1, []sdk.Int{})
+	newMsgBurnNFT := NewMsgBurnNFT(Addrs[0], ID1, Denom1, []int64{})
 	signers := newMsgBurnNFT.GetSigners()
 	require.Equal(t, 1, len(signers))
 	require.Equal(t, Addrs[0].String(), signers[0].String())

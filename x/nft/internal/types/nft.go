@@ -24,7 +24,7 @@ type BaseNFT struct {
 }
 
 // NewBaseNFT creates a new NFT instance
-func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, reserve sdk.Int, subTokenIDs []int64, allowMint bool) *BaseNFT {
+func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, reserve sdk.Int, subTokenIDs []int64, allowMint bool) exported.NFT {
 	return &BaseNFT{
 		ID: id,
 		Owners: &TokenOwners{Owners: []exported.TokenOwner{&TokenOwner{

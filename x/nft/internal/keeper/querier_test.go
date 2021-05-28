@@ -36,7 +36,7 @@ func TestQuerySupply(t *testing.T) {
 		Addrs[0],
 		Addrs[0],
 		TokenURI1,
-		sdk.NewInt(1),
+		sdk.NewInt(100),
 		[]int64{},
 		true,
 	)
@@ -89,7 +89,7 @@ func TestQueryCollection(t *testing.T) {
 		Addrs[0],
 		Addrs[0],
 		TokenURI1,
-		sdk.NewInt(1),
+		sdk.NewInt(100),
 		[]int64{},
 		true,
 	)
@@ -144,7 +144,7 @@ func TestQueryOwner(t *testing.T) {
 		Addrs[0],
 		Addrs[0],
 		TokenURI1,
-		sdk.NewInt(1),
+		sdk.NewInt(100),
 		[]int64{},
 		true,
 	)
@@ -222,7 +222,7 @@ func TestQueryNFT(t *testing.T) {
 		Addrs[0],
 		Addrs[0],
 		TokenURI1,
-		sdk.NewInt(1),
+		sdk.NewInt(100),
 		[]int64{1},
 		true,
 	)
@@ -276,7 +276,7 @@ func TestQueryDenoms(t *testing.T) {
 		Addrs[0],
 		Addrs[0],
 		TokenURI1,
-		sdk.NewInt(1),
+		sdk.NewInt(100),
 		[]int64{},
 		true,
 	)

@@ -125,7 +125,7 @@ func (msg MsgBurnNFT) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
 	}
-	if CheckUnique(msg.SubTokenIDs) {
+	if !CheckUnique(msg.SubTokenIDs) {
 		return ErrNotUniqueSubTokenIDs
 	}
 
@@ -186,7 +186,7 @@ func (msg MsgTransferNFT) ValidateBasic() error {
 	if strings.TrimSpace(msg.ID) == "" {
 		return ErrInvalidCollection
 	}
-	if CheckUnique(msg.SubTokenIDs) {
+	if !CheckUnique(msg.SubTokenIDs) {
 		return ErrNotUniqueSubTokenIDs
 	}
 

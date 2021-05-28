@@ -17,7 +17,7 @@ func TestSetCollection(t *testing.T) {
 		Addrs[0],
 		Addrs[0],
 		TokenURI1,
-		sdk.NewInt(1),
+		sdk.NewInt(100),
 		[]int64{},
 		false,
 	)
@@ -36,7 +36,7 @@ func TestSetCollection(t *testing.T) {
 		Addrs[0],
 		Addrs[0],
 		TokenURI1,
-		sdk.NewInt(1),
+		sdk.NewInt(100),
 		[]int64{},
 		true,
 	)
@@ -68,7 +68,7 @@ func TestGetCollection(t *testing.T) {
 		Addrs[0],
 		Addrs[0],
 		TokenURI1,
-		sdk.NewInt(1),
+		sdk.NewInt(100),
 		[]int64{},
 		true,
 	)
@@ -96,7 +96,7 @@ func TestGetCollections(t *testing.T) {
 		Addrs[0],
 		Addrs[0],
 		TokenURI1,
-		sdk.NewInt(1),
+		sdk.NewInt(100),
 		[]int64{},
 		true,
 	)
