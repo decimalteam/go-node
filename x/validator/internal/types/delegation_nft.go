@@ -2,9 +2,10 @@ package types
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -91,10 +92,14 @@ func (u UnbondingDelegationNFTEntry) IsMature(currentTime time.Time) bool {
 }
 
 func (u UnbondingDelegationNFTEntry) GetEvent() sdk.Event {
+	subTokenIDs := make([]string, len(u.SubTokenIDs))
+	for i, subTokenID := range u.SubTokenIDs {
+		subTokenIDs[i] = strconv.FormatInt(subTokenID, 10)
+	}
 	return sdk.NewEvent(
 		EventTypeCompleteUnbondingNFT,
 		sdk.NewAttribute(AttributeKeyDenom, u.Denom),
 		sdk.NewAttribute(AttributeKeyID, u.TokenID),
-		sdk.NewAttribute(AttributeKeySubTokenIDs, fmt.Sprintf("%v", u.SubTokenIDs)),
+		sdk.NewAttribute(AttributeKeySubTokenIDs, strings.Join(subTokenIDs, ",")),
 	)
 }

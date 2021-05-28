@@ -151,7 +151,7 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 
 	// ensure that we have enough shares to remove
 	for _, id := range subTokenIDs {
-		if nftTypes.SortedIntArray(delegation.SubTokenIDs).Find(id) == -1 {
+		if nftTypes.SortedIntArray(delegation.SubTokenIDs).Sort().Find(id) == -1 {
 			return types.ErrOwnerDoesNotOwnSubTokenID(delAddr, id)
 		}
 	}
@@ -162,10 +162,10 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 		return types.ErrNoValidatorFound()
 	}
 
-	decreasedAmount := sdk.Int{}
+	decreasedAmount := sdk.ZeroInt()
 	// subtract shares from delegation
 	for _, id := range subTokenIDs {
-		index := nftTypes.SortedIntArray(delegation.SubTokenIDs).Find(id)
+		index := nftTypes.SortedIntArray(delegation.SubTokenIDs).Sort().Find(id)
 		delegation.SubTokenIDs = append(delegation.SubTokenIDs[:index], delegation.SubTokenIDs[index+1:]...)
 
 		subToken, found := k.nftKeeper.GetSubToken(ctx, denom, tokenID, id)
