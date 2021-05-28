@@ -10,10 +10,10 @@ import (
 func (keeper Keeper) GetTallyParams(ctx sdk.Context) types.TallyParams {
 	var tallyParams types.TallyParams
 	keeper.paramSpace.Get(ctx, types.ParamStoreKeyTallyParams, &tallyParams)
-	if ctx.BlockHeight() >= updates.Update2Block {
+	if ctx.BlockHeight() >= updates.Update1Block {
 		tallyParams.Quorum = sdk.NewDec(2).QuoInt64(3)
 	}
-	if ctx.BlockHeight() >= updates.Update3Block {
+	if ctx.BlockHeight() >= updates.Update1Block {
 		tallyParams.Quorum = sdk.NewDecWithPrec(667, 3)
 	}
 	return tallyParams

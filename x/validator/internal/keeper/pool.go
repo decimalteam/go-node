@@ -44,7 +44,7 @@ func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	if ctx.BlockHeight() >= updates.Update6Block {
+	if ctx.BlockHeight() >= updates.Update1Block {
 		err := k.burnCoins(ctx, types.BondedPoolName, coinsBurn)
 		if err != nil {
 			return err
@@ -68,7 +68,7 @@ func (k Keeper) burnNotBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	if ctx.BlockHeight() >= updates.Update6Block {
+	if ctx.BlockHeight() >= updates.Update1Block {
 		err := k.burnCoins(ctx, types.NotBondedPoolName, coinsBurn)
 		if err != nil {
 			return err

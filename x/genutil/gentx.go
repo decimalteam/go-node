@@ -59,8 +59,6 @@ func ValidateAccountInGenesis(appGenesisState map[string]json.RawMessage,
 			accAddress := acc.GetAddress()
 			accCoins := acc.GetCoins()
 
-			fmt.Println(coin)
-
 			// Ensure that account is in genesis
 			if accAddress.Equals(key) {
 

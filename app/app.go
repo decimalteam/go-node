@@ -350,15 +350,6 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 		swap.InitGenesis(ctx, app.swapKeeper, app.supplyKeeper, swap.InitialGenesisState)
 	}
 
-	//moduleAddress := app.supplyKeeper.GetModuleAddress(swap.PoolName)
-	//moduleAccount := app.accountKeeper.GetAccount(ctx, moduleAddress)
-	//
-	//if moduleAccount != nil {
-	//	if _, ok := moduleAccount.(exported.ModuleAccountI); !ok {
-	//		app.accountKeeper.RemoveAccount(ctx, moduleAccount)
-	//	}
-	//}
-
 	return app.mm.BeginBlock(ctx, req)
 }
 func (app *newApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {

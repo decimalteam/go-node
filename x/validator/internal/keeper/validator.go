@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bytes"
 	"errors"
 	"fmt"
@@ -160,13 +159,11 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
 				))
 				eventMutex.Unlock()
-				if ctx.BlockHeight() >= updates.Update9Block {
-					switch del := del.(type) {
-					case types.Delegation:
-						k.SetDelegation(ctx, del)
-					case types.DelegationNFT:
-						k.SetDelegationNFT(ctx, del)
-					}
+				switch del := del.(type) {
+				case types.Delegation:
+					k.SetDelegation(ctx, del)
+				case types.DelegationNFT:
+					k.SetDelegationNFT(ctx, del)
 				}
 			}
 			mutex.Lock()

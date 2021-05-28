@@ -297,40 +297,29 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		case coin.CreateCoinConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(createCoinFee)
 		case swap.MsgHTLTConst:
-			if ctx.BlockHeight() >= updates.Update4Block {
-				swapAddress, err := sdk.AccAddressFromBech32(swap.SwapServiceAddress)
-				if err != nil {
-					return ctx, err
-				}
-				if msg.(swap.MsgHTLT).From.Equals(swapAddress) {
-					return next(ctx, tx, simulate)
-				}
-				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
-			} else {
-				if msg.(swap.MsgHTLT).From.Equals(swap.SwapServiceAccAddress) {
-					return next(ctx, tx, simulate)
-				}
-				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
+			swapAddress, err := sdk.AccAddressFromBech32(swap.SwapServiceAddress)
+			if err != nil {
+				return ctx, err
 			}
+			if msg.(swap.MsgHTLT).From.Equals(swapAddress) {
+				return next(ctx, tx, simulate)
+			}
+			commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
 		case swap.MsgRedeemConst:
-			if ctx.BlockHeight() >= updates.Update5Block {
-				swapAddress, err := sdk.AccAddressFromBech32(swap.SwapServiceAddress)
-				if err != nil {
-					return ctx, err
-				}
-				if msg.(swap.MsgRedeem).From.Equals(swapAddress) {
-					return next(ctx, tx, simulate)
-				}
+			swapAddress, err := sdk.AccAddressFromBech32(swap.SwapServiceAddress)
+			if err != nil {
+				return ctx, err
+			}
+			if msg.(swap.MsgRedeem).From.Equals(swapAddress) {
+				return next(ctx, tx, simulate)
 			}
 		case swap.MsgRefundConst:
-			if ctx.BlockHeight() >= updates.Update5Block {
-				swapAddress, err := sdk.AccAddressFromBech32(swap.SwapServiceAddress)
-				if err != nil {
-					return ctx, err
-				}
-				if msg.(swap.MsgRefund).From.Equals(swapAddress) {
-					return next(ctx, tx, simulate)
-				}
+			swapAddress, err := sdk.AccAddressFromBech32(swap.SwapServiceAddress)
+			if err != nil {
+				return ctx, err
+			}
+			if msg.(swap.MsgRefund).From.Equals(swapAddress) {
+				return next(ctx, tx, simulate)
 			}
 		}
 	}

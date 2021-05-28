@@ -20,7 +20,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 
 	// fetch all the bonded validators, insert them into currValidators
 	keeper.vk.IterateBondedValidatorsByPower(ctx, func(index int64, validator exported.ValidatorI) (stop bool) {
-		if ctx.BlockHeight() >= updates.Update3Block {
+		if ctx.BlockHeight() >= updates.Update1Block {
 			if index == 9 {
 				return true
 			}
@@ -50,7 +50,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 	// iterate over the validators again to tally their voting power
 	for _, val := range currValidators {
 		if val.Vote == types.OptionEmpty {
-			if ctx.BlockHeight() >= updates.Update3Block {
+			if ctx.BlockHeight() >= updates.Update1Block {
 				val.Vote = types.OptionAbstain
 			} else {
 				continue
@@ -72,7 +72,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 		return false, tallyResults, totalVotingPower
 	}
 
-	if ctx.BlockHeight() >= updates.Update3Block {
+	if ctx.BlockHeight() >= updates.Update1Block {
 		// If no one votes (everyone abstains), proposal fails
 		if totalVotingPower.Sub(results[types.OptionAbstain]).Equal(sdk.ZeroDec()) {
 			return false, tallyResults, totalVotingPower

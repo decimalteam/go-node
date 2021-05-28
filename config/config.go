@@ -9,7 +9,7 @@ import (
 const (
 
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "1.2.2"
+	DecimalVersion = "1.3.0"
 
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
@@ -47,7 +47,7 @@ var (
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("340000000000000000000000000")
 )
 
-var ChainID = "decimal-testnet-12-09-13-00"
+var ChainID = "decimal-testnet-29-05-02-00"
 
 type Config struct {
 	Initialized           bool    `json:"initialized" yaml:"initialized"`
