@@ -13,30 +13,33 @@ import (
 func TestGetOwners(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 
-	nft := types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	quantity := sdk.NewInt(1)
+	reserve := sdk.NewInt(101)
+
+	nft := types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, quantity, reserve, true)
 	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft)
 	require.NoError(t, err)
 
-	nft2 := types.NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	_, err = NFTKeeper.MintNFT(ctx, Denom1, nft)
+	nft2 := types.NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI1, quantity, reserve, true)
+	_, err = NFTKeeper.MintNFT(ctx, Denom1, nft2)
 	require.NoError(t, err)
 
-	nft3 := types.NewBaseNFT(ID3, Addrs[2], Addrs[2], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	nft3 := types.NewBaseNFT(ID3, Addrs[2], Addrs[2], TokenURI1, quantity, reserve, true)
 	_, err = NFTKeeper.MintNFT(ctx, Denom1, nft3)
 	require.NoError(t, err)
 
 	owners := NFTKeeper.GetOwners(ctx)
 	require.Equal(t, 3, len(owners))
 
-	nft = types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	nft = types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, quantity, reserve, true)
 	_, err = NFTKeeper.MintNFT(ctx, Denom2, nft)
 	require.NoError(t, err)
 
-	nft2 = types.NewBaseNFT(ID2, Addrs[1], Addrs[0], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	nft2 = types.NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI1, quantity, reserve, true)
 	_, err = NFTKeeper.MintNFT(ctx, Denom2, nft2)
 	require.NoError(t, err)
 
-	nft3 = types.NewBaseNFT(ID3, Addrs[2], Addrs[2], TokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
+	nft3 = types.NewBaseNFT(ID3, Addrs[2], Addrs[2], TokenURI1, quantity, reserve, true)
 	_, err = NFTKeeper.MintNFT(ctx, Denom2, nft3)
 	require.NoError(t, err)
 
