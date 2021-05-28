@@ -257,7 +257,6 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 
 	// end block
 	updates, err := keeper.ApplyAndReturnValidatorSetUpdates(ctx)
-	log.Println(updates)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(updates))
 
