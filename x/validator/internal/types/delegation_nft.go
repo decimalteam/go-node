@@ -2,6 +2,7 @@ package types
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"time"
@@ -12,17 +13,17 @@ type DelegationNFT struct {
 	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
 	Denom            string         `json:"denom" yaml:"denom"`
 	TokenID          string         `json:"token_id" yaml:"token_id"`
-	Quantity         sdk.Int        `json:"quantity" yaml:"quantity"`
+	SubTokenIDs      []int64        `json:"sub_token_ids" yaml:"sub_token_ids"`
 	Coin             sdk.Coin       `json:"coin" yaml:"coin"`
 }
 
-func NewDelegationNFT(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, tokenID, denom string, quantity sdk.Int, coin sdk.Coin) DelegationNFT {
+func NewDelegationNFT(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, tokenID, denom string, subTokenIDs []int64, coin sdk.Coin) DelegationNFT {
 	return DelegationNFT{
 		DelegatorAddress: delegatorAddr,
 		ValidatorAddress: validatorAddr,
 		Denom:            denom,
 		TokenID:          tokenID,
-		Quantity:         quantity,
+		SubTokenIDs:      subTokenIDs,
 		Coin:             coin,
 	}
 }
@@ -59,17 +60,17 @@ type UnbondingDelegationNFTEntry struct {
 	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"` // time at which the unbonding delegation will complete
 	Denom          string    `json:"denom" yaml:"denom"`
 	TokenID        string    `json:"token_id" yaml:"token_id"`
-	Quantity       sdk.Int   `json:"quantity" yaml:"quantity"`
+	SubTokenIDs    []int64   `json:"sub_token_ids" yaml:"sub_token_ids"`
 	Balance        sdk.Coin  `json:"balance"`
 }
 
-func NewUnbondingDelegationNFTEntry(creationHeight int64, completionTime time.Time, denom string, tokenID string, quantity sdk.Int, balance sdk.Coin) UnbondingDelegationNFTEntry {
+func NewUnbondingDelegationNFTEntry(creationHeight int64, completionTime time.Time, denom string, tokenID string, subTokenIDs []int64, balance sdk.Coin) UnbondingDelegationNFTEntry {
 	return UnbondingDelegationNFTEntry{
 		CreationHeight: creationHeight,
 		CompletionTime: completionTime,
 		Denom:          denom,
 		TokenID:        tokenID,
-		Quantity:       quantity,
+		SubTokenIDs:    subTokenIDs,
 		Balance:        balance,
 	}
 }
@@ -94,6 +95,6 @@ func (u UnbondingDelegationNFTEntry) GetEvent() sdk.Event {
 		EventTypeCompleteUnbondingNFT,
 		sdk.NewAttribute(AttributeKeyDenom, u.Denom),
 		sdk.NewAttribute(AttributeKeyID, u.TokenID),
-		sdk.NewAttribute(AttributeKeyQuantity, u.Quantity.String()),
+		sdk.NewAttribute(AttributeKeySubTokenIDs, fmt.Sprintf("%v", u.SubTokenIDs)),
 	)
 }

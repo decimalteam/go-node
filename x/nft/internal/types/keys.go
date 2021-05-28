@@ -2,6 +2,7 @@ package types
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/coin"
+	"encoding/binary"
 	"fmt"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
@@ -65,10 +66,12 @@ func GetOwnerKey(address sdk.AccAddress, denom string) []byte {
 	return append(GetOwnersKey(address), bs...)
 }
 
-func GetSubTokenKey(denom, id string, subTokenID sdk.Int) []byte {
+func GetSubTokenKey(denom, id string, subTokenID int64) []byte {
 	bs := getHash(denom)
 	bsID := getHash(id)
-	return append(append(append(SubTokenKeyPrefix, bs...), bsID...), []byte(subTokenID.String())...)
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(subTokenID))
+	return append(append(append(SubTokenKeyPrefix, bs...), bsID...), b...)
 }
 
 func GetLastSubTokenIDKey(denom, id string) []byte {

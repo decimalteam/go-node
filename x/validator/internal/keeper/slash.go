@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -253,63 +254,58 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 				panic(err)
 			}
 		case types.DelegationNFT:
-			// Calculate slash amount proportional to stake contributing to infraction
-			slashAmountDec := slashFactor.MulInt(delegation.Quantity)
-			slashAmount := slashAmountDec.TruncateInt()
-			totalSlashAmount = totalSlashAmount.Add(slashAmount)
-
-			bondSlashQuantity := sdk.MinInt(slashAmount, delegation.Quantity)
-
-			token, err := k.nftKeeper.GetNFT(ctx, delegation.Denom, delegation.TokenID)
-			if err != nil {
-				panic(err)
-			}
-
-			bondSlashAmount := bondSlashQuantity.Mul(token.GetReserve())
-
-			var remainderAmount sdk.Int
-
-			if bondSlashQuantity.LT(sdk.NewInt(1)) {
-
-				remainder := sdk.NewInt(1).Sub(bondSlashQuantity)
-
-				remainderAmount = remainder.Mul(token.GetReserve())
-				delegator := k.AccountKeeper.GetAccount(ctx, delegation.DelegatorAddress)
-				err = delegator.SetCoins(delegator.GetCoins().Add(sdk.NewCoin(k.BondDenom(ctx), remainderAmount)))
-				if err != nil {
-					panic(err)
-				}
-			}
-
-			delegation.Quantity = delegation.Quantity.Sub(bondSlashQuantity)
-			delegation.Coin.Amount = delegation.Coin.Amount.Sub(bondSlashAmount)
-
-			k.SetDelegationNFT(ctx, delegation)
-
 			validator, err := k.GetValidator(ctx, delegation.GetValidatorAddr())
 			if err != nil {
 				panic(err)
 			}
 
-			validator.Tokens = validator.Tokens.Sub(bondSlashAmount)
+			for _, subTokenID := range delegation.SubTokenIDs {
+				reserve, found := k.nftKeeper.GetSubToken(ctx, delegation.Denom, delegation.TokenID, subTokenID)
+				if !found {
+					panic(fmt.Errorf("subToken with ID = %d not found", subTokenID))
+				}
+				// Calculate slash amount proportional to stake contributing to infraction
+				slashAmountDec := slashFactor.MulInt(reserve)
+				slashAmount := slashAmountDec.TruncateInt()
+				totalSlashAmount = totalSlashAmount.Add(slashAmount)
+
+				bondSlashAmount := sdk.MinInt(slashAmount, delegation.GetCoin().Amount)
+				bondSlashAmount = sdk.MaxInt(bondSlashAmount, sdk.ZeroInt())
+
+				if bondSlashAmount.IsZero() {
+					continue
+				}
+
+				burnedAmount = burnedAmount.Add(sdk.NewCoin(delegation.GetCoin().Denom, bondSlashAmount))
+				delegation.Coin.Amount = delegation.GetCoin().Amount.Sub(bondSlashAmount)
+				validator.Tokens = validator.Tokens.Sub(bondSlashAmount)
+
+				if !reserve.IsZero() {
+					reserve = reserve.Sub(bondSlashAmount)
+					k.nftKeeper.SetSubToken(ctx, delegation.Denom, delegation.TokenID, subTokenID, reserve)
+				}
+
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EventTypeLivenessNFT,
+						sdk.NewAttribute(types.AttributeKeyValidator, delegation.GetValidatorAddr().String()),
+						sdk.NewAttribute(types.AttributeKeyDelegator, delegation.GetDelegatorAddr().String()),
+						sdk.NewAttribute(types.AttributeKeySlashReserve, reserve.String()),
+						sdk.NewAttribute(types.AttributeKeySlashSubTokenID, strconv.FormatInt(subTokenID, 10)),
+						sdk.NewAttribute(types.AttributeKeySlashAmount, sdk.NewCoin(delegation.GetCoin().Denom, bondSlashAmount).String()),
+						sdk.NewAttribute(types.AttributeKeyDenom, delegation.Denom),
+						sdk.NewAttribute(types.AttributeKeyID, delegation.TokenID),
+						sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueMissingSignature),
+					),
+				)
+			}
+
+			k.SetDelegationNFT(ctx, delegation)
+
 			err = k.SetValidator(ctx, validator)
 			if err != nil {
 				panic(err)
 			}
-
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeLivenessNFT,
-					sdk.NewAttribute(types.AttributeKeyValidator, delegation.GetValidatorAddr().String()),
-					sdk.NewAttribute(types.AttributeKeyDelegator, delegation.GetDelegatorAddr().String()),
-					sdk.NewAttribute(types.AttributeKeySlashQuantity, bondSlashQuantity.String()),
-					sdk.NewAttribute(types.AttributeKeySlashRevert, remainderAmount.String()),
-					sdk.NewAttribute(types.AttributeKeySlashAmount, sdk.NewCoin(delegation.GetCoin().Denom, bondSlashAmount).String()),
-					sdk.NewAttribute(types.AttributeKeyDenom, delegation.Denom),
-					sdk.NewAttribute(types.AttributeKeyID, delegation.TokenID),
-					sdk.NewAttribute(types.AttributeKeyReason, types.AttributeValueMissingSignature),
-				),
-			)
 		}
 	}
 

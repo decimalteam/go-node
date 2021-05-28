@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,6 +12,8 @@ import (
 
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 )
+
+type SortedIntArray []int64
 
 // IDCollection defines a set of nft ids that belong to a specific
 // collection
@@ -183,14 +186,14 @@ func (sa SortedStringArray) find(el string) (idx int) {
 // TokenOwner
 
 type TokenOwner struct {
-	Address  sdk.AccAddress `json:"address"`
-	Quantity sdk.Int        `json:"quantity"`
+	Address     sdk.AccAddress `json:"address"`
+	SubTokenIDs SortedIntArray `json:"sub_token_ids"`
 }
 
-func NewTokenOwner(address sdk.AccAddress, quantity sdk.Int) TokenOwner {
+func NewTokenOwner(address sdk.AccAddress, subTokenIDs []int64) TokenOwner {
 	return TokenOwner{
-		Address:  address,
-		Quantity: quantity,
+		Address:     address,
+		SubTokenIDs: subTokenIDs,
 	}
 }
 
@@ -198,17 +201,30 @@ func (t TokenOwner) GetAddress() sdk.AccAddress {
 	return t.Address
 }
 
-func (t TokenOwner) GetQuantity() sdk.Int {
-	return t.Quantity
+func (t TokenOwner) GetSubTokenIDs() []int64 {
+	return t.SubTokenIDs
 }
 
-func (t TokenOwner) SetQuantity(quantity sdk.Int) exported.TokenOwner {
-	t.Quantity = quantity
+func (t TokenOwner) SetSubTokenID(subTokenID int64) exported.TokenOwner {
+	index := t.SubTokenIDs.Find(subTokenID)
+	if index == -1 {
+		t.SubTokenIDs = append(t.SubTokenIDs, subTokenID).Sort()
+	} else {
+		t.SubTokenIDs[index] = subTokenID
+	}
+	return t
+}
+
+func (t TokenOwner) RemoveSubTokenID(subTokenID int64) exported.TokenOwner {
+	index := t.SubTokenIDs.Find(subTokenID)
+	if index != -1 {
+		t.SubTokenIDs = append(t.SubTokenIDs[:index], t.SubTokenIDs[index+1:]...)
+	}
 	return t
 }
 
 func (t TokenOwner) String() string {
-	return fmt.Sprintf("%s %s", t.Address, t.Quantity)
+	return fmt.Sprintf("%s %s", t.Address, t.SubTokenIDs.String())
 }
 
 // ----------------------------------------------------------------------------
@@ -231,8 +247,8 @@ func (t TokenOwners) SetOwner(owner exported.TokenOwner) exported.TokenOwners {
 	}
 
 	t.Owners = append(t.Owners, TokenOwner{
-		Address:  owner.GetAddress(),
-		Quantity: owner.GetQuantity(),
+		Address:     owner.GetAddress(),
+		SubTokenIDs: owner.GetSubTokenIDs(),
 	})
 
 	return t
@@ -296,6 +312,40 @@ func (sa SortedStringArray) Sort() SortedStringArray {
 	return sa
 }
 
+//-----------------------------------------------------------------------------
+// Sort and Findable interface for SortedIntArray
+
+func (sa SortedIntArray) ElAtIndex(index int) int64 { return sa[index] }
+func (sa SortedIntArray) Len() int                  { return len(sa) }
+func (sa SortedIntArray) Less(i, j int) bool {
+	return sa[i] < sa[j]
+}
+func (sa SortedIntArray) Swap(i, j int) {
+	sa[i], sa[j] = sa[j], sa[i]
+}
+
+var _ sort.Interface = SortedStringArray{}
+
+// Sort is a helper function to sort the set of strings in place
+func (sa SortedIntArray) Sort() SortedIntArray {
+	sort.Sort(sa)
+	return sa
+}
+
+func (sa SortedIntArray) Find(el int64) (idx int) {
+	return FindUtilInt64(sa, el)
+}
+
+// String is the string representation
+func (sa SortedIntArray) String() string {
+	str := make([]string, sa.Len())
+	for i, v := range sa {
+		str[i] = strconv.FormatInt(v, 10)
+	}
+	return strings.Join(str[:], ",")
+}
+
+//-----------------------------------------------------------------------------
 // Sort and Findable interface for IDCollections
 
 func (idCollections IDCollections) ElAtIndex(index int) string { return idCollections[index].Denom }

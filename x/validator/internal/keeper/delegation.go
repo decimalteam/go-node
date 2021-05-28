@@ -539,13 +539,16 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 
 					owner := token.GetOwners().GetOwner(delAddr)
 					if owner == nil {
-						token = token.SetOwners(token.GetOwners().SetOwner(&nft.TokenOwner{
-							Address:  delAddr,
-							Quantity: entry.Quantity,
-						}))
-					} else {
-						token = token.SetOwners(token.GetOwners().SetOwner(owner.SetQuantity(owner.GetQuantity().Add(entry.Quantity))))
+						owner = &nft.TokenOwner{
+							Address: delAddr,
+						}
 					}
+
+					for _, id := range entry.SubTokenIDs {
+						owner = owner.SetSubTokenID(id)
+					}
+
+					token = token.SetOwners(token.GetOwners().SetOwner(owner))
 
 					collection, err = collection.UpdateNFT(token)
 					if err != nil {

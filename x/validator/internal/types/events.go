@@ -33,8 +33,8 @@ const (
 	AttributeKeyStake                      = "stake"
 	AttributeKeyValidatorOdCandidate       = "status"
 	AttributeKeySlashAmount                = "slash_amount"
-	AttributeKeySlashQuantity              = "slash_quantity"
-	AttributeKeySlashRevert                = "slash_revert"
+	AttributeKeySlashSubTokenID            = "sub_token_id"
+	AttributeKeySlashReserve               = "sub_token_id_reserve"
 	AttributeKeyMissedBlocks               = "missed_blocks"
 	AttributeKeyHeight                     = "height"
 	AttributeKeyCommission                 = "commission"
@@ -48,6 +48,7 @@ const (
 	AttributeKeyDenom                      = "denom"
 	AttributeKeyID                         = "id"
 	AttributeKeyQuantity                   = "quantity"
+	AttributeKeySubTokenIDs                = "sub_token_ids"
 
 	AttributeValueDoubleSign       = "double_sign"
 	AttributeValueMissingSignature = "missing_signature"

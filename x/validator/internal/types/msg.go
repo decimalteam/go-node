@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -105,10 +106,10 @@ type MsgDelegateNFT struct {
 	ValidatorAddress sdk.ValAddress `json:"validator_address"`
 	TokenID          string         `json:"id"`
 	Denom            string         `json:"denom"`
-	SubTokenIDs      []sdk.Int      `json:"sub_token_ids"`
+	SubTokenIDs      []int64        `json:"sub_token_ids"`
 }
 
-func NewMsgDelegateNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, subTokenIDs []sdk.Int) MsgDelegateNFT {
+func NewMsgDelegateNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, subTokenIDs []int64) MsgDelegateNFT {
 	return MsgDelegateNFT{
 		DelegatorAddress: delegatorAddr,
 		ValidatorAddress: validatorAddr,
@@ -137,6 +138,9 @@ func (msg MsgDelegateNFT) ValidateBasic() error {
 	}
 	if msg.DelegatorAddress.Empty() {
 		return ErrEmptyDelegatorAddr()
+	}
+	if nft.CheckUnique(msg.SubTokenIDs) {
+		return nft.ErrNotUniqueSubTokenIDs
 	}
 	return nil
 }
@@ -247,10 +251,10 @@ type MsgUnbondNFT struct {
 	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
 	TokenID          string         `json:"id"`
 	Denom            string         `json:"denom"`
-	SubTokenIDs      []sdk.Int      `json:"sub_token_ids"`
+	SubTokenIDs      []int64        `json:"sub_token_ids"`
 }
 
-func NewMsgUnbondNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, subTokenIDs []sdk.Int) MsgUnbondNFT {
+func NewMsgUnbondNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, subTokenIDs []int64) MsgUnbondNFT {
 	return MsgUnbondNFT{
 		ValidatorAddress: validatorAddr,
 		DelegatorAddress: delegatorAddr,
@@ -279,6 +283,9 @@ func (msg MsgUnbondNFT) ValidateBasic() error {
 	}
 	if msg.DelegatorAddress.Empty() {
 		return ErrEmptyDelegatorAddr()
+	}
+	if nft.CheckUnique(msg.SubTokenIDs) {
+		return nft.ErrNotUniqueSubTokenIDs
 	}
 	return nil
 }

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -256,11 +257,12 @@ func GetCmdQuerySubTokens(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			denom := args[0]
 			id := args[1]
+
 			subTokenIDsStr := strings.Split(args[2], ",")
-			subTokenIDs := make([]sdk.Int, len(subTokenIDsStr))
+			subTokenIDs := make([]int64, len(subTokenIDsStr))
 			for i, d := range subTokenIDsStr {
-				subTokenID, ok := sdk.NewIntFromString(d)
-				if !ok {
+				subTokenID, err := strconv.ParseInt(d, 10, 64)
+				if err != nil {
 					return fmt.Errorf("invalid subTokenID")
 				}
 				subTokenIDs[i] = subTokenID

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -259,10 +260,10 @@ func GetDelegateNFT(cdc *codec.Codec) *cobra.Command {
 			delAddress := cliCtx.GetFromAddress()
 
 			subTokenIDsStr := strings.Split(args[3], ",")
-			subTokenIDs := make([]sdk.Int, len(subTokenIDsStr))
+			subTokenIDs := make([]int64, len(subTokenIDsStr))
 			for i, d := range subTokenIDsStr {
-				subTokenID, ok := sdk.NewIntFromString(d)
-				if !ok {
+				subTokenID, err := strconv.ParseInt(d, 10, 64)
+				if err != nil {
 					return fmt.Errorf("invalid quantity")
 				}
 				subTokenIDs[i] = subTokenID
@@ -364,10 +365,10 @@ func GetUnbondNFT(cdc *codec.Codec) *cobra.Command {
 			delAddress := cliCtx.GetFromAddress()
 
 			subTokenIDsStr := strings.Split(args[3], ",")
-			subTokenIDs := make([]sdk.Int, len(subTokenIDsStr))
+			subTokenIDs := make([]int64, len(subTokenIDsStr))
 			for i, d := range subTokenIDsStr {
-				subTokenID, ok := sdk.NewIntFromString(d)
-				if !ok {
+				subTokenID, err := strconv.ParseInt(d, 10, 64)
+				if err != nil {
 					return fmt.Errorf("invalid quantity")
 				}
 				subTokenIDs[i] = subTokenID

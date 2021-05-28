@@ -172,7 +172,10 @@ func querySubTokens(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	var response types.ResponseSubTokens
 
 	for _, id := range params.SubTokenIDs {
-		reserve := k.GetSubToken(ctx, params.Denom, params.TokenID, id)
+		reserve, ok := k.GetSubToken(ctx, params.Denom, params.TokenID, id)
+		if !ok {
+			continue
+		}
 		response = append(response, types.ResponseSubToken{
 			ID:      id,
 			Reserve: reserve,
