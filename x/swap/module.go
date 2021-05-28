@@ -27,7 +27,7 @@ var (
 
 // AppModuleBasic defines the basic application module used by the gov module.
 type AppModuleBasic struct {
-	cdc codec.Marshaler
+	cdc codec.LegacyAmino
 }
 
 // Name returns the gov module's name.
