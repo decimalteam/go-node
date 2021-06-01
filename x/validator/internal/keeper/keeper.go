@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	appTypes "bitbucket.org/decimalteam/go-node/types"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"strings"
@@ -37,12 +36,12 @@ type Keeper struct {
 func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper, accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper, multisigKeeper multisig.Keeper, nftKeeper nft.Keeper, feeCollectorName string) Keeper {
 
 	// ensure bonded and not bonded module accounts are set
-	if addr := supplyKeeper.GetModuleAddress(appTypes.BondedPoolName); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", appTypes.BondedPoolName))
+	if addr := supplyKeeper.GetModuleAddress(types.BondedPoolName); addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.BondedPoolName))
 	}
 
-	if addr := supplyKeeper.GetModuleAddress(appTypes.NotBondedPoolName); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", appTypes.NotBondedPoolName))
+	if addr := supplyKeeper.GetModuleAddress(types.NotBondedPoolName); addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.NotBondedPoolName))
 	}
 
 	keeper := Keeper{

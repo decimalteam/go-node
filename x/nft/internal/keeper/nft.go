@@ -185,7 +185,12 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 		GetOwners().
 		SetOwner(owner))
 
-	nftOwner, _ := k.GetOwner(ctx, nft.GetCreator()).DeleteID(denom, nft.GetID())
+	nftOwner, err := k.GetOwner(ctx, nft.GetCreator()).DeleteID(denom, nft.GetID())
+
+	if err != nil {
+		return err
+	}
+
 	k.SetOwner(ctx, nftOwner)
 
 	collection, err = collection.DeleteNFT(nft)
