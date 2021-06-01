@@ -2,9 +2,7 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 	nftTypes "bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -32,7 +30,6 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
 	keyCoin := sdk.NewKVStoreKey(coin.StoreKey)
-	keyMultisig := sdk.NewKVStoreKey(multisig.StoreKey)
 
 	db := dbm.NewMemDB()
 	ms := store.NewCommitMultiStore(db)
@@ -41,7 +38,6 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	ms.MountStoreWithDB(tkeyParams, sdk.StoreTypeTransient, db)
 	ms.MountStoreWithDB(keySupply, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(keyCoin, sdk.StoreTypeIAVL, db)
-	ms.MountStoreWithDB(keyMultisig, sdk.StoreTypeIAVL, db)
 	err := ms.LoadLatestVersion()
 	require.Nil(t, err)
 
@@ -62,14 +58,9 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	)
 	cdc := MakeTestCodec()
 
-	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName, supply.Burner, supply.Minter)
-	notBondedPool := supply.NewEmptyModuleAccount(types.NotBondedPoolName, supply.Burner, supply.Staking)
-	bondPool := supply.NewEmptyModuleAccount(types.BondedPoolName, supply.Burner, supply.Staking)
+	initCoins := sdk.NewCoins(sdk.NewCoin("del", sdk.NewInt(100000000000)))
 
-	blacklistedAddrs := make(map[string]bool)
-	blacklistedAddrs[feeCollectorAcc.String()] = true
-	blacklistedAddrs[notBondedPool.String()] = true
-	blacklistedAddrs[bondPool.String()] = true
+	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName, supply.Burner, supply.Minter)
 
 	pk := params.NewKeeper(cdc, keyParams, tkeyParams)
 
@@ -83,22 +74,14 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	bk := bank.NewBaseKeeper(
 		accountKeeper,
 		pk.Subspace(bank.DefaultParamspace),
-		blacklistedAddrs,
+		nil,
 	)
 
 	maccPerms := map[string][]string{
-		auth.FeeCollectorName:   nil,
-		types.NotBondedPoolName: {supply.Burner, supply.Staking},
-		types.BondedPoolName:    {supply.Burner, supply.Staking},
-		nftTypes.ReservedPool:   {supply.Burner},
+		auth.FeeCollectorName: nil,
+		nftTypes.ReservedPool: {supply.Burner},
 	}
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bk, maccPerms)
-
-	initTokens := types.TokensFromConsensusPower(initPower)
-	initCoins := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, initTokens))
-	totalSupply := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, initTokens.MulRaw(int64(len(nftTypes.Addrs)))))
-
-	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 
 	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bk, config.GetDefaultConfig(config.ChainID))
 
@@ -108,15 +91,9 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 		Symbol: coinConfig.SymbolBaseCoin,
 		Volume: coinConfig.InitialVolumeBaseCoin,
 	})
-	nftkeeper := NewKeeper(cdc, keyCoin, supplyKeeper, types.DefaultBondDenom)
-
-	// set module accounts
-	err = notBondedPool.SetCoins(totalSupply)
-	require.NoError(t, err)
+	nftkeeper := NewKeeper(cdc, keyCoin, supplyKeeper, "del")
 
 	supplyKeeper.SetModuleAccount(ctx, feeCollectorAcc)
-	supplyKeeper.SetModuleAccount(ctx, bondPool)
-	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
 
 	// fill all the Addrs with some coins, set the loose pool tokens simultaneously
 	for _, addr := range nftTypes.Addrs {
