@@ -18,7 +18,14 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	types3 "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
+	"math/big"
 	"testing"
+)
+
+var PowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+
+const (
+	DefaultBondDenom = "del"
 )
 
 // Hogpodge of all sorts of input required for testing.
@@ -64,6 +71,8 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 	pk := params.NewKeeper(cdc, keyParams, tkeyParams)
 
+	initTokens := sdk.NewInt(initPower).Mul(PowerReduction)
+
 	accountKeeper := auth.NewAccountKeeper(
 		cdc,    // amino codec
 		keyAcc, // target store
@@ -91,8 +100,10 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 		Symbol: coinConfig.SymbolBaseCoin,
 		Volume: coinConfig.InitialVolumeBaseCoin,
 	})
-	nftkeeper := NewKeeper(cdc, keyCoin, supplyKeeper, "del")
+	nftkeeper := NewKeeper(cdc, keyCoin, supplyKeeper, DefaultBondDenom)
 
+	totalSupply := sdk.NewCoins(sdk.NewCoin(DefaultBondDenom, initTokens.MulRaw(int64(len(nftTypes.Addrs)))))
+	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 	supplyKeeper.SetModuleAccount(ctx, feeCollectorAcc)
 
 	// fill all the Addrs with some coins, set the loose pool tokens simultaneously

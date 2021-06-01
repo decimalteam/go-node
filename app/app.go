@@ -20,7 +20,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"bitbucket.org/decimalteam/go-node/config"
-	appTypes "bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
@@ -56,11 +55,11 @@ var (
 	)
 	// account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:      {supply.Burner, supply.Minter},
-		appTypes.BondedPoolName:    {supply.Burner, supply.Staking},
-		appTypes.NotBondedPoolName: {supply.Burner, supply.Staking},
-		swap.PoolName:              {supply.Minter, supply.Burner},
-		nft.ReservedPool:           {supply.Burner},
+		auth.FeeCollectorName:       {supply.Burner, supply.Minter},
+		validator.BondedPoolName:    {supply.Burner, supply.Staking},
+		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
+		swap.PoolName:               {supply.Minter, supply.Burner},
+		nft.ReservedPool:            {supply.Burner},
 	}
 )
 
@@ -187,7 +186,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.bankKeeper,
 	)
 
-	app.nftKeeper = nft.NewKeeper(app.cdc, keys[nft.StoreKey], app.supplyKeeper, appTypes.DefaultBondDenom)
+	app.nftKeeper = nft.NewKeeper(app.cdc, keys[nft.StoreKey], app.supplyKeeper, validator.DefaultBondDenom)
 
 	app.validatorKeeper = validator.NewKeeper(
 		app.cdc,

@@ -9,10 +9,29 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"bitbucket.org/decimalteam/go-node/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/params"
+)
+
+// Staking params default values
+const (
+	// DefaultUnbondingTime reflects three weeks in seconds as the default
+	// unbonding time.
+	DefaultUnbondingTime = time.Hour * 24 * 30
+
+	// Default maximum number of bonded validators
+	DefaultMaxValidators uint16 = 256
+
+	// Default maximum entries in a UBD/RED pair
+	DefaultMaxEntries uint16 = 7
+
+	// DefaultHistorical entries is 0 since it must only be non-zero for
+	// IBC connected chains
+	DefaultHistoricalEntries uint16 = 0
+
+	DefaultBondDenom string = "del"
+
+	DefaultMaxDelegations uint16 = 1000
 )
 
 // nolint - Keys for parameter access
@@ -74,7 +93,7 @@ func (p Params) Equal(p2 Params) bool {
 
 // DefaultParams returns a default set of parameters.
 func DefaultParams() Params {
-	return NewParams(types.DefaultUnbondingTime, types.DefaultMaxValidators, types.DefaultMaxEntries, types.DefaultHistoricalEntries, types.DefaultBondDenom, types.DefaultMaxDelegations)
+	return NewParams(DefaultUnbondingTime, DefaultMaxValidators, DefaultMaxEntries, DefaultHistoricalEntries, DefaultBondDenom, DefaultMaxDelegations)
 }
 
 // String returns a human readable string representation of the parameters.

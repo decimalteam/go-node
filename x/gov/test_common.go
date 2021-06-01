@@ -18,11 +18,9 @@ import (
 	"sort"
 	"testing"
 
-	appTypes "bitbucket.org/decimalteam/go-node/types"
 	keep "bitbucket.org/decimalteam/go-node/x/gov/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -36,10 +34,10 @@ import (
 )
 
 var (
-	valTokens  = appTypes.TokensFromConsensusPower(42)
-	initTokens = appTypes.TokensFromConsensusPower(100000)
-	valCoins   = sdk.NewCoins(sdk.NewCoin(appTypes.DefaultBondDenom, valTokens))
-	initCoins  = sdk.NewCoins(sdk.NewCoin(appTypes.DefaultBondDenom, initTokens))
+	valTokens  = validator.TokensFromConsensusPower(42)
+	initTokens = validator.TokensFromConsensusPower(100000)
+	valCoins   = sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, valTokens))
+	initCoins  = sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens))
 )
 
 type testInput struct {
@@ -103,8 +101,8 @@ func getTestInput(t *testing.T, numGenAccs int, genState types.GenesisState, gen
 	codec.RegisterCrypto(cdc)
 
 	govAcc := supply.NewEmptyModuleAccount(types.ModuleName, supply.Burner)
-	notBondedPool := supply.NewEmptyModuleAccount(appTypes.NotBondedPoolName, supply.Burner, supply.Staking)
-	bondPool := supply.NewEmptyModuleAccount(appTypes.BondedPoolName, supply.Burner, supply.Staking)
+	notBondedPool := supply.NewEmptyModuleAccount(validator.NotBondedPoolName, supply.Burner, supply.Staking)
+	bondPool := supply.NewEmptyModuleAccount(validator.BondedPoolName, supply.Burner, supply.Staking)
 	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName, supply.Burner, supply.Minter)
 
 	blacklistedAddrs := make(map[string]bool)
@@ -131,10 +129,10 @@ func getTestInput(t *testing.T, numGenAccs int, genState types.GenesisState, gen
 	rtr := types.NewRouter()
 
 	maccPerms := map[string][]string{
-		auth.FeeCollectorName:      {supply.Burner, supply.Minter},
-		types.ModuleName:           {supply.Burner},
-		appTypes.NotBondedPoolName: {supply.Burner, supply.Staking},
-		appTypes.BondedPoolName:    {supply.Burner, supply.Staking},
+		auth.FeeCollectorName:       {supply.Burner, supply.Minter},
+		types.ModuleName:            {supply.Burner},
+		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
+		validator.BondedPoolName:    {supply.Burner, supply.Staking},
 	}
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bk, maccPerms)
 
@@ -146,7 +144,7 @@ func getTestInput(t *testing.T, numGenAccs int, genState types.GenesisState, gen
 		Volume: coinConfig.InitialVolumeBaseCoin,
 	})
 
-	nftKeeper := nft.NewKeeper(cdc, keyNFT, supplyKeeper, appTypes.DefaultBondDenom)
+	nftKeeper := nft.NewKeeper(cdc, keyNFT, supplyKeeper, validator.DefaultBondDenom)
 
 	multisigKeeper := multisig.NewKeeper(cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), accountKeeper, coinKeeper, bk)
 	sk := validator.NewKeeper(cdc, keyValidator, pk.Subspace(validator.DefaultParamSpace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, nftKeeper, auth.FeeCollectorName)
@@ -168,8 +166,8 @@ func getTestInput(t *testing.T, numGenAccs int, genState types.GenesisState, gen
 		genAccs, addrs, pubKeys, privKeys = mock.CreateGenAccounts(numGenAccs, valCoins)
 	}
 
-	initCoins := sdk.NewCoins(sdk.NewCoin(appTypes.DefaultBondDenom, initTokens))
-	totalSupply := sdk.NewCoins(sdk.NewCoin(appTypes.DefaultBondDenom, initTokens.MulRaw(int64(len(addrs)))))
+	initCoins := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens))
+	totalSupply := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens.MulRaw(int64(len(addrs)))))
 
 	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 	supplyKeeper.SetModuleAccount(ctx, feeCollectorAcc)
@@ -197,7 +195,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, stakingKeeper validator.Keepe
 
 		stakingGenesis := validator.DefaultGenesisState()
 
-		totalSupply := sdk.NewCoins(sdk.NewCoin(appTypes.DefaultBondDenom, initTokens.MulRaw(int64(len(mapp.GenesisAccounts)))))
+		totalSupply := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens.MulRaw(int64(len(mapp.GenesisAccounts)))))
 		supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 
 		// set module accounts
@@ -275,9 +273,9 @@ func createValidators(t *testing.T, stakingHandler sdk.Handler, ctx sdk.Context,
 
 	for i := 0; i < len(addrs); i++ {
 
-		valTokens := appTypes.TokensFromConsensusPower(powerAmt[i])
+		valTokens := validator.TokensFromConsensusPower(powerAmt[i])
 		valCreateMsg := validator.NewMsgDeclareCandidate(
-			addrs[i], pubkeys[i], sdk.ZeroDec(), sdk.NewCoin(appTypes.DefaultBondDenom, valTokens),
+			addrs[i], pubkeys[i], sdk.ZeroDec(), sdk.NewCoin(validator.DefaultBondDenom, valTokens),
 			validator.Description{}, sdk.AccAddress(addrs[i]),
 		)
 

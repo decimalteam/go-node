@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	appTypes "bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -19,7 +18,7 @@ import (
 func TestInitGenesis(t *testing.T) {
 	ctx, _, keeper, supplyKeeper, _, _ := val.CreateTestInput(t, false, 1000)
 
-	valTokens := appTypes.TokensFromConsensusPower(1)
+	valTokens := TokensFromConsensusPower(1)
 
 	params := keeper.GetParams(ctx)
 	validators := make([]types.Validator, 2)

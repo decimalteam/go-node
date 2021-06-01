@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 
-	appTypes "bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 
 	"github.com/tendermint/tendermint/crypto"
@@ -31,7 +30,7 @@ var (
 
 func NewTestMsgDeclareCandidate(address sdk.ValAddress, pubKey crypto.PubKey, amt sdk.Int) MsgDeclareCandidate {
 	return types.NewMsgDeclareCandidate(
-		address, pubKey, commissionRates, sdk.NewCoin(appTypes.DefaultBondDenom, amt), types.Description{}, sdk.AccAddress(address),
+		address, pubKey, commissionRates, sdk.NewCoin(DefaultBondDenom, amt), types.Description{}, sdk.AccAddress(address),
 	)
 }
 
@@ -39,11 +38,11 @@ func NewTestMsgDeclareCandidateWithCommission(address sdk.ValAddress, pubKey cry
 	amt sdk.Int, commissionRate sdk.Dec) MsgDeclareCandidate {
 
 	return types.NewMsgDeclareCandidate(
-		address, pubKey, commissionRate, sdk.NewCoin(appTypes.DefaultBondDenom, amt), types.Description{}, sdk.AccAddress(address),
+		address, pubKey, commissionRate, sdk.NewCoin(DefaultBondDenom, amt), types.Description{}, sdk.AccAddress(address),
 	)
 }
 
 func NewTestMsgDelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amt sdk.Int) MsgDelegate {
-	amount := sdk.NewCoin(appTypes.DefaultBondDenom, amt)
+	amount := sdk.NewCoin(DefaultBondDenom, amt)
 	return types.NewMsgDelegate(valAddr, delAddr, amount)
 }

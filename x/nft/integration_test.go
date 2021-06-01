@@ -26,7 +26,7 @@ var (
 )
 
 func createTestApp(t *testing.T, isCheckTx bool) (sdk.Context, *codec.Codec, keeper.Keeper) {
-	ctx, nftKeeper := keeper.CreateTestInput(t, isCheckTx, 1000)
+	ctx, nftKeeper := keeper.CreateTestInput(t, isCheckTx, 10000000)
 
 	return ctx, keeper.MakeTestCodec(), nftKeeper
 }

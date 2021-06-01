@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	types2 "bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"errors"
@@ -327,12 +326,12 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator) {
 	for i := int(k.MaxDelegations(ctx)); i < len(delegations); i++ {
 		switch validator.Status {
 		case types.Bonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types2.BondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
 			if err != nil {
 				panic(err)
 			}
 		case types.Unbonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types2.NotBondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
 			if err != nil {
 				panic(err)
 			}

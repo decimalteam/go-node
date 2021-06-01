@@ -1,7 +1,6 @@
 package gov
 
 import (
-	appTypes "bitbucket.org/decimalteam/go-node/types"
 	keep "bitbucket.org/decimalteam/go-node/x/gov/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
@@ -101,7 +100,7 @@ func TestProposalPassedEndBlocker(t *testing.T) {
 	require.Equal(t, types.StatusPassed, proposal.Status)
 
 	t.Log(proposal.FinalTallyResult)
-	require.Equal(t, appTypes.TokensFromConsensusPower(10), proposal.FinalTallyResult.Yes)
+	require.Equal(t, validator.TokensFromConsensusPower(10), proposal.FinalTallyResult.Yes)
 }
 
 func TestProposalPassedEndBlocker2(t *testing.T) {
@@ -142,8 +141,8 @@ func TestProposalPassedEndBlocker2(t *testing.T) {
 	require.Equal(t, types.StatusPassed, proposal.Status)
 
 	t.Log(proposal.FinalTallyResult)
-	require.Equal(t, appTypes.TokensFromConsensusPower(21), proposal.FinalTallyResult.Yes)
-	require.Equal(t, appTypes.TokensFromConsensusPower(10), proposal.FinalTallyResult.No)
+	require.Equal(t, validator.TokensFromConsensusPower(21), proposal.FinalTallyResult.Yes)
+	require.Equal(t, validator.TokensFromConsensusPower(10), proposal.FinalTallyResult.No)
 	require.Equal(t, sdk.ZeroInt(), proposal.FinalTallyResult.Abstain)
 }
 
@@ -181,7 +180,7 @@ func TestEndBlockerProposalRejected(t *testing.T) {
 	require.Equal(t, types.StatusRejected, proposal.Status)
 
 	t.Log(proposal.FinalTallyResult)
-	require.Equal(t, appTypes.TokensFromConsensusPower(10), proposal.FinalTallyResult.No)
+	require.Equal(t, validator.TokensFromConsensusPower(10), proposal.FinalTallyResult.No)
 }
 
 func TestEndBlockerProposalRejected2(t *testing.T) {
@@ -222,8 +221,8 @@ func TestEndBlockerProposalRejected2(t *testing.T) {
 	require.Equal(t, types.StatusRejected, proposal.Status)
 
 	t.Log(proposal.FinalTallyResult)
-	require.Equal(t, appTypes.TokensFromConsensusPower(10), proposal.FinalTallyResult.Yes)
-	require.Equal(t, appTypes.TokensFromConsensusPower(10), proposal.FinalTallyResult.No)
+	require.Equal(t, validator.TokensFromConsensusPower(10), proposal.FinalTallyResult.Yes)
+	require.Equal(t, validator.TokensFromConsensusPower(10), proposal.FinalTallyResult.No)
 	require.Equal(t, sdk.ZeroInt(), proposal.FinalTallyResult.Abstain)
 }
 
@@ -262,7 +261,7 @@ func TestEndBlockerProposalRejected3(t *testing.T) {
 	require.Equal(t, types.StatusRejected, proposal.Status)
 
 	t.Log(proposal.FinalTallyResult)
-	require.Equal(t, appTypes.TokensFromConsensusPower(20), proposal.FinalTallyResult.Yes)
-	require.Equal(t, appTypes.TokensFromConsensusPower(10), proposal.FinalTallyResult.Abstain)
+	require.Equal(t, validator.TokensFromConsensusPower(20), proposal.FinalTallyResult.Yes)
+	require.Equal(t, validator.TokensFromConsensusPower(10), proposal.FinalTallyResult.Abstain)
 	require.Equal(t, sdk.ZeroInt(), proposal.FinalTallyResult.No)
 }

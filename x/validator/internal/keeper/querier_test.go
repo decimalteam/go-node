@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	appTypes "bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -114,7 +113,7 @@ func TestQueryParametersPool(t *testing.T) {
 	res, err = queryPool(ctx, keeper)
 	require.NoError(t, err)
 
-	var pool appTypes.Pool
+	var pool types.Pool
 	bondedPool := keeper.GetBondedPool(ctx)
 	notBondedPool := keeper.GetNotBondedPool(ctx)
 	errRes = cdc.UnmarshalJSON(res, &pool)
@@ -397,14 +396,14 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	require.NoError(t, err)
 
 	// delegate
-	delAmount := appTypes.TokensFromConsensusPower(100)
+	delAmount := types.TokensFromConsensusPower(100)
 	err = keeper.Delegate(ctx, addrAcc1, sdk.NewCoin(keeper.BondDenom(ctx), delAmount), types.Unbonded, val1, true)
 	require.NoError(t, err)
 	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
 	require.NoError(t, err)
 
 	// undelegate
-	undelAmount := appTypes.TokensFromConsensusPower(20)
+	undelAmount := types.TokensFromConsensusPower(20)
 	_, err = keeper.Undelegate(ctx, addrAcc1, val1.GetOperator(), sdk.NewCoin(keeper.BondDenom(ctx), undelAmount))
 	require.NoError(t, err)
 	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)

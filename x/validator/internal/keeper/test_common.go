@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"testing"
 
-	appTypes "bitbucket.org/decimalteam/go-node/types"
-
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
@@ -134,8 +132,8 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	cdc := MakeTestCodec()
 
 	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName, supply.Burner, supply.Minter)
-	notBondedPool := supply.NewEmptyModuleAccount(appTypes.NotBondedPoolName, supply.Burner, supply.Staking)
-	bondPool := supply.NewEmptyModuleAccount(appTypes.BondedPoolName, supply.Burner, supply.Staking)
+	notBondedPool := supply.NewEmptyModuleAccount(types.NotBondedPoolName, supply.Burner, supply.Staking)
+	bondPool := supply.NewEmptyModuleAccount(types.BondedPoolName, supply.Burner, supply.Staking)
 
 	blacklistedAddrs := make(map[string]bool)
 	blacklistedAddrs[feeCollectorAcc.String()] = true
@@ -158,16 +156,16 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	)
 
 	maccPerms := map[string][]string{
-		auth.FeeCollectorName:      nil,
-		appTypes.NotBondedPoolName: {supply.Burner, supply.Staking},
-		appTypes.BondedPoolName:    {supply.Burner, supply.Staking},
-		nft.ReservedPool:           {supply.Burner},
+		auth.FeeCollectorName:   nil,
+		types.NotBondedPoolName: {supply.Burner, supply.Staking},
+		types.BondedPoolName:    {supply.Burner, supply.Staking},
+		nft.ReservedPool:        {supply.Burner},
 	}
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bk, maccPerms)
 
-	initTokens := appTypes.TokensFromConsensusPower(initPower)
-	initCoins := sdk.NewCoins(sdk.NewCoin(appTypes.DefaultBondDenom, initTokens))
-	totalSupply := sdk.NewCoins(sdk.NewCoin(appTypes.DefaultBondDenom, initTokens.MulRaw(int64(len(Addrs)))))
+	initTokens := types.TokensFromConsensusPower(initPower)
+	initCoins := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, initTokens))
+	totalSupply := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, initTokens.MulRaw(int64(len(Addrs)))))
 
 	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 
@@ -182,7 +180,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 	multisigKeeper := multisig.NewKeeper(cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), accountKeeper, coinKeeper, bk)
 
-	nftKeeper := nft.NewKeeper(cdc, keyCoin, supplyKeeper, appTypes.DefaultBondDenom)
+	nftKeeper := nft.NewKeeper(cdc, keyCoin, supplyKeeper, types.DefaultBondDenom)
 
 	keeper := NewKeeper(cdc, keyStaking, pk.Subspace(DefaultParamspace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, nftKeeper, auth.FeeCollectorName)
 	keeper.SetParams(ctx, types.DefaultParams())

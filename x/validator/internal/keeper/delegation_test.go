@@ -1,12 +1,11 @@
 package keeper
 
 import (
-	appTypes "bitbucket.org/decimalteam/go-node/types"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"testing"
 	"time"
 
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -169,7 +168,7 @@ func TestUnbondingDelegation(t *testing.T) {
 func TestUnbondDelegation(t *testing.T) {
 	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 0)
 
-	startTokens := appTypes.TokensFromConsensusPower(10)
+	startTokens := types.TokensFromConsensusPower(10)
 
 	notBondedPool := keeper.GetNotBondedPool(ctx)
 	err := notBondedPool.SetCoins(sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), startTokens)))
@@ -185,7 +184,7 @@ func TestUnbondDelegation(t *testing.T) {
 	delegation := types.NewDelegation(addrDels[0], addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), startTokens))
 	keeper.SetDelegation(ctx, delegation)
 
-	bondTokens := appTypes.TokensFromConsensusPower(6)
+	bondTokens := types.TokensFromConsensusPower(6)
 	err = keeper.unbond(ctx, addrDels[0], addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), bondTokens))
 	require.NoError(t, err)
 
@@ -201,7 +200,7 @@ func TestUnbondDelegation(t *testing.T) {
 
 func TestUndelegateFromUnbondedValidator(t *testing.T) {
 	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 1)
-	delTokens := appTypes.TokensFromConsensusPower(10)
+	delTokens := types.TokensFromConsensusPower(10)
 	delCoins := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
 
 	// add bonded tokens to pool for delegations
@@ -213,7 +212,7 @@ func TestUndelegateFromUnbondedValidator(t *testing.T) {
 	// create a validator with a self-delegation
 	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), sdk.AccAddress(addrVals[0]), types.Description{})
 
-	valTokens := appTypes.TokensFromConsensusPower(10)
+	valTokens := types.TokensFromConsensusPower(10)
 	delegation := types.NewDelegation(sdk.AccAddress(addrVals[0]), addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), valTokens))
 	keeper.SetDelegation(ctx, delegation)
 	validator = TestingUpdateValidator(keeper, ctx, validator, true)
@@ -243,7 +242,7 @@ func TestUndelegateFromUnbondedValidator(t *testing.T) {
 	require.NoError(t, err)
 
 	// unbond some of the other delegation's shares
-	unbondTokens := appTypes.TokensFromConsensusPower(6)
+	unbondTokens := types.TokensFromConsensusPower(6)
 	_, err = keeper.Undelegate(ctx, addrDels[0], addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), unbondTokens))
 	require.NoError(t, err)
 
@@ -255,7 +254,7 @@ func TestUndelegateFromUnbondedValidator(t *testing.T) {
 
 func TestUnbondingAllDelegationFromValidator(t *testing.T) {
 	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 0)
-	delTokens := appTypes.TokensFromConsensusPower(10)
+	delTokens := types.TokensFromConsensusPower(10)
 	delCoins := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
 
 	// add bonded tokens to pool for delegations
@@ -267,7 +266,7 @@ func TestUnbondingAllDelegationFromValidator(t *testing.T) {
 	//create a validator with a self-delegation
 	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), sdk.AccAddress(addrVals[0]), types.Description{})
 
-	valTokens := appTypes.TokensFromConsensusPower(10)
+	valTokens := types.TokensFromConsensusPower(10)
 	val0AccAddr := sdk.AccAddress(addrVals[0].Bytes())
 
 	selfDelegation := types.NewDelegation(val0AccAddr, addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), valTokens))

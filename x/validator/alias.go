@@ -15,6 +15,9 @@ const (
 	DefaultParamSpace = keeper.DefaultParamspace
 	DefaultCodespace  = types.DefaultCodespace
 	QuerierRoute      = types.QuerierRoute
+	NotBondedPoolName = types.NotBondedPoolName
+	BondedPoolName    = types.BondedPoolName
+	DefaultBondDenom  = types.DefaultBondDenom
 
 	ValidatorsKey = types.ValidatorsKey
 
@@ -62,6 +65,9 @@ var (
 	ErrInsufficientCoinToPayCommission = types.ErrInsufficientCoinToPayCommission
 
 	DefaultParams = types.DefaultParams
+
+	TokensFromConsensusPower = types.TokensFromConsensusPower
+	TokensToConsensusPower   = types.TokensToConsensusPower
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc

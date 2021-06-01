@@ -1,7 +1,6 @@
 package validator
 
 import (
-	types2 "bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -100,7 +99,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 	// check if the unbonded and bonded pools accounts exists
 	bondedPool := keeper.GetBondedPool(ctx)
 	if bondedPool == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types2.BondedPoolName))
+		panic(fmt.Sprintf("%s module account has not been set", types.BondedPoolName))
 	}
 
 	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
@@ -114,7 +113,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper,
 
 	notBondedPool := keeper.GetNotBondedPool(ctx)
 	if notBondedPool == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types2.NotBondedPoolName))
+		panic(fmt.Sprintf("%s module account has not been set", types.NotBondedPoolName))
 	}
 
 	if notBondedPool.GetCoins().IsZero() {

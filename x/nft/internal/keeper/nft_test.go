@@ -144,7 +144,8 @@ func TestDeleteNFT(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 
 	// DeleteNFT should fail when NFT doesn't exist and collection doesn't exist
-	err := NFTKeeper.DeleteNFT(ctx, Denom1, ID1, []int64{})
+	subTokenIDs := []int64{}
+	err := NFTKeeper.DeleteNFT(ctx, Denom1, ID1, subTokenIDs)
 	require.Error(t, err)
 
 	// MintNFT should not fail when collection does not exist
@@ -154,7 +155,7 @@ func TestDeleteNFT(t *testing.T) {
 		Addrs[0],
 		TokenURI1,
 		sdk.NewInt(100),
-		[]int64{},
+		subTokenIDs,
 		true,
 	)
 	_, err = NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
@@ -162,19 +163,15 @@ func TestDeleteNFT(t *testing.T) {
 	require.NoError(t, err)
 
 	// DeleteNFT should fail when NFT doesn't exist but collection does exist
-	err = NFTKeeper.DeleteNFT(ctx, Denom1, ID2, []int64{})
+	err = NFTKeeper.DeleteNFT(ctx, Denom1, ID2, subTokenIDs)
 	require.Error(t, err)
 
-	// DeleteNFT should fail when minted nft id is not in then owners subTokenIDs
-	err = NFTKeeper.DeleteNFT(ctx, Denom1, ID1, []int64{3})
-	require.Error(t, err)
-
-	// DeleteNFT should fail when the length of subTokenIds is more then the quantity
+	// DeleteNFT should fail when at least of nft's subtokenIds is not in the owner's subTokenIDs
 	err = NFTKeeper.DeleteNFT(ctx, Denom1, ID1, []int64{3})
 	require.Error(t, err)
 
 	// DeleteNFT should not fail when NFT and collection exist
-	err = NFTKeeper.DeleteNFT(ctx, Denom1, ID1, []int64{})
+	err = NFTKeeper.DeleteNFT(ctx, Denom1, ID1, subTokenIDs)
 	require.NoError(t, err)
 
 	// NFT should no longer exist

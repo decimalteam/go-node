@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	appTypes "bitbucket.org/decimalteam/go-node/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -19,7 +18,7 @@ func setupHelper(t *testing.T, power int64) (sdk.Context, Keeper, types.Params) 
 
 	params := keeper.GetParams(ctx)
 	numVals := int64(3)
-	amt := appTypes.TokensFromConsensusPower(power)
+	amt := types.TokensFromConsensusPower(power)
 
 	bondedCoins := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), amt.MulRaw(numVals)))
 
@@ -75,7 +74,7 @@ func TestSlashBondedDelegationNFT(t *testing.T) {
 
 	valAddr := addrVals[0]
 	delAddr := sdk.AccAddress(addrVals[0])
-	amt := appTypes.TokensFromConsensusPower(100)
+	amt := types.TokensFromConsensusPower(100)
 
 	// NFT params
 	const denom = "denom1"
@@ -203,7 +202,7 @@ func TestSlashAtNegativeHeight(t *testing.T) {
 	// pool bonded shares decreased
 	diffTokens := oldBondedPool.GetCoins().Sub(newBondedPool.GetCoins()).AmountOf(keeper.BondDenom(ctx))
 	log.Println(diffTokens)
-	require.Equal(t, appTypes.TokensFromConsensusPower(5), diffTokens)
+	require.Equal(t, types.TokensFromConsensusPower(5), diffTokens)
 }
 
 //tests Slash at the current height
@@ -233,7 +232,7 @@ func TestSlashValidatorAtCurrentHeight(t *testing.T) {
 	require.Equal(t, int64(5), validator.ConsensusPower())
 	// pool bonded shares decreased
 	diffTokens := oldBondedPool.GetCoins().Sub(newBondedPool.GetCoins()).AmountOf(keeper.BondDenom(ctx))
-	require.Equal(t, appTypes.TokensFromConsensusPower(5), diffTokens)
+	require.Equal(t, types.TokensFromConsensusPower(5), diffTokens)
 }
 
 // tests Slash at a previous height with an unbonding delegation
@@ -244,7 +243,7 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 
 	// set an unbonding delegation with expiration timestamp beyond which the
 	// unbonding delegation shouldn't be slashed
-	ubdTokens := sdk.NewCoin(keeper.BondDenom(ctx), appTypes.TokensFromConsensusPower(4))
+	ubdTokens := sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(4))
 	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], types.NewUnbondingDelegationEntry(11,
 		time.Unix(0, 0), ubdTokens))
 	keeper.SetUnbondingDelegation(ctx, ubd)
@@ -267,12 +266,12 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
 	// balance decreased
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), appTypes.TokensFromConsensusPower(2)), ubd.Entries[0].GetBalance())
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(2)), ubd.Entries[0].GetBalance())
 	// read updated pool
 	newBondedPool := keeper.GetBondedPool(ctx)
 	// bonded tokens burned
 	diffTokens := oldBondedPool.GetCoins().Sub(newBondedPool.GetCoins()).AmountOf(keeper.BondDenom(ctx))
-	require.Equal(t, appTypes.TokensFromConsensusPower(5), diffTokens)
+	require.Equal(t, types.TokensFromConsensusPower(5), diffTokens)
 	// read updated validator
 	validator, err = keeper.GetValidatorByConsAddr(ctx, consAddr)
 	require.NoError(t, err)
@@ -294,7 +293,7 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	newBondedPool = keeper.GetBondedPool(ctx)
 	// bonded tokens burned again
 	diffTokens = oldBondedPool.GetCoins().Sub(newBondedPool.GetCoins()).AmountOf(keeper.BondDenom(ctx))
-	require.Equal(t, appTypes.TokensFromConsensusPower(5).QuoRaw(2).Add(appTypes.TokensFromConsensusPower(5)), diffTokens)
+	require.Equal(t, types.TokensFromConsensusPower(5).QuoRaw(2).Add(types.TokensFromConsensusPower(5)), diffTokens)
 	// read updated validator
 	validator, err = keeper.GetValidatorByConsAddr(ctx, consAddr)
 	require.NoError(t, err)
@@ -316,7 +315,7 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	newBondedPool = keeper.GetBondedPool(ctx)
 	// bonded tokens burned again
 	diffTokens = oldBondedPool.GetCoins().Sub(newBondedPool.GetCoins()).AmountOf(keeper.BondDenom(ctx))
-	require.Equal(t, appTypes.TokensFromConsensusPower(5).QuoRaw(4).Add(appTypes.TokensFromConsensusPower(5).QuoRaw(2)).Add(appTypes.TokensFromConsensusPower(5)), diffTokens)
+	require.Equal(t, types.TokensFromConsensusPower(5).QuoRaw(4).Add(types.TokensFromConsensusPower(5).QuoRaw(2)).Add(types.TokensFromConsensusPower(5)), diffTokens)
 	// read updated validator
 	validator, err = keeper.GetValidatorByConsAddr(ctx, consAddr)
 	require.NoError(t, err)
@@ -338,7 +337,7 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	newBondedPool = keeper.GetBondedPool(ctx)
 	// just 1 bonded token burned again since that's all the validator now has
 	diffTokens = oldBondedPool.GetCoins().Sub(newBondedPool.GetCoins()).AmountOf(keeper.BondDenom(ctx))
-	require.Equal(t, appTypes.TokensFromConsensusPower(5).QuoRaw(8).Add(appTypes.TokensFromConsensusPower(5).QuoRaw(4)).Add(appTypes.TokensFromConsensusPower(5).QuoRaw(2)).Add(appTypes.TokensFromConsensusPower(5)), diffTokens)
+	require.Equal(t, types.TokensFromConsensusPower(5).QuoRaw(8).Add(types.TokensFromConsensusPower(5).QuoRaw(4)).Add(types.TokensFromConsensusPower(5).QuoRaw(2)).Add(types.TokensFromConsensusPower(5)), diffTokens)
 	// apply TM updates
 	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
 	require.NoError(t, err)
