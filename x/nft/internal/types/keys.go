@@ -28,11 +28,15 @@ const (
 // - Colections: 0x00<denom_bytes_key> :<Collection>
 //
 // - Owners: 0x01<address_bytes_key><denom_bytes_key>: <Owner>
+
+const NFTPrefix = 0x60
+
 var (
-	CollectionsKeyPrefix    = []byte{0x60, 0x00} // key for NFT collections
-	OwnersKeyPrefix         = []byte{0x60, 0x01} // key for balance of NFTs held by an address
-	SubTokenKeyPrefix       = []byte{0x60, 0x02}
-	LastSubTokenIDKeyPrefix = []byte{0x60, 0x03}
+	CollectionsKeyPrefix    = []byte{NFTPrefix, 0x00} // key for NFT collections
+	OwnersKeyPrefix         = []byte{NFTPrefix, 0x01} // key for balance of NFTs held by an address
+	SubTokenKeyPrefix       = []byte{NFTPrefix, 0x02}
+	LastSubTokenIDKeyPrefix = []byte{NFTPrefix, 0x03}
+	TokenURIKeyPrefix       = []byte{NFTPrefix, 0x04}
 )
 
 const OwnerKeyHashLength = 54
@@ -78,6 +82,10 @@ func GetLastSubTokenIDKey(denom, id string) []byte {
 	bs := getHash(denom)
 	bsID := getHash(id)
 	return append(append(LastSubTokenIDKeyPrefix, bs...), bsID...)
+}
+
+func GetTokenURIKey(tokenURI string) []byte {
+	return append(TokenURIKeyPrefix, []byte(tokenURI)...)
 }
 
 func getHash(denom string) []byte {

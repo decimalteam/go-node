@@ -120,6 +120,10 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 		if !nft.GetAllowMint() {
 			return nil, ErrNotAllowedMint
 		}
+	} else {
+		if k.ExistTokenURI(ctx, msg.TokenURI) {
+			return nil, ErrNotUniqueTokenURI
+		}
 	}
 
 	lastSubTokenID, err := k.MintNFT(ctx, msg.Denom, msg.ID, msg.Reserve, msg.Quantity, msg.Sender, msg.Recipient, msg.TokenURI, msg.AllowMint)

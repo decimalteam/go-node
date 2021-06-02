@@ -280,3 +280,28 @@ func TestBurnNFTMsg(t *testing.T) {
 
 	require.True(t, CheckInvariants(NFTKeeper, ctx))
 }
+
+func TestUniqueTokenURI(t *testing.T) {
+	ctx, _, nftKeeper := createTestApp(t, false)
+
+	reserve := sdk.NewInt(100)
+
+	const tokenURI1 = "tokenURI1"
+	const tokenURI2 = "tokenURI2"
+
+	msg := types.NewMsgMintNFT(Addrs[0], Addrs[0], "token1", "denom1", tokenURI1, sdk.NewInt(1), reserve, true)
+	_, err := HandleMsgMintNFT(ctx, msg, nftKeeper)
+	require.NoError(t, err)
+
+	msg = types.NewMsgMintNFT(Addrs[0], Addrs[0], "token1", "denom1", tokenURI1, sdk.NewInt(1), reserve, true)
+	_, err = HandleMsgMintNFT(ctx, msg, nftKeeper)
+	require.NoError(t, err)
+
+	msg = types.NewMsgMintNFT(Addrs[0], Addrs[0], "token2", "denom1", tokenURI2, sdk.NewInt(1), reserve, true)
+	_, err = HandleMsgMintNFT(ctx, msg, nftKeeper)
+	require.NoError(t, err)
+
+	msg = types.NewMsgMintNFT(Addrs[0], Addrs[0], "token3", "denom1", tokenURI1, sdk.NewInt(1), reserve, true)
+	_, err = HandleMsgMintNFT(ctx, msg, nftKeeper)
+	require.Error(t, types.ErrNotUniqueTokenURI, err)
+}

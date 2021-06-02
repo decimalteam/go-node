@@ -80,6 +80,20 @@ func (k Keeper) SetLastSubTokenID(ctx sdk.Context, denom, id string, lastSubToke
 	store.Set(lastSubTokenIDKey, bz)
 }
 
+func (k Keeper) SetTokenURI(ctx sdk.Context, tokenURI string) {
+	store := ctx.KVStore(k.storeKey)
+	tokenURIKey := types.GetTokenURIKey(tokenURI)
+
+	store.Set(tokenURIKey, []byte{})
+}
+
+func (k Keeper) ExistTokenURI(ctx sdk.Context, tokenURI string) bool {
+	store := ctx.KVStore(k.storeKey)
+	tokenURIKey := types.GetTokenURIKey(tokenURI)
+
+	return store.Has(tokenURIKey)
+}
+
 // MintNFT mints an NFT and manages that NFTs existence within Collections and Owners
 func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk.Int,
 	creator, owner sdk.AccAddress, tokenURI string, allowMint bool) (int64, error) {
