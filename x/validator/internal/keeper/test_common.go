@@ -1,7 +1,6 @@
 package keeper // noalias
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"encoding/hex"
 	"math/rand"
@@ -74,9 +73,6 @@ func MakeTestCodec() *codec.Codec {
 	cdc.RegisterConcrete(types.MsgSetOffline{}, "test/validator/set_offline", nil)
 	cdc.RegisterConcrete(types.MsgUnbond{}, "test/validator/unbond", nil)
 	cdc.RegisterConcrete(types.MsgDelegate{}, "test/validator/delegate", nil)
-	cdc.RegisterInterface((*exported.UnbondingDelegationEntryI)(nil), nil)
-	cdc.RegisterConcrete(types.UnbondingDelegationEntry{}, "validator/unbonding_delegation_entry", nil)
-	cdc.RegisterConcrete(types.UnbondingDelegationNFTEntry{}, "validator/unbonding_delegation_nft_entry", nil)
 
 	// Register AppAccount
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)
