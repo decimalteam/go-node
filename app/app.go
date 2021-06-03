@@ -3,7 +3,6 @@ package app
 import (
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
-	"bitbucket.org/decimalteam/go-node/x/swap"
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
@@ -32,6 +31,8 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bitbucket.org/decimalteam/go-node/x/gov"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
+	"bitbucket.org/decimalteam/go-node/x/swap"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
@@ -56,6 +57,7 @@ var (
 		validator.AppModuleBasic{},
 		gov.AppModuleBasic{},
 		swap.AppModuleBasic{},
+		nft.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
@@ -63,6 +65,7 @@ var (
 		validator.BondedPoolName:    {supply.Burner, supply.Staking},
 		validator.NotBondedPoolName: {supply.Burner, supply.Staking},
 		swap.PoolName:               {supply.Minter, supply.Burner},
+		nft.ReservedPool:            {supply.Burner},
 	}
 )
 
@@ -93,6 +96,7 @@ type newApp struct {
 	validatorKeeper validator.Keeper
 	govKeeper       gov.Keeper
 	swapKeeper      swap.Keeper
+	nftKeeper       nft.Keeper
 
 	// Module Manager
 	mm *module.Manager
@@ -191,6 +195,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.bankKeeper,
 	)
 
+	app.nftKeeper = nft.NewKeeper(app.cdc, keys[nft.StoreKey], app.supplyKeeper, validator.DefaultBondDenom)
+
 	app.validatorKeeper = validator.NewKeeper(
 		app.cdc,
 		keys[validator.StoreKey],
@@ -199,6 +205,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.accountKeeper,
 		app.supplyKeeper,
 		app.multisigKeeper,
+		app.nftKeeper,
 		auth.FeeCollectorName,
 	)
 
@@ -231,6 +238,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
 		swap.NewAppModule(app.swapKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
 	)
 
 	app.mm.SetOrderBeginBlockers(coin.ModuleName, validator.ModuleName)
@@ -249,6 +257,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		genutil.ModuleName,
 		swap.ModuleName,
 		gov.ModuleName,
+		nft.ModuleName,
 	)
 
 	// register all module routes and module queriers

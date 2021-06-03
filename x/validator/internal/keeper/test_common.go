@@ -1,7 +1,6 @@
 package keeper // noalias
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bytes"
 	"encoding/hex"
 	"math/rand"
@@ -22,6 +21,8 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
+	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -77,6 +78,7 @@ func MakeTestCodec() *codec.Codec {
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)
 	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/validator/base_account", nil)
 	supply.RegisterCodec(cdc)
+	nft.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
 
 	return cdc
@@ -85,7 +87,7 @@ func MakeTestCodec() *codec.Codec {
 // Hogpodge of all sorts of input required for testing.
 // `initPower` is converted to an amount of tokens.
 // If `initPower` is 0, no addrs get created.
-func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context, auth.AccountKeeper, Keeper, supply.Keeper, coin.Keeper) {
+func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context, auth.AccountKeeper, Keeper, supply.Keeper, coin.Keeper, nft.Keeper) {
 	keyStaking := sdk.NewKVStoreKey(types.StoreKey)
 	tkeyStaking := sdk.NewTransientStoreKey(types.TStoreKey)
 	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
@@ -153,6 +155,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 		auth.FeeCollectorName:   nil,
 		types.NotBondedPoolName: {supply.Burner, supply.Staking},
 		types.BondedPoolName:    {supply.Burner, supply.Staking},
+		nft.ReservedPool:        {supply.Burner},
 	}
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bk, maccPerms)
 
@@ -173,7 +176,9 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 	multisigKeeper := multisig.NewKeeper(cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), accountKeeper, coinKeeper, bk)
 
-	keeper := NewKeeper(cdc, keyStaking, pk.Subspace(DefaultParamspace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, auth.FeeCollectorName)
+	nftKeeper := nft.NewKeeper(cdc, keyCoin, supplyKeeper, types.DefaultBondDenom)
+
+	keeper := NewKeeper(cdc, keyStaking, pk.Subspace(DefaultParamspace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, nftKeeper, auth.FeeCollectorName)
 	keeper.SetParams(ctx, types.DefaultParams())
 
 	// set module accounts
@@ -192,7 +197,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 		}
 	}
 
-	return ctx, accountKeeper, keeper, supplyKeeper, coinKeeper
+	return ctx, accountKeeper, keeper, supplyKeeper, coinKeeper, nftKeeper
 }
 
 func NewPubKey(pk string) (res crypto.PubKey) {

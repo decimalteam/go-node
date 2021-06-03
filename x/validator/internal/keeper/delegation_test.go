@@ -1,17 +1,17 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"testing"
 	"time"
 
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"github.com/stretchr/testify/require"
 )
 
 // tests GetDelegation, GetDelegatorDelegations, SetDelegation, RemoveDelegation, GetDelegatorDelegations
 func TestDelegation(t *testing.T) {
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, 10)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 10)
 
 	//construct the validators
 	amts := []sdk.Int{sdk.NewInt(9), sdk.NewInt(8), sdk.NewInt(7)}
@@ -60,21 +60,21 @@ func TestDelegation(t *testing.T) {
 	keeper.SetDelegation(ctx, bond2to3)
 
 	// test all bond retrieve capabilities
-	resBonds := keeper.GetDelegatorDelegations(ctx, addrDels[0], 5)
+	resBonds := types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[0], 5))
 	require.Equal(t, 3, len(resBonds))
 	require.True(t, bond1to1.Equal(resBonds[0]))
 	require.True(t, bond1to2.Equal(resBonds[1]))
 	require.True(t, bond1to3.Equal(resBonds[2]))
-	resBonds = keeper.GetAllDelegatorDelegations(ctx, addrDels[0])
+	resBonds = types.GetBaseDelegations(keeper.GetAllDelegatorDelegations(ctx, addrDels[0]))
 	require.Equal(t, 3, len(resBonds))
-	resBonds = keeper.GetDelegatorDelegations(ctx, addrDels[0], 2)
+	resBonds = types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[0], 2))
 	require.Equal(t, 2, len(resBonds))
-	resBonds = keeper.GetDelegatorDelegations(ctx, addrDels[1], 5)
+	resBonds = types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[1], 5))
 	require.Equal(t, 3, len(resBonds))
 	require.True(t, bond2to1.Equal(resBonds[0]))
 	require.True(t, bond2to2.Equal(resBonds[1]))
 	require.True(t, bond2to3.Equal(resBonds[2]))
-	allBonds := keeper.GetAllDelegations(ctx)
+	allBonds := types.GetBaseDelegations(keeper.GetAllDelegations(ctx))
 	require.Equal(t, 9, len(allBonds))
 	require.True(t, bond1to1.Equal(allBonds[0]))
 	require.True(t, bond1to2.Equal(allBonds[1]))
@@ -106,12 +106,12 @@ func TestDelegation(t *testing.T) {
 	keeper.RemoveDelegation(ctx, bond2to3)
 	_, found = keeper.GetDelegation(ctx, addrDels[1], addrVals[2], keeper.BondDenom(ctx))
 	require.False(t, found)
-	resBonds = keeper.GetDelegatorDelegations(ctx, addrDels[1], 5)
+	resBonds = types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[1], 5))
 	require.Equal(t, 2, len(resBonds))
 	require.True(t, bond2to1.Equal(resBonds[0]))
 	require.True(t, bond2to2.Equal(resBonds[1]))
 
-	resBonds = keeper.GetAllDelegatorDelegations(ctx, addrDels[1])
+	resBonds = types.GetBaseDelegations(keeper.GetAllDelegatorDelegations(ctx, addrDels[1]))
 	require.Equal(t, 2, len(resBonds))
 
 	// delete all the records from delegator 2
@@ -121,16 +121,16 @@ func TestDelegation(t *testing.T) {
 	require.False(t, found)
 	_, found = keeper.GetDelegation(ctx, addrDels[1], addrVals[1], keeper.BondDenom(ctx))
 	require.False(t, found)
-	resBonds = keeper.GetDelegatorDelegations(ctx, addrDels[1], 5)
+	resBonds = types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[1], 5))
 	require.Equal(t, 0, len(resBonds))
 }
 
 // tests Get/Set/Remove UnbondingDelegation
 func TestUnbondingDelegation(t *testing.T) {
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, 0)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 0)
 
-	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], 0,
-		time.Unix(0, 0), sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(5)))
+	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], types.NewUnbondingDelegationEntry(0,
+		time.Unix(0, 0), sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(5))))
 
 	// set and retrieve a record
 	keeper.SetUnbondingDelegation(ctx, ubd)
@@ -139,13 +139,13 @@ func TestUnbondingDelegation(t *testing.T) {
 	require.True(t, ubd.Equal(resUnbond))
 
 	// modify a records, save, and retrieve
-	ubd.Entries[0].Balance = sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(21))
+	ubd.Entries[0] = types.NewUnbondingDelegationEntry(0, time.Unix(0, 0), sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(21)))
 	keeper.SetUnbondingDelegation(ctx, ubd)
 
 	resUnbonds := keeper.GetUnbondingDelegations(ctx, addrDels[0], 5)
 	require.Equal(t, 1, len(resUnbonds))
 
-	resUnbonds = keeper.GetAllUnbondingDelegations(ctx, addrDels[0])
+	resUnbonds = keeper.GetUnbondingDelegationsByDelegator(ctx, addrDels[0])
 	require.Equal(t, 1, len(resUnbonds))
 
 	resUnbond, found = keeper.GetUnbondingDelegation(ctx, addrDels[0], addrVals[0])
@@ -160,13 +160,13 @@ func TestUnbondingDelegation(t *testing.T) {
 	resUnbonds = keeper.GetUnbondingDelegations(ctx, addrDels[0], 5)
 	require.Equal(t, 0, len(resUnbonds))
 
-	resUnbonds = keeper.GetAllUnbondingDelegations(ctx, addrDels[0])
+	resUnbonds = keeper.GetUnbondingDelegationsByDelegator(ctx, addrDels[0])
 	require.Equal(t, 0, len(resUnbonds))
 
 }
 
 func TestUnbondDelegation(t *testing.T) {
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, 0)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 0)
 
 	startTokens := types.TokensFromConsensusPower(10)
 
@@ -199,7 +199,7 @@ func TestUnbondDelegation(t *testing.T) {
 }
 
 func TestUndelegateFromUnbondedValidator(t *testing.T) {
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, 1)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 1)
 	delTokens := types.TokensFromConsensusPower(10)
 	delCoins := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
 
@@ -253,7 +253,7 @@ func TestUndelegateFromUnbondedValidator(t *testing.T) {
 }
 
 func TestUnbondingAllDelegationFromValidator(t *testing.T) {
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, 0)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 0)
 	delTokens := types.TokensFromConsensusPower(10)
 	delCoins := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), delTokens))
 

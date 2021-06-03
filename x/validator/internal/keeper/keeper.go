@@ -13,6 +13,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -27,12 +29,13 @@ type Keeper struct {
 	AccountKeeper    auth.AccountKeeper
 	supplyKeeper     supply.Keeper
 	multisigKeeper   multisig.Keeper
+	nftKeeper        nft.Keeper
 	hooks            types.ValidatorHooks
 	FeeCollectorName string
 }
 
 // NewKeeper creates a validator keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper, accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper, multisigKeeper multisig.Keeper, feeCollectorName string) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper, accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper, multisigKeeper multisig.Keeper, nftKeeper nft.Keeper, feeCollectorName string) Keeper {
 
 	// ensure bonded and not bonded module accounts are set
 	if addr := supplyKeeper.GetModuleAddress(types.BondedPoolName); addr == nil {
@@ -51,6 +54,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspac
 		AccountKeeper:    accountKeeper,
 		supplyKeeper:     supplyKeeper,
 		multisigKeeper:   multisigKeeper,
+		nftKeeper:        nftKeeper,
 		FeeCollectorName: feeCollectorName,
 	}
 	return keeper

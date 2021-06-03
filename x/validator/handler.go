@@ -29,8 +29,12 @@ func NewHandler(keeper Keeper) sdk.Handler {
 			return handleMsgDeclareCandidate(ctx, keeper, msg)
 		case types.MsgDelegate:
 			return handleMsgDelegate(ctx, keeper, msg)
+		case types.MsgDelegateNFT:
+			return handleMsgDelegateNFT(ctx, keeper, msg)
 		case types.MsgUnbond:
 			return handleMsgUnbond(ctx, keeper, msg)
+		case types.MsgUnbondNFT:
+			return handleMsgUnbondNFT(ctx, keeper, msg)
 		case types.MsgEditCandidate:
 			return handleMsgEditCandidate(ctx, keeper, msg)
 		case types.MsgSetOnline:
@@ -135,6 +139,56 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgDelegateNFT(ctx sdk.Context, k Keeper, msg types.MsgDelegateNFT) (*sdk.Result, error) {
+	val, err := k.GetValidator(ctx, msg.ValidatorAddress)
+	if err != nil {
+		return nil, types.ErrNoValidatorFound()
+	}
+
+	err = k.DelegateNFT(ctx, msg.DelegatorAddress, msg.TokenID, msg.Denom, msg.SubTokenIDs, val)
+	if err != nil {
+		e := sdkerrors.Error{}
+		if errors.As(err, &e) {
+			return nil, e
+		} else {
+			return nil, types.ErrInternal(err.Error())
+		}
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
+		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+	))
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgUnbondNFT(ctx sdk.Context, k Keeper, msg types.MsgUnbondNFT) (*sdk.Result, error) {
+	completionTime, err := k.UndelegateNFT(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.TokenID, msg.Denom, msg.SubTokenIDs)
+	if err != nil {
+		e := sdkerrors.Error{}
+		if errors.As(err, &e) {
+			return nil, e
+		} else {
+			return nil, types.ErrInternal(err.Error())
+		}
+	}
+
+	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
+		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+		sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+	))
+
+	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Result, error) {

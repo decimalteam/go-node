@@ -10,7 +10,7 @@ import (
 )
 
 func TestKeeper_PayRewardsWithMultisigAddress(t *testing.T) {
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, 1000)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 1000)
 	validatorAddr1 := sdk.ValAddress(Addrs[0])
 
 	wallet, err := multisig.NewWallet([]sdk.AccAddress{addrAcc1, addrAcc2}, []uint{1, 1}, 2, []byte{})

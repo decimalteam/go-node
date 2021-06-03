@@ -8,7 +8,9 @@ import (
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgDeclareCandidate{}, "validator/declare_candidate", nil)
 	cdc.RegisterConcrete(MsgDelegate{}, "validator/delegate", nil)
+	cdc.RegisterConcrete(MsgDelegateNFT{}, "validator/delegate_nft", nil)
 	cdc.RegisterConcrete(MsgUnbond{}, "validator/unbond", nil)
+	cdc.RegisterConcrete(MsgUnbondNFT{}, "validator/unbond_nft", nil)
 	cdc.RegisterConcrete(MsgEditCandidate{}, "validator/edit_candidate", nil)
 	cdc.RegisterConcrete(MsgSetOnline{}, "validator/set_online", nil)
 	cdc.RegisterConcrete(MsgSetOffline{}, "validator/set_offline", nil)

@@ -110,16 +110,19 @@ func queryValidatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper)
 	}
 
 	delegations := k.GetValidatorDelegations(ctx, params.ValidatorAddr)
-	delegationResps, err := delegationsToDelegationResponses(delegations)
-	if err != nil {
-		return nil, err
+
+	resDelegations := types.DelegationResponse{}
+
+	for _, delegation := range delegations {
+		switch delegation := delegation.(type) {
+		case types.Delegation:
+			resDelegations.Delegations = append(resDelegations.Delegations, delegation)
+		case types.DelegationNFT:
+			resDelegations.DelegationsNFT = append(resDelegations.DelegationsNFT, delegation)
+		}
 	}
 
-	if delegationResps == nil {
-		delegationResps = types.DelegationResponses{}
-	}
-
-	res, err := codec.MarshalJSONIndent(types.ModuleCdc, delegationResps)
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, resDelegations)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -157,16 +160,19 @@ func queryDelegatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper)
 	}
 
 	delegations := k.GetAllDelegatorDelegations(ctx, params.DelegatorAddr)
-	delegationResps, err := delegationsToDelegationResponses(delegations)
-	if err != nil {
-		return nil, err
+
+	resDelegations := types.DelegationResponse{}
+
+	for _, delegation := range delegations {
+		switch delegation := delegation.(type) {
+		case types.Delegation:
+			resDelegations.Delegations = append(resDelegations.Delegations, delegation)
+		case types.DelegationNFT:
+			resDelegations.DelegationsNFT = append(resDelegations.DelegationsNFT, delegation)
+		}
 	}
 
-	if delegationResps == nil {
-		delegationResps = types.DelegationResponses{}
-	}
-
-	res, err := codec.MarshalJSONIndent(types.ModuleCdc, delegationResps)
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, resDelegations)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -187,7 +193,28 @@ func queryDelegatorUnbondingDelegations(ctx sdk.Context, req abci.RequestQuery, 
 		unbondingDelegations = types.UnbondingDelegations{}
 	}
 
-	res, err := codec.MarshalJSONIndent(types.ModuleCdc, unbondingDelegations)
+	baseUBDs := types.BaseUnbondingDelegations{}
+
+	for _, unbondingDelegation := range unbondingDelegations {
+		baseUBD := types.BaseUnbondingDelegation{
+			ValidatorAddress: unbondingDelegation.ValidatorAddress,
+			DelegatorAddress: unbondingDelegation.DelegatorAddress,
+			Entries:          []types.UnbondingDelegationEntry{},
+		}
+
+		for _, entry := range unbondingDelegation.Entries {
+			switch entry := entry.(type) {
+			case types.UnbondingDelegationEntry:
+				baseUBD.Entries = append(baseUBD.Entries, entry)
+			}
+		}
+
+		baseUBDs = append(baseUBDs, baseUBD)
+	}
+
+	ubdResp := types.NewUnbondingDelegationResp(baseUBDs, types.NFTUnbondingDelegations{})
+
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, ubdResp)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -252,10 +279,7 @@ func queryDelegation(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 		return nil, types.ErrNoDelegation()
 	}
 
-	delegationResp, err := delegationToDelegationResponse(delegation)
-	if err != nil {
-		return nil, err
-	}
+	delegationResp := types.NewDelegationResp(types.Delegations{delegation}, types.DelegationsNFT{})
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, delegationResp)
 	if err != nil {
@@ -278,7 +302,22 @@ func queryUnbondingDelegation(ctx sdk.Context, req abci.RequestQuery, k Keeper) 
 		return nil, types.ErrUnbondingDelegationNotFound()
 	}
 
-	res, err := codec.MarshalJSONIndent(types.ModuleCdc, unbond)
+	baseUBD := types.BaseUnbondingDelegation{
+		ValidatorAddress: unbond.ValidatorAddress,
+		DelegatorAddress: unbond.DelegatorAddress,
+		Entries:          []types.UnbondingDelegationEntry{},
+	}
+
+	for _, entry := range unbond.Entries {
+		switch entry := entry.(type) {
+		case types.UnbondingDelegationEntry:
+			baseUBD.Entries = append(baseUBD.Entries, entry)
+		}
+	}
+
+	ubdResp := types.NewUnbondingDelegationResp(types.BaseUnbondingDelegations{baseUBD}, types.NFTUnbondingDelegations{})
+
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, ubdResp)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -336,29 +375,4 @@ func queryParameters(ctx sdk.Context, k Keeper) ([]byte, error) {
 	}
 
 	return res, nil
-}
-
-//______________________________________________________
-// util
-
-func delegationToDelegationResponse(del types.Delegation) (types.DelegationResponse, error) {
-	return types.NewDelegationResp(
-		del.DelegatorAddress,
-		del.ValidatorAddress,
-		del.Coin,
-	), nil
-}
-
-func delegationsToDelegationResponses(delegations types.Delegations) (types.DelegationResponses, error) {
-	resp := make(types.DelegationResponses, len(delegations))
-	for i, del := range delegations {
-		delResp, err := delegationToDelegationResponse(del)
-		if err != nil {
-			return nil, err
-		}
-
-		resp[i] = delResp
-	}
-
-	return resp, nil
 }
