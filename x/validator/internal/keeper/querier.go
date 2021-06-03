@@ -193,7 +193,28 @@ func queryDelegatorUnbondingDelegations(ctx sdk.Context, req abci.RequestQuery, 
 		unbondingDelegations = types.UnbondingDelegations{}
 	}
 
-	res, err := codec.MarshalJSONIndent(types.ModuleCdc, unbondingDelegations)
+	baseUBDs := types.BaseUnbondingDelegations{}
+
+	for _, unbondingDelegation := range unbondingDelegations {
+		baseUBD := types.BaseUnbondingDelegation{
+			ValidatorAddress: unbondingDelegation.ValidatorAddress,
+			DelegatorAddress: unbondingDelegation.DelegatorAddress,
+			Entries:          []types.UnbondingDelegationEntry{},
+		}
+
+		for _, entry := range unbondingDelegation.Entries {
+			switch entry := entry.(type) {
+			case types.UnbondingDelegationEntry:
+				baseUBD.Entries = append(baseUBD.Entries, entry)
+			}
+		}
+
+		baseUBDs = append(baseUBDs, baseUBD)
+	}
+
+	ubdResp := types.NewUnbondingDelegationResp(baseUBDs, types.NFTUnbondingDelegations{})
+
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, ubdResp)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -281,7 +302,22 @@ func queryUnbondingDelegation(ctx sdk.Context, req abci.RequestQuery, k Keeper) 
 		return nil, types.ErrUnbondingDelegationNotFound()
 	}
 
-	res, err := codec.MarshalJSONIndent(types.ModuleCdc, unbond)
+	baseUBD := types.BaseUnbondingDelegation{
+		ValidatorAddress: unbond.ValidatorAddress,
+		DelegatorAddress: unbond.DelegatorAddress,
+		Entries:          []types.UnbondingDelegationEntry{},
+	}
+
+	for _, entry := range unbond.Entries {
+		switch entry := entry.(type) {
+		case types.UnbondingDelegationEntry:
+			baseUBD.Entries = append(baseUBD.Entries, entry)
+		}
+	}
+
+	ubdResp := types.NewUnbondingDelegationResp(types.BaseUnbondingDelegations{baseUBD}, types.NFTUnbondingDelegations{})
+
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, ubdResp)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
