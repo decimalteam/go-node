@@ -24,21 +24,24 @@ const (
 
 	QuerierRoute = ModuleName
 
-	LastTotalPowerKey                = 0x02
-	ValidatorsByConsAddrKey          = 0x03
-	ValidatorsByPowerIndexKey        = 0x04
-	ValidatorQueueKey                = 0x05
-	LastValidatorPowerKey            = 0x06
-	ValidatorsKey                    = 0x07
-	DelegationKey                    = 0x08
-	UnbondingDelegationKey           = 0x09
-	UnbondingDelegationByValIndexKey = 0x0a
-	UnbondingQueueKey                = 0x0b
-	ValidatorSigningInfoKey          = 0x10
-	ValidatorMissedBlockBitArrayKey  = 0x11
-	AddrPubkeyRelationKey            = 0x12
-	HistoricalInfoKey                = 0x13
-	DelegationNFTKey                 = 0x14
+	LastTotalPowerKey                   = 0x02
+	ValidatorsByConsAddrKey             = 0x03
+	ValidatorsByPowerIndexKey           = 0x04
+	ValidatorQueueKey                   = 0x05
+	LastValidatorPowerKey               = 0x06
+	ValidatorsKey                       = 0x07
+	DelegationKey                       = 0x08
+	UnbondingDelegationKey              = 0x09
+	UnbondingDelegationByValIndexKey    = 0x0a
+	UnbondingQueueKey                   = 0x0b
+	ValidatorSigningInfoKey             = 0x10
+	ValidatorMissedBlockBitArrayKey     = 0x11
+	AddrPubkeyRelationKey               = 0x12
+	HistoricalInfoKey                   = 0x13
+	DelegationNFTKey                    = 0x14
+	UnbondingDelegationNFTKey           = 0x15
+	UnbondingDelegationNFTByValIndexKey = 0x16
+	UnbondingNFTQueueKey                = 0x17
 )
 
 func GetValidatorKey(addr sdk.ValAddress) []byte {
@@ -187,6 +190,51 @@ func GetUBDsByValIndexKey(valAddr sdk.ValAddress) []byte {
 func GetUnbondingDelegationTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append([]byte{UnbondingQueueKey}, bz...)
+}
+
+//________________________________________________________________________________
+
+// gets the key for an unbonding delegation by delegator and validator addr
+// VALUE: staking/UnbondingDelegation
+func GetUnbondingDelegationNFTKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
+	return append(
+		GetUnbondingDelegationNFTsKey(delAddr.Bytes()),
+		valAddr.Bytes()...)
+}
+
+// gets the index-key for an unbonding delegation, stored by validator-index
+// VALUE: none (key rearrangement used)
+func GetUnbondingDelegationNFTByValIndexKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
+	return append(GetUnbondingDelegationNFTsByValIndexKey(valAddr), delAddr.Bytes()...)
+}
+
+// rearranges the ValIndexKey to get the UBDKey
+func GetUnbondingDelegationNFTKeyFromValIndexKey(IndexKey []byte) []byte {
+	addrs := IndexKey[1:] // remove prefix bytes
+	if len(addrs) != 2*sdk.AddrLen {
+		panic("unexpected key length")
+	}
+	valAddr := addrs[:sdk.AddrLen]
+	delAddr := addrs[sdk.AddrLen:]
+	return GetUnbondingDelegationNFTKey(delAddr, valAddr)
+}
+
+//________________________________________________________________________________
+
+// gets the prefix for all unbonding delegations from a delegator
+func GetUnbondingDelegationNFTsKey(delAddr sdk.AccAddress) []byte {
+	return append([]byte{UnbondingDelegationNFTKey}, delAddr.Bytes()...)
+}
+
+// gets the prefix keyspace for the indexes of unbonding delegations for a validator
+func GetUnbondingDelegationNFTsByValIndexKey(valAddr sdk.ValAddress) []byte {
+	return append([]byte{UnbondingDelegationNFTByValIndexKey}, valAddr.Bytes()...)
+}
+
+// gets the prefix for all unbonding delegations from a delegator
+func GetUnbondingDelegationNFTTimeKey(timestamp time.Time) []byte {
+	bz := sdk.FormatTimeBytes(timestamp)
+	return append([]byte{UnbondingNFTQueueKey}, bz...)
 }
 
 //________________________________________________________________________________

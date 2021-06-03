@@ -83,15 +83,15 @@ func TestSlashBondedDelegationNFT(t *testing.T) {
 	reserve := sdk.NewInt(100)
 
 	// create nft
-	_, err := nftKeeper.MintNFT(ctx, denom,
+	_, err := nftKeeper.MintNFT(ctx, denom, nft.NewBaseNFT(
 		tokenID,
-		reserve,
-		quantity,
 		delAddr,
 		delAddr,
 		"",
+		quantity,
+		reserve,
 		true,
-	)
+	))
 	require.NoError(t, err)
 
 	bondedCoins := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), amt))
@@ -119,8 +119,8 @@ func TestSlashBondedDelegationNFT(t *testing.T) {
 	delegationNFT, ok := keeper.GetDelegationNFT(ctx, valAddr, delAddr, tokenID, denom)
 	require.True(t, ok)
 	require.Equal(t, sdk.NewInt(99), delegationNFT.Quantity)
-}
-*/
+}*/
+
 // tests slashUnbondingDelegation
 func TestSlashUnbondingDelegation(t *testing.T) {
 	ctx, keeper, _ := setupHelper(t, 10)

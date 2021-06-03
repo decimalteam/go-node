@@ -343,7 +343,12 @@ $ %s query validator unbonding-delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9l
 				return err
 			}
 
-			return cliCtx.PrintOutput(types.MustUnmarshalUBD(cdc, res))
+			var resp types.UnbondingDelegations
+			if err := cdc.UnmarshalJSON(res, &resp); err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(resp)
 		},
 	}
 }

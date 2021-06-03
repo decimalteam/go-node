@@ -80,6 +80,20 @@ func (k Keeper) SetLastSubTokenID(ctx sdk.Context, denom, id string, lastSubToke
 	store.Set(lastSubTokenIDKey, bz)
 }
 
+func (k Keeper) SetTokenURI(ctx sdk.Context, tokenURI string) {
+	store := ctx.KVStore(k.storeKey)
+	tokenURIKey := types.GetTokenURIKey(tokenURI)
+
+	store.Set(tokenURIKey, []byte{})
+}
+
+func (k Keeper) ExistTokenURI(ctx sdk.Context, tokenURI string) bool {
+	store := ctx.KVStore(k.storeKey)
+	tokenURIKey := types.GetTokenURIKey(tokenURI)
+
+	return store.Has(tokenURIKey)
+}
+
 // MintNFT mints an NFT and manages that NFTs existence within Collections and Owners
 func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk.Int,
 	creator, owner sdk.AccAddress, tokenURI string, allowMint bool) (int64, error) {
@@ -139,6 +153,25 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 	return newLastSubTokenID, err
 }
 
+// UpdateNFT updates an already existing NFTs
+func (k Keeper) UpdateNFT(ctx sdk.Context, denom string, nft exported.NFT) (err error) {
+	collection, found := k.GetCollection(ctx, denom)
+	if !found {
+		return sdkerrors.Wrap(types.ErrUnknownCollection, fmt.Sprintf("collection #%s doesn't exist", denom))
+	}
+
+	oldNFT, err := collection.GetNFT(nft.GetID())
+
+	if err != nil {
+		return err
+	}
+
+	collection.NFTs, _ = collection.NFTs.Update(oldNFT.GetID(), nft)
+
+	k.SetCollection(ctx, denom, collection)
+	return nil
+}
+
 // DeleteNFT deletes an existing NFT from store
 func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64) error {
 	collection, found := k.GetCollection(ctx, denom)
@@ -166,7 +199,15 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 		GetOwners().
 		SetOwner(owner))
 
-	collection, err = collection.UpdateNFT(nft)
+	nftOwner, err := k.GetOwner(ctx, nft.GetCreator()).DeleteID(denom, nft.GetID())
+
+	if err != nil {
+		return err
+	}
+
+	k.SetOwner(ctx, nftOwner)
+
+	collection, err = collection.DeleteNFT(nft)
 	if err != nil {
 		return err
 	}

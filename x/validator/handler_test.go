@@ -22,7 +22,7 @@ func TestValidatorByPowerIndex(t *testing.T) {
 	validatorAddr, validatorAddr3 := sdk.ValAddress(val.Addrs[0]), sdk.ValAddress(val.Addrs[1])
 
 	initPower := int64(1000000)
-	initBond := types.TokensFromConsensusPower(initPower)
+	initBond := TokensFromConsensusPower(initPower)
 	ctx, _, keeper, supplyKeeper, coinKeeper, _ := val.CreateTestInput(t, false, initPower)
 
 	// create validator
@@ -115,7 +115,7 @@ func TestDuplicatesMsgCreateValidator(t *testing.T) {
 	addr1, addr2 := sdk.ValAddress(val.Addrs[0]), sdk.ValAddress(val.Addrs[1])
 	pk1, pk2 := val.PKs[0], val.PKs[1]
 
-	valTokens := types.TokensFromConsensusPower(10)
+	valTokens := TokensFromConsensusPower(10)
 	msgCreateValidator1 := NewTestMsgDeclareCandidate(addr1, pk1, valTokens)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator1)
 	require.NoError(t, err)
@@ -186,11 +186,11 @@ func TestInvalidPubKeyTypeMsgCreateValidator(t *testing.T) {
 
 func TestIncrementsMsgDelegate(t *testing.T) {
 	initPower := int64(1000)
-	initBond := types.TokensFromConsensusPower(initPower)
+	initBond := TokensFromConsensusPower(initPower)
 	ctx, accMapper, keeper, _, _, _ := val.CreateTestInput(t, false, initPower)
 	params := keeper.GetParams(ctx)
 
-	bondAmount := types.TokensFromConsensusPower(10)
+	bondAmount := TokensFromConsensusPower(10)
 	validatorAddr, delegatorAddr := sdk.ValAddress(val.Addrs[0]), val.Addrs[1]
 
 	// first create validator
@@ -256,7 +256,7 @@ func TestIncrementsMsgDelegate(t *testing.T) {
 
 func TestIncrementsMsgUnbond(t *testing.T) {
 	initPower := int64(1000)
-	initBond := types.TokensFromConsensusPower(initPower)
+	initBond := TokensFromConsensusPower(initPower)
 	ctx, accMapper, keeper, supplyKeeper, coinKeeper, _ := val.CreateTestInput(t, false, initPower)
 
 	params := keeper.GetParams(ctx)
@@ -336,8 +336,8 @@ func TestIncrementsMsgUnbond(t *testing.T) {
 	errorCases := []sdk.Int{
 		//1<<64 - 1, // more than int64 power
 		//1<<63 + 1, // more than int64 power
-		types.TokensFromConsensusPower(1<<63 - 1),
-		types.TokensFromConsensusPower(1 << 31),
+		TokensFromConsensusPower(1<<63 - 1),
+		TokensFromConsensusPower(1 << 31),
 		initBond,
 	}
 
@@ -361,7 +361,7 @@ func TestIncrementsMsgUnbond(t *testing.T) {
 
 func TestMultipleMsgCreateValidator(t *testing.T) {
 	initPower := int64(1000)
-	initTokens := types.TokensFromConsensusPower(initPower)
+	initTokens := TokensFromConsensusPower(initPower)
 	ctx, accMapper, keeper, supplyKeeper, coinKeeper, _ := val.CreateTestInput(t, false, initPower)
 
 	params := keeper.GetParams(ctx)
@@ -381,7 +381,7 @@ func TestMultipleMsgCreateValidator(t *testing.T) {
 
 	// bond them all
 	for i, validatorAddr := range validatorAddrs {
-		valTokens := types.TokensFromConsensusPower(10)
+		valTokens := TokensFromConsensusPower(10)
 		msgCreateValidatorOnBehalfOf := NewTestMsgDeclareCandidate(validatorAddr, val.PKs[i], valTokens)
 
 		res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidatorOnBehalfOf)
@@ -408,7 +408,7 @@ func TestMultipleMsgCreateValidator(t *testing.T) {
 		_, err := keeper.GetValidator(ctx, validatorAddr)
 		require.NoError(t, err)
 
-		unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(10))
+		unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), TokensFromConsensusPower(10))
 		msgUndelegate := types.NewMsgUnbond(validatorAddr, sdk.AccAddress(validatorAddr), unbondAmt) // remove delegation
 		res, err := handleMsgUnbond(ctx, keeper, msgUndelegate)
 		require.NoError(t, err)
@@ -487,7 +487,7 @@ func TestValidatorQueue(t *testing.T) {
 	keeper.SetParams(ctx, params)
 
 	// create the validator
-	valTokens := types.TokensFromConsensusPower(10)
+	valTokens := TokensFromConsensusPower(10)
 	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr, val.PKs[0], valTokens)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -554,7 +554,7 @@ func TestUnbondingPeriod(t *testing.T) {
 	keeper.SetParams(ctx, params)
 
 	// create the validator
-	valTokens := types.TokensFromConsensusPower(10)
+	valTokens := TokensFromConsensusPower(10)
 	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr, val.PKs[0], valTokens)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -563,7 +563,7 @@ func TestUnbondingPeriod(t *testing.T) {
 	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
 	// begin unbonding
-	unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(10))
+	unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), TokensFromConsensusPower(10))
 	msgUndelegate := types.NewMsgUnbond(validatorAddr, sdk.AccAddress(validatorAddr), unbondAmt)
 	res, err = handleMsgUnbond(ctx, keeper, msgUndelegate)
 	require.NoError(t, err)
@@ -647,7 +647,7 @@ func TestMultipleUnbondingDelegationAtSameTime(t *testing.T) {
 	keeper.SetParams(ctx, params)
 
 	// create the validator
-	valTokens := types.TokensFromConsensusPower(10)
+	valTokens := TokensFromConsensusPower(10)
 	msgCreateValidator := NewTestMsgDeclareCandidate(valAddr, val.PKs[0], valTokens)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -697,7 +697,7 @@ func TestMultipleUnbondingDelegationAtUniqueTimes(t *testing.T) {
 	keeper.SetParams(ctx, params)
 
 	// create the validator
-	valTokens := types.TokensFromConsensusPower(10)
+	valTokens := TokensFromConsensusPower(10)
 	msgCreateValidator := NewTestMsgDeclareCandidate(valAddr, val.PKs[0], valTokens)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -756,7 +756,7 @@ func TestUnbondingWhenExcessValidators(t *testing.T) {
 	keeper.SetParams(ctx, params)
 
 	// add three validators
-	valTokens1 := types.TokensFromConsensusPower(50)
+	valTokens1 := TokensFromConsensusPower(50)
 	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr1, val.PKs[0], valTokens1)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -766,7 +766,7 @@ func TestUnbondingWhenExcessValidators(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(keeper.GetLastValidators(ctx)))
 
-	valTokens2 := types.TokensFromConsensusPower(30)
+	valTokens2 := TokensFromConsensusPower(30)
 	msgCreateValidator = NewTestMsgDeclareCandidate(validatorAddr2, val.PKs[1], valTokens2)
 	res, err = handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -776,7 +776,7 @@ func TestUnbondingWhenExcessValidators(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(keeper.GetLastValidators(ctx)))
 
-	valTokens3 := types.TokensFromConsensusPower(10)
+	valTokens3 := TokensFromConsensusPower(10)
 	msgCreateValidator = NewTestMsgDeclareCandidate(validatorAddr3, val.PKs[2], valTokens3)
 	res, err = handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -820,7 +820,7 @@ func TestEditCandidate(t *testing.T) {
 	validatorAddr1 := sdk.ValAddress(val.Addrs[0])
 	rewardAddr1 := val.Addrs[1]
 
-	valTokens1 := types.TokensFromConsensusPower(50)
+	valTokens1 := TokensFromConsensusPower(50)
 	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr1, val.PKs[0], valTokens1)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -857,7 +857,7 @@ func TestSetOnline(t *testing.T) {
 	validatorAddr3 := sdk.ValAddress(val.Addrs[2])
 
 	// add three validators
-	valTokens1 := types.TokensFromConsensusPower(50)
+	valTokens1 := TokensFromConsensusPower(50)
 	msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr1, val.PKs[0], valTokens1)
 	res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -867,7 +867,7 @@ func TestSetOnline(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(keeper.GetLastValidators(ctx)))
 
-	valTokens2 := types.TokensFromConsensusPower(30)
+	valTokens2 := TokensFromConsensusPower(30)
 	msgCreateValidator = NewTestMsgDeclareCandidate(validatorAddr2, val.PKs[1], valTokens2)
 	res, err = handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)
@@ -877,7 +877,7 @@ func TestSetOnline(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(keeper.GetLastValidators(ctx)))
 
-	valTokens3 := types.TokensFromConsensusPower(10)
+	valTokens3 := TokensFromConsensusPower(10)
 	msgCreateValidator = NewTestMsgDeclareCandidate(validatorAddr3, val.PKs[2], valTokens3)
 	res, err = handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
 	require.NoError(t, err)

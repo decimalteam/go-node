@@ -44,6 +44,7 @@ var (
 	ErrNotAllowedBurn       = types.ErrNotAllowedBurn
 	ErrNotAllowedMint       = types.ErrNotAllowedMint
 	ErrNotUniqueSubTokenIDs = types.ErrNotUniqueSubTokenIDs
+	ErrNotUniqueTokenURI    = types.ErrNotUniqueTokenURI
 	NewGenesisState         = types.NewGenesisState
 	DefaultGenesisState     = types.DefaultGenesisState
 	ValidateGenesis         = types.ValidateGenesis

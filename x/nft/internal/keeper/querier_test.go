@@ -1,12 +1,11 @@
-package keeper_test
+package keeper
 
-/*
 import (
 	"strconv"
+	"strings"
 	"testing"
 
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/keeper"
 	nftTypes "bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,7 +18,7 @@ import (
 func TestNewQuerier(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 
-	querier := keeper.NewQuerier(NFTKeeper)
+	querier := NewQuerier(NFTKeeper)
 	query1 := abci.RequestQuery{
 		Path: "",
 		Data: []byte{},
@@ -32,11 +31,20 @@ func TestQuerySupply(t *testing.T) {
 	ctx, cdc, NFTKeeper := createTestApp(t, false)
 
 	// MintNFT shouldn't fail when collection does not exist
-	nft := nftTypes.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	nft := nftTypes.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(100),
+		[]int64{},
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
+
 	require.NoError(t, err)
 
-	querier := keeper.NewQuerier(NFTKeeper)
+	querier := NewQuerier(NFTKeeper)
 
 	query := abci.RequestQuery{
 		Path: "",
@@ -50,7 +58,7 @@ func TestQuerySupply(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, res)
 
-	queryCollectionParams := nftTypes.NewQueryCollectionParams(denom2)
+	queryCollectionParams := nftTypes.NewQueryCollectionParams(Denom2)
 	bz, errRes := cdc.MarshalJSON(queryCollectionParams)
 	require.Nil(t, errRes)
 	query.Data = bz
@@ -58,7 +66,7 @@ func TestQuerySupply(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, res)
 
-	queryCollectionParams = nftTypes.NewQueryCollectionParams(denom)
+	queryCollectionParams = nftTypes.NewQueryCollectionParams(Denom1)
 	bz, errRes = cdc.MarshalJSON(queryCollectionParams)
 	require.Nil(t, errRes)
 	query.Data = bz
@@ -67,7 +75,7 @@ func TestQuerySupply(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	supplyResp := string(res)
+	supplyResp := strings.Trim(string(res), "\"")
 	supply, _ := strconv.Atoi(supplyResp)
 	require.Equal(t, 1, supply)
 }
@@ -76,11 +84,19 @@ func TestQueryCollection(t *testing.T) {
 	ctx, cdc, NFTKeeper := createTestApp(t, false)
 
 	// MintNFT shouldn't fail when collection does not exist
-	nft := nftTypes.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(100), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	nft := nftTypes.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(100),
+		[]int64{},
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
-	querier := keeper.NewQuerier(NFTKeeper)
+	querier := NewQuerier(NFTKeeper)
 
 	query := abci.RequestQuery{
 		Path: "",
@@ -94,7 +110,7 @@ func TestQueryCollection(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, res)
 
-	queryCollectionParams := nftTypes.NewQueryCollectionParams(denom2)
+	queryCollectionParams := nftTypes.NewQueryCollectionParams(Denom2)
 	bz, errRes := cdc.MarshalJSON(queryCollectionParams)
 	require.Nil(t, errRes)
 
@@ -103,7 +119,7 @@ func TestQueryCollection(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, res)
 
-	queryCollectionParams = nftTypes.NewQueryCollectionParams(denom)
+	queryCollectionParams = nftTypes.NewQueryCollectionParams(Denom1)
 	bz, errRes = cdc.MarshalJSON(queryCollectionParams)
 	require.Nil(t, errRes)
 
@@ -122,15 +138,23 @@ func TestQueryOwner(t *testing.T) {
 	ctx, cdc, NFTKeeper := createTestApp(t, false)
 
 	// MintNFT shouldn't fail when collection does not exist
-	nft := nftTypes.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(100), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+
+	nft := nftTypes.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(100),
+		[]int64{},
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
-	denom2 := "test_denom2"
-	err = NFTKeeper.MintNFT(ctx, denom2, nft)
+	_, err = NFTKeeper.MintNFT(ctx, Denom2, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
-	querier := keeper.NewQuerier(NFTKeeper)
+	querier := NewQuerier(NFTKeeper)
 
 	query := abci.RequestQuery{
 		Path: "",
@@ -144,7 +168,7 @@ func TestQueryOwner(t *testing.T) {
 	require.Nil(t, res)
 
 	// query the balance using the first denom
-	params := nftTypes.NewQueryBalanceParams(address, denom)
+	params := nftTypes.NewQueryBalanceParams(Addrs[0], Denom1)
 	bz, err2 := cdc.MarshalJSON(params)
 	require.Nil(t, err2)
 	query.Data = bz
@@ -157,13 +181,13 @@ func TestQueryOwner(t *testing.T) {
 	cdc.MustUnmarshalJSON(res, &out)
 
 	// build the owner using only the first denom
-	idCollection1 := nftTypes.NewIDCollection(denom, []string{id})
-	owner := nftTypes.NewOwner(address, idCollection1)
+	idCollection1 := nftTypes.NewIDCollection(Denom1, []string{ID1})
+	owner := nftTypes.NewOwner(Addrs[0], idCollection1)
 
 	require.Equal(t, out.String(), owner.String())
 
 	// query the balance using no denom so that all denoms will be returns
-	params = nftTypes.NewQueryBalanceParams(address, "")
+	params = nftTypes.NewQueryBalanceParams(Addrs[0], "")
 	bz, err2 = cdc.MarshalJSON(params)
 	require.Nil(t, err2)
 
@@ -179,9 +203,12 @@ func TestQueryOwner(t *testing.T) {
 
 	cdc.MustUnmarshalJSON(res, &out)
 
-	// build the owner using both denoms TODO: add sorting to ensure the objects are the same
-	idCollection2 := nftTypes.NewIDCollection(denom2, []string{id})
-	owner = nftTypes.NewOwner(address, idCollection2, idCollection1)
+	// build the owner using both denoms
+	idCollection2 := nftTypes.NewIDCollection(Denom2, []string{ID1})
+	owner = nftTypes.NewOwner(Addrs[0], idCollection2, idCollection1)
+
+	out.IDCollections = out.IDCollections.Sort()
+	owner.IDCollections = owner.IDCollections.Sort()
 
 	require.Equal(t, out.String(), owner.String())
 }
@@ -190,11 +217,19 @@ func TestQueryNFT(t *testing.T) {
 	ctx, cdc, NFTKeeper := createTestApp(t, false)
 
 	// MintNFT shouldn't fail when collection does not exist
-	nft := nftTypes.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(100), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	nft := nftTypes.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(100),
+		[]int64{1},
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
-	querier := keeper.NewQuerier(NFTKeeper)
+	querier := NewQuerier(NFTKeeper)
 
 	query := abci.RequestQuery{
 		Path: "",
@@ -208,7 +243,7 @@ func TestQueryNFT(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, res)
 
-	params := nftTypes.NewQueryNFTParams(denom2, id2)
+	params := nftTypes.NewQueryNFTParams(Denom2, ID2)
 	bz, err2 := cdc.MarshalJSON(params)
 	require.Nil(t, err2)
 
@@ -217,7 +252,7 @@ func TestQueryNFT(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, res)
 
-	params = nftTypes.NewQueryNFTParams(denom, id)
+	params = nftTypes.NewQueryNFTParams(Denom1, ID1)
 	bz, err2 = cdc.MarshalJSON(params)
 	require.Nil(t, err2)
 
@@ -236,27 +271,36 @@ func TestQueryDenoms(t *testing.T) {
 	ctx, cdc, NFTKeeper := createTestApp(t, false)
 
 	// MintNFT shouldn't fail when collection does not exist
-	nft := nftTypes.NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(100), true)
-	err := NFTKeeper.MintNFT(ctx, denom, nft)
+	nft := nftTypes.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(100),
+		[]int64{},
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
-	err = NFTKeeper.MintNFT(ctx, denom2, nft)
+	_, err = NFTKeeper.MintNFT(ctx, Denom2, nft.GetID(), nft.GetReserve(), sdk.NewInt(1), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
 	require.NoError(t, err)
 
-	querier := keeper.NewQuerier(NFTKeeper)
+	querier := NewQuerier(NFTKeeper)
 
 	query := abci.RequestQuery{
 		Path: "",
 		Data: []byte{},
 	}
 	var res []byte
+
 	query.Path = "/custom/nft/denoms"
 
 	res, err = querier(ctx, []string{"denoms"}, query)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	denoms := []string{denom, denom2}
+	denoms := []string{Denom2, Denom1}
 
 	var out []string
 	cdc.MustUnmarshalJSON(res, &out)
@@ -265,4 +309,3 @@ func TestQueryDenoms(t *testing.T) {
 		require.Equal(t, denomInQuestion, denoms[key])
 	}
 }
-*/

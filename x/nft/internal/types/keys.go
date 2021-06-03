@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"encoding/binary"
 	"fmt"
-
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,12 +28,18 @@ const (
 // - Colections: 0x00<denom_bytes_key> :<Collection>
 //
 // - Owners: 0x01<address_bytes_key><denom_bytes_key>: <Owner>
+
+const NFTPrefix = 0x60
+
 var (
-	CollectionsKeyPrefix    = []byte{0x60, 0x00} // key for NFT collections
-	OwnersKeyPrefix         = []byte{0x60, 0x01} // key for balance of NFTs held by an address
-	SubTokenKeyPrefix       = []byte{0x60, 0x02}
-	LastSubTokenIDKeyPrefix = []byte{0x60, 0x03}
+	CollectionsKeyPrefix    = []byte{NFTPrefix, 0x00} // key for NFT collections
+	OwnersKeyPrefix         = []byte{NFTPrefix, 0x01} // key for balance of NFTs held by an address
+	SubTokenKeyPrefix       = []byte{NFTPrefix, 0x02}
+	LastSubTokenIDKeyPrefix = []byte{NFTPrefix, 0x03}
+	TokenURIKeyPrefix       = []byte{NFTPrefix, 0x04}
 )
+
+const OwnerKeyHashLength = 54
 
 // GetCollectionKey gets the key of a collection
 func GetCollectionKey(denom string) []byte {
@@ -45,10 +50,10 @@ func GetCollectionKey(denom string) []byte {
 
 // SplitOwnerKey gets an address and denom from an owner key
 func SplitOwnerKey(key []byte) (sdk.AccAddress, []byte) {
-	if len(key) != 53 {
+	if len(key) != OwnerKeyHashLength {
 		panic(fmt.Sprintf("unexpected key length %d", len(key)))
 	}
-	address := key[1 : sdk.AddrLen+1]
+	address := key[2 : sdk.AddrLen+2]
 	denomHashBz := key[sdk.AddrLen+1:]
 	return sdk.AccAddress(address), denomHashBz
 }
@@ -77,6 +82,10 @@ func GetLastSubTokenIDKey(denom, id string) []byte {
 	bs := getHash(denom)
 	bsID := getHash(id)
 	return append(append(LastSubTokenIDKeyPrefix, bs...), bsID...)
+}
+
+func GetTokenURIKey(tokenURI string) []byte {
+	return append(TokenURIKeyPrefix, []byte(tokenURI)...)
 }
 
 func getHash(denom string) []byte {

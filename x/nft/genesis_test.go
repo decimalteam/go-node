@@ -1,10 +1,9 @@
-package nft_test
+package nft
 
-/*
 import (
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 	"testing"
 
-	"bitbucket.org/decimalteam/go-node/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
@@ -12,36 +11,39 @@ import (
 func TestInitGenesis(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 
-	genesisState := nft.DefaultGenesisState()
+	genesisState := DefaultGenesisState()
 	require.Equal(t, 0, len(genesisState.Owners))
 	require.Equal(t, 0, len(genesisState.Collections))
 
-	ids := []string{id, id2, id3}
-	idCollection := nft.NewIDCollection(denom, ids)
-	idCollection2 := nft.NewIDCollection(denom2, ids)
-	owner := nft.NewOwner(address, idCollection)
+	ids := []string{ID1, ID2, ID3}
+	idCollection := types.NewIDCollection(Denom1, ids)
+	idCollection2 := types.NewIDCollection(Denom2, ids)
+	owner := types.NewOwner(Addrs[0], idCollection)
 
-	owner2 := nft.NewOwner(address2, idCollection2)
+	owner2 := types.NewOwner(Addrs[1], idCollection2)
 
-	owners := []nft.Owner{owner, owner2}
+	owners := []Owner{owner, owner2}
 
-	nft1 := nft.NewBaseNFT(id, address, address, tokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	nft2 := nft.NewBaseNFT(id2, address, address, tokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	nft3 := nft.NewBaseNFT(id3, address, address, tokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	nfts := nft.NewNFTs(nft1, nft2, nft3)
-	collection := nft.NewCollection(denom, nfts)
+	reserve := sdk.NewInt(100)
+	subTokenIds := []int64{}
 
-	nftx := nft.NewBaseNFT(id, address2, address2, tokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	nft2x := nft.NewBaseNFT(id2, address2, address2, tokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	nft3x := nft.NewBaseNFT(id3, address2, address2, tokenURI1, sdk.NewInt(1), sdk.NewInt(101), true)
-	nftsx := nft.NewNFTs(nftx, nft2x, nft3x)
-	collection2 := nft.NewCollection(denom2, nftsx)
+	nft1 := types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIds, true)
+	nft2 := types.NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIds, true)
+	nft3 := types.NewBaseNFT(ID3, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIds, true)
+	nfts := types.NewNFTs(nft1, nft2, nft3)
+	collection := NewCollection(Denom1, nfts)
 
-	collections := nft.NewCollections(collection, collection2)
+	nftx := types.NewBaseNFT(ID1, Addrs[1], Addrs[1], TokenURI1, reserve, subTokenIds, true)
+	nft2x := types.NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI1, reserve, subTokenIds, true)
+	nft3x := types.NewBaseNFT(ID3, Addrs[1], Addrs[1], TokenURI1, reserve, subTokenIds, true)
+	nftsx := types.NewNFTs(nftx, nft2x, nft3x)
+	collection2 := NewCollection(Denom2, nftsx)
 
-	genesisState = nft.NewGenesisState(owners, collections)
+	collections := NewCollections(collection, collection2)
 
-	nft.InitGenesis(ctx, NFTKeeper, genesisState)
+	genesisState = NewGenesisState(owners, collections)
+
+	InitGenesis(ctx, NFTKeeper, genesisState)
 
 	returnedOwners := NFTKeeper.GetOwners(ctx)
 	require.Equal(t, 2, len(owners))
@@ -53,7 +55,7 @@ func TestInitGenesis(t *testing.T) {
 	require.Equal(t, returnedCollections[0].String(), collections[0].String())
 	require.Equal(t, returnedCollections[1].String(), collections[1].String())
 
-	exportedGenesisState := nft.ExportGenesis(ctx, NFTKeeper)
+	exportedGenesisState := ExportGenesis(ctx, NFTKeeper)
 	require.Equal(t, len(genesisState.Owners), len(exportedGenesisState.Owners))
 	require.Equal(t, genesisState.Owners[0].String(), exportedGenesisState.Owners[0].String())
 	require.Equal(t, genesisState.Owners[1].String(), exportedGenesisState.Owners[1].String())
@@ -61,4 +63,4 @@ func TestInitGenesis(t *testing.T) {
 	require.Equal(t, len(genesisState.Collections), len(exportedGenesisState.Collections))
 	require.Equal(t, genesisState.Collections[0].String(), exportedGenesisState.Collections[0].String())
 	require.Equal(t, genesisState.Collections[1].String(), exportedGenesisState.Collections[1].String())
-}*/
+}

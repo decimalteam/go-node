@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"testing"
 	"time"
 
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"github.com/stretchr/testify/require"
 )
 

@@ -19,4 +19,5 @@ var (
 	ErrInvalidTokenID       = sdkerrors.Register(ModuleName, 12, "invalid token name")
 	ErrInvalidSubTokenID    = sdkerrors.Register(ModuleName, 13, "invalid subTokenID")
 	ErrNotUniqueSubTokenIDs = sdkerrors.Register(ModuleName, 14, "subTokenIDs does not unique")
+	ErrNotUniqueTokenURI    = sdkerrors.Register(ModuleName, 15, "tokenURI does not unique")
 )

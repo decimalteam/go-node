@@ -149,8 +149,20 @@ func (k Keeper) GetUnbondingDelegations(ctx sdk.Context, delegator sdk.AccAddres
 
 	i := 0
 	for ; iterator.Valid() && i < int(maxRetrieve); iterator.Next() {
-		unbondingDelegation := types.MustUnmarshalUBD(k.cdc, iterator.Value())
-		unbondingDelegations[i] = unbondingDelegation
+		unbondingDelegation := types.MustUnmarshalBaseUBD(k.cdc, iterator.Value())
+
+		ubd := types.UnbondingDelegation{
+			DelegatorAddress: unbondingDelegation.DelegatorAddress,
+			ValidatorAddress: unbondingDelegation.ValidatorAddress,
+			Entries:          []exported.UnbondingDelegationEntryI{},
+		}
+
+		for _, entry := range unbondingDelegation.Entries {
+			ubd.Entries = append(ubd.Entries, entry)
+		}
+
+		unbondingDelegations[i] = ubd
+
 		i++
 	}
 	return unbondingDelegations[:i] // trim if the array length < maxRetrieve
@@ -163,11 +175,35 @@ func (k Keeper) GetUnbondingDelegation(ctx sdk.Context,
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetUBDKey(delAddr, valAddr)
 	value := store.Get(key)
-	if value == nil {
+
+	key = types.GetUnbondingDelegationNFTKey(delAddr, valAddr)
+	valueNFT := store.Get(key)
+	if value == nil && valueNFT == nil {
 		return ubd, false
 	}
 
-	ubd = types.MustUnmarshalUBD(k.cdc, value)
+	baseUBD := types.BaseUnbondingDelegation{}
+	if value != nil {
+		baseUBD = types.MustUnmarshalBaseUBD(k.cdc, value)
+		ubd.DelegatorAddress = baseUBD.DelegatorAddress
+		ubd.ValidatorAddress = baseUBD.ValidatorAddress
+	}
+
+	nftUBD := types.NFTUnbondingDelegation{}
+	if valueNFT != nil {
+		nftUBD = types.MustUnmarshalNFTUBD(k.cdc, valueNFT)
+		ubd.DelegatorAddress = nftUBD.DelegatorAddress
+		ubd.ValidatorAddress = nftUBD.ValidatorAddress
+	}
+
+	for _, entry := range baseUBD.Entries {
+		ubd.Entries = append(ubd.Entries, entry)
+	}
+
+	for _, entry := range nftUBD.Entries {
+		ubd.Entries = append(ubd.Entries, entry)
+	}
+
 	return ubd, true
 }
 
@@ -180,7 +216,27 @@ func (k Keeper) GetUnbondingDelegationsFromValidator(ctx sdk.Context, valAddr sd
 	for ; iterator.Valid(); iterator.Next() {
 		key := types.GetUBDKeyFromValIndexKey(iterator.Key())
 		value := store.Get(key)
-		ubd := types.MustUnmarshalUBD(k.cdc, value)
+		baseUBD := types.MustUnmarshalBaseUBD(k.cdc, value)
+		ubd := types.UnbondingDelegation{
+			DelegatorAddress: baseUBD.DelegatorAddress,
+			ValidatorAddress: baseUBD.ValidatorAddress,
+			Entries:          []exported.UnbondingDelegationEntryI{},
+		}
+
+		for _, entry := range baseUBD.Entries {
+			ubd.Entries = append(ubd.Entries, entry)
+		}
+
+		key = types.GetUnbondingDelegationNFTByValIndexKey(baseUBD.DelegatorAddress, baseUBD.ValidatorAddress)
+		value = store.Get(key)
+		if value != nil {
+			nftUBD := types.MustUnmarshalNFTUBD(k.cdc, value)
+
+			for _, entry := range nftUBD.Entries {
+				ubd.Entries = append(ubd.Entries, entry)
+			}
+		}
+
 		ubds = append(ubds, ubd)
 	}
 	return ubds
@@ -214,11 +270,42 @@ func (k Keeper) HasMaxUnbondingDelegationEntries(ctx sdk.Context,
 
 // set the unbonding delegation and associated index
 func (k Keeper) SetUnbondingDelegation(ctx sdk.Context, ubd types.UnbondingDelegation) {
+	baseUBD := types.BaseUnbondingDelegation{
+		DelegatorAddress: ubd.DelegatorAddress,
+		ValidatorAddress: ubd.ValidatorAddress,
+		Entries:          []types.UnbondingDelegationEntry{},
+	}
+
+	nftUBD := types.NFTUnbondingDelegation{
+		DelegatorAddress: ubd.DelegatorAddress,
+		ValidatorAddress: ubd.ValidatorAddress,
+		Entries:          []types.UnbondingDelegationNFTEntry{},
+	}
+
+	for _, entry := range ubd.Entries {
+		switch entry := entry.(type) {
+		case types.UnbondingDelegationEntry:
+			baseUBD.Entries = append(baseUBD.Entries, entry)
+		case types.UnbondingDelegationNFTEntry:
+			nftUBD.Entries = append(nftUBD.Entries, entry)
+		}
+	}
+
 	store := ctx.KVStore(k.storeKey)
-	bz := types.MustMarshalUBD(k.cdc, ubd)
-	key := types.GetUBDKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
-	store.Set(key, bz)
-	store.Set(types.GetUBDByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress), []byte{}) // index, store empty bytes
+
+	if len(baseUBD.Entries) != 0 {
+		bz := types.MustMarshalBaseUBD(k.cdc, baseUBD)
+		key := types.GetUBDKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
+		store.Set(key, bz)
+		store.Set(types.GetUBDByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress), []byte{}) // index, store empty bytes
+	}
+
+	if len(nftUBD.Entries) != 0 {
+		bz := types.MustMarshalNFTUBD(k.cdc, nftUBD)
+		key := types.GetUnbondingDelegationNFTKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
+		store.Set(key, bz)
+		store.Set(types.GetUnbondingDelegationNFTByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress), []byte{}) // index, store empty bytes
+	}
 }
 
 // remove the unbonding delegation object and associated index
@@ -646,8 +733,19 @@ func (k Keeper) GetUnbondingDelegationsByDelegator(ctx sdk.Context, delegator sd
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		unbondingDelegation := types.MustUnmarshalUBD(k.cdc, iterator.Value())
-		unbondingDelegations = append(unbondingDelegations, unbondingDelegation)
+		unbondingDelegation := types.MustUnmarshalBaseUBD(k.cdc, iterator.Value())
+
+		ubd := types.UnbondingDelegation{
+			DelegatorAddress: unbondingDelegation.DelegatorAddress,
+			ValidatorAddress: unbondingDelegation.ValidatorAddress,
+			Entries:          []exported.UnbondingDelegationEntryI{},
+		}
+
+		for _, entry := range unbondingDelegation.Entries {
+			ubd.Entries = append(ubd.Entries, entry)
+		}
+
+		unbondingDelegations = append(unbondingDelegations, ubd)
 	}
 
 	return unbondingDelegations
@@ -661,8 +759,19 @@ func (k Keeper) GetAllUnbondingDelegations(ctx sdk.Context) []types.UnbondingDel
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		unbondingDelegation := types.MustUnmarshalUBD(k.cdc, iterator.Value())
-		unbondingDelegations = append(unbondingDelegations, unbondingDelegation)
+		unbondingDelegation := types.MustUnmarshalBaseUBD(k.cdc, iterator.Value())
+
+		ubd := types.UnbondingDelegation{
+			DelegatorAddress: unbondingDelegation.DelegatorAddress,
+			ValidatorAddress: unbondingDelegation.ValidatorAddress,
+			Entries:          []exported.UnbondingDelegationEntryI{},
+		}
+
+		for _, entry := range unbondingDelegation.Entries {
+			ubd.Entries = append(ubd.Entries, entry)
+		}
+
+		unbondingDelegations = append(unbondingDelegations, ubd)
 	}
 
 	return unbondingDelegations

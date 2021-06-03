@@ -52,7 +52,9 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types.MsgTransferNFT, k keeper.Ke
 	if !found {
 		return nil, ErrUnknownCollection
 	}
-	collection.NFTs.Update(msg.ID, nft)
+
+	collection.NFTs, _ = collection.NFTs.Update(msg.ID, nft)
+
 	k.SetCollection(ctx, msg.Denom, collection)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -84,7 +86,12 @@ func HandleMsgEditNFTMetadata(ctx sdk.Context, msg types.MsgEditNFTMetadata, k k
 	}
 
 	// update NFT
-	nft.EditMetadata(msg.TokenURI)
+	nft = nft.EditMetadata(msg.TokenURI)
+	err = k.UpdateNFT(ctx, msg.Denom, nft)
+
+	if err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -112,6 +119,10 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 		}
 		if !nft.GetAllowMint() {
 			return nil, ErrNotAllowedMint
+		}
+	} else {
+		if k.ExistTokenURI(ctx, msg.TokenURI) {
+			return nil, ErrNotUniqueTokenURI
 		}
 	}
 
