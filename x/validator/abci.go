@@ -187,9 +187,9 @@ func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
 		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
 		for _, delegation := range delegations {
 			if val.Status == Bonded {
-				bondedTokens = bondedTokens.Add(delegation.Coin)
+				bondedTokens = bondedTokens.Add(delegation.GetCoin())
 			} else {
-				notBondedTokens = notBondedTokens.Add(delegation.Coin)
+				notBondedTokens = notBondedTokens.Add(delegation.GetCoin())
 			}
 		}
 	}
@@ -234,9 +234,9 @@ func SyncPools2(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
 		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
 		for _, delegation := range delegations {
 			if val.Status == Bonded {
-				bondedTokens = bondedTokens.Add(delegation.Coin)
+				bondedTokens = bondedTokens.Add(delegation.GetCoin())
 			} else {
-				notBondedTokens = notBondedTokens.Add(delegation.Coin)
+				notBondedTokens = notBondedTokens.Add(delegation.GetCoin())
 			}
 		}
 	}
@@ -244,7 +244,7 @@ func SyncPools2(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
 	unbondingDelegations := k.GetAllUnbondingDelegations(ctx)
 	for _, delegation := range unbondingDelegations {
 		for _, entry := range delegation.Entries {
-			notBondedTokens = notBondedTokens.Add(entry.Balance)
+			notBondedTokens = notBondedTokens.Add(entry.GetBalance())
 		}
 	}
 
@@ -282,7 +282,7 @@ func SyncUnbondingDelegations(ctx sdk.Context, k Keeper) {
 						types.EventTypeCompleteUnbonding,
 						sdk.NewAttribute(types.AttributeKeyValidator, delegation.ValidatorAddress.String()),
 						sdk.NewAttribute(types.AttributeKeyDelegator, delegation.DelegatorAddress.String()),
-						sdk.NewAttribute(types.AttributeKeyCoin, entry.Balance.String()),
+						sdk.NewAttribute(types.AttributeKeyCoin, entry.GetBalance().String()),
 					),
 				)
 			}

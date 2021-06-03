@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"strings"
