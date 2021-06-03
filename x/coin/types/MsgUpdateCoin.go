@@ -7,24 +7,12 @@ import (
 
 var _ sdk.Msg = &MsgUpdateCoin{}
 
-type MsgUpdateCoin struct {
-	Sender      sdk.AccAddress `json:"sender" yaml:"sender"`
-	Symbol      string         `json:"symbol" yaml:"symbol"`
-	LimitVolume sdk.Int        `json:"limit_volume" yaml:"limit_volume"`
-	Identity    string         `json:"identity" yaml:"identity"`
-}
-
-func (msg MsgUpdateCoin) Reset() {
-	panic("implement me")
-}
-
-func (msg MsgUpdateCoin) String() string {
-	panic("implement me")
-}
-
-func (msg MsgUpdateCoin) ProtoMessage() {
-	panic("implement me")
-}
+//type MsgUpdateCoin struct {
+//	Sender      sdk.AccAddress `json:"sender" yaml:"sender"`
+//	Symbol      string         `json:"symbol" yaml:"symbol"`
+//	LimitVolume sdk.Int        `json:"limit_volume" yaml:"limit_volume"`
+//	Identity    string         `json:"identity" yaml:"identity"`
+//}
 
 func NewMsgUpdateCoin(sender sdk.AccAddress, symbol string, limitVolume sdk.Int, identity string) MsgUpdateCoin {
 	return MsgUpdateCoin{

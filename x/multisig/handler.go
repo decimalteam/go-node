@@ -86,7 +86,7 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 	// Retrieve coins hold on the multisig wallet
 	var walletCoins sdk.Coins
 	if walletAccount := keeper.AccountKeeper.GetAccount(ctx, wallet.Address); walletAccount != nil {
-		walletCoins = walletAccount.GetCoins()
+		walletCoins = keeper.BankKeeper.GetAllBalances(ctx, walletAccount.GetAddress())
 	} else {
 		walletCoins = sdk.NewCoins()
 	}

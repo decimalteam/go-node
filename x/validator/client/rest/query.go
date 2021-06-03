@@ -3,6 +3,7 @@ package rest
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	types2 "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"net/http"
 	"strings"
 
@@ -207,7 +208,7 @@ func validatorsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 
 		status := r.FormValue("status")
 		if status == "" {
-			status = sdk.BondStatusBonded
+			status = types2.BondStatusBonded
 		}
 
 		params := types.NewQueryValidatorsParams(page, limit, status)

@@ -11,7 +11,6 @@ import (
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client"
 	//"strings"
 )
 
@@ -71,6 +70,6 @@ func CoinSellAllRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		//	return err
 		//}
 
-		tx.WriteGeneratedTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, []sdk.Msg{&msg}...)
 	}
 }

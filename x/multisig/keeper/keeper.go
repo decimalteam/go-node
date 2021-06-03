@@ -4,13 +4,13 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	types2 "bitbucket.org/decimalteam/go-node/x/multisig/types"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 )
 
 // Keeper of the multisig store
@@ -18,13 +18,13 @@ type Keeper struct {
 	storeKey      sdk.StoreKey
 	cdc           *codec.LegacyAmino
 	paramspace    types2.ParamSubspace
-	AccountKeeper auth.AccountKeeper
+	AccountKeeper keeper.AccountKeeper
 	CoinKeeper    coin.Keeper
-	BankKeeper    bank.Keeper
+	BankKeeper    bankKeeper.Keeper
 }
 
 // NewKeeper creates a multisig keeper
-func NewKeeper(cdc *codec.LegacyAmino, key sdk.StoreKey, paramspace types2.ParamSubspace, accountKeeper auth.AccountKeeper, coinKeeper coin.Keeper, bankKeeper bank.Keeper) Keeper {
+func NewKeeper(cdc *codec.LegacyAmino, key sdk.StoreKey, paramspace types2.ParamSubspace, accountKeeper keeper.AccountKeeper, coinKeeper coin.Keeper, bankKeeper bankKeeper.Keeper) Keeper {
 	keeper := Keeper{
 		storeKey:      key,
 		cdc:           cdc,

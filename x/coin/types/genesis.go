@@ -8,11 +8,6 @@ import (
 )
 
 // GenesisState - all coin state that must be provided at genesis
-type GenesisState struct {
-	Title         string  `json:"title" yaml:"title"`   // Full coin title (Bitcoin)
-	Symbol        string  `json:"symbol" yaml:"symbol"` // Short coin title (BTC)
-	InitialVolume sdk.Int `json:"initial_volume" yaml:"initial_volume"`
-}
 
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(title string, symbol string, initVolume sdk.Int) GenesisState {

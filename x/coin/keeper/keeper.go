@@ -4,6 +4,8 @@ import (
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"encoding/hex"
 	"fmt"
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"strings"
 	"sync"
 
@@ -11,8 +13,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -24,8 +24,8 @@ type Keeper struct {
 	storeKey      sdk.StoreKey
 	cdc           *codec.LegacyAmino
 	paramspace    types2.ParamSubspace
-	AccountKeeper auth.AccountKeeper
-	BankKeeper    bank.Keeper
+	AccountKeeper authKeeper.AccountKeeper
+	BankKeeper    bankKeeper.Keeper
 	Config        *config.Config
 
 	coinCache      map[string]bool
@@ -33,7 +33,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a coin keeper
-func NewKeeper(cdc *codec.LegacyAmino, key sdk.StoreKey, paramspace types2.ParamSubspace, accountKeeper auth.AccountKeeper, coinKeeper bank.Keeper, config *config.Config) Keeper {
+func NewKeeper(cdc *codec.LegacyAmino, key sdk.StoreKey, paramspace types2.ParamSubspace, accountKeeper authKeeper.AccountKeeper, coinKeeper bankKeeper.Keeper, config *config.Config) Keeper {
 	keeper := Keeper{
 		storeKey:       key,
 		cdc:            cdc,
@@ -114,7 +114,7 @@ func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int
 		acc = k.AccountKeeper.NewAccountWithAddress(ctx, address)
 	}
 	// Get account coins information
-	coins := acc.GetCoins()
+	coins := k.BankKeeper.GetAllBalances(ctx, acc.GetAddress())
 	updAmount := Abs(amount)
 	updCoin := sdk.Coins{sdk.NewCoin(strings.ToLower(coinSymbol), updAmount)}
 	// Updating coin information
@@ -124,7 +124,7 @@ func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int
 		coins = coins.Add(updCoin...)
 	}
 	// Update coin information
-	err := acc.SetCoins(coins)
+	err := k.BankKeeper.SetBalances(ctx, acc.GetAddress(), coins)
 	if err != nil {
 		return err
 	}

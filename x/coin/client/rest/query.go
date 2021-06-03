@@ -3,6 +3,7 @@ package rest
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"net/http"
 
 	"github.com/gorilla/mux"

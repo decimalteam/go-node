@@ -5,7 +5,6 @@ import (
 	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -27,7 +26,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	govQueryCmd.AddCommand(flags.GetCommands(
+	govQueryCmd.AddCommand(
 		GetCmdQueryProposal(queryRoute, cdc),
 		GetCmdQueryProposals(queryRoute, cdc),
 		GetCmdQueryVote(queryRoute, cdc),
@@ -35,14 +34,15 @@ func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 		GetCmdQueryParam(queryRoute, cdc),
 		GetCmdQueryParams(queryRoute, cdc),
 		GetCmdQueryProposer(queryRoute, cdc),
-		GetCmdQueryTally(queryRoute, cdc))...)
+		GetCmdQueryTally(queryRoute, cdc),
+		)
 
 	return govQueryCmd
 }
 
 // GetCmdQueryProposal implements the query proposal command.
 func GetCmdQueryProposal(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "proposal [proposal-id]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Query details of a single proposal",
@@ -53,11 +53,11 @@ proposal-id by running "%s query gov proposals".
 Example:
 $ %s query gov proposal 1
 `,
-				version.ClientName, version.ClientName,
+				version.AppName, version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -66,16 +66,19 @@ $ %s query gov proposal 1
 			}
 
 			// Query the proposal
-			res, err := gcutils.QueryProposalByID(proposalID, cliCtx, queryRoute)
+			res, err := gcutils.QueryProposalByID(proposalID, clientCtx, queryRoute)
 			if err != nil {
 				return err
 			}
 
 			var proposal types2.Proposal
 			cdc.MustUnmarshalJSON(res, &proposal)
-			return cliCtx.PrintOutput(proposal) // nolint:errcheck
+			return clientCtx.PrintProto(proposal) // nolint:errcheck
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryProposals implements a query proposals command.
@@ -92,7 +95,7 @@ $ %s query gov proposals --voter cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 $ %s query gov proposals --status (DepositPeriod|VotingPeriod|Passed|Rejected)
 $ %s query gov proposals --page=2 --limit=100
 `,
-				version.ClientName, version.ClientName, version.ClientName, version.ClientName,
+				version.AppName, version.AppName, version.AppName, version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -128,9 +131,9 @@ $ %s query gov proposals --page=2 --limit=100
 				return err
 			}
 
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/proposals", queryRoute), bz)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/proposals", queryRoute), bz)
 			if err != nil {
 				return err
 			}
@@ -145,7 +148,7 @@ $ %s query gov proposals --page=2 --limit=100
 				return fmt.Errorf("no matching proposals found")
 			}
 
-			return cliCtx.PrintOutput(matchingProposals) // nolint:errcheck
+			return clientCtx.PrintProto(matchingProposals) // nolint:errcheck
 		},
 	}
 
@@ -153,6 +156,7 @@ $ %s query gov proposals --page=2 --limit=100
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of proposals to query for")
 	cmd.Flags().String(flagVoter, "", "(optional) filter by proposals voted on by voted")
 	cmd.Flags().String(flagStatus, "", "(optional) filter proposals by proposal status, status: deposit_period/voting_period/passed/rejected")
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -160,7 +164,7 @@ $ %s query gov proposals --page=2 --limit=100
 // Command to Get a Proposal Information
 // GetCmdQueryVote implements the query proposal vote command.
 func GetCmdQueryVote(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "vote [proposal-id] [voter-addr]",
 		Args:  cobra.ExactArgs(2),
 		Short: "Query details of a single vote",
@@ -170,11 +174,11 @@ func GetCmdQueryVote(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 Example:
 $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -183,7 +187,7 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			}
 
 			// check to see if the proposal is in the store
-			_, err = gcutils.QueryProposalByID(proposalID, cliCtx, queryRoute)
+			_, err = gcutils.QueryProposalByID(proposalID, clientCtx, queryRoute)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
 			}
@@ -199,7 +203,7 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 				return err
 			}
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/vote", queryRoute), bz)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/vote", queryRoute), bz)
 			if err != nil {
 				return err
 			}
@@ -212,7 +216,7 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			_ = cdc.UnmarshalJSON(res, &vote)
 
 			if vote.Empty() {
-				res, err = gcutils.QueryVoteByTxQuery(cliCtx, params)
+				res, err = gcutils.QueryVoteByTxQuery(clientCtx, params)
 				if err != nil {
 					return err
 				}
@@ -222,9 +226,12 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 				}
 			}
 
-			return cliCtx.PrintOutput(vote)
+			return clientCtx.PrintString(vote.String())
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryVotes implements the command to query for proposal votes.
@@ -240,11 +247,11 @@ Example:
 $ %[1]s query gov votes 1
 $ %[1]s query gov votes 1 --page=2 --limit=100
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -262,7 +269,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 			}
 
 			// check to see if the proposal is in the store
-			res, err := gcutils.QueryProposalByID(proposalID, cliCtx, queryRoute)
+			res, err := gcutils.QueryProposalByID(proposalID, clientCtx, queryRoute)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
 			}
@@ -272,9 +279,9 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 
 			propStatus := proposal.Status
 			if !(propStatus == types2.StatusVotingPeriod) {
-				res, err = gcutils.QueryVotesByTxQuery(cliCtx, params)
+				res, err = gcutils.QueryVotesByTxQuery(clientCtx, params)
 			} else {
-				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/votes", queryRoute), bz)
+				res, _, err = clientCtx.QueryWithData(fmt.Sprintf("custom/%s/votes", queryRoute), bz)
 			}
 
 			if err != nil {
@@ -283,9 +290,10 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 
 			var votes types2.Votes
 			cdc.MustUnmarshalJSON(res, &votes)
-			return cliCtx.PrintOutput(votes)
+			return clientCtx.PrintProto(votes)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
 	cmd.Flags().Int(flags.FlagPage, 1, "pagination page of votes to to query for")
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of votes to query for")
 	return cmd
@@ -293,7 +301,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 
 // GetCmdQueryTally implements the command to query for proposal tally result.
 func GetCmdQueryTally(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "tally [proposal-id]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Get the tally of a proposal vote",
@@ -304,11 +312,11 @@ the proposal-id by running "%s query gov proposals".
 Example:
 $ %s query gov tally 1
 `,
-				version.ClientName, version.ClientName,
+				version.AppName, version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -317,7 +325,7 @@ $ %s query gov tally 1
 			}
 
 			// check to see if the proposal is in the store
-			_, err = gcutils.QueryProposalByID(proposalID, cliCtx, queryRoute)
+			_, err = gcutils.QueryProposalByID(proposalID, clientCtx, queryRoute)
 			if err != nil {
 				return fmt.Errorf("failed to fetch proposal-id %d: %s", proposalID, err)
 			}
@@ -330,21 +338,24 @@ $ %s query gov tally 1
 			}
 
 			// Query store
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/tally", queryRoute), bz)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/tally", queryRoute), bz)
 			if err != nil {
 				return err
 			}
 
 			var tally types2.TallyResult
 			cdc.MustUnmarshalJSON(res, &tally)
-			return cliCtx.PrintOutput(tally)
+			return clientCtx.PrintProto(tally)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryProposal implements the query proposal command.
 func GetCmdQueryParams(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "params",
 		Short: "Query the parameters of the governance process",
 		Long: strings.TrimSpace(
@@ -353,13 +364,13 @@ func GetCmdQueryParams(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command
 Example:
 $ %s query gov params
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			tp, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/params/tallying", queryRoute), nil)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
+			tp, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/params/tallying", queryRoute), nil)
 			if err != nil {
 				return err
 			}
@@ -367,14 +378,17 @@ $ %s query gov params
 			var tallyParams types2.TallyParams
 			cdc.MustUnmarshalJSON(tp, &tallyParams)
 
-			return cliCtx.PrintOutput(types2.NewParams(tallyParams))
+			return clientCtx.PrintString(types2.NewParams(tallyParams).String())
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryProposal implements the query proposal command.
 func GetCmdQueryParam(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "param [param-type]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Query the parameters (voting|tallying|deposit) of the governance process",
@@ -386,14 +400,14 @@ $ %s query gov param voting
 $ %s query gov param tallying
 $ %s query gov param deposit
 `,
-				version.ClientName, version.ClientName, version.ClientName,
+				version.AppName, version.AppName, version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			// Query store
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/params/%s", queryRoute, args[0]), nil)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/params/%s", queryRoute, args[0]), nil)
 			if err != nil {
 				return err
 			}
@@ -407,14 +421,17 @@ $ %s query gov param deposit
 				return fmt.Errorf("argument must be one of (voting|tallying|deposit), was %s", args[0])
 			}
 
-			return cliCtx.PrintOutput(out)
+			return clientCtx.PrintProto(out)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryProposer implements the query proposer command.
 func GetCmdQueryProposer(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "proposer [proposal-id]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Query the proposer of a governance proposal",
@@ -424,11 +441,11 @@ func GetCmdQueryProposer(queryRoute string, cdc *codec.LegacyAmino) *cobra.Comma
 Example:
 $ %s query gov proposer 1
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			// validate that the proposalID is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -436,12 +453,15 @@ $ %s query gov proposer 1
 				return fmt.Errorf("proposal-id %s is not a valid uint", args[0])
 			}
 
-			prop, err := gcutils.QueryProposerByTxQuery(cliCtx, proposalID)
+			prop, err := gcutils.QueryProposerByTxQuery(clientCtx, proposalID)
 			if err != nil {
 				return err
 			}
 
-			return cliCtx.PrintOutput(prop)
+			return clientCtx.PrintProto(prop)
 		},
 	}
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }

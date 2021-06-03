@@ -1,0 +1,17 @@
+syntax = "proto3";
+package coin;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/coin/types";
+
+import "gogoproto/gogo.proto";
+
+message GenesisState {
+  string Title = 1 [(gogoproto.jsontag) = "title", (gogoproto.moretags) = "yaml:\"title\""];
+  string Symbol = 2 [(gogoproto.jsontag) = "symbol", (gogoproto.moretags) = "yaml:\"symbol\""];
+  uint64 InitialVolume = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "limit_volume",
+    (gogoproto.moretags) = "yaml:\"limit_volume\""
+  ];
+}

@@ -3,13 +3,14 @@ package rest
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"net/http"
 	"strconv"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 )
 
 type CoinCreateReq struct {
@@ -62,7 +63,7 @@ func CoinCreateRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		balance := acc.GetCoins()
+		balance, _ := cliUtils.GetAccountCoins(cliCtx, acc.GetAddress())
 		if balance.AmountOf(cliUtils.GetBaseCoin()).LT(initReserve) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "Not enough coin to reserve")
 			return
@@ -74,6 +75,6 @@ func CoinCreateRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, []sdk.Msg{&msg}...)
 	}
 }

@@ -4,6 +4,8 @@ import (
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"crypto/sha256"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	"math/big"
 	"strconv"
 
@@ -33,7 +35,7 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 		Short: "Issue check",
 		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			var coinSymbol = args[0]
@@ -71,7 +73,9 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			check.Lock = big.NewInt(0).SetBytes(lock)
 
 			// Retrieve private key from the keybase account
+			ExportPrivKeyArmor
 			privKeyArmored, err := txBldr.Keybase().ExportPrivKey(cliCtx.FromName, "", "")
+			keyring.Exporter().ExportPrivKeyArmor()
 			if err != nil {
 				msgError := fmt.Sprintf("unable to retrieve armored private key for account %s: %s", cliCtx.FromName, err.Error())
 				return sdkerrors.New(types2.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
@@ -108,7 +112,7 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
-			return cliCtx.PrintOutput(struct {
+			return clientCtx.PrintObjectLegacy(struct {
 				Check string
 			}{
 				Check: base58.Encode(checkBytes),

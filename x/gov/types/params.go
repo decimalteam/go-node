@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Default governance params
@@ -18,17 +18,17 @@ var (
 )
 
 // ParamKeyTable - Key declaration for parameters
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable(
-		params.NewParamSetPair(ParamStoreKeyTallyParams, TallyParams{}, validateTallyParams),
+func ParamKeyTable() types.KeyTable {
+	return types.NewKeyTable(
+		types.NewParamSetPair(ParamStoreKeyTallyParams, TallyParams{}, validateTallyParams),
 	)
 }
 
 // TallyParams defines the params around Tallying votes in governance
-type TallyParams struct {
-	Quorum    sdk.Dec `json:"quorum,omitempty" yaml:"quorum,omitempty"`       //  Minimum percentage of total stake needed to vote for a result to be considered valid
-	Threshold sdk.Dec `json:"threshold,omitempty" yaml:"threshold,omitempty"` //  Minimum proportion of Yes votes for proposal to pass. Initial value: 0.5
-}
+//type TallyParams struct {
+//	Quorum    sdk.Dec `json:"quorum,omitempty" yaml:"quorum,omitempty"`       //  Minimum percentage of total stake needed to vote for a result to be considered valid
+//	Threshold sdk.Dec `json:"threshold,omitempty" yaml:"threshold,omitempty"` //  Minimum proportion of Yes votes for proposal to pass. Initial value: 0.5
+//}
 
 // NewTallyParams creates a new TallyParams object
 func NewTallyParams(quorum, threshold sdk.Dec) TallyParams {

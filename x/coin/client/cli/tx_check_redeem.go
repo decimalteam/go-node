@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 
 	"golang.org/x/crypto/sha3"
 
@@ -18,8 +20,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	utils "github.com/cosmos/cosmos-sdk/x/auth/client"
 )
 
 func GetCmdRedeemCheck(cdc *codec.LegacyAmino) *cobra.Command {
@@ -28,8 +28,7 @@ func GetCmdRedeemCheck(cdc *codec.LegacyAmino) *cobra.Command {
 		Short: "Redeem check",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			var checkBase58 = args[0]
 			var passphrase = args[1] // TODO: Read passphrase by request to avoid saving it in terminal history
@@ -60,7 +59,7 @@ func GetCmdRedeemCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			receiverAddressHash := make([]byte, 32)
 			hw := sha3.NewLegacyKeccak256()
 			err = rlp.Encode(hw, []interface{}{
-				cliCtx.FromAddress,
+				clientCtx.FromAddress,
 			})
 			if err != nil {
 				msgError := fmt.Sprintf("unable to RLP encode check receiver address: %s", err.Error())
@@ -77,14 +76,13 @@ func GetCmdRedeemCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			proofBase64 := base64.StdEncoding.EncodeToString(signature)
 
 			// Prepare redeem check message
-			msg := types2.NewMsgRedeemCheck(cliCtx.FromAddress, checkBase58, proofBase64)
+			msg := types2.NewMsgRedeemCheck(clientCtx.FromAddress, checkBase58, proofBase64)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
 
-			GenerateOrBroadca
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{&msg}...)
 		},
 	}
 }

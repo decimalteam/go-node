@@ -2,8 +2,7 @@ package types
 
 import (
 	"fmt"
-
-	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Default parameter namespace
@@ -19,8 +18,8 @@ var (
 )
 
 // ParamKeyTable for multisig module
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
+func ParamKeyTable() types.KeyTable {
+	return types.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // Params - used for initializing default parameter for multisig at genesis
@@ -45,8 +44,8 @@ func (p Params) String() string {
 }
 
 // ParamSetPairs - Implements params.ParamSet
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
+func (p *Params) ParamSetPairs() types.ParamSetPairs {
+	return types.ParamSetPairs{
 		// TODO: Pair your key with the param
 		// params.NewParamSetPair(KeyParamName, &p.ParamName),
 	}

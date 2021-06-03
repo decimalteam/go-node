@@ -2,13 +2,13 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // ParamSubspace defines the expected Subspace interfacace
 type ParamSubspace interface {
-	WithKeyTable(table params.KeyTable) params.Subspace
+	WithKeyTable(table types.KeyTable) types.Subspace
 	Get(ctx sdk.Context, key []byte, ptr interface{})
-	GetParamSet(ctx sdk.Context, ps params.ParamSet)
-	SetParamSet(ctx sdk.Context, ps params.ParamSet)
+	GetParamSet(ctx sdk.Context, ps types.ParamSet)
+	SetParamSet(ctx sdk.Context, ps types.ParamSet)
 }

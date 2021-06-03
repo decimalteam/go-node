@@ -46,27 +46,27 @@ func NewHandler(k Keeper) sdk.Handler {
 		}()
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		case types2.MsgCreateCoin:
-			return handleMsgCreateCoin(ctx, k, msg)
-		case types2.MsgUpdateCoin:
-			return handleMsgUpdateCoin(ctx, k, msg)
-		case types2.MsgSendCoin:
-			return handleMsgSendCoin(ctx, k, msg)
-		case types2.MsgMultiSendCoin:
-			return handleMsgMultiSendCoin(ctx, k, msg)
-		case types2.MsgBuyCoin:
-			return handleMsgBuyCoin(ctx, k, msg)
-		case types2.MsgSellCoin:
-			return handleMsgSellCoin(ctx, k, msg, false)
-		case types2.MsgSellAllCoin:
+		case *MsgCreateCoin:
+			return handleMsgCreateCoin(ctx, k, *msg)
+		case *MsgUpdateCoin:
+			return handleMsgUpdateCoin(ctx, k, *msg)
+		case *MsgSendCoin:
+			return handleMsgSendCoin(ctx, k, *msg)
+		case *MsgMultiSendCoin:
+			return handleMsgMultiSendCoin(ctx, k, *msg)
+		case *MsgBuyCoin:
+			return handleMsgBuyCoin(ctx, k, *msg)
+		case *MsgSellCoin:
+			return handleMsgSellCoin(ctx, k, *msg, false)
+		case *MsgSellAllCoin:
 			msgSell := MsgSellCoin{
 				Sender:       msg.Sender,
 				CoinToSell:   msg.CoinToSell,
 				MinCoinToBuy: msg.MinCoinToBuy,
 			}
 			return handleMsgSellCoin(ctx, k, msgSell, true)
-		case types2.MsgRedeemCheck:
-			return handleMsgRedeemCheck(ctx, k, msg)
+		case *MsgRedeemCheck:
+			return handleMsgRedeemCheck(ctx, k, *msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -119,7 +119,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types2.MsgCreateCoin) (*
 	}
 
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)
-	balance := acc.GetCoins()
+	balance := k.BankKeeper.GetAllBalances(ctx, acc.GetAddress())
 	if balance.AmountOf(cliUtils.GetBaseCoin()).LT(msg.InitialReserve) {
 		return nil, types2.ErrInsufficientCoinReserve()
 	}
@@ -239,7 +239,7 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgMultiSendCo
 func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types2.MsgBuyCoin) (*sdk.Result, error) {
 	// Retrieve buyer account and it's balance of selling coins
 	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
-	balance := account.GetCoins().AmountOf(strings.ToLower(msg.MaxCoinToSell.Denom))
+	balance := k.BankKeeper.GetAllBalances(ctx, account.GetAddress()).AmountOf(strings.ToLower(msg.MaxCoinToSell.Denom))
 
 	// Retrieve the coin requested to buy
 	coinToBuy, err := k.GetCoin(ctx, msg.CoinToBuy.Denom)
@@ -343,7 +343,7 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types2.MsgBuyCoin) (*sdk.Re
 func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types2.MsgSellCoin, sellAll bool) (*sdk.Result, error) {
 	// Retrieve seller account and it's balance of selling coins
 	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
-	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell.Denom))
+	balance := k.BankKeeper.GetAllBalances(ctx, account.GetAddress()).AmountOf(strings.ToLower(msg.CoinToSell.Denom))
 
 	// Fill amount to sell in case of MsgSellAll
 	if sellAll {
@@ -478,7 +478,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types2.MsgRedeemCheck) 
 	}
 
 	account := k.AccountKeeper.GetAccount(ctx, issuer)
-	balance := account.GetCoins().AmountOf(strings.ToLower(check.Coin))
+	balance := k.BankKeeper.GetAllBalances(ctx, account.GetAddress()).AmountOf(strings.ToLower(check.Coin))
 
 	// Retrieve the coin specified in the check
 	coin, err := k.GetCoin(ctx, check.Coin)

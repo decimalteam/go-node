@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/version"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -23,22 +22,22 @@ func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	swapQueryCmd.AddCommand(flags.GetCommands(
+	swapQueryCmd.AddCommand(
 		GetCmdQuerySwap(queryRoute, cdc),
 		GetCmdQueryActiveSwap(queryRoute, cdc),
 		GetCmdQueryPool(queryRoute, cdc),
-	)...)
+	)
 
 	return swapQueryCmd
 }
 
 func GetCmdQuerySwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "swap [hashed_secret]",
 		Short: "Query a swap",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			hashRaw, err := hex.DecodeString(args[0])
 			if err != nil {
@@ -52,7 +51,7 @@ func GetCmdQuerySwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types2.QuerySwap), bz)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types2.QuerySwap), bz)
 			if err != nil {
 				return err
 			}
@@ -60,20 +59,24 @@ func GetCmdQuerySwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 			var swap types2.Swap
 			cdc.MustUnmarshalJSON(res, &swap)
 
-			return cliCtx.PrintOutput(swap)
+			return clientCtx.PrintProto(swap)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
 
 func GetCmdQueryActiveSwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "active-swap",
 		Args:  cobra.NoArgs,
 		Short: "Query all active swaps",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			bz, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types2.QueryActiveSwaps), nil)
+			bz, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", storeName, types2.QueryActiveSwaps), nil)
 			if err != nil {
 				return err
 			}
@@ -83,13 +86,17 @@ func GetCmdQueryActiveSwap(storeName string, cdc *codec.LegacyAmino) *cobra.Comm
 				return err
 			}
 
-			return cliCtx.PrintOutput(swaps)
+			return clientCtx.PrintProto(swaps)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
 
 func GetCmdQueryPool(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "pool",
 		Args:  cobra.NoArgs,
 		Short: "Query the swap pool",
@@ -99,25 +106,29 @@ func GetCmdQueryPool(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 Example:
 $ %s query swap pool
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			bz, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/pool", storeName), nil)
+			bz, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/pool", storeName), nil)
 			if err != nil {
 				return err
 			}
 
 			fmt.Println(string(bz))
 
-			var pool authexported.Account
+			var pool client.Account
 			if err := cdc.UnmarshalJSON(bz, &pool); err != nil {
 				return err
 			}
 
-			return cliCtx.PrintOutput(pool)
+			return clientCtx.PrintProto(pool)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }

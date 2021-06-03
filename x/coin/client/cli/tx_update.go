@@ -4,7 +4,7 @@ import (
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"github.com/cosmos/cosmos-sdk/client"
-	tx2 "github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
@@ -16,9 +16,8 @@ func GetCmdUpdateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 		Short: "Update custom coin",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := client.Context{}.WithLegacyAmino(cdc)
+			clientCtx := client.Context{}.WithLegacyAmino(cdc)
 
-			txBldr := tx.(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 			// Parsing parameters to variables
 			var symbol = args[0]
 			var limitVolume, ok = sdk.NewIntFromString(args[1])
@@ -27,9 +26,9 @@ func GetCmdUpdateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 			}
 			var identity = args[2]
 
-			msg := types2.NewMsgUpdateCoin(cliCtx.GetFromAddress(), symbol, limitVolume, identity)
+			msg := types2.NewMsgUpdateCoin(clientCtx.GetFromAddress(), symbol, limitVolume, identity)
 			// Check if coin does not exist yet
-			coinExists, err := cliUtils.ExistsCoin(cliCtx, symbol)
+			coinExists, err := cliUtils.ExistsCoin(clientCtx, symbol)
 			if err != nil {
 				return err
 			}
@@ -37,7 +36,7 @@ func GetCmdUpdateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 				return types2.ErrCoinDoesNotExist(symbol)
 			}
 
-			return tx2.GenerateOrBroadcastTxCLI(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{&msg}...)
 		},
 	}
 }

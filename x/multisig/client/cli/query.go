@@ -3,11 +3,11 @@ package cli
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/multisig/types"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
@@ -23,12 +23,10 @@ func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 	}
 
 	multisigQueryCmd.AddCommand(
-		flags.GetCommands(
-			listWalletsCommand(queryRoute, cdc),
-			getWalletCommand(queryRoute, cdc),
-			listTransactionsCommand(queryRoute, cdc),
-			getTransactionCommand(queryRoute, cdc),
-		)...,
+		listWalletsCommand(queryRoute, cdc),
+		getWalletCommand(queryRoute, cdc),
+		listTransactionsCommand(queryRoute, cdc),
+		getTransactionCommand(queryRoute, cdc),
 	)
 
 	return multisigQueryCmd
@@ -36,16 +34,16 @@ func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 
 // listWalletsCommand queries a list of wallets containing owner with specified address.
 func listWalletsCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "list-wallets [owner]",
 		Short: "List all multi-signature wallets by owner address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			owner := args[0]
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/listWallets/%s", queryRoute, owner), nil)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/listWallets/%s", queryRoute, owner), nil)
 			if err != nil {
 				fmt.Printf("could not list multi-signature wallets\n")
 				return nil
@@ -53,9 +51,12 @@ func listWalletsCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Comman
 
 			var out types2.QueryWallets
 			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			return clientCtx.PrintProto(out)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // getWalletCommand queries a wallet with specified address.
@@ -65,11 +66,11 @@ func getWalletCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command 
 		Short: "Get multi-signature wallet by address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			address := args[0]
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/getWallet/%s", queryRoute, address), nil)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/getWallet/%s", queryRoute, address), nil)
 			if err != nil {
 				fmt.Printf("could not resolve multi-signature wallet %s\n", address)
 				return nil
@@ -77,23 +78,23 @@ func getWalletCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command 
 
 			var out types2.Wallet
 			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			return clientCtx.PrintProto(out)
 		},
 	}
 }
 
 // listTransactionsCommand queries a list of transactions for the wallet with specified address.
 func listTransactionsCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "list-transactions [wallet]",
 		Short: "List all multi-signature transactions by wallet address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			wallet := args[0]
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/listTransactions/%s", queryRoute, wallet), nil)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/listTransactions/%s", queryRoute, wallet), nil)
 			if err != nil {
 				fmt.Printf("could not list multi-signature transactions\n")
 				return nil
@@ -101,23 +102,26 @@ func listTransactionsCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.C
 
 			var out types2.QueryTransactions
 			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			return clientCtx.PrintProto(out)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // getTransactionCommand queries a transaction with specified ID.
 func getTransactionCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "get-transaction [tx_id]",
 		Short: "Get multi-signature transaction by ID",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			txID := args[0]
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/getTransaction/%s", queryRoute, txID), nil)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/getTransaction/%s", queryRoute, txID), nil)
 			if err != nil {
 				fmt.Printf("could not resolve multi-signature transaction %s\n", txID)
 				return nil
@@ -125,7 +129,10 @@ func getTransactionCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Com
 
 			var out types2.Transaction
 			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			return clientCtx.PrintProto(out)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }

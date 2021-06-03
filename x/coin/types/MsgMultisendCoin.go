@@ -6,27 +6,15 @@ import (
 
 var _ sdk.Msg = &MsgMultiSendCoin{}
 
-type Send struct {
-	Coin     sdk.Coin       `json:"coin" yaml:"coin"`
-	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
-}
-
-type MsgMultiSendCoin struct {
-	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
-	Sends  []Send         `json:"sends"`
-}
-
-func (msg MsgMultiSendCoin) Reset() {
-	panic("implement me")
-}
-
-func (msg MsgMultiSendCoin) String() string {
-	panic("implement me")
-}
-
-func (msg MsgMultiSendCoin) ProtoMessage() {
-	panic("implement me")
-}
+//type Send struct {
+//	Coin     sdk.Coin       `json:"coin" yaml:"coin"`
+//	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
+//}
+//
+//type MsgMultiSendCoin struct {
+//	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
+//	Sends  []Send         `json:"sends"`
+//}
 
 func NewMsgMultiSendCoin(sender sdk.AccAddress, sends []Send) MsgMultiSendCoin {
 	return MsgMultiSendCoin{

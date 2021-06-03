@@ -6,23 +6,11 @@ import (
 
 var _ sdk.Msg = &MsgSendCoin{}
 
-type MsgSendCoin struct {
-	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`
-	Coin     sdk.Coin       `json:"coin" yaml:"coin"`
-	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
-}
-
-func (msg MsgSendCoin) Reset() {
-	panic("implement me")
-}
-
-func (msg MsgSendCoin) String() string {
-	panic("implement me")
-}
-
-func (msg MsgSendCoin) ProtoMessage() {
-	panic("implement me")
-}
+//type MsgSendCoin struct {
+//	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`
+//	Coin     sdk.Coin       `json:"coin" yaml:"coin"`
+//	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
+//}
 
 func NewMsgSendCoin(sender sdk.AccAddress, coin sdk.Coin, receiver sdk.AccAddress) MsgSendCoin {
 	return MsgSendCoin{

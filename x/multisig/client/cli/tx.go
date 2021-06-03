@@ -3,13 +3,14 @@ package cli
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/multisig/types"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -17,7 +18,7 @@ import (
 )
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
+func GetTxCmd() *cobra.Command {
 	multisigTxCmd := &cobra.Command{
 		Use:                        types2.ModuleName,
 		Short:                      fmt.Sprintf("%s transactions subcommands", types2.ModuleName),
@@ -26,25 +27,24 @@ func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	multisigTxCmd.AddCommand(flags.PostCommands(
-		getCmdCreateWallet(cdc),
-		getCmdCreateTransaction(cdc),
-		getCmdSignTransaction(cdc),
-	)...)
+	multisigTxCmd.AddCommand(
+		getCmdCreateWallet(),
+		getCmdCreateTransaction(),
+		getCmdSignTransaction(),
+	)
 
 	return multisigTxCmd
 }
 
 // getCmdCreateWallet is the CLI command for sending a CreateWallet transaction.
-func getCmdCreateWallet(cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+func getCmdCreateWallet() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "create-wallet [owners] [weights] [threshold]",
 		Short: "create a new multi-signature wallet",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			ownersStrings := strings.Split(args[0], ",")
 			weightsStrings := strings.Split(args[1], ",")
@@ -72,7 +72,7 @@ func getCmdCreateWallet(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			msg := types2.NewMsgCreateWallet(cliCtx.GetFromAddress(), owners, weights, uint(threshold))
+			msg := types2.NewMsgCreateWallet(clientCtx.GetFromAddress(), owners, weights, uint(threshold))
 			if err != nil {
 				return err
 			}
@@ -82,21 +82,23 @@ func getCmdCreateWallet(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
 		},
 	}
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // getCmdCreateTransaction is the CLI command for sending a CreateTransaction transaction.
-func getCmdCreateTransaction(cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+func getCmdCreateTransaction() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "create-transaction [wallet] [receiver] [coins]",
 		Short: "create a new multi-signature transaction",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			walletString := args[0]
 			receiverString := args[1]
@@ -112,14 +114,14 @@ func getCmdCreateTransaction(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			coins, err := sdk.ParseCoins(coinsString)
+			coins, err := sdk.ParseCoinsNormalized(coinsString)
 			if err != nil {
 				return err
 			}
 
 			// TODO: Check coins exist?
 			// for _, c := range coins {
-			// 	coin, err := cliUtils.GetCoin(cliCtx, c.Denom)
+			// 	coin, err := cliUtils.GetCoin(clientCtx, c.Denom)
 			// 	if err != nil {
 			// 		return err
 			// 	}
@@ -128,7 +130,7 @@ func getCmdCreateTransaction(cdc *codec.LegacyAmino) *cobra.Command {
 			// 	}
 			// }
 
-			msg := types2.NewMsgCreateTransaction(cliCtx.GetFromAddress(), wallet, receiver, coins)
+			msg := types2.NewMsgCreateTransaction(clientCtx.GetFromAddress(), wallet, receiver, coins)
 			if err != nil {
 				return err
 			}
@@ -139,25 +141,27 @@ func getCmdCreateTransaction(cdc *codec.LegacyAmino) *cobra.Command {
 
 			fmt.Printf("%+v\n", msg)
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
 		},
 	}
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // getCmdSignTransaction is the CLI command for saving a transaction signature.
-func getCmdSignTransaction(cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+func getCmdSignTransaction() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "sign-transaction [tx-id]",
 		Short: "Save a signature generated for a specific transaction",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			txID := args[0]
 
-			msg := types2.NewMsgSignTransaction(cliCtx.GetFromAddress(), txID)
+			msg := types2.NewMsgSignTransaction(clientCtx.GetFromAddress(), txID)
 			if err != nil {
 				return err
 			}
@@ -166,7 +170,10 @@ func getCmdSignTransaction(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
 		},
 	}
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }

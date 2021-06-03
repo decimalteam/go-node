@@ -12,16 +12,16 @@ const (
 	TypeMsgSubmitProposal = "submit_proposal"
 )
 
-var _, _ sdk.Msg = MsgSubmitProposal{}, MsgVote{}
+var _, _ sdk.Msg = &MsgSubmitProposal{}, &MsgVote{}
 
 // MsgSubmitProposal defines a message to create a governance proposal with a
 // given content and initial deposit
-type MsgSubmitProposal struct {
-	Content          Content        `json:"content" yaml:"content"`
-	Proposer         sdk.AccAddress `json:"proposer" yaml:"proposer"` //  Address of the proposer
-	VotingStartBlock uint64         `json:"voting_start_block" yaml:"voting_start_block"`
-	VotingEndBlock   uint64         `json:"voting_end_block" yaml:"voting_end_block"`
-}
+//type MsgSubmitProposal struct {
+//	Content          Content        `json:"content" yaml:"content"`
+//	Proposer         sdk.AccAddress `json:"proposer" yaml:"proposer"` //  Address of the proposer
+//	VotingStartBlock uint64         `json:"voting_start_block" yaml:"voting_start_block"`
+//	VotingEndBlock   uint64         `json:"voting_end_block" yaml:"voting_end_block"`
+//}
 
 // NewMsgSubmitProposal creates a new MsgSubmitProposal instance
 func NewMsgSubmitProposal(content Content, proposer sdk.AccAddress, votingStartBlock, votingEndBlock uint64) MsgSubmitProposal {
@@ -79,11 +79,11 @@ func (msg MsgSubmitProposal) GetSigners() []sdk.AccAddress {
 }
 
 // MsgVote defines a message to cast a vote
-type MsgVote struct {
-	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"` // ID of the proposal
-	Voter      sdk.ValAddress `json:"voter" yaml:"voter"`             //  address of the voter
-	Option     VoteOption     `json:"option" yaml:"option"`           //  option from OptionSet chosen by the voter
-}
+//type MsgVote struct {
+//	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"` // ID of the proposal
+//	Voter      sdk.ValAddress `json:"voter" yaml:"voter"`             //  address of the voter
+//	Option     VoteOption     `json:"option" yaml:"option"`           //  option from OptionSet chosen by the voter
+//}
 
 // NewMsgVote creates a message to cast a vote on an active proposal
 func NewMsgVote(voter sdk.ValAddress, proposalID uint64, option VoteOption) MsgVote {

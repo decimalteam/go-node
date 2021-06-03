@@ -4,10 +4,9 @@ import (
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -17,15 +16,14 @@ func GetCmdMultiSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 		Short: "Multisend coin",
 		Args:  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			sends := make([]types2.Send, len(args)/2)
 			coins := make([]sdk.Coin, len(args)/2)
 
 			for i, value := range args {
 				if i%2 == 0 {
-					coin, err := sdk.ParseCoin(value)
+					coin, err := sdk.ParseCoinNormalized(value)
 					if err != nil {
 						return err
 					}
@@ -40,14 +38,14 @@ func GetCmdMultiSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 				}
 			}
 
-			msg := types2.NewMsgMultiSendCoin(cliCtx.GetFromAddress(), sends)
+			msg := types2.NewMsgMultiSendCoin(clientCtx.GetFromAddress(), sends)
 
 			// Check if enough balance
-			acc, err := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+			balance, err := cliUtils.GetAccountCoins(clientCtx, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}
-			balance := acc.GetCoins()
+
 			if !balance.IsAllGTE(coins) {
 				var wantFunds string
 				for _, send := range sends {
@@ -56,7 +54,8 @@ func GetCmdMultiSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 				wantFunds = wantFunds[:len(wantFunds)-2]
 				return types2.ErrInsufficientFunds(wantFunds, balance.String())
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{&msg}...)
 		},
 	}
 }

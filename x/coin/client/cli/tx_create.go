@@ -2,6 +2,7 @@ package cli
 
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -9,8 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+
+
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 )
@@ -21,9 +22,8 @@ func GetCmdCreateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 		Short: "Creates new coin",
 		Args:  cobra.ExactArgs(7),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 			// Parsing parameters to variables
 			var title = args[0]
 			var symbol = args[1]
@@ -37,26 +37,26 @@ func GetCmdCreateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 			var limitVolume, _ = sdk.NewIntFromString(args[5])
 			var identity = args[6]
 
-			msg := types2.NewMsgCreateCoin(cliCtx.GetFromAddress(), title, symbol, uint(crr), initVolume, initReserve, limitVolume, identity)
+			msg := types2.NewMsgCreateCoin(clientCtx.GetFromAddress(), title, symbol, uint(crr), initVolume, initReserve, limitVolume, identity)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
-			acc, err := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+			acc, err := cliUtils.GetAccount(clientCtx, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}
-			balance := acc.GetCoins()
+			balance, _ := cliUtils.GetAccountCoins(clientCtx, acc.GetAddress())
 			if balance.AmountOf(cliUtils.GetBaseCoin()).LT(initReserve) {
 				return types2.ErrInsufficientCoinReserve()
 			}
 			// Check if coin does not exist yet
-			coinExists, _ := cliUtils.ExistsCoin(cliCtx, symbol)
+			coinExists, _ := cliUtils.ExistsCoin(clientCtx, symbol)
 			if coinExists {
 				return types2.ErrCoinAlreadyExist(symbol)
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{&msg}...)
 		},
 	}
 }

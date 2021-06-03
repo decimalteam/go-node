@@ -4,12 +4,11 @@ import (
 	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"bufio"
 	"fmt"
+	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -62,10 +61,10 @@ func GetTxCmd(storeKey string, cdc *codec.LegacyAmino) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	govTxCmd.AddCommand(flags.PostCommands(
+	govTxCmd.AddCommand(
 		GetCmdSubmitProposal(cdc),
 		GetCmdVote(cdc),
-	)...)
+	)
 
 	return govTxCmd
 }
@@ -95,11 +94,15 @@ Which is equivalent to:
 
 $ %s tx gov submit-proposal --title="Test Proposal" --description="My awesome proposal" --voting_start_block 10000 --voting_end_block 20000 --from mykey
 `,
-				version.ClientName, version.ClientName,
+				version.AppName, version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc).WithInput(inBuf)
+			client2.GetTxEncoder(cdc)
+			txBuilder := clientCtx.TxConfig.NewTxBuilder()
+
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 

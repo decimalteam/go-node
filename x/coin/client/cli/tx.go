@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
@@ -21,7 +20,7 @@ func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	coinTxCmd.AddCommand(flags.PostCommands(
+	coinTxCmd.AddCommand(
 		GetCmdCreateCoin(cdc),
 		GetCmdUpdateCoin(cdc),
 		GetCmdBuyCoin(cdc),
@@ -31,7 +30,7 @@ func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 		GetCmdSellAllCoin(cdc),
 		GetCmdIssueCheck(cdc),
 		GetCmdRedeemCheck(cdc),
-	)...)
+	)
 
 	return coinTxCmd
 }

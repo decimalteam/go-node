@@ -49,7 +49,7 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:   "declare [pub_key] [coin] [commission] --from name/address",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			valAddress := clientCtx.GetFromAddress()
 
@@ -84,7 +84,7 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
 		},
 	}
 
@@ -222,7 +222,7 @@ func GetDelegate(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:   "delegate [validator_address] [coin] --from name/address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			delAddress := clientCtx.GetFromAddress()
 
@@ -237,7 +237,7 @@ func GetDelegate(cdc *codec.LegacyAmino) *cobra.Command {
 			}
 
 			msg := types.NewMsgDelegate(valAddress, delAddress, coin)
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
 		},
 	}
 
@@ -252,7 +252,7 @@ func GetDelegateNFT(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:   "delegate-nft [validator_address] [tokenID] [denom] [quantity] --from name/address",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			delAddress := clientCtx.GetFromAddress()
 
@@ -270,7 +270,7 @@ func GetDelegateNFT(cdc *codec.LegacyAmino) *cobra.Command {
 			denom := args[2]
 
 			msg := types.NewMsgDelegateNFT(valAddress, delAddress, tokenID, denom, quantity)
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}......)
 		},
 	}
 
@@ -286,12 +286,12 @@ func GetSetOnline(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:   "set-online --from name/address",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			valAddress := clientCtx.GetFromAddress()
 
 			msg := types.NewMsgSetOnline(sdk.ValAddress(valAddress))
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
 		},
 	}
 }
@@ -303,12 +303,12 @@ func GetSetOffline(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:   "set-offline --from name/address",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			valAddress := clientCtx.GetFromAddress()
 
 			msg := types.NewMsgSetOffline(sdk.ValAddress(valAddress))
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
 		},
 	}
 }
@@ -320,7 +320,7 @@ func GetUnbond(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:   "unbond [validator-address] [coin] --from name/address",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			valAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
@@ -335,7 +335,7 @@ func GetUnbond(cdc *codec.LegacyAmino) *cobra.Command {
 			}
 
 			msg := types.NewMsgUnbond(valAddress, delAddress, coin)
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
 		},
 	}
 
@@ -351,7 +351,7 @@ func GetUnbondNFT(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:   "unbond-nft [validator-address] [tokenID] [denom] [quantity] --from name/address",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			valAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
@@ -369,7 +369,7 @@ func GetUnbondNFT(cdc *codec.LegacyAmino) *cobra.Command {
 			denom := args[2]
 
 			msg := types.NewMsgUnbondNFT(valAddress, delAddress, tokenID, denom, quantity)
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
 		},
 	}
 
@@ -385,7 +385,7 @@ func GetEditCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:   "edit-candidate [validator-address] [reward-address]",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			valAddress, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
@@ -406,7 +406,7 @@ func GetEditCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 			)
 
 			msg := types.NewMsgEditCandidate(valAddress, rewardAddress, description)
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
 		},
 	}
 

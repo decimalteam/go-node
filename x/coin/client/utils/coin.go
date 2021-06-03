@@ -3,6 +3,7 @@ package utils
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"fmt"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"strings"
 
 	"bitbucket.org/decimalteam/go-node/config"
@@ -13,8 +14,8 @@ import (
 )
 
 // Check if coin exists
-func ExistsCoin(cliCtx clientctx.CLIContext, symbol string) (bool, error) {
-	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types2.ModuleName, types2.QueryGetCoin, symbol), nil)
+func ExistsCoin(clientCtx clientctx.Context, symbol string) (bool, error) {
+	res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types2.ModuleName, types2.QueryGetCoin, symbol), nil)
 	if err == nil {
 		return res != nil, nil
 	} else {
@@ -23,13 +24,28 @@ func ExistsCoin(cliCtx clientctx.CLIContext, symbol string) (bool, error) {
 }
 
 // Return coin instance from State
-func GetCoin(cliCtx clientctx.CLIContext, symbol string) (types2.Coin, error) {
-	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types2.ModuleName, types2.QueryGetCoin, symbol), nil)
+func GetCoin(clientCtx clientctx.Context, symbol string) (types2.Coin, error) {
+	res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types2.ModuleName, types2.QueryGetCoin, symbol), nil)
 	coin := types2.Coin{}
-	if err = cliCtx.LegacyAmino.UnmarshalJSON(res, &coin); err != nil {
+	if err = clientCtx.LegacyAmino.UnmarshalJSON(res, &coin); err != nil {
 		return coin, err
 	}
 	return coin, err
+}
+
+func GetAccountCoins(clientCtx clientctx.Context, addr sdk.AccAddress) (sdk.Coins, error) {
+	res, _, err := clientCtx.QueryWithData(fmt.Sprintf("%s/%s/%s", bankTypes.ModuleName, "balances", addr), nil)
+	coins := sdk.Coins{}
+
+	if err != nil {
+		return coins, err
+	}
+
+	if err = clientCtx.LegacyAmino.UnmarshalJSON(res, &coins); err != nil {
+		return coins, err
+	}
+
+	return coins, nil
 }
 
 // Calculate amountToSell and amountToBuy for BuyCoin TX

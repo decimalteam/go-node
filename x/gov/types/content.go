@@ -12,10 +12,10 @@ const (
 	MaxTitleLength       int = 140
 )
 
-type Content struct {
-	Title       string `json:"title" yaml:"title"`             // Proposal title
-	Description string `json:"description" yaml:"description"` // Proposal description
-}
+//type Content struct {
+//	Title       string `json:"title" yaml:"title"`             // Proposal title
+//	Description string `json:"description" yaml:"description"` // Proposal description
+//}
 
 func (c *Content) GetTitle() string       { return c.Title }
 func (c *Content) GetDescription() string { return c.Description }

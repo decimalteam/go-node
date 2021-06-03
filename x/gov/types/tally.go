@@ -6,11 +6,11 @@ import (
 )
 
 // ValidatorGovInfo used for tallying
-type ValidatorGovInfo struct {
-	Address      sdk.ValAddress // address of the validator operator
-	BondedTokens sdk.Int        // Power of a Validator
-	Vote         VoteOption     // Vote of the validator
-}
+//type ValidatorGovInfo struct {
+//	Address      sdk.ValAddress // address of the validator operator
+//	BondedTokens sdk.Int        // Power of a Validator
+//	Vote         VoteOption     // Vote of the validator
+//}
 
 // NewValidatorGovInfo creates a ValidatorGovInfo instance
 func NewValidatorGovInfo(address sdk.ValAddress, bondedTokens sdk.Int, vote VoteOption) ValidatorGovInfo {
@@ -23,11 +23,11 @@ func NewValidatorGovInfo(address sdk.ValAddress, bondedTokens sdk.Int, vote Vote
 }
 
 // TallyResult defines a standard tally for a proposal
-type TallyResult struct {
-	Yes     sdk.Int `json:"yes" yaml:"yes"`
-	Abstain sdk.Int `json:"abstain" yaml:"abstain"`
-	No      sdk.Int `json:"no" yaml:"no"`
-}
+//type TallyResult struct {
+//	Yes     sdk.Int `json:"yes" yaml:"yes"`
+//	Abstain sdk.Int `json:"abstain" yaml:"abstain"`
+//	No      sdk.Int `json:"no" yaml:"no"`
+//}
 
 // NewTallyResult creates a new TallyResult instance
 func NewTallyResult(yes, abstain, no sdk.Int) TallyResult {

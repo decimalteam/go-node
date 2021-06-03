@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/crypto/sha3"
 
-	"github.com/tendermint/tendermint/libs/bech32"
+	bech322 "github.com/cosmos/cosmos-sdk/types/bech32"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -92,7 +92,7 @@ func NewTransaction(wallet, receiver sdk.AccAddress, coins sdk.Coins, signers []
 		Salt:      salt,
 	}
 	bz := sha3.Sum256(sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(transactionMetadata)))
-	id, err := bech32.ConvertAndEncode(MultisigTransactionIDPrefix, bz[12:])
+	id, err := bech322.ConvertAndEncode(MultisigTransactionIDPrefix, bz[12:])
 	if err != nil {
 		return nil, err
 	}

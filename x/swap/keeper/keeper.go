@@ -7,8 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 )
 
 // Keeper of the validator store
@@ -17,13 +17,13 @@ type Keeper struct {
 	cdc           *codec.LegacyAmino
 	paramSpace    types2.ParamSubspace
 	coinKeeper    coin.Keeper
-	accountKeeper auth.AccountKeeper
-	supplyKeeper  supply.Keeper
+	accountKeeper authKeeper.AccountKeeper
+	baseKeeper    bankKeeper.BaseKeeper
 }
 
 func NewKeeper(cdc *codec.LegacyAmino, storeKey sdk.StoreKey, paramSpace types2.ParamSubspace, coinKeeper coin.Keeper,
-	accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper) Keeper {
-	if addr := supplyKeeper.GetModuleAddress(types2.PoolName); addr == nil {
+	accountKeeper authKeeper.AccountKeeper, baseKeeper bankKeeper.BaseKeeper) Keeper {
+	if addr := accountKeeper.GetModuleAddress(types2.PoolName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types2.PoolName))
 	}
 	return Keeper{
@@ -32,7 +32,7 @@ func NewKeeper(cdc *codec.LegacyAmino, storeKey sdk.StoreKey, paramSpace types2.
 		paramSpace:    paramSpace.WithKeyTable(ParamKeyTable()),
 		coinKeeper:    coinKeeper,
 		accountKeeper: accountKeeper,
-		supplyKeeper:  supplyKeeper,
+		baseKeeper:    baseKeeper,
 	}
 }
 
@@ -41,7 +41,7 @@ func (k Keeper) CheckBalance(ctx sdk.Context, address sdk.AccAddress, coins sdk.
 	if account == nil {
 		return false, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "account not found")
 	}
-	if !account.GetCoins().IsAllGTE(coins) {
+	if !k.baseKeeper.GetAllBalances(ctx, account.GetAddress()).IsAllGTE(coins) {
 		return false, nil
 	}
 
@@ -49,15 +49,15 @@ func (k Keeper) CheckBalance(ctx sdk.Context, address sdk.AccAddress, coins sdk.
 }
 
 func (k Keeper) UnlockFunds(ctx sdk.Context, address sdk.AccAddress, coins sdk.Coins) error {
-	return k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types2.PoolName, address, coins)
+	return k.baseKeeper.SendCoinsFromModuleToAccount(ctx, types2.PoolName, address, coins)
 }
 
 func (k Keeper) LockFunds(ctx sdk.Context, address sdk.AccAddress, coins sdk.Coins) error {
-	return k.supplyKeeper.SendCoinsFromAccountToModule(ctx, address, types2.PoolName, coins)
+	return k.baseKeeper.SendCoinsFromAccountToModule(ctx, address, types2.PoolName, coins)
 }
 
 func (k Keeper) CheckPoolFunds(ctx sdk.Context, coins sdk.Coins) (bool, error) {
-	accountAddr := k.supplyKeeper.GetModuleAddress(types2.PoolName)
+	accountAddr := k.accountKeeper.GetModuleAddress(types2.PoolName)
 	if accountAddr.Empty() {
 		return false, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "account not found")
 	}
@@ -67,7 +67,7 @@ func (k Keeper) CheckPoolFunds(ctx sdk.Context, coins sdk.Coins) (bool, error) {
 		return false, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "account not found")
 	}
 
-	if !account.GetCoins().IsAllGTE(coins) {
+	if !k.baseKeeper.GetAllBalances(ctx, account.GetAddress()).IsAllGTE(coins) {
 		return false, nil
 	}
 

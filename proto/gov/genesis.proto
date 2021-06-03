@@ -1,0 +1,29 @@
+syntax = "proto3";
+package gov;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/gov/types";
+
+import "gogoproto/gogo.proto";
+import "gov/gov.proto";
+
+message GenesisState {
+  uint64 StartingProposalID = 1 [
+    (gogoproto.jsontag) = "starting_proposal_id",
+    (gogoproto.moretags) = "yaml:\"starting_proposal_id\""
+  ];
+  repeated Vote Votes = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "votes",
+    (gogoproto.moretags) = "yaml:\"votes\""
+  ];
+  repeated Proposal Proposals = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "proposal",
+    (gogoproto.moretags) = "yaml:\"proposal\""
+  ];
+  TallyParams TallyParams = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "tally_params",
+    (gogoproto.moretags) = "yaml:\"tally_params\""
+  ];
+}

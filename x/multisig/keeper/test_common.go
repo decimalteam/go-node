@@ -5,11 +5,13 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	types2 "bitbucket.org/decimalteam/go-node/x/multisig/types"
 	"bytes"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply"
@@ -28,7 +30,7 @@ var (
 
 // create a codec used only for testing
 func MakeTestCodec() *codec.LegacyAmino {
-	var cdc = codec.New()
+	var cdc = codec.NewLegacyAmino()
 
 	// Register Msgs
 	cdc.RegisterInterface((*sdk.Msg)(nil), nil)
@@ -37,8 +39,8 @@ func MakeTestCodec() *codec.LegacyAmino {
 	cdc.RegisterConcrete(types2.MsgSignTransaction{}, "test/coin/sign_transaction", nil)
 
 	// Register AppAccount
-	cdc.RegisterInterface((*authexported.Account)(nil), nil)
-	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/coin/base_account", nil)
+	cdc.RegisterInterface((*client.Account)(nil), nil)
+	cdc.RegisterConcrete(&types.BaseAccount{}, "test/coin/base_account", nil)
 	supply.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
 

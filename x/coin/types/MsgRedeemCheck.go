@@ -6,21 +6,11 @@ import (
 
 var _ sdk.Msg = &MsgRedeemCheck{}
 
-type MsgRedeemCheck struct {
-	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
-	Check  string         `json:"check" yaml:"check"`
-	Proof  string         `json:"proof" yaml:"proof"`
-}
-
-func (msg MsgRedeemCheck) Reset() {
-}
-
-func (msg MsgRedeemCheck) String() string {
-	return ""
-}
-
-func (msg MsgRedeemCheck) ProtoMessage() {
-}
+//type MsgRedeemCheck struct {
+//	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
+//	Check  string         `json:"check" yaml:"check"`
+//	Proof  string         `json:"proof" yaml:"proof"`
+//}
 
 func NewMsgRedeemCheck(sender sdk.AccAddress, check string, proof string) MsgRedeemCheck {
 	return MsgRedeemCheck{

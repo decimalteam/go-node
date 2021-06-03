@@ -3,7 +3,7 @@ package keeper
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/swap/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/params/types"
 	"time"
 )
 
@@ -11,8 +11,8 @@ const (
 	DefaultParamspace = types2.ModuleName
 )
 
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&types2.Params{})
+func ParamKeyTable() types.KeyTable {
+	return types.NewKeyTable().RegisterParamSet(&types2.Params{})
 }
 
 func (k Keeper) LockedTimeOut(ctx sdk.Context) (res time.Duration) {

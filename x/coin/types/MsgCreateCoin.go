@@ -12,33 +12,23 @@ import (
 
 var _ sdk.Msg = &MsgCreateCoin{}
 
-type MsgCreateCoin struct {
-	Sender               sdk.AccAddress `json:"sender" yaml:"sender"`
-	Title                string         `json:"title" yaml:"title"`                                   // Full coin title (Bitcoin)
-	Symbol               string         `json:"symbol" yaml:"symbol"`                                 // Short coin title (BTC)
-	ConstantReserveRatio uint           `json:"constant_reserve_ratio" yaml:"constant_reserve_ratio"` // between 10 and 100
-	InitialVolume        sdk.Int        `json:"initial_volume" yaml:"initial_volume"`
-	InitialReserve       sdk.Int        `json:"initial_reserve" yaml:"initial_reserve"`
-	LimitVolume          sdk.Int        `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
-	Identity             string         `json:"identity" yaml:"identity"`
-}
-
-func (msg MsgCreateCoin) Reset() {
-}
-
-func (msg MsgCreateCoin) String() string {
-	return ""
-}
-
-func (msg MsgCreateCoin) ProtoMessage() {
-}
+//type MsgCreateCoin struct {
+//	Sender               sdk.AccAddress `json:"sender" yaml:"sender"`
+//	Title                string         `json:"title" yaml:"title"`                                   // Full coin title (Bitcoin)
+//	Symbol               string         `json:"symbol" yaml:"symbol"`                                 // Short coin title (BTC)
+//	ConstantReserveRatio uint           `json:"constant_reserve_ratio" yaml:"constant_reserve_ratio"` // between 10 and 100
+//	InitialVolume        sdk.Int        `json:"initial_volume" yaml:"initial_volume"`
+//	InitialReserve       sdk.Int        `json:"initial_reserve" yaml:"initial_reserve"`
+//	LimitVolume          sdk.Int        `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
+//	Identity             string         `json:"identity" yaml:"identity"`
+//}
 
 func NewMsgCreateCoin(sender sdk.AccAddress, title string, symbol string, crr uint, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int, identity string) MsgCreateCoin {
 	return MsgCreateCoin{
 		Sender:               sender,
 		Title:                title,
 		Symbol:               symbol,
-		ConstantReserveRatio: crr,
+		ConstantReserveRatio: uint64(crr),
 		InitialVolume:        initVolume,
 		InitialReserve:       initReserve,
 		LimitVolume:          limitVolume,

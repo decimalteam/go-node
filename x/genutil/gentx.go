@@ -3,6 +3,8 @@ package genutil
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"path/filepath"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -15,7 +17,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 
@@ -24,7 +25,7 @@ import (
 
 // SetGenTxsInAppGenesisState - sets the genesis transactions in the app genesis state
 func SetGenTxsInAppGenesisState(cdc *codec.LegacyAmino, appGenesisState map[string]json.RawMessage,
-	genTxs []authtypes.StdTx) (map[string]json.RawMessage, error) {
+	genTxs []legacytx.StdTx) (map[string]json.RawMessage, error) {
 
 	genesisState := GetGenesisStateFromAppState(cdc, appGenesisState)
 	// convert all the GenTxs to JSON
@@ -55,9 +56,8 @@ func ValidateAccountInGenesis(appGenesisState map[string]json.RawMessage,
 
 	var err error
 	genAccIterator.IterateGenesisAccounts(cdc, appGenesisState,
-		func(acc authexported.Account) (stop bool) {
+		func(acc authtypes.AccountI) (stop bool) {
 			accAddress := acc.GetAddress()
-			accCoins := acc.GetCoins()
 
 			fmt.Println(coin)
 

@@ -1,16 +1,18 @@
 package rest
 
 import (
-	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/types/rest"
+
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	coinTypes "bitbucket.org/decimalteam/go-node/x/coin/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 )
 
 type CoinBuyReq struct {
@@ -58,7 +60,7 @@ func CoinBuyRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		valueSell := formulas.CalculatePurchaseReturn(coinToBuy.Volume, coinToBuy.Reserve, coinToBuy.CRR, amountToSell)
 
 		// Do basic validating
-		msg := types2.NewMsgBuyCoin(addr, sdk.NewCoin(coinToBuySymbol, valueSell), sdk.NewCoin(coinToSellSymbol, amountToSell))
+		msg := coinTypes.NewMsgBuyCoin(addr, sdk.NewCoin(coinToBuySymbol, valueSell), sdk.NewCoin(coinToSellSymbol, amountToSell))
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -67,11 +69,12 @@ func CoinBuyRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 
 		// Get account balance
 		acc, _ := cliUtils.GetAccount(cliCtx, addr)
-		balance := acc.GetCoins()
+		balance, _ := cliUtils.GetAccountCoins(cliCtx, acc.GetAddress())
+
 		if balance.AmountOf(strings.ToLower(coinToSellSymbol)).LT(amountToSell) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "Not enough coin to sell")
 			return
 		}
-		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, []sdk.Msg{&msg}...)
 	}
 }

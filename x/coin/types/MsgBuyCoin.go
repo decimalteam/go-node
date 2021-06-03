@@ -6,21 +6,11 @@ import (
 
 var _ sdk.Msg = &MsgBuyCoin{}
 
-type MsgBuyCoin struct {
-	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
-	CoinToBuy     sdk.Coin       `json:"coin_to_buy" yaml:"coin_to_buy"`
-	MaxCoinToSell sdk.Coin       `json:"max_coin_to_sell" yaml:"max_coin_to_sell"`
-}
-
-func (msg MsgBuyCoin) Reset() {
-}
-
-func (msg MsgBuyCoin) String() string {
-	return ""
-}
-
-func (msg MsgBuyCoin) ProtoMessage() {
-}
+//type MsgBuyCoin struct {
+//	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`
+//	CoinToBuy     sdk.Coin       `json:"coin_to_buy" yaml:"coin_to_buy"`
+//	MaxCoinToSell sdk.Coin       `json:"max_coin_to_sell" yaml:"max_coin_to_sell"`
+//}
 
 func NewMsgBuyCoin(sender sdk.AccAddress, coinToBuy sdk.Coin, maxCoinToSell sdk.Coin) MsgBuyCoin {
 	return MsgBuyCoin{

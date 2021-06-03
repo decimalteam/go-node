@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gorilla/mux"
@@ -11,14 +13,11 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"bitbucket.org/decimalteam/go-node/x/multisig/client/cli"
+	"bitbucket.org/decimalteam/go-node/x/multisig/client/rest"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-
-	"bitbucket.org/decimalteam/go-node/x/multisig/client/cli"
-	"bitbucket.org/decimalteam/go-node/x/multisig/client/rest"
 )
 
 // Type check to ensure the interface is properly implemented
@@ -29,7 +28,7 @@ var (
 
 // AppModuleBasic defines the basic application module used by the multisig module.
 type AppModuleBasic struct {
-	cdc codec.Marshaler
+	cdc codec.LegacyAmino
 }
 
 // Name returns the multisig module's name.
@@ -71,7 +70,7 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(client.Context, *runtime.ServeMu
 
 // GetTxCmd returns the root tx command for the multisig module.
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd(&a.cdc)
+	return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the multisig module.
@@ -86,12 +85,12 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper        Keeper
-	accountKeeper auth.AccountKeeper
-	coinKeeper    bank.Keeper
+	accountKeeper authKeeper.AccountKeeper
+	coinKeeper    bankKeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper, accountKeeper auth.AccountKeeper, bankKeeper bank.Keeper) AppModule {
+func NewAppModule(k Keeper, accountKeeper authKeeper.AccountKeeper, bankKeeper bankKeeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,

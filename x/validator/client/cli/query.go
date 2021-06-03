@@ -82,7 +82,7 @@ $ %s query validator validator dxvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -123,7 +123,7 @@ $ %s query validator validators
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -168,7 +168,7 @@ $ %s query validator unbonding-delegations-from cosmosvaloper1gghjut3ccd8ay0zduz
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -223,7 +223,7 @@ $ %s query validator delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p co
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -272,7 +272,7 @@ $ %s query validator delegations cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -321,7 +321,7 @@ $ %s query validator delegations-to cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -370,7 +370,7 @@ $ %s query validator unbonding-delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9l
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -419,7 +419,7 @@ $ %s query validator unbonding-delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9l
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -456,7 +456,7 @@ $ %s query validator pool
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -491,7 +491,7 @@ $ %s query validator params
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }

@@ -9,7 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"strings"
 
@@ -56,11 +58,11 @@ type GasTx interface {
 // it is necessary to create account in the beginning of the Ante chain with account number 0, but just
 // before the end of the Ante chain it is necessary to restore correct account number.
 type PreCreateAccountDecorator struct {
-	ak auth.AccountKeeper
+	ak keeper.AccountKeeper
 }
 
 // NewPreCreateAccountDecorator creates new PreCreateAccountDecorator.
-func NewPreCreateAccountDecorator(ak auth.AccountKeeper) PreCreateAccountDecorator {
+func NewPreCreateAccountDecorator(ak keeper.AccountKeeper) PreCreateAccountDecorator {
 	return PreCreateAccountDecorator{ak: ak}
 }
 
@@ -93,11 +95,11 @@ func (cad PreCreateAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 
 // PostCreateAccountDecorator restores account number in case of check redeeming from account unknown for the blockchain.
 type PostCreateAccountDecorator struct {
-	ak auth.AccountKeeper
+	ak keeper.AccountKeeper
 }
 
 // NewPostCreateAccountDecorator creates new PostCreateAccountDecorator.
-func NewPostCreateAccountDecorator(ak auth.AccountKeeper) PostCreateAccountDecorator {
+func NewPostCreateAccountDecorator(ak keeper.AccountKeeper) PostCreateAccountDecorator {
 	return PostCreateAccountDecorator{ak: ak}
 }
 
@@ -189,7 +191,7 @@ func SetGasMeter(simulate bool, ctx sdk.Context, gasLimit uint64) sdk.Context {
 type FeeDecorator struct {
 	ck coin.Keeper
 	sk supply.Keeper
-	ak auth.AccountKeeper
+	ak keeper.AccountKeeper
 	vk validator.Keeper
 }
 
@@ -202,7 +204,7 @@ type FeeTx interface {
 }
 
 // NewSetUpContextDecorator creates new SetUpContextDecorator.
-func NewFeeDecorator(ck coin.Keeper, sk supply.Keeper, ak auth.AccountKeeper, vk validator.Keeper) FeeDecorator {
+func NewFeeDecorator(ck coin.Keeper, sk supply.Keeper, ak keeper.AccountKeeper, vk validator.Keeper) FeeDecorator {
 	return FeeDecorator{
 		ck: ck,
 		sk: sk,
@@ -243,12 +245,12 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
 	}
 
-	if addr := fd.sk.GetModuleAddress(types.FeeCollectorName); addr == nil {
+	if addr := fd.ak.GetModuleAddress(types.FeeCollectorName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.FeeCollectorName))
 	}
 
 	// all transactions must implement GasTx
-	stdTx, ok := tx.(auth.StdTx)
+	stdTx, ok := tx.(legacytx.StdTx)
 	if !ok {
 		return newCtx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be StdTx")
 	}
@@ -316,7 +318,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		if commissionInBaseCoin.IsZero() {
 			return next(ctx, tx, simulate)
 		}
-		err = DeductFees(fd.sk, ctx, feePayerAcc, fd.ck, sdk.NewCoin(fd.vk.BondDenom(ctx), commissionInBaseCoin), commissionInBaseCoin)
+		err = DeductFees(fd.ak, ctx, feePayerAcc, fd.ck, sdk.NewCoin(fd.vk.BondDenom(ctx), commissionInBaseCoin), commissionInBaseCoin)
 		if err != nil {
 			return ctx, err
 		}
@@ -383,7 +385,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 //
 // NOTE: We could use the BankKeeper (in addition to the AccountKeeper, because
 // the BankKeeper doesn't give us accounts), but it seems easier to do this.
-func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Account, coinKeeper coin.Keeper, fee sdk.Coin, feeInBaseCoin sdk.Int) error {
+func DeductFees(supplyKeeper bankKeeper.BaseKeeper, ctx sdk.Context, acc exported.Account, coinKeeper coin.Keeper, fee sdk.Coin, feeInBaseCoin sdk.Int) error {
 	blockTime := ctx.BlockHeader().Time
 	coins := acc.GetCoins()
 

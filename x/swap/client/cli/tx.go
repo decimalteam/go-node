@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/libs/rand"
@@ -25,11 +24,11 @@ func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	swapTxCmd.AddCommand(flags.PostCommands(
+	swapTxCmd.AddCommand(
 		GetCmdHTLT(cdc),
 		GetCmdRedeem(cdc),
 		GetRefund(cdc),
-	)...)
+	)
 
 	return swapTxCmd
 }
@@ -40,12 +39,11 @@ func GetCmdHTLT(cdc *codec.LegacyAmino) *cobra.Command {
 		Short: "Create swap",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			from := cliCtx.GetFromAddress()
+			from := clientCtx.GetFromAddress()
 			recipient := args[1]
-			amount, err := sdk.ParseCoins(args[2])
+			amount, err := sdk.ParseCoinsNormalized(args[2])
 			if err != nil {
 				return err
 			}
@@ -82,11 +80,12 @@ func GetCmdHTLT(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
 		},
 	}
 
 	cmd.Flags().AddFlagSet(FsHash)
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
@@ -97,11 +96,9 @@ func GetCmdRedeem(cdc *codec.LegacyAmino) *cobra.Command {
 		Short: "Redeem swap",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			from := cliCtx.GetFromAddress()
-
+			from := clientCtx.GetFromAddress()
 			secretStr := args[0]
 			secret, err := hex.DecodeString(secretStr)
 			if err != nil {
@@ -114,9 +111,11 @@ func GetCmdRedeem(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
 		},
 	}
+	flags.AddTxFlagsToCmd(cmd)
+
 	return cmd
 }
 
@@ -126,10 +125,9 @@ func GetRefund(cdc *codec.LegacyAmino) *cobra.Command {
 		Short: "Refund locked coins",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			from := cliCtx.GetFromAddress()
+			from := clientCtx.GetFromAddress()
 
 			var hash [32]byte
 			hashStr := args[0]
@@ -145,9 +143,10 @@ func GetRefund(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg})
 		},
 	}
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }

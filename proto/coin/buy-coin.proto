@@ -1,8 +1,0 @@
-syntax = "proto3";
-package coin;
-
-option go_package = "x/coin/internal/types";
-
-message MsgBuyCoin {
-  string sender = 1;
-}

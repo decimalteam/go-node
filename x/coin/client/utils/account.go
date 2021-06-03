@@ -3,13 +3,12 @@ package utils
 import (
 	ctx "github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // Returns account for given address if exists
-func GetAccount(cliCtx ctx.CLIContext, addr sdk.AccAddress) (exported.Account, error) {
-	ar := auth.NewAccountRetriever(cliCtx)
-	account, _, err := ar.GetAccountWithHeight(addr)
+func GetAccount(ctx ctx.Context, addr sdk.AccAddress) (ctx.Account, error) {
+	ar := authTypes.AccountRetriever{}
+	account, _, err := ar.GetAccountWithHeight(ctx, addr)
 	return account, err
 }

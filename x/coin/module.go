@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gorilla/mux"
@@ -11,13 +12,11 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"bitbucket.org/decimalteam/go-node/x/coin/client/cli"
+	"bitbucket.org/decimalteam/go-node/x/coin/client/rest"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-
-	"bitbucket.org/decimalteam/go-node/x/coin/client/cli"
-	"bitbucket.org/decimalteam/go-node/x/coin/client/rest"
 )
 
 // Type check to ensure the interface is properly implemented
@@ -28,7 +27,7 @@ var (
 
 // AppModuleBasic defines the basic application module used by the coin module.
 type AppModuleBasic struct {
-	cdc codec.Marshaler
+	cdc codec.LegacyAmino
 }
 
 // Name returns the coin module's name.
@@ -85,11 +84,11 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper        Keeper
-	accountKeeper auth.AccountKeeper
+	accountKeeper keeper.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper, accountKeeper auth.AccountKeeper) AppModule {
+func NewAppModule(k Keeper, accountKeeper keeper.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,

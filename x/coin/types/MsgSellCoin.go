@@ -6,23 +6,11 @@ import (
 
 var _ sdk.Msg = &MsgSellCoin{}
 
-type MsgSellCoin struct {
-	Sender       sdk.AccAddress `json:"sender" yaml:"sender"`
-	CoinToSell   sdk.Coin       `json:"coin_to_sell" yaml:"coin_to_sell"`
-	MinCoinToBuy sdk.Coin       `json:"min_coin_to_buy" yaml:"min_coin_to_buy"`
-}
-
-func (msg MsgSellCoin) Reset() {
-	panic("implement me")
-}
-
-func (msg MsgSellCoin) String() string {
-	panic("implement me")
-}
-
-func (msg MsgSellCoin) ProtoMessage() {
-	panic("implement me")
-}
+//type MsgSellCoin struct {
+//	Sender       sdk.AccAddress `json:"sender" yaml:"sender"`
+//	CoinToSell   sdk.Coin       `json:"coin_to_sell" yaml:"coin_to_sell"`
+//	MinCoinToBuy sdk.Coin       `json:"min_coin_to_buy" yaml:"min_coin_to_buy"`
+//}
 
 func NewMsgSellCoin(sender sdk.AccAddress, coinToSell sdk.Coin, minCoinToBuy sdk.Coin) MsgSellCoin {
 	return MsgSellCoin{

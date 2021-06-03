@@ -4,13 +4,12 @@ import (
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 )
@@ -21,8 +20,7 @@ func GetCmdSellCoin(cdc *codec.LegacyAmino) *cobra.Command {
 		Short: "Sell coin",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			var coinToSellSymbol = args[0]
 			var amountToSell, _ = sdk.NewIntFromString(args[1])
@@ -31,31 +29,35 @@ func GetCmdSellCoin(cdc *codec.LegacyAmino) *cobra.Command {
 			var amountToBuy, _ = sdk.NewIntFromString(args[3])
 
 			// Check if coin to buy exists
-			coinToBuy, _ := cliUtils.GetCoin(cliCtx, coinToBuySymbol)
+			coinToBuy, _ := cliUtils.GetCoin(clientCtx, coinToBuySymbol)
 			if coinToBuy.Symbol != coinToBuySymbol {
 				return types2.ErrCoinDoesNotExist(coinToBuySymbol)
 			}
 			// Check if coin to sell exists
-			coinToSell, _ := cliUtils.GetCoin(cliCtx, coinToSellSymbol)
+			coinToSell, _ := cliUtils.GetCoin(clientCtx, coinToSellSymbol)
 			if coinToSell.Symbol != coinToSellSymbol {
 				return types2.ErrCoinDoesNotExist(coinToSellSymbol)
 			}
 			// TODO: Calculate amounts and check limits
 			// Do basic validating
-			msg := types2.NewMsgSellCoin(cliCtx.GetFromAddress(), sdk.NewCoin(coinToSellSymbol, amountToSell), sdk.NewCoin(coinToBuySymbol, amountToBuy))
+			msg := types2.NewMsgSellCoin(clientCtx.GetFromAddress(), sdk.NewCoin(coinToSellSymbol, amountToSell), sdk.NewCoin(coinToBuySymbol, amountToBuy))
 			validationErr := msg.ValidateBasic()
 			if validationErr != nil {
 				return validationErr
 			}
 
 			// Get account balance
-			acc, _ := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
-			balance := acc.GetCoins()
+			balance, err := cliUtils.GetAccountCoins(clientCtx, clientCtx.GetFromAddress())
+
+			if err != nil {
+				return err
+			}
+
 			if balance.AmountOf(strings.ToLower(coinToSellSymbol)).LT(amountToSell) {
 				return types2.ErrInsufficientFunds(amountToSell.String(), balance.AmountOf(strings.ToLower(coinToSellSymbol)).String())
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{&msg}...)
 		},
 	}
 }

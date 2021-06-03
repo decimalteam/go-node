@@ -122,7 +122,7 @@ func queryValidatorDelegations(ctx sdk.Context, req abci.RequestQuery, k Keeper)
 		}
 	}
 
-	res, err := codec.MarshalJSONIndent(types.ModuleCdc, resDelegations)
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc.LegacyAmino, resDelegations)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -318,8 +318,8 @@ func queryPool(ctx sdk.Context, k Keeper) ([]byte, error) {
 	}
 
 	pool := types.NewPool(
-		notBondedPool.GetCoins(),
-		bondedPool.GetCoins(),
+		k.baseKeeper.GetAllBalances(ctx, notBondedPool.GetAddress()),
+		k.baseKeeper.GetAllBalances(ctx, bondedPool.GetAddress()),
 	)
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, pool)

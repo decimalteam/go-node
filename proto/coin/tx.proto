@@ -1,0 +1,238 @@
+syntax = "proto3";
+package coin;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/coin/types";
+
+import "gogoproto/gogo.proto";
+
+service Msg {
+  rpc BuyCoin(MsgBuyCoin) returns (MsgBuyCoinResponse);
+  rpc CreateCoin(MsgCreateCoin) returns (MsgCreateCoinResponse);
+  rpc MultiSendCoin(MsgMultiSendCoin) returns (MsgMultisendCoinResponse);
+  rpc RedeemCheck(MsgRedeemCheck) returns (MsgRedeemCheckResponse);
+  rpc SellAllCoin(MsgSellAllCoin) returns (MsgSellAllCoinResponse);
+  rpc SellCoin(MsgSellCoin) returns (MsgSellCoinReponse);
+  rpc SendCoin(MsgSendCoin) returns (MsgSendCoinResponse);
+  rpc UpdateCoin(MsgUpdateCoin) returns (MsgUpdateCoinResponse);
+}
+
+message MsgBuyCoin {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Sender = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "sender",
+    (gogoproto.moretags) = "yaml:\"sender\""
+  ];
+  bytes CoinToBuy = 2 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.jsontag) = "coin_to_buy",
+    (gogoproto.moretags) = "yaml:\"coin_to_buy\""
+  ];
+  bytes MaxCoinToSell = 3 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.jsontag) = "max_coin_to_sell",
+    (gogoproto.moretags) = "yaml:\"max_coin_to_sell\""
+  ];
+}
+
+message MsgBuyCoinResponse {}
+
+message MsgCreateCoin {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Sender = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "sender",
+    (gogoproto.moretags) = "yaml:\"sender\""
+  ];
+  string Title = 2 [
+    (gogoproto.jsontag) = "title",
+    (gogoproto.moretags) = "yaml:\"title\""
+  ];
+  string Symbol = 3 [
+    (gogoproto.jsontag) = "symbol",
+    (gogoproto.moretags) = "yaml:\"symbol\""
+  ];
+  uint64 ConstantReserveRatio = 4 [
+    (gogoproto.jsontag) = "constant_reserve_ration",
+    (gogoproto.moretags) = "yaml:\"constant_reserve_ration\""
+  ];
+  string InitialVolume = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "initial_volume",
+    (gogoproto.moretags) = "yaml:\"initial_volume\""
+  ];
+  string InitialReserve = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "initial_reserve",
+    (gogoproto.moretags) = "yaml:\"initial_reserve\""
+  ];
+  string LimitVolume = 7 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "limit_volume",
+    (gogoproto.moretags) = "yaml:\"limit_volume\""
+  ];
+  string Identity = 8 [
+    (gogoproto.jsontag) = "symbol",
+    (gogoproto.moretags) = "yaml:\"symbol\""
+  ];
+}
+
+message MsgCreateCoinResponse {}
+
+message Send {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Coin = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.jsontag) = "coin",
+    (gogoproto.moretags) = "yaml:\"coin\""
+  ];
+  bytes Receiver = 2 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "receiver",
+    (gogoproto.moretags) = "yaml:\"receiver\""
+  ];
+}
+
+message MsgMultiSendCoin {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Sender = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "sender",
+    (gogoproto.moretags) = "yaml:\"sender\""
+  ];
+  repeated Send Sends = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "sends",
+    (gogoproto.moretags) = "yaml:\"sends\""
+  ];
+}
+
+message MsgMultisendCoinResponse {}
+
+message MsgRedeemCheck {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Sender = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "sender",
+    (gogoproto.moretags) = "yaml:\"sender\""
+  ];
+  string Check = 2 [
+    (gogoproto.jsontag) = "check",
+    (gogoproto.moretags) = "yaml:\"check\""
+  ];
+  string Proof = 3 [
+    (gogoproto.jsontag) = "proof",
+    (gogoproto.moretags) = "yaml:\"proof\""
+  ];
+}
+
+message MsgRedeemCheckResponse {}
+
+message MsgSellAllCoin {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Sender = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "sender",
+    (gogoproto.moretags) = "yaml:\"sender\""
+  ];
+  bytes CoinToSell = 2 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.jsontag) = "coin_to_sell",
+    (gogoproto.moretags) = "yaml:\"coin_to_sell\""
+  ];
+  bytes MinCoinToBuy = 3 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.jsontag) = "min_coin_to_buy",
+    (gogoproto.moretags) = "yaml:\"min_coin_to_buy\""
+  ];
+}
+
+message MsgSellAllCoinResponse {}
+
+message MsgSellCoin {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Sender = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "sender",
+    (gogoproto.moretags) = "yaml:\"sender\""
+  ];
+  bytes CoinToSell = 2 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.jsontag) = "coin_to_sell",
+    (gogoproto.moretags) = "yaml:\"coin_to_sell\""
+  ];
+  bytes MinCoinToBuy = 3 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.jsontag) = "min_coin_to_buy",
+    (gogoproto.moretags) = "yaml:\"min_coin_to_buy\""
+  ];
+}
+
+message MsgSellCoinReponse {}
+
+message MsgSendCoin {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Sender = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "sender",
+    (gogoproto.moretags) = "yaml:\"sender\""
+  ];
+  bytes Receiver = 2 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "receiver",
+    (gogoproto.moretags) = "yaml:\"receiver\""
+  ];
+  bytes Coin = 3 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.jsontag) = "coin",
+    (gogoproto.moretags) = "yaml:\"coin\""
+  ];
+}
+
+message MsgSendCoinResponse {}
+
+message MsgUpdateCoin {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Sender = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "sender",
+    (gogoproto.moretags) = "yaml:\"sender\""
+  ];
+  string Symbol = 2 [
+    (gogoproto.jsontag) = "symbol",
+    (gogoproto.moretags) = "yaml:\"symbol\""
+  ];
+  string LimitVolume = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "limit_volume",
+    (gogoproto.moretags) = "yaml:\"limit_volume\""
+  ];
+  string Identity = 4 [
+    (gogoproto.jsontag) = "symbol",
+    (gogoproto.moretags) = "yaml:\"symbol\""
+  ];
+}
+
+message MsgUpdateCoinResponse {}

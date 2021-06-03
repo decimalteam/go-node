@@ -1,7 +1,7 @@
 syntax = "proto3";
 package capability;
 
-option go_package = "bitbucket.org/decimalteam/go-node/x/coin/internal/types";
+option go_package = "bitbucket.org/decimalteam/go-node/x/capability/types";
 
 import "gogoproto/gogo.proto";
 

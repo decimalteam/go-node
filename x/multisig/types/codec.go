@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	crypto "github.com/cosmos/cosmos-sdk/crypto/codec"
 )
 
 // RegisterCodec registers concrete types on codec
@@ -17,6 +18,6 @@ var ModuleCdc *codec.LegacyAmino
 func init() {
 	ModuleCdc = codec.NewLegacyAmino()
 	RegisterCodec(ModuleCdc)
-	codec.RegisterCrypto(ModuleCdc)
+	crypto.RegisterCrypto(ModuleCdc)
 	ModuleCdc.Seal()
 }
