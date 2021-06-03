@@ -106,7 +106,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 	err = k.ReserveTokens(ctx,
 		sdk.NewCoins(
 			sdk.NewCoin(
-				k.baseDenom,
+				*k.BaseDenom,
 				reserve.Mul(quantity), // reserve * quantity
 			)),
 		creator)
@@ -215,7 +215,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 	k.SetCollection(ctx, denom, collection)
 
 	err = k.BurnTokens(ctx, sdk.NewCoins(
-		sdk.NewCoin(k.baseDenom, nft.GetReserve().MulRaw(int64(len(subTokenIDs))))))
+		sdk.NewCoin(*k.BaseDenom, nft.GetReserve().MulRaw(int64(len(subTokenIDs))))))
 	if err != nil {
 		return err
 	}

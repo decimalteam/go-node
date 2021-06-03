@@ -2,6 +2,7 @@ package validator
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	val "bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"github.com/stretchr/testify/assert"
@@ -910,7 +911,6 @@ func TestSetOnline(t *testing.T) {
 	require.Equal(t, 3, len(keeper.GetLastValidators(ctx)))
 }
 
-/*
 func TestUnbondNFT(t *testing.T) {
 	ctx, _, keeper, supplyKeeper, coinKeeper, nftKeeper := val.CreateTestInput(t, false, 1000)
 	validatorAddr := sdk.ValAddress(val.Addrs[0])
@@ -933,33 +933,30 @@ func TestUnbondNFT(t *testing.T) {
 	// create nft
 	const denom = "denom1"
 	const tokenID = "token1"
-	quantity := sdk.NewInt(100)
 	reserve := sdk.NewInt(100)
 	token := nft.NewBaseNFT(tokenID, delegatorAddr, delegatorAddr,
-		"", quantity, reserve, true)
+		"", reserve, []int64{1, 2, 3, 4, 5}, true)
 	collection := nft.NewCollection(denom, nft.NewNFTs(token))
 	nftKeeper.SetCollection(ctx, denom, collection)
+	for _, i := range token.GetOwners().GetOwners()[0].GetSubTokenIDs() {
+		nftKeeper.SetSubToken(ctx, denom, tokenID, i, reserve)
+	}
 
 	// delegate nft
-	msgDelegateNft := types.NewMsgDelegateNFT(validatorAddr, delegatorAddr, tokenID, denom, []sdk.Int{})
+	msgDelegateNft := types.NewMsgDelegateNFT(validatorAddr, delegatorAddr, tokenID, denom, []int64{1, 2, 3})
 	res, err = handleMsgDelegateNFT(ctx, keeper, msgDelegateNft)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
 	// unbond the half of delegations nft
-	unbondQuantity := quantity.QuoRaw(2)
-	msgUnbondNFT := types.NewMsgUnbondNFT(validatorAddr, delegatorAddr, tokenID, denom, []sdk.Int{})
+	msgUnbondNFT := types.NewMsgUnbondNFT(validatorAddr, delegatorAddr, tokenID, denom, []int64{2, 3})
 	res, err = handleMsgUnbondNFT(ctx, keeper, msgUnbondNFT)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
 	unbondingDelegation, ok := keeper.GetUnbondingDelegation(ctx, delegatorAddr, validatorAddr)
 	require.True(t, ok)
-	require.Equal(t, unbondQuantity.Mul(reserve), unbondingDelegation.Entries[0].GetBalance().Amount)
-
-	validator, err := keeper.GetValidator(ctx, validatorAddr)
-	require.NoError(t, err)
-	require.Equal(t, validator.Tokens, valTokens.Add(unbondQuantity.Mul(reserve)))
+	require.Equal(t, []int64{2, 3}, unbondingDelegation.Entries[0].(types.UnbondingDelegationNFTEntry).SubTokenIDs)
 
 	var finishTime time.Time
 	types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
@@ -967,24 +964,24 @@ func TestUnbondNFT(t *testing.T) {
 	ctx = ctx.WithBlockTime(finishTime)
 	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
-	var reqEvent sdk.Event
-	for _, event := range ctx.EventManager().Events() {
-		if event.Type == types.EventTypeCompleteUnbondingNFT {
-			reqEvent = event
-			break
-		}
-	}
-	require.Equal(t, sdk.NewEvent(
-		types.EventTypeCompleteUnbondingNFT,
-		sdk.NewAttribute(types.AttributeKeyDenom, denom),
-		sdk.NewAttribute(types.AttributeKeyID, tokenID),
-		sdk.NewAttribute(types.AttributeKeyQuantity, unbondQuantity.String()),
-		sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
-		sdk.NewAttribute(types.AttributeKeyDelegator, delegatorAddr.String()),
-		sdk.NewAttribute(types.AttributeKeyCoin, sdk.NewCoin(keeper.BondDenom(ctx), unbondQuantity.Mul(reserve)).String()),
-	), reqEvent)
+	//var reqEvent sdk.Event
+	//for _, event := range ctx.EventManager().Events() {
+	//	if event.Type == types.EventTypeCompleteUnbondingNFT {
+	//		reqEvent = event
+	//		break
+	//	}
+	//}
+	//require.Equal(t, sdk.NewEvent(
+	//	types.EventTypeCompleteUnbondingNFT,
+	//	sdk.NewAttribute(types.AttributeKeyDenom, denom),
+	//	sdk.NewAttribute(types.AttributeKeyID, tokenID),
+	//	sdk.NewAttribute(types.AttributeKey, unbondQuantity.String()),
+	//	sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
+	//	sdk.NewAttribute(types.AttributeKeyDelegator, delegatorAddr.String()),
+	//	sdk.NewAttribute(types.AttributeKeyCoin, sdk.NewCoin(keeper.BondDenom(ctx), reserve.Mul(unbondQuantity)).String()),
+	//), reqEvent)
 }
-*/
+
 func TestConvertAddr(t *testing.T) {
 	_config := sdk.GetConfig()
 	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)

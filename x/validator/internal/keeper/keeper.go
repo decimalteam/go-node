@@ -116,3 +116,7 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (coin.Coin, error) {
 	}
 	return k.CoinKeeper.GetCoin(ctx, symbol)
 }
+
+func (k Keeper) SetNFTBaseDenom(ctx sdk.Context) {
+	*k.nftKeeper.BaseDenom = k.BondDenom(ctx)
+}

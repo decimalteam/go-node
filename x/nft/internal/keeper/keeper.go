@@ -21,7 +21,7 @@ type Keeper struct {
 
 	supplyKeeper supply.Keeper
 
-	baseDenom string
+	BaseDenom *string
 }
 
 // NewKeeper creates new instances of the nft Keeper
@@ -30,11 +30,15 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, supplyKeeper supply.Keep
 		storeKey:     storeKey,
 		cdc:          cdc,
 		supplyKeeper: supplyKeeper,
-		baseDenom:    baseDenom,
+		BaseDenom:    &baseDenom,
 	}
 }
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+func (k Keeper) SetBaseDenom() {
+	*k.BaseDenom = "del"
 }

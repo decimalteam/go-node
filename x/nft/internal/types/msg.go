@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"regexp"
@@ -38,7 +39,7 @@ func NewMsgMintNFT(sender, recipient sdk.AccAddress, id, denom, tokenURI string,
 
 const regName = "^[a-zA-Z0-9_-]{1,255}$"
 
-var minReserve = sdk.NewInt(100)
+var minReserve = helpers.BipToPip(sdk.NewInt(100))
 
 // Route Implements Msg
 func (msg MsgMintNFT) Route() string { return RouterKey }

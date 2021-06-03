@@ -48,6 +48,8 @@ var (
 	NewGenesisState         = types.NewGenesisState
 	DefaultGenesisState     = types.DefaultGenesisState
 	ValidateGenesis         = types.ValidateGenesis
+	NewBaseNFT              = types.NewBaseNFT
+	NewNFTs                 = types.NewNFTs
 
 	CheckUnique = types.CheckUnique
 
