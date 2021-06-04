@@ -1,0 +1,83 @@
+syntax = "proto3";
+package multisig;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/multisig/types";
+
+import "gogoproto/gogo.proto";
+
+service Msg {
+  rpc CreateTransaction(MsgCreateTransaction) returns (MsgCreateTransactionResponse);
+  rpc CreateWallet(MsgCreateWallet) returns (MsgCreateWalletResponse);
+  rpc SignTransaction(MsgSignTransaction) returns (MsgSignTransactionResponse);
+}
+
+message MsgCreateTransaction {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Sender = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "sender",
+    (gogoproto.moretags) = "yaml:\"sender\""
+  ];
+  bytes Wallet = 2 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "wallet",
+    (gogoproto.moretags) = "yaml:\"wallet\""
+  ];
+  bytes Receiver = 3 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "receiver",
+    (gogoproto.moretags) = "yaml:\"receiver\""
+  ];
+  repeated bytes Coins = 4 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.jsontag) = "coins",
+    (gogoproto.moretags) = "yaml:\"coins\""
+  ];
+}
+
+message MsgCreateTransactionResponse {}
+
+message MsgCreateWallet {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Sender = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "sender",
+    (gogoproto.moretags) = "yaml:\"sender\""
+  ];
+  repeated bytes Owners = 2 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "owners",
+    (gogoproto.moretags) = "yaml:\"owners\""
+  ];
+  repeated uint64 Weights = 3 [
+    (gogoproto.jsontag) = "weights",
+    (gogoproto.moretags) = "yaml:\"weights\""
+  ];
+  uint64 Threshold = 4 [
+    (gogoproto.jsontag) = "threshold",
+    (gogoproto.moretags) = "yaml:\"threshold\""
+  ];
+}
+
+message MsgCreateWalletResponse {}
+
+message MsgSignTransaction {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Sender = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "sender",
+    (gogoproto.moretags) = "yaml:\"sender\""
+  ];
+  string TxID = 2 [
+    (gogoproto.jsontag) = "sender",
+    (gogoproto.moretags) = "yaml:\"sender\""
+  ];
+}
+
+message MsgSignTransactionResponse {}

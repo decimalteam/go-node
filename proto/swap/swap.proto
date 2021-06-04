@@ -1,0 +1,47 @@
+syntax = "proto3";
+package swap;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/swap/types";
+
+import "gogoproto/gogo.proto";
+import "swap/tx.proto";
+
+message Swap {
+  TransferType TransferType = 1 [
+    (gogoproto.jsontag) = "transfer_type"
+  ];
+  bytes HashedSecret = 2 [
+    (gogoproto.jsontag) = "hashed_secret"
+  ];
+  bytes From = 3 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "from"
+  ];
+  string Recipient = 4 [
+    (gogoproto.jsontag) = "recipient"
+  ];
+  repeated bytes Amount = 5 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.jsontag) = "amount"
+  ];
+  uint64 Timestamp = 6 [
+    (gogoproto.jsontag) = "timestamp"
+  ];
+  bool Redeemed = 7 [
+    (gogoproto.jsontag) = "redeemed"
+  ];
+  bool Refunded = 8 [
+    (gogoproto.jsontag) = "refunded"
+  ];
+}
+
+message Params {
+  bytes LockedTimeOut = 1 [
+    (gogoproto.casttype) = "time.Duration",
+    (gogoproto.jsontag) = "locked_time_out"
+  ];
+  bytes LockedTimeIn = 2 [
+    (gogoproto.casttype) = "time.Duration",
+    (gogoproto.jsontag) = "locked_time_in"
+  ];
+}

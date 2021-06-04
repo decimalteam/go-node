@@ -11,10 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -58,13 +55,13 @@ func getCmdCreateWallet() *cobra.Command {
 				}
 			}
 
-			weights := make([]uint, len(weightsStrings))
+			weights := make([]uint64, len(weightsStrings))
 			for i, weightString := range weightsStrings {
 				weight, err := strconv.ParseUint(weightString, 10, 64)
 				if err != nil {
 					return err
 				}
-				weights[i] = uint(weight)
+				weights[i] = weight
 			}
 
 			threshold, err := strconv.ParseUint(thresholdString, 10, 64)
@@ -72,7 +69,7 @@ func getCmdCreateWallet() *cobra.Command {
 				return err
 			}
 
-			msg := types2.NewMsgCreateWallet(clientCtx.GetFromAddress(), owners, weights, uint(threshold))
+			msg := types2.NewMsgCreateWallet(clientCtx.GetFromAddress(), owners, weights, threshold)
 			if err != nil {
 				return err
 			}
@@ -82,7 +79,7 @@ func getCmdCreateWallet() *cobra.Command {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{&msg}...)
 		},
 	}
 	flags.AddTxFlagsToCmd(cmd)
@@ -141,7 +138,7 @@ func getCmdCreateTransaction() *cobra.Command {
 
 			fmt.Printf("%+v\n", msg)
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{&msg}...)
 		},
 	}
 	flags.AddTxFlagsToCmd(cmd)
@@ -170,7 +167,7 @@ func getCmdSignTransaction() *cobra.Command {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{&msg}...)
 		},
 	}
 	flags.AddTxFlagsToCmd(cmd)

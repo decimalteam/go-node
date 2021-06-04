@@ -7,12 +7,12 @@ import (
 var _ sdk.Msg = &MsgCreateTransaction{}
 
 // MsgCreateTransaction defines a CreateTransaction message to create new transaction for multisignature wallet.
-type MsgCreateTransaction struct {
-	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`
-	Wallet   sdk.AccAddress `json:"wallet" yaml:"wallet"`
-	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
-	Coins    sdk.Coins      `json:"coins" yaml:"coins"`
-}
+//type MsgCreateTransaction struct {
+//	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`
+//	Wallet   sdk.AccAddress `json:"wallet" yaml:"wallet"`
+//	Receiver sdk.AccAddress `json:"receiver" yaml:"receiver"`
+//	Coins    sdk.Coins      `json:"coins" yaml:"coins"`
+//}
 
 // NewMsgCreateTransaction creates a new MsgCreateTransaction instance.
 func NewMsgCreateTransaction(sender sdk.AccAddress, wallet sdk.AccAddress, receiver sdk.AccAddress, coins sdk.Coins) MsgCreateTransaction {

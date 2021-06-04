@@ -13,11 +13,11 @@ const (
 	TypeMsgRefund = "refund"
 )
 
-var _ sdk.Msg = MsgHTLT{}
-var _ sdk.Msg = MsgRedeem{}
-var _ sdk.Msg = MsgRefund{}
+var _ sdk.Msg = &MsgHTLT{}
+var _ sdk.Msg = &MsgRedeem{}
+var _ sdk.Msg = &MsgRefund{}
 
-type TransferType int
+//type TransferType int
 
 const (
 	TransferTypeOut = 1
@@ -46,13 +46,13 @@ func (t TransferType) String() string {
 	}
 }
 
-type MsgHTLT struct {
-	TransferType TransferType   `json:"transfer_type"`
-	From         sdk.AccAddress `json:"from"`
-	Recipient    string         `json:"recipient"`
-	HashedSecret Hash           `json:"hashed_secret"`
-	Amount       sdk.Coins      `json:"amount"`
-}
+//type MsgHTLT struct {
+//	TransferType TransferType   `json:"transfer_type"`
+//	From         sdk.AccAddress `json:"from"`
+//	Recipient    string         `json:"recipient"`
+//	HashedSecret Hash           `json:"hashed_secret"`
+//	Amount       sdk.Coins      `json:"amount"`
+//}
 
 func NewMsgHTLT(transferType TransferType, from sdk.AccAddress, recipient string, hashedSecret Hash, amount sdk.Coins) MsgHTLT {
 	return MsgHTLT{TransferType: transferType, From: from, Recipient: recipient, HashedSecret: hashedSecret, Amount: amount}
@@ -83,10 +83,10 @@ func (msg MsgHTLT) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }
 
-type MsgRedeem struct {
-	From   sdk.AccAddress `json:"from"`
-	Secret Secret         `json:"secret"`
-}
+//type MsgRedeem struct {
+//	From   sdk.AccAddress `json:"from"`
+//	Secret Secret         `json:"secret"`
+//}
 
 func NewMsgRedeem(from sdk.AccAddress, secret Secret) MsgRedeem {
 	return MsgRedeem{From: from, Secret: secret}
@@ -112,10 +112,10 @@ func (msg MsgRedeem) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }
 
-type MsgRefund struct {
-	From         sdk.AccAddress `json:"from"`
-	HashedSecret Hash           `json:"hashed_secret"`
-}
+//type MsgRefund struct {
+//	From         sdk.AccAddress `json:"from"`
+//	HashedSecret Hash           `json:"hashed_secret"`
+//}
 
 func NewMsgRefund(from sdk.AccAddress, hash [32]byte) MsgRefund {
 	return MsgRefund{From: from, HashedSecret: hash}

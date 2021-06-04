@@ -51,7 +51,7 @@ func listWalletsCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Comman
 
 			var out types2.QueryWallets
 			cdc.MustUnmarshalJSON(res, &out)
-			return clientCtx.PrintProto(out)
+			return clientCtx.PrintObjectLegacy(out)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
@@ -78,7 +78,7 @@ func getWalletCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command 
 
 			var out types2.Wallet
 			cdc.MustUnmarshalJSON(res, &out)
-			return clientCtx.PrintProto(out)
+			return clientCtx.PrintObjectLegacy(out)
 		},
 	}
 }
@@ -102,7 +102,7 @@ func listTransactionsCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.C
 
 			var out types2.QueryTransactions
 			cdc.MustUnmarshalJSON(res, &out)
-			return clientCtx.PrintProto(out)
+			return clientCtx.PrintObjectLegacy(out)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
@@ -129,7 +129,7 @@ func getTransactionCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Com
 
 			var out types2.Transaction
 			cdc.MustUnmarshalJSON(res, &out)
-			return clientCtx.PrintProto(out)
+			return clientCtx.PrintObjectLegacy(out)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)

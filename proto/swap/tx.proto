@@ -1,0 +1,82 @@
+syntax = "proto3";
+package swap;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/swap/types";
+
+import "gogoproto/gogo.proto";
+
+service Msg {
+  rpc HTLT(MsgHTLT) returns (MsgHTLTResponse);
+  rpc Redeem(MsgRedeem) returns (MsgRedeemResponse);
+  rpc Refund(MsgRefund) returns (MsgRefundResponse);
+}
+
+enum TransferType {
+  option (gogoproto.goproto_enum_stringer) = false;
+
+  TransferTypeOut = 0;
+  TransferTypeIn = 1;
+}
+
+message MsgHTLT {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  TransferType TransferType = 1 [
+    (gogoproto.jsontag) = "transfer_type"
+  ];
+  bytes From = 2 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "from"
+  ];
+  string Recipient = 3 [
+    (gogoproto.jsontag) = "from"
+  ];
+  bytes HashedSecret = 4 [
+    (gogoproto.jsontag) = "hashed_secret"
+  ];
+  bytes Secret = 5 [
+    (gogoproto.jsontag) = "secret"
+  ];
+  repeated bytes Amount = 6 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.jsontag) = "amount",
+    (gogoproto.moretags) = "yaml:\"amount\""
+  ];
+}
+
+message MsgHTLTResponse {}
+
+message MsgRedeem {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes From = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "from",
+    (gogoproto.moretags) = "yaml:\"from\""
+  ];
+  bytes Secret = 2 [
+    (gogoproto.casttype) = "bitbucket.org/decimalteam/go-node/x/swap/types.Secret",
+    (gogoproto.jsontag) = "secret"
+  ];
+}
+
+message MsgRedeemResponse {}
+
+message MsgRefund {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes From = 1 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "from",
+    (gogoproto.moretags) = "yaml:\"from\""
+  ];
+  bytes HashedSecret = 2 [
+    (gogoproto.casttype) = "bitbucket.org/decimalteam/go-node/x/swap/types.Hash",
+    (gogoproto.jsontag) = "hashed_secret"
+  ];
+}
+
+message MsgRefundResponse {}

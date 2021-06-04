@@ -112,7 +112,7 @@ message Proposal {
     (gogoproto.jsontag) = "proposal_id",
     (gogoproto.moretags) = "yaml:\"proposal_id\""
   ];
-  bytes Status = 3;
+  int32 Status = 3;
   TallyResult FinalTallyResult = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "final_tally_result",

@@ -18,20 +18,20 @@ const MultisigTransactionIDPrefix = "dxmstx"
 ////////////////////////////////////////////////////////////////
 
 // Wallet is a struct that contains all the metadata of a multi-signature wallet.
-type Wallet struct {
-	Address   sdk.AccAddress   `json:"address" yaml:"address"`
-	Owners    []sdk.AccAddress `json:"owners" yaml:"owners"`
-	Weights   []uint           `json:"weights" yaml:"weights"`
-	Threshold uint             `json:"threshold" yaml:"threshold"`
-}
+//type Wallet struct {
+//	Address   sdk.AccAddress   `json:"address" yaml:"address"`
+//	Owners    []sdk.AccAddress `json:"owners" yaml:"owners"`
+//	Weights   []uint64           `json:"weights" yaml:"weights"`
+//	Threshold uint64             `json:"threshold" yaml:"threshold"`
+//}
 
 // NewWallet returns a new Wallet.
-func NewWallet(owners []sdk.AccAddress, weights []uint, threshold uint, salt []byte) (*Wallet, error) {
+func NewWallet(owners []sdk.AccAddress, weights []uint64, threshold uint64, salt []byte) (*Wallet, error) {
 
 	walletMetadata := struct {
 		Owners    []sdk.AccAddress `json:"owners" yaml:"owners"`
-		Weights   []uint           `json:"weights" yaml:"weights"`
-		Threshold uint             `json:"threshold" yaml:"threshold"`
+		Weights   []uint64         `json:"weights" yaml:"weights"`
+		Threshold uint64           `json:"threshold" yaml:"threshold"`
 		Salt      []byte           `json:"salt" yaml:"salt"`
 	}{
 		Owners:    owners,
@@ -52,7 +52,7 @@ func NewWallet(owners []sdk.AccAddress, weights []uint, threshold uint, salt []b
 
 // String implements fmt.Stringer interface.
 func (w *Wallet) String() string {
-	weightsSum := uint(0)
+	weightsSum := uint64(0)
 	for _, weight := range w.Weights {
 		weightsSum += weight
 	}
@@ -64,14 +64,14 @@ func (w *Wallet) String() string {
 ////////////////////////////////////////////////////////////////
 
 // Transaction is a struct that contains all the metadata of a multi-signature wallet transaction.
-type Transaction struct {
-	ID        string           `json:"id" yaml:"id"`
-	Wallet    sdk.AccAddress   `json:"wallet" yaml:"wallet"`
-	Receiver  sdk.AccAddress   `json:"receiver" yaml:"receiver"`
-	Coins     sdk.Coins        `json:"coins" yaml:"coins"`
-	Signers   []sdk.AccAddress `json:"signers" yaml:"signers"`
-	CreatedAt int64            `json:"created_at" yaml:"created_at"` // block height
-}
+//type Transaction struct {
+//	ID        string           `json:"id" yaml:"id"`
+//	Wallet    sdk.AccAddress   `json:"wallet" yaml:"wallet"`
+//	Receiver  sdk.AccAddress   `json:"receiver" yaml:"receiver"`
+//	Coins     sdk.Coins        `json:"coins" yaml:"coins"`
+//	Signers   []sdk.AccAddress `json:"signers" yaml:"signers"`
+//	CreatedAt int64            `json:"created_at" yaml:"created_at"` // block height
+//}
 
 // NewTransaction returns a new Transaction.
 func NewTransaction(wallet, receiver sdk.AccAddress, coins sdk.Coins, signers []sdk.AccAddress, height int64, salt []byte) (*Transaction, error) {

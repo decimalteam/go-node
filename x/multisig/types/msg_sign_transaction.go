@@ -7,10 +7,10 @@ import (
 var _ sdk.Msg = &MsgSignTransaction{}
 
 // MsgSignTransaction defines a SignTransaction message to sign existing transaction for multisignature wallet.
-type MsgSignTransaction struct {
-	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
-	TxID   string         `json:"tx_id" yaml:"tx_id"`
-}
+//type MsgSignTransaction struct {
+//	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
+//	TxID   string         `json:"tx_id" yaml:"tx_id"`
+//}
 
 // NewMsgSignTransaction is a constructor function for MsgCreateTransaction
 func NewMsgSignTransaction(sender sdk.AccAddress, txID string) MsgSignTransaction {

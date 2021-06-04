@@ -29,18 +29,18 @@ func CheckProposalAddress(address sdk.AccAddress) bool {
 	return false
 }
 
-// Proposal defines a struct used by the governance module to allow for voting
-// on network changes.
-//type Proposal struct {
-//	Content
-//
-//	ProposalID       uint64         `json:"id" yaml:"id"`                                 //  ID of the proposal
-//	Status           ProposalStatus `json:"proposal_status" yaml:"proposal_status"`       // Status of the Proposal {Pending, Active, Passed, Rejected}
-//	FinalTallyResult TallyResult    `json:"final_tally_result" yaml:"final_tally_result"` // Result of Tallys
-//
-//	VotingStartBlock uint64 `json:"voting_start_time" yaml:"voting_start_time"` // Time of the block where MinDeposit was reached. -1 if MinDeposit is not reached
-//	VotingEndBlock   uint64 `json:"voting_end_time" yaml:"voting_end_time"`     // Time that the VotingPeriod for this proposal will end and votes will be tallied
-//}
+//Proposal defines a struct used by the governance module to allow for voting
+//on network changes.
+type Proposal struct {
+	Content
+
+	ProposalID       uint64         `json:"id" yaml:"id"`                                 //  ID of the proposal
+	Status           ProposalStatus `json:"proposal_status" yaml:"proposal_status"`       // Status of the Proposal {Pending, Active, Passed, Rejected}
+	FinalTallyResult TallyResult    `json:"final_tally_result" yaml:"final_tally_result"` // Result of Tallys
+
+	VotingStartBlock uint64 `json:"voting_start_time" yaml:"voting_start_time"` // Time of the block where MinDeposit was reached. -1 if MinDeposit is not reached
+	VotingEndBlock   uint64 `json:"voting_end_time" yaml:"voting_end_time"`     // Time that the VotingPeriod for this proposal will end and votes will be tallied
+}
 
 // NewProposal creates a new Proposal instance
 func NewProposal(content Content, id, votingStartBlock, VotingEndBlock uint64) Proposal {

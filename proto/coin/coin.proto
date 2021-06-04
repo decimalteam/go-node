@@ -1,0 +1,36 @@
+syntax = "proto3";
+package coin;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/coin/types";
+
+import "gogoproto/gogo.proto";
+
+message Coin {
+  string Title = 1 [(gogoproto.jsontag) = "title", (gogoproto.moretags) = "yaml:\"title\""];
+  uint64 CRR = 2 [(gogoproto.jsontag) = "constant_reserve_ratio", (gogoproto.moretags) = "yaml:\"constant_reserve_ratio\""];
+  string Symbol = 3 [(gogoproto.jsontag) = "symbol", (gogoproto.moretags) = "yaml:\"symbol\""];
+  string Reserve = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "reserve",
+    (gogoproto.moretags) = "yaml:\"reserve\""
+  ];
+  string LimitVolume = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "limit_volume",
+    (gogoproto.moretags) = "yaml:\"limit_volume\""
+  ];
+  string Volume = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "volume",
+    (gogoproto.moretags) = "yaml:\"volume\""
+  ];
+  bytes Creator = 7 [
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.jsontag) = "creator",
+    (gogoproto.moretags) = "yaml:\"creator\""
+  ];
+  string Identity = 8 [(gogoproto.jsontag) = "identity", (gogoproto.moretags) = "yaml:\"identity\""];
+}

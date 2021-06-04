@@ -18,15 +18,15 @@ const (
 )
 
 // MsgCreateWallet defines a CreateWallet message to create new multisignature wallet.
-type MsgCreateWallet struct {
-	Sender    sdk.AccAddress   `json:"sender" yaml:"sender"`
-	Owners    []sdk.AccAddress `json:"owners" yaml:"owners"`
-	Weights   []uint           `json:"weights" yaml:"weights"`
-	Threshold uint             `json:"threshold" yaml:"threshold"`
-}
+//type MsgCreateWallet struct {
+//	Sender    sdk.AccAddress   `json:"sender" yaml:"sender"`
+//	Owners    []sdk.AccAddress `json:"owners" yaml:"owners"`
+//	Weights   []uint           `json:"weights" yaml:"weights"`
+//	Threshold uint             `json:"threshold" yaml:"threshold"`
+//}
 
 // NewMsgCreateWallet creates a new MsgCreateWallet instance.
-func NewMsgCreateWallet(sender sdk.AccAddress, owners []sdk.AccAddress, weights []uint, threshold uint) MsgCreateWallet {
+func NewMsgCreateWallet(sender sdk.AccAddress, owners []sdk.AccAddress, weights []uint64, threshold uint64) MsgCreateWallet {
 	return MsgCreateWallet{
 		Sender:    sender,
 		Owners:    owners,

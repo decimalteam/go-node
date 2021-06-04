@@ -19,10 +19,11 @@ var (
 	KeyLockedTimeIn  = []byte("LockedTimeIn")
 )
 
-type Params struct {
-	LockedTimeOut time.Duration `json:"locked_time_out"`
-	LockedTimeIn  time.Duration `json:"locked_time_in"`
-}
+//
+//type Params struct {
+//	LockedTimeOut time.Duration `json:"locked_time_out"`
+//	LockedTimeIn  time.Duration `json:"locked_time_in"`
+//}
 
 func NewParams(lockedTimeOut, lockedTimeIn time.Duration) Params {
 	return Params{

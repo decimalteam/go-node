@@ -5,16 +5,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-type Swap struct {
-	TransferType TransferType   `json:"transfer_type"`
-	HashedSecret Hash           `json:"hashed_secret"`
-	From         sdk.AccAddress `json:"from"`
-	Recipient    string         `json:"recipient"`
-	Amount       sdk.Coins      `json:"amount"`
-	Timestamp    uint64         `json:"timestamp"`
-	Redeemed     bool           `json:"redeemed"`
-	Refunded     bool           `json:"refunded"`
-}
+//type Swap struct {
+//	TransferType TransferType   `json:"transfer_type"`
+//	HashedSecret Hash           `json:"hashed_secret"`
+//	From         sdk.AccAddress `json:"from"`
+//	Recipient    string         `json:"recipient"`
+//	Amount       sdk.Coins      `json:"amount"`
+//	Timestamp    uint64         `json:"timestamp"`
+//	Redeemed     bool           `json:"redeemed"`
+//	Refunded     bool           `json:"refunded"`
+//}
 
 func NewSwap(transferType TransferType, hash Hash, from sdk.AccAddress, recipient string, amount sdk.Coins, timestamp uint64) Swap {
 	return Swap{TransferType: transferType, HashedSecret: hash, From: from, Recipient: recipient, Amount: amount, Timestamp: timestamp, Redeemed: false, Refunded: false}

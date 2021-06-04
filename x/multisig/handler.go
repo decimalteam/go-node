@@ -23,12 +23,12 @@ func NewHandler(k Keeper) sdk.Handler {
 		}()
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		case MsgCreateWallet:
-			return handleMsgCreateWallet(ctx, k, msg)
-		case MsgCreateTransaction:
-			return handleMsgCreateTransaction(ctx, k, msg)
-		case MsgSignTransaction:
-			return handleMsgSignTransaction(ctx, k, msg, true)
+		case *MsgCreateWallet:
+			return handleMsgCreateWallet(ctx, k, *msg)
+		case *MsgCreateTransaction:
+			return handleMsgCreateTransaction(ctx, k, *msg)
+		case *MsgSignTransaction:
+			return handleMsgSignTransaction(ctx, k, *msg, true)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types2.ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -72,7 +72,7 @@ func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) 
 		sdk.NewAttribute(types2.AttributeKeyWallet, wallet.Address.String()),
 	))
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTransaction) (*sdk.Result, error) {
@@ -135,9 +135,9 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 		sdk.NewAttribute(types2.AttributeKeyCoins, msg.Coins.String()),
 		sdk.NewAttribute(types2.AttributeKeyTransaction, transaction.ID),
 	))
-	ctx.EventManager().EmitEvents(signEvents.Events)
+	ctx.EventManager().EmitEvents(signEvents.GetEvents())
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransaction, emitEvents bool) (*sdk.Result, error) {
@@ -156,7 +156,7 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 	}
 
 	// Calculate current weight of signatures
-	confirmations := uint(0)
+	confirmations := uint64(0) // ?uint64?
 	for i, c := 0, len(wallet.Owners); i < c; i++ {
 		if !transaction.Signers[i].Empty() {
 			confirmations += wallet.Weights[i]
@@ -170,7 +170,7 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 	}
 
 	// Append the signature to the multisig transaction
-	weight := uint(0)
+	weight := uint64(0)
 	for i, c := 0, len(wallet.Owners); i < c; i++ {
 		if wallet.Owners[i].Equals(msg.Sender) {
 			if !transaction.Signers[i].Empty() {
@@ -210,14 +210,14 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 			sdk.NewAttribute(types2.AttributeKeyWallet, wallet.Address.String()),
 			sdk.NewAttribute(types2.AttributeKeyTransaction, msg.TxID),
-			sdk.NewAttribute(types2.AttributeKeySignerWeight, strconv.FormatUint(uint64(weight), 10)),
-			sdk.NewAttribute(types2.AttributeKeyConfirmations, strconv.FormatUint(uint64(confirmations), 10)),
+			sdk.NewAttribute(types2.AttributeKeySignerWeight, strconv.FormatUint(weight, 10)),
+			sdk.NewAttribute(types2.AttributeKeyConfirmations, strconv.FormatUint(confirmations, 10)),
 			sdk.NewAttribute(types2.AttributeKeyConfirmed, strconv.FormatBool(confirmed)),
 		),
 	}
 	if !emitEvents {
-		return &sdk.Result{Events: events}, nil
+		return &sdk.Result{Events: events.ToABCIEvents()}, nil
 	}
 	ctx.EventManager().EmitEvents(events)
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }

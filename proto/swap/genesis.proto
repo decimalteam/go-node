@@ -1,0 +1,19 @@
+syntax = "proto3";
+package swap;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/swap/types";
+
+import "gogoproto/gogo.proto";
+import "swap/swap.proto";
+
+message GenesisState {
+  Params Params = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "swaps"
+  ];
+  repeated Swap Swaps = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "swaps",
+    (gogoproto.moretags) = "yaml:\"swaps\""
+  ];
+}
