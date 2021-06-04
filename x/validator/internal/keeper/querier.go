@@ -138,12 +138,43 @@ func queryValidatorUnbondingDelegations(ctx sdk.Context, req abci.RequestQuery, 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	unbonds := k.GetUnbondingDelegationsFromValidator(ctx, params.ValidatorAddr)
-	if unbonds == nil {
-		unbonds = types.UnbondingDelegations{}
+	unbondingDelegations := k.GetUnbondingDelegationsFromValidator(ctx, params.ValidatorAddr)
+	if unbondingDelegations == nil {
+		unbondingDelegations = types.UnbondingDelegations{}
 	}
 
-	res, err := codec.MarshalJSONIndent(types.ModuleCdc, unbonds)
+	baseUBDs := types.BaseUnbondingDelegations{}
+	nftUBDs := types.NFTUnbondingDelegations{}
+
+	for _, unbondingDelegation := range unbondingDelegations {
+		baseUBD := types.BaseUnbondingDelegation{
+			ValidatorAddress: unbondingDelegation.ValidatorAddress,
+			DelegatorAddress: unbondingDelegation.DelegatorAddress,
+			Entries:          []types.UnbondingDelegationEntry{},
+		}
+
+		nftUBD := types.NFTUnbondingDelegation{
+			ValidatorAddress: unbondingDelegation.ValidatorAddress,
+			DelegatorAddress: unbondingDelegation.DelegatorAddress,
+			Entries:          []types.UnbondingDelegationNFTEntry{},
+		}
+
+		for _, entry := range unbondingDelegation.Entries {
+			switch entry := entry.(type) {
+			case types.UnbondingDelegationEntry:
+				baseUBD.Entries = append(baseUBD.Entries, entry)
+			case types.UnbondingDelegationNFTEntry:
+				nftUBD.Entries = append(nftUBD.Entries, entry)
+			}
+		}
+
+		baseUBDs = append(baseUBDs, baseUBD)
+		nftUBDs = append(nftUBDs, nftUBD)
+	}
+
+	ubdResp := types.NewUnbondingDelegationResp(baseUBDs, nftUBDs)
+
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, ubdResp)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -194,6 +225,7 @@ func queryDelegatorUnbondingDelegations(ctx sdk.Context, req abci.RequestQuery, 
 	}
 
 	baseUBDs := types.BaseUnbondingDelegations{}
+	nftUBDs := types.NFTUnbondingDelegations{}
 
 	for _, unbondingDelegation := range unbondingDelegations {
 		baseUBD := types.BaseUnbondingDelegation{
@@ -202,17 +234,26 @@ func queryDelegatorUnbondingDelegations(ctx sdk.Context, req abci.RequestQuery, 
 			Entries:          []types.UnbondingDelegationEntry{},
 		}
 
+		nftUBD := types.NFTUnbondingDelegation{
+			ValidatorAddress: unbondingDelegation.ValidatorAddress,
+			DelegatorAddress: unbondingDelegation.DelegatorAddress,
+			Entries:          []types.UnbondingDelegationNFTEntry{},
+		}
+
 		for _, entry := range unbondingDelegation.Entries {
 			switch entry := entry.(type) {
 			case types.UnbondingDelegationEntry:
 				baseUBD.Entries = append(baseUBD.Entries, entry)
+			case types.UnbondingDelegationNFTEntry:
+				nftUBD.Entries = append(nftUBD.Entries, entry)
 			}
 		}
 
 		baseUBDs = append(baseUBDs, baseUBD)
+		nftUBDs = append(nftUBDs, nftUBD)
 	}
 
-	ubdResp := types.NewUnbondingDelegationResp(baseUBDs, types.NFTUnbondingDelegations{})
+	ubdResp := types.NewUnbondingDelegationResp(baseUBDs, nftUBDs)
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, ubdResp)
 	if err != nil {
