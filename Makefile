@@ -31,6 +31,3 @@ lint:
 	@echo "--> Running linter"
 	@golangci-lint run
 	@go mod verify
-
-test:
-	@go test -mod=readonly $(PACKAGES)
