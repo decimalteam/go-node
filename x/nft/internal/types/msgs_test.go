@@ -43,6 +43,10 @@ func TestMsgTransferNFTValidateBasicMethod(t *testing.T) {
 	err = newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
+	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, ID1, []int64{1, 3, 4})
+	err = newMsgTransferNFT.ValidateBasic()
+	require.NoError(t, err)
+
 	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, ID1, []int64{})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.NoError(t, err)
