@@ -261,9 +261,9 @@ func (msg MsgEditNFTMetadata) GetSigners() []sdk.AccAddress {
 
 /* --------------------------------------------------------------------------- */
 func CheckUnique(arr []int64) bool {
-	for _, el := range arr {
-		for _, el2 := range arr {
-			if el == el2 {
+	for i, el := range arr {
+		for j, el2 := range arr {
+			if i != j && el == el2 {
 				return false
 			}
 		}

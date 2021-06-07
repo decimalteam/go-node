@@ -139,7 +139,7 @@ func (msg MsgDelegateNFT) ValidateBasic() error {
 	if msg.DelegatorAddress.Empty() {
 		return ErrEmptyDelegatorAddr()
 	}
-	if nft.CheckUnique(msg.SubTokenIDs) {
+	if !nft.CheckUnique(msg.SubTokenIDs) {
 		return nft.ErrNotUniqueSubTokenIDs
 	}
 	return nil
@@ -284,7 +284,7 @@ func (msg MsgUnbondNFT) ValidateBasic() error {
 	if msg.DelegatorAddress.Empty() {
 		return ErrEmptyDelegatorAddr()
 	}
-	if nft.CheckUnique(msg.SubTokenIDs) {
+	if !nft.CheckUnique(msg.SubTokenIDs) {
 		return nft.ErrNotUniqueSubTokenIDs
 	}
 	return nil
