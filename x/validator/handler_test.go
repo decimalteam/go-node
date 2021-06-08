@@ -2,8 +2,10 @@ package validator
 
 import (
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	val "bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
@@ -910,7 +912,6 @@ func TestSetOnline(t *testing.T) {
 	require.Equal(t, 3, len(keeper.GetLastValidators(ctx)))
 }
 
-/*
 func TestUnbondNFT(t *testing.T) {
 	ctx, _, keeper, supplyKeeper, coinKeeper, nftKeeper := val.CreateTestInput(t, false, 1000)
 	validatorAddr := sdk.ValAddress(val.Addrs[0])
@@ -935,20 +936,20 @@ func TestUnbondNFT(t *testing.T) {
 	const tokenID = "token1"
 	quantity := sdk.NewInt(100)
 	reserve := sdk.NewInt(100)
-	token := nft.NewBaseNFT(tokenID, delegatorAddr, delegatorAddr,
-		"", quantity, reserve, true)
-	collection := nft.NewCollection(denom, nft.NewNFTs(token))
-	nftKeeper.SetCollection(ctx, denom, collection)
+
+	nftHandler := nft.GenericHandler(nftKeeper)
+	_, err = nftHandler(ctx, nft.NewMsgMintNFT(delegatorAddr, delegatorAddr, tokenID, denom, "", quantity, reserve, true))
+	require.NoError(t, err)
 
 	// delegate nft
-	msgDelegateNft := types.NewMsgDelegateNFT(validatorAddr, delegatorAddr, tokenID, denom, []sdk.Int{})
+	msgDelegateNft := types.NewMsgDelegateNFT(validatorAddr, delegatorAddr, tokenID, denom, []int64{1, 2, 3})
 	res, err = handleMsgDelegateNFT(ctx, keeper, msgDelegateNft)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
 	// unbond the half of delegations nft
-	unbondQuantity := quantity.QuoRaw(2)
-	msgUnbondNFT := types.NewMsgUnbondNFT(validatorAddr, delegatorAddr, tokenID, denom, []sdk.Int{})
+	unbondQuantity := sdk.NewInt(2)
+	msgUnbondNFT := types.NewMsgUnbondNFT(validatorAddr, delegatorAddr, tokenID, denom, []int64{1, 2})
 	res, err = handleMsgUnbondNFT(ctx, keeper, msgUnbondNFT)
 	require.NoError(t, err)
 	require.NotNil(t, res)
@@ -959,7 +960,8 @@ func TestUnbondNFT(t *testing.T) {
 
 	validator, err := keeper.GetValidator(ctx, validatorAddr)
 	require.NoError(t, err)
-	require.Equal(t, validator.Tokens, valTokens.Add(unbondQuantity.Mul(reserve)))
+	fmt.Println(validator.Tokens, valTokens.Sub(quantity.Sub(unbondQuantity).Mul(reserve)))
+	require.Equal(t, validator.Tokens, valTokens.Add(quantity.Sub(unbondQuantity).Mul(reserve)))
 
 	var finishTime time.Time
 	types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
@@ -978,13 +980,13 @@ func TestUnbondNFT(t *testing.T) {
 		types.EventTypeCompleteUnbondingNFT,
 		sdk.NewAttribute(types.AttributeKeyDenom, denom),
 		sdk.NewAttribute(types.AttributeKeyID, tokenID),
-		sdk.NewAttribute(types.AttributeKeyQuantity, unbondQuantity.String()),
 		sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
 		sdk.NewAttribute(types.AttributeKeyDelegator, delegatorAddr.String()),
 		sdk.NewAttribute(types.AttributeKeyCoin, sdk.NewCoin(keeper.BondDenom(ctx), unbondQuantity.Mul(reserve)).String()),
+		sdk.NewAttribute(types.AttributeKeySubTokenIDs, "1,2"),
 	), reqEvent)
 }
-*/
+
 func TestConvertAddr(t *testing.T) {
 	_config := sdk.GetConfig()
 	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
