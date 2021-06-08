@@ -23,19 +23,19 @@ func TestNewMsgTransferNFT(t *testing.T) {
 }
 
 func TestMsgTransferNFTValidateBasicMethod(t *testing.T) {
-	newMsgTransferNFT := NewMsgTransferNFT(Addrs[0], Addrs[1], "", ID1, []int64{})
+	newMsgTransferNFT := NewMsgTransferNFT(Addrs[0], Addrs[1], "", ID1, []int64{1, 2})
 	err := newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, "", []int64{})
+	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, "", []int64{1, 2})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgTransferNFT = NewMsgTransferNFT(nil, Addrs[1], Denom1, "", []int64{})
+	newMsgTransferNFT = NewMsgTransferNFT(nil, Addrs[1], Denom1, "", []int64{1, 2})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], nil, Denom1, "", []int64{})
+	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], nil, Denom1, "", []int64{1, 2})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
@@ -43,7 +43,7 @@ func TestMsgTransferNFTValidateBasicMethod(t *testing.T) {
 	err = newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, ID1, []int64{})
+	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, ID1, []int64{1, 2})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.NoError(t, err)
 }
@@ -193,7 +193,7 @@ func TestMsgMsgBurnNFTValidateBasicMethod(t *testing.T) {
 	err = newMsgBurnNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgBurnNFT = NewMsgBurnNFT(Addrs[0], ID1, Denom1, []int64{})
+	newMsgBurnNFT = NewMsgBurnNFT(Addrs[0], ID1, Denom1, []int64{1, 2, 3})
 	err = newMsgBurnNFT.ValidateBasic()
 	require.NoError(t, err)
 }

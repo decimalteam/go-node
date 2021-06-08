@@ -314,6 +314,9 @@ func (k Keeper) RemoveUnbondingDelegation(ctx sdk.Context, ubd types.UnbondingDe
 	key := types.GetUBDKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
 	store.Delete(key)
 	store.Delete(types.GetUBDByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress))
+	key = types.GetUnbondingDelegationNFTKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
+	store.Delete(key)
+	store.Delete(types.GetUnbondingDelegationNFTByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress))
 }
 
 // SetUnbondingDelegationEntry adds an entry to the unbonding delegation at
