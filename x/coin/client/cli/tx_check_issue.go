@@ -75,14 +75,14 @@ func GetCmdIssueCheck(cdc *codec.Codec) *cobra.Command {
 			// Retrieve private key from the keybase account
 			privKeyArmored, err := txBldr.Keybase().ExportPrivKey(cliCtx.FromName, "", "")
 			if err != nil {
-				return types.ErrUnableRetriveArmoredPkey(cliCtx.FromName, err.Error())
+				return types.ErrUnableRetrieveArmoredPkey(cliCtx.FromName, err.Error())
 			}
 			privKey, algo, err := mintkey.UnarmorDecryptPrivKey(privKeyArmored, "")
 			if err != nil {
-				return types.ErrUnableRetrivePkey(cliCtx.FromName, err.Error())
+				return types.ErrUnableRetrievePkey(cliCtx.FromName, err.Error())
 			}
 			if algo != ALGO_SECP256K1 {
-				return types.ErrUnableRetriveSECPPkey(cliCtx.FromName, algo)
+				return types.ErrUnableRetrieveSECPPkey(cliCtx.FromName, algo)
 			}
 			privKeySecp256k1, ok := privKey.(secp256k1.PrivKeySecp256k1)
 			if !ok {

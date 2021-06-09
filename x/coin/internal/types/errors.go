@@ -1,11 +1,12 @@
 package types
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"strconv"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 )
 
 // Local code type
@@ -63,675 +64,424 @@ const (
 	CodeUnableRetriveSECPPkey    CodeType = 503
 )
 
-var ErrInvalidLimitVolume = errors.New("invalid limitVolume")
-
 func ErrInvalidCRR(crr string) *sdkerrors.Error {
-
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidCRR),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("coin CRR must be between 10 and 100, crr is: %s", crr),
-			"crr":       crr,
-		},
-	)
-
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCRR,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("coin CRR must be between 10 and 100, crr is: %s", crr),
+			errors.NewParam("crr", crr)),
 	)
 }
 
 func ErrCoinDoesNotExist(symbol string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeCoinDoesNotExist),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("coin %s does not exist", symbol),
-			"symbol":    symbol,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeCoinDoesNotExist,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("coin %s does not exist", symbol),
+			errors.NewParam("symbol", symbol)),
 	)
 }
 
 func ErrInvalidCoinSymbol(symbol string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidCoinSymbol),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("invalid coin symbol %s. Symbol must match this regular expression: %s", symbol, allowedCoinSymbols),
-			"symbol":    symbol,
-		},
-	)
-
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCoinSymbol,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("invalid coin symbol %s. Symbol must match this regular expression: %s", symbol, allowedCoinSymbols),
+			errors.NewParam("symbol", symbol)),
 	)
 }
 
 func ErrForbiddenCoinSymbol(symbol string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeForbiddenCoinSymbol),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("forbidden coin symbol %s", symbol),
-			"symbol":    symbol,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeForbiddenCoinSymbol,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("forbidden coin symbol %s", symbol),
+			errors.NewParam("symbol", symbol)),
 	)
 }
 
 func ErrRetrievedAnotherCoin(symbolWant, symbolRetrieved string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":            getCodeString(CodeRetrievedAnotherCoin),
-			"codespace":       DefaultCodespace,
-			"desc":            fmt.Sprintf("retrieved coin %s instead %s", symbolRetrieved, symbolWant),
-			"symbolWant":      symbolWant,
-			"symbolRetrieved": symbolRetrieved,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeRetrievedAnotherCoin,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("retrieved coin %s instead %s", symbolRetrieved, symbolWant),
+			errors.NewParam("symbol_want", symbolWant),
+			errors.NewParam("symbol_retrieved", symbolRetrieved)),
 	)
 }
 
 func ErrCoinAlreadyExist(coin string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeCoinAlreadyExists),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("coin %s already exist", coin),
-			"coin":      coin,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeCoinAlreadyExists,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("coin %s already exist", coin),
+			errors.NewParam("coin", coin)),
 	)
 }
 
 func ErrInvalidCoinTitle(title string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidCoinTitle),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("invalid coin title: %s. Allowed up to %d bytes", title, maxCoinNameBytes),
-			"title":     title,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCoinTitle,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("invalid coin title: %s. Allowed up to %d bytes", title, maxCoinNameBytes),
+			errors.NewParam("title", title)),
 	)
 }
 
 func ErrInvalidCoinInitialVolume(initialVolume string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":          getCodeString(CodeInvalidCoinInitialVolume),
-			"codespace":     DefaultCodespace,
-			"desc":          fmt.Sprintf("coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), initialVolume),
-			"minCoinSupply": minCoinSupply.String(),
-			"maxCoinSupply": maxCoinSupply.String(),
-			"initialVolume": initialVolume,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCoinInitialVolume,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), initialVolume),
+			errors.NewParam("min_coin_supply", minCoinSupply.String()),
+			errors.NewParam("max_coin_supply", maxCoinSupply.String()),
+			errors.NewParam("initial_volume", initialVolume)),
 	)
 }
 
 func ErrInvalidCoinInitialReserve(reserve string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidCoinInitialVolume),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("coin initial reserve should be greater than or equal to %s", reserve),
-			"reserve":   reserve,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCoinInitialReserve,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("coin initial reserve should be greater than or equal to %s", reserve),
+			errors.NewParam("reserve", reserve)),
 	)
 }
 
 func ErrInternal(err string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInternal),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("Internal error: %s", err),
-			"err":       err,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInternal,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("Internal error: %s", err),
+			errors.NewParam("err", err)),
 	)
 }
 
 func ErrInsufficientCoinReserve() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInsufficientCoinReserve),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("not enough coin to reserve"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInsufficientCoinReserve,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("not enough coin to reserve")),
 	)
 }
 
 func ErrInsufficientFundsToPayCommission(commission string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":       getCodeString(CodeInsufficientCoinToPayCommission),
-			"codespace":  DefaultCodespace,
-			"desc":       fmt.Sprintf("insufficient funds to pay commission: wanted = %s", commission),
-			"commission": commission,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInsufficientCoinToPayCommission,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("insufficient funds to pay commission: wanted = %s", commission),
+			errors.NewParam("commission", commission)),
 	)
 }
 
 func ErrInsufficientFunds(fundsWant, fundsExist string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":       getCodeString(CodeInsufficientFunds),
-			"codespace":  DefaultCodespace,
-			"desc":       fmt.Sprintf("insufficient account funds; %s < %s", fundsExist, fundsWant),
-			"fundsWant":  fundsWant,
-			"fundsExist": fundsExist,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInsufficientFunds,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("insufficient account funds; %s < %s", fundsExist, fundsWant),
+			errors.NewParam("funds_want", fundsWant),
+			errors.NewParam("funds_exist", fundsExist)),
 	)
 }
 
 func ErrCalculateCommission(err error) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeCalculateCommission),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf(err.Error()),
-			"err":       err.Error(),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeCalculateCommission,
-		string(jsonData),
+		errors.Encode(
+			err.Error(),
+		),
 	)
 }
 
 func ErrUpdateOnlyForCreator() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeForbiddenUpdate),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("updating allowed only for creator of coin"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeForbiddenUpdate,
-		string(jsonData),
+		errors.Encode(
+			"updating allowed only for creator of coin",
+		),
 	)
 }
 
 func ErrSameCoin() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeSameCoins),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("can't buy same coins"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeSameCoins,
-		string(jsonData),
+		errors.Encode(
+			"can't buy same coins",
+		),
 	)
 }
 
 func ErrInsufficientFundsToSellAll() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInsufficientFundsToSellAll),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("not enough coin to sell"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInsufficientFundsToSellAll,
-		string(jsonData),
+		errors.Encode(
+			"not enough coin to sell",
+		),
 	)
 }
 
 func ErrTxBreaksVolumeLimit(volume string, limitVolume string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":        getCodeString(CodeTxBreaksVolumeLimit),
-			"codespace":   DefaultCodespace,
-			"desc":        fmt.Sprintf("tx breaks LimitVolume rule: %s > %s", volume, limitVolume),
-			"volume":      volume,
-			"limitVolume": limitVolume,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeTxBreaksVolumeLimit,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("tx breaks LimitVolume rule: %s > %s", volume, limitVolume),
+			errors.NewParam("volume", volume),
+			errors.NewParam("limit_volume", limitVolume)),
 	)
 }
 
 func ErrTxBreaksMinReserveRule(minCoinReserve string, reserve string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":           getCodeString(CodeTxBreaksMinReserveLimit),
-			"codespace":      DefaultCodespace,
-			"desc":           fmt.Sprintf("tx breaks MinReserveLimit rule: %s < %s", reserve, minCoinReserve),
-			"reserve":        reserve,
-			"minCoinReserve": minCoinReserve,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeTxBreaksMinReserveLimit,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("tx breaks MinReserveLimit rule: %s < %s", reserve, minCoinReserve),
+			errors.NewParam("reserve", reserve),
+			errors.NewParam("min_coin_reserve", minCoinReserve)),
 	)
 }
 
 func ErrMaximumValueToSellReached(amount, max string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeMaximumValueToSellReached),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("wanted to sell maximum %s, but required to spend %s at the moment", max, amount),
-			"max":       max,
-			"amount":    amount,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeMaximumValueToSellReached,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("wanted to sell maximum %s, but required to spend %s at the moment", max, amount),
+			errors.NewParam("max", max),
+			errors.NewParam("amount", amount)),
 	)
 }
 
 func ErrMinimumValueToBuyReached(amount, min string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeMinimumValueToBuyReached),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("wanted to buy minimum %s, but expected to receive %s at the moment", min, amount),
-			"min":       min,
-			"amount":    amount,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeMinimumValueToBuyReached,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("wanted to buy minimum %s, but expected to receive %s at the moment", min, amount),
+			errors.NewParam("min", min),
+			errors.NewParam("amount", amount)),
 	)
 }
 
 func ErrUpdateBalance(account string, err string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUpdateBalance),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unable to update balance of account %s: %s", account, err),
-			"account":   account,
-			"err":       err,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUpdateBalance,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unable to update balance of account %s: %s", account, err),
+			errors.NewParam("account", account),
+			errors.NewParam("err", err)),
 	)
 }
 
 func ErrLimitVolumeBroken(volume string, limit string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeLimitVolumeBroken),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("volume should be less than or equal the volume limit: %s > %s", volume, limit),
-			"volume":    volume,
-			"limit":     limit,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeLimitVolumeBroken,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("volume should be less than or equal the volume limit: %s > %s", volume, limit),
+			errors.NewParam("volume", volume),
+			errors.NewParam("limit", limit)),
 	)
 }
 
 func ErrInvalidAmount() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidAmount),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("amount should be greater than 0"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidAmount,
-		string(jsonData),
+		errors.Encode(
+			"amount should be greater than 0"),
 	)
 }
 
 // Redeem check
 
 func ErrInvalidCheck(data string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidCheck),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("amount should be greater than 0"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCheck,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unable to parse check: %s", data),
+			errors.NewParam("data", data)),
 	)
 }
 
 func ErrInvalidProof(error string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidProof),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("provided proof is invalid %s", error),
-			"error":     error,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidProof,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("provided proof is invalid %s", error),
+			errors.NewParam("error", error)),
 	)
 }
 
 func ErrInvalidPassphrase(error string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidAmount),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unable to create private key from passphrase: %s", error),
-			"error":     error,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidPassphrase,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unable to create private key from passphrase: %s", error),
+			errors.NewParam("error", error)),
 	)
 }
 
 func ErrInvalidChainID(wanted string, issued string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidChainID),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("wanted chain ID %s, but check is issued for chain with ID %s", wanted, issued),
-			"wanted":    wanted,
-			"issued":    issued,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidChainID,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("wanted chain ID %s, but check is issued for chain with ID %s", wanted, issued),
+			errors.NewParam("wanted", wanted),
+			errors.NewParam("issued", issued)),
 	)
 }
 
 func ErrInvalidNonce() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidNonce),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("nonce is too big (should be up to 16 bytes)"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidNonce,
-		string(jsonData),
+		errors.Encode(
+			"nonce is too big (should be up to 16 bytes)"),
 	)
 }
 
 func ErrCheckExpired(block uint64) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeCheckExpired),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("check was expired at block %d", block),
-			"block":     strconv.FormatInt(int64(block), 10),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeCheckExpired,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("check was expired at block %d", block),
+			errors.NewParam("block", strconv.FormatInt(int64(block), 10))),
 	)
 }
 
 func ErrCheckRedeemed() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeCheckRedeemed),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("check was redeemed already"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeCheckRedeemed,
-		string(jsonData),
+		errors.Encode(
+			"check was redeemed already"),
 	)
 }
 
 func ErrUnableDecodeCheck(check string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnableDecodeCheck),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unable to decode check from base58 %s", check),
-			"check":     check,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableDecodeCheck,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unable to decode check from base58 %s", check),
+			errors.NewParam("check", check)),
 	)
 }
 
 func ErrUnableRPLEncodeCheck(error string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnableRPLEncodeCheck),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unable to RLP encode check receiver address: %s", error),
-			"error":     error,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableRPLEncodeCheck,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unable to RLP encode check receiver address: %s", error),
+			errors.NewParam("error", error)),
 	)
 }
 
 func ErrUnableSignCheck(error string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnableSignCheck),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unable to sign check receiver address by private key generated from passphrase: %s", error),
-			"error":     error,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableSignCheck,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unable to sign check receiver address by private key generated from passphrase: %s", error),
+			errors.NewParam("error", error)),
 	)
 }
 
 func ErrUnableDecodeProof() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnableDecodeProof),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unable to decode proof from base64"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableDecodeProof,
-		string(jsonData),
+		errors.Encode(
+			"unable to decode proof from base64"),
 	)
 }
 
 func ErrUnableRecoverAddress(error string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnableRecoverAddress),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unable to recover check issuer address: %s", error),
-			"error":     error,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableRecoverAddress,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unable to recover check issuer address: %s", error),
+			errors.NewParam("error", error)),
 	)
 }
 
 func ErrUnableRecoverLockPkey(error string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnableRecoverLockPkey),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unable to recover lock public key from check: %s", error),
-			"error":     error,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableRecoverLockPkey,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unable to recover lock public key from check: %s", error),
+			errors.NewParam("error", error)),
 	)
 }
 
 // AccountKeys Errors
 
 func ErrInvalidPkey() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidPkey),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("invalid private key"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidPkey,
-		string(jsonData),
+		errors.Encode(
+			"invalid private key"),
 	)
 }
 
-func ErrUnableRetriveArmoredPkey(name string, error string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnableRetriveArmoredPkey),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unable to retrieve armored private key for account %s: %s", name, error),
-			"name":      name,
-			"error":     error,
-		},
-	)
+func ErrUnableRetrieveArmoredPkey(name string, error string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableRetriveArmoredPkey,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unable to retrieve armored private key for account %s: %s", name, error),
+			errors.NewParam("name", name),
+			errors.NewParam("error", error)),
 	)
 }
 
-func ErrUnableRetrivePkey(name string, error string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnableRetrivePkey),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unable to retrieve private key for account %s: %s", name, error),
-			"name":      name,
-			"error":     error,
-		},
-	)
+func ErrUnableRetrievePkey(name string, error string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableRetrivePkey,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unable to retrieve private key for account %s: %s", name, error),
+			errors.NewParam("name", name),
+			errors.NewParam("error", error)),
 	)
 }
 
-func ErrUnableRetriveSECPPkey(name string, algo string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnableRetriveSECPPkey),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", name, algo),
-			"name":      name,
-			"algo":      algo,
-		},
-	)
+func ErrUnableRetrieveSECPPkey(name string, algo string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnableRetriveSECPPkey,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", name, algo),
+			errors.NewParam("name", name),
+			errors.NewParam("algo", algo)),
 	)
-}
-
-func getCodeString(code CodeType) string {
-	return strconv.FormatInt(int64(code), 10)
 }
