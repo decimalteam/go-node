@@ -1,0 +1,66 @@
+syntax = "proto3";
+package validator;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/validator/types";
+
+import "gogoproto/gogo.proto";
+import "validator/validator.proto";
+import "validator/delegation.proto";
+import "validator/delegation_nft.proto";
+
+message GenesisState {
+  Params Params = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "params",
+    (gogoproto.moretags) = "yaml:\"params\""
+  ];
+  bytes LastTotalPower = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "last_total_power",
+    (gogoproto.moretags) = "yaml:\"last_total_power\""
+  ];
+  repeated LastValidatorPower LastValidatorPowers = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "last_validator_powers",
+    (gogoproto.moretags) = "yaml:\"last_validator_powers\""
+  ];
+  bytes Validators = 4 [
+    (gogoproto.customtype) = "Validators",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validators",
+    (gogoproto.moretags) = "yaml:\"validators\""
+  ];
+  bytes Delegations = 5 [
+    (gogoproto.customtype) = "Delegations",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "delegations",
+    (gogoproto.moretags) = "yaml:\"delegations\""
+  ];
+  repeated UnbondingDelegation UnbondingDelegations = 6 [
+    (gogoproto.jsontag) = "unbonding_delegations",
+    (gogoproto.moretags) = "yaml:\"unbonding_delegations\""
+  ];
+  bytes DelegationsNFT = 7 [
+    (gogoproto.customtype) = "DelegationsNFT",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "delegations_nft",
+    (gogoproto.moretags) = "yaml:\"delegations_nft\""
+  ];
+  bool Exported = 8 [
+    (gogoproto.jsontag) = "exported",
+    (gogoproto.moretags) = "yaml:\"exported\""
+  ];
+}
+
+message LastValidatorPower {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  bytes Address = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false
+  ];
+  int64 Power = 2;
+}

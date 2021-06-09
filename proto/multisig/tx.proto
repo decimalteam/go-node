@@ -16,17 +16,20 @@ message MsgCreateTransaction {
   option (gogoproto.goproto_getters) = false;
 
   bytes Sender = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
   bytes Wallet = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "wallet",
     (gogoproto.moretags) = "yaml:\"wallet\""
   ];
   bytes Receiver = 3 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "receiver",
     (gogoproto.moretags) = "yaml:\"receiver\""
   ];
@@ -44,12 +47,14 @@ message MsgCreateWallet {
   option (gogoproto.goproto_getters) = false;
 
   bytes Sender = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
   repeated bytes Owners = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "owners",
     (gogoproto.moretags) = "yaml:\"owners\""
   ];
@@ -70,7 +75,8 @@ message MsgSignTransaction {
   option (gogoproto.goproto_getters) = false;
 
   bytes Sender = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];

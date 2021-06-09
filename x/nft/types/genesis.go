@@ -5,10 +5,10 @@ import (
 )
 
 // GenesisState is the state that must be provided at genesis.
-type GenesisState struct {
-	Owners      []Owner     `json:"owners"`
-	Collections Collections `json:"collections"`
-}
+//type GenesisState struct {
+//	Owners      []Owner     `json:"owners"`
+//	Collections Collections `json:"collections"`
+//}
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(owners []Owner, collections Collections) GenesisState {

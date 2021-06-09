@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"sort"
 	"strings"
@@ -25,20 +26,20 @@ const (
 	MaxDetailsLength         = 280
 )
 
-type Validator struct {
-	ValAddress              sdk.ValAddress `json:"val_address" yaml:"val_address"`
-	PubKey                  crypto.PubKey  `json:"pub_key" yaml:"pub_key"`
-	Tokens                  sdk.Int        `json:"stake_coins" yaml:"stake_coins"`
-	Status                  BondStatus     `json:"status" yaml:"status"`
-	Commission              sdk.Dec        `json:"commission" yaml:"commission"`
-	Jailed                  bool           `json:"jailed" yaml:"jailed"`
-	UnbondingCompletionTime time.Time      `json:"unbonding_completion_time" yaml:"unbonding_completion_time"`
-	UnbondingHeight         int64          `json:"unbonding_height" yaml:"unbonding_height"`
-	Description             Description    `json:"description" yaml:"description"`
-	AccumRewards            sdk.Int        `json:"accum_rewards" yaml:"accum_rewards"`
-	RewardAddress           sdk.AccAddress `json:"reward_address" yaml:"reward_address"`
-	Online                  bool           `json:"online" yaml:"online"`
-}
+//type Validator struct {
+//	ValAddress              sdk.ValAddress `json:"val_address" yaml:"val_address"`
+//	PubKey                  types.PubKey  `json:"pub_key" yaml:"pub_key"`
+//	Tokens                  sdk.Int        `json:"stake_coins" yaml:"stake_coins"`
+//	Status                  BondStatus     `json:"status" yaml:"status"`
+//	Commission              sdk.Dec        `json:"commission" yaml:"commission"`
+//	Jailed                  bool           `json:"jailed" yaml:"jailed"`
+//	UnbondingCompletionTime time.Time      `json:"unbonding_completion_time" yaml:"unbonding_completion_time"`
+//	UnbondingHeight         int64          `json:"unbonding_height" yaml:"unbonding_height"`
+//	Description             Description    `json:"description" yaml:"description"`
+//	AccumRewards            sdk.Int        `json:"accum_rewards" yaml:"accum_rewards"`
+//	RewardAddress           sdk.AccAddress `json:"reward_address" yaml:"reward_address"`
+//	Online                  bool           `json:"online" yaml:"online"`
+//}
 
 type Stake struct {
 	Delegator sdk.AccAddress `json:"delegator"`
@@ -182,7 +183,7 @@ func (v Validator) IsJailed() bool               { return v.Jailed }
 func (v Validator) GetMoniker() string           { return v.Description.Moniker }
 func (v Validator) GetStatus() BondStatus        { return v.Status }
 func (v Validator) GetOperator() sdk.ValAddress  { return v.ValAddress }
-func (v Validator) GetConsPubKey() crypto.PubKey { return v.PubKey }
+func (v Validator) GetConsPubKey() types.PubKey  { return v.PubKey }
 func (v Validator) GetConsAddr() sdk.ConsAddress { return sdk.ConsAddress(v.PubKey.Address()) }
 func (v Validator) GetTokens() sdk.Int           { return v.Tokens }
 func (v Validator) GetBondedTokens() sdk.Int     { return v.BondedTokens() }
@@ -224,13 +225,13 @@ func (v Validators) Swap(i, j int) {
 const DoNotModifyDesc = "[do-not-modify]"
 
 // Description - description fields for a validator
-type Description struct {
-	Moniker         string `json:"moniker" yaml:"moniker"`                   // name
-	Identity        string `json:"identity" yaml:"identity"`                 // optional identity signature (ex. UPort or Keybase)
-	Website         string `json:"website" yaml:"website"`                   // optional website link
-	SecurityContact string `json:"security_contact" yaml:"security_contact"` // optional security contact info
-	Details         string `json:"details" yaml:"details"`                   // optional details
-}
+//type Description struct {
+//	Moniker         string `json:"moniker" yaml:"moniker"`                   // name
+//	Identity        string `json:"identity" yaml:"identity"`                 // optional identity signature (ex. UPort or Keybase)
+//	Website         string `json:"website" yaml:"website"`                   // optional website link
+//	SecurityContact string `json:"security_contact" yaml:"security_contact"` // optional security contact info
+//	Details         string `json:"details" yaml:"details"`                   // optional details
+//}
 
 // NewDescription returns a new Description with the provided values.
 func NewDescription(moniker, identity, website, securityContact, details string) Description {
@@ -325,7 +326,7 @@ func (b BondStatus) String() string {
 	}
 }
 
-func NewValidator(valAddress sdk.ValAddress, pubKey crypto.PubKey, commission sdk.Dec, rewardAddress sdk.AccAddress, description Description) Validator {
+func NewValidator(valAddress sdk.ValAddress, pubKey types.PubKey, commission sdk.Dec, rewardAddress sdk.AccAddress, description Description) Validator {
 	return Validator{
 		ValAddress:              valAddress,
 		PubKey:                  pubKey,
@@ -410,7 +411,7 @@ func (v Validator) ABCIValidatorUpdate() abci.ValidatorUpdate {
 // with zero power used for validator updates.
 func (v Validator) ABCIValidatorUpdateZero() abci.ValidatorUpdate {
 	return abci.ValidatorUpdate{
-		PubKey: tmtypes.TM2PB.PubKey(v.PubKey),
+		PubKey: tmtypes.TM2PB.ValidatorUpdate(v).PubKey,
 		Power:  0,
 	}
 }

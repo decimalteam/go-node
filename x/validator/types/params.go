@@ -47,15 +47,15 @@ var (
 var _ paramsTypes.ParamSet = (*Params)(nil)
 
 // Params defines the high level settings for staking
-type Params struct {
-	UnbondingTime time.Duration `json:"unbonding_time" yaml:"unbonding_time"` // time duration of unbonding
-	MaxValidators uint16        `json:"max_validators" yaml:"max_validators"` // maximum number of validators (max uint16 = 65535)
-	MaxEntries    uint16        `json:"max_entries" yaml:"max_entries"`       // max entries for either unbonding delegation or redelegation (per pair/trio)
-	// note: we need to be a bit careful about potential overflow here, since this is user-determined
-	BondDenom         string `json:"bond_denom" yaml:"bond_denom"`                 // bondable coin denomination
-	HistoricalEntries uint16 `json:"historical_entries" yaml:"historical_entries"` // number of historical entries to persist
-	MaxDelegations    uint16 `json:"max_delegations" yaml:"max_delegations"`
-}
+//type Params struct {
+//	UnbondingTime time.Duration `json:"unbonding_time" yaml:"unbonding_time"` // time duration of unbonding
+//	MaxValidators uint16        `json:"max_validators" yaml:"max_validators"` // maximum number of validators (max uint16 = 65535)
+//	MaxEntries    uint16        `json:"max_entries" yaml:"max_entries"`       // max entries for either unbonding delegation or redelegation (per pair/trio)
+//	// note: we need to be a bit careful about potential overflow here, since this is user-determined
+//	BondDenom         string `json:"bond_denom" yaml:"bond_denom"`                 // bondable coin denomination
+//	HistoricalEntries uint16 `json:"historical_entries" yaml:"historical_entries"` // number of historical entries to persist
+//	MaxDelegations    uint16 `json:"max_delegations" yaml:"max_delegations"`
+//}
 
 // NewParams creates a new Params instance
 func NewParams(unbondingTime time.Duration, maxValidators, maxEntries, historicalEntries uint16,

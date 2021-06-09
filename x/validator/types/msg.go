@@ -7,26 +7,14 @@ import (
 
 var _ sdk.Msg = &MsgDeclareCandidate{}
 
-type MsgDeclareCandidate struct {
-	Commission    sdk.Dec        `json:"commission" yaml:"commission"`
-	ValidatorAddr sdk.ValAddress `json:"validator_addr" yaml:"validator_addr"`
-	RewardAddr    sdk.AccAddress `json:"reward_addr" yaml:"reward_addr"`
-	PubKey        crypto.PubKey  `json:"pub_key" yaml:"pub_key"`
-	Stake         sdk.Coin       `json:"stake" yaml:"stake"`
-	Description   Description    `json:"description"`
-}
-
-func (msg MsgDeclareCandidate) Reset() {
-	panic("implement me")
-}
-
-func (msg MsgDeclareCandidate) String() string {
-	panic("implement me")
-}
-
-func (msg MsgDeclareCandidate) ProtoMessage() {
-	panic("implement me")
-}
+//type MsgDeclareCandidate struct {
+//	Commission    sdk.Dec        `json:"commission" yaml:"commission"`
+//	ValidatorAddr sdk.ValAddress `json:"validator_addr" yaml:"validator_addr"`
+//	RewardAddr    sdk.AccAddress `json:"reward_addr" yaml:"reward_addr"`
+//	PubKey        crypto.PubKey  `json:"pub_key" yaml:"pub_key"`
+//	Stake         sdk.Coin       `json:"stake" yaml:"stake"`
+//	Description   Description    `json:"description"`
+//}
 
 func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, commission sdk.Dec, stake sdk.Coin, description Description, rewardAddress sdk.AccAddress) MsgDeclareCandidate {
 	return MsgDeclareCandidate{
@@ -73,23 +61,11 @@ func (msg MsgDeclareCandidate) ValidateBasic() error {
 
 // -----------------------------------------------------------------------------------------
 
-type MsgDelegate struct {
-	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
-	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-	Coin             sdk.Coin       `json:"coin"`
-}
-
-func (msg MsgDelegate) Reset() {
-	panic("implement me")
-}
-
-func (msg MsgDelegate) String() string {
-	panic("implement me")
-}
-
-func (msg MsgDelegate) ProtoMessage() {
-	panic("implement me")
-}
+//type MsgDelegate struct {
+//	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
+//	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+//	Coin             sdk.Coin       `json:"coin"`
+//}
 
 func NewMsgDelegate(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, coin sdk.Coin) MsgDelegate {
 	return MsgDelegate{
@@ -124,13 +100,13 @@ func (msg MsgDelegate) ValidateBasic() error {
 
 // -----------------------------------------------------------------------------------------
 
-type MsgDelegateNFT struct {
-	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
-	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-	TokenID          string         `json:"id"`
-	Denom            string         `json:"denom"`
-	Quantity         sdk.Int        `json:"quantity"`
-}
+//type MsgDelegateNFT struct {
+//	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
+//	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+//	TokenID          string         `json:"id"`
+//	Denom            string         `json:"denom"`
+//	Quantity         sdk.Int        `json:"quantity"`
+//}
 
 func NewMsgDelegateNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, quantity sdk.Int) MsgDelegateNFT {
 	return MsgDelegateNFT{
@@ -167,9 +143,9 @@ func (msg MsgDelegateNFT) ValidateBasic() error {
 
 // -----------------------------------------------------------------------------------------
 
-type MsgSetOnline struct {
-	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-}
+//type MsgSetOnline struct {
+//	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+//}
 
 func NewMsgSetOnline(validatorAddr sdk.ValAddress) MsgSetOnline {
 	return MsgSetOnline{ValidatorAddress: validatorAddr}
@@ -197,9 +173,9 @@ func (msg MsgSetOnline) ValidateBasic() error {
 
 // -----------------------------------------------------------------------------------------
 
-type MsgSetOffline struct {
-	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-}
+//type MsgSetOffline struct {
+//	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+//}
 
 func NewMsgSetOffline(validatorAddr sdk.ValAddress) MsgSetOffline {
 	return MsgSetOffline{ValidatorAddress: validatorAddr}
@@ -227,23 +203,11 @@ func (msg MsgSetOffline) ValidateBasic() error {
 
 // -----------------------------------------------------------------------------------------
 
-type MsgUnbond struct {
-	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
-	Coin             sdk.Coin       `json:"coin"`
-}
-
-func (msg MsgUnbond) Reset() {
-	panic("implement me")
-}
-
-func (msg MsgUnbond) String() string {
-	panic("implement me")
-}
-
-func (msg MsgUnbond) ProtoMessage() {
-	panic("implement me")
-}
+//type MsgUnbond struct {
+//	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+//	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
+//	Coin             sdk.Coin       `json:"coin"`
+//}
 
 func NewMsgUnbond(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, coin sdk.Coin) MsgUnbond {
 	return MsgUnbond{
@@ -278,13 +242,13 @@ func (msg MsgUnbond) ValidateBasic() error {
 
 // -----------------------------------------------------------------------------------------
 
-type MsgUnbondNFT struct {
-	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
-	TokenID          string         `json:"id"`
-	Denom            string         `json:"denom"`
-	Quantity         sdk.Int        `json:"quantity"`
-}
+//type MsgUnbondNFT struct {
+//	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+//	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
+//	TokenID          string         `json:"id"`
+//	Denom            string         `json:"denom"`
+//	Quantity         sdk.Int        `json:"quantity"`
+//}
 
 func NewMsgUnbondNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, quantity sdk.Int) MsgUnbondNFT {
 	return MsgUnbondNFT{
@@ -321,11 +285,11 @@ func (msg MsgUnbondNFT) ValidateBasic() error {
 
 // -----------------------------------------------------------------------------------------
 
-type MsgEditCandidate struct {
-	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-	RewardAddress    sdk.AccAddress `json:"reward_address"`
-	Description      Description    `json:"description"`
-}
+//type MsgEditCandidate struct {
+//	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+//	RewardAddress    sdk.AccAddress `json:"reward_address"`
+//	Description      Description    `json:"description"`
+//}
 
 func NewMsgEditCandidate(validatorAddress sdk.ValAddress, rewardAddress sdk.AccAddress, description Description) MsgEditCandidate {
 	return MsgEditCandidate{

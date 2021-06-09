@@ -14,7 +14,8 @@ message Vote {
     (gogoproto.moretags) = "yaml:\"proposal_id\""
   ];
   bytes Voter = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "voter",
     (gogoproto.moretags) = "yaml:\"voter\""
   ];
@@ -44,12 +45,14 @@ message ValidatorGovInfo {
   option (gogoproto.goproto_getters) = false;
 
   bytes Address = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "address",
     (gogoproto.moretags) = "yaml:\"address\""
   ];
   bytes BondedTokens = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "bonded_tokens",
     (gogoproto.moretags) = "yaml:\"bonded_tokens\""
   ];
@@ -65,17 +68,20 @@ message TallyResult {
   option (gogoproto.goproto_stringer) = false;
 
   bytes Yes = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "yes",
     (gogoproto.moretags) = "yaml:\"yes\""
   ];
   bytes Abstain = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "abstain",
     (gogoproto.moretags) = "yaml:\"abstain\""
   ];
   bytes No = 3 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "no",
     (gogoproto.moretags) = "yaml:\"no\""
   ];
@@ -87,12 +93,14 @@ message TallyParams {
   option (gogoproto.goproto_stringer) = false;
 
   bytes Quorum = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "quorum",
     (gogoproto.moretags) = "yaml:\"quorum\""
   ];
   bytes Threshold = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "threshold",
     (gogoproto.moretags) = "yaml:\"threshold\""
   ];

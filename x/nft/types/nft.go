@@ -14,14 +14,14 @@ import (
 var _ exported.NFT = (*BaseNFT)(nil)
 
 // BaseNFT non fungible token definition
-type BaseNFT struct {
-	ID        string               `json:"id,omitempty" yaml:"id"` // id of the token; not exported to clients
-	Owners    exported.TokenOwners `json:"owners" yaml:"owners"`   // account addresses that owns the NFT
-	Creator   sdk.AccAddress       `json:"creator" yaml:"creator"`
-	TokenURI  string               `json:"token_uri" yaml:"token_uri"` // optional extra properties available for querying
-	Reserve   sdk.Int              `json:"reserve" yaml:"reserve"`
-	AllowMint bool                 `json:"allow_mint" yaml:"allow_mint"`
-}
+//type BaseNFT struct {
+//	ID        string               `json:"id,omitempty" yaml:"id"` // id of the token; not exported to clients
+//	Owners    exported.TokenOwners `json:"owners" yaml:"owners"`   // account addresses that owns the NFT
+//	Creator   sdk.AccAddress       `json:"creator" yaml:"creator"`
+//	TokenURI  string               `json:"token_uri" yaml:"token_uri"` // optional extra properties available for querying
+//	Reserve   sdk.Int              `json:"reserve" yaml:"reserve"`
+//	AllowMint bool                 `json:"allow_mint" yaml:"allow_mint"`
+//}
 
 // NewBaseNFT creates a new NFT instance
 func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity, reserve sdk.Int, allowMint bool) *BaseNFT {

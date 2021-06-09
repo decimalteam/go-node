@@ -21,17 +21,20 @@ message MsgBuyCoin {
   option (gogoproto.goproto_getters) = false;
 
   bytes Sender = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
   bytes CoinToBuy = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "coin_to_buy",
     (gogoproto.moretags) = "yaml:\"coin_to_buy\""
   ];
   bytes MaxCoinToSell = 3 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "max_coin_to_sell",
     (gogoproto.moretags) = "yaml:\"max_coin_to_sell\""
   ];
@@ -44,7 +47,8 @@ message MsgCreateCoin {
   option (gogoproto.goproto_getters) = false;
 
   bytes Sender = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
@@ -91,12 +95,14 @@ message Send {
   option (gogoproto.goproto_getters) = false;
 
   bytes Coin = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "coin",
     (gogoproto.moretags) = "yaml:\"coin\""
   ];
   bytes Receiver = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "receiver",
     (gogoproto.moretags) = "yaml:\"receiver\""
   ];
@@ -107,7 +113,8 @@ message MsgMultiSendCoin {
   option (gogoproto.goproto_getters) = false;
 
   bytes Sender = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
@@ -125,7 +132,8 @@ message MsgRedeemCheck {
   option (gogoproto.goproto_getters) = false;
 
   bytes Sender = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
@@ -146,17 +154,20 @@ message MsgSellAllCoin {
   option (gogoproto.goproto_getters) = false;
 
   bytes Sender = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
   bytes CoinToSell = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "coin_to_sell",
     (gogoproto.moretags) = "yaml:\"coin_to_sell\""
   ];
   bytes MinCoinToBuy = 3 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "min_coin_to_buy",
     (gogoproto.moretags) = "yaml:\"min_coin_to_buy\""
   ];
@@ -169,17 +180,20 @@ message MsgSellCoin {
   option (gogoproto.goproto_getters) = false;
 
   bytes Sender = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
   bytes CoinToSell = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "coin_to_sell",
     (gogoproto.moretags) = "yaml:\"coin_to_sell\""
   ];
   bytes MinCoinToBuy = 3 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "min_coin_to_buy",
     (gogoproto.moretags) = "yaml:\"min_coin_to_buy\""
   ];
@@ -192,17 +206,20 @@ message MsgSendCoin {
   option (gogoproto.goproto_getters) = false;
 
   bytes Sender = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
   bytes Receiver = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "receiver",
     (gogoproto.moretags) = "yaml:\"receiver\""
   ];
   bytes Coin = 3 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "coin",
     (gogoproto.moretags) = "yaml:\"coin\""
   ];
@@ -215,7 +232,8 @@ message MsgUpdateCoin {
   option (gogoproto.goproto_getters) = false;
 
   bytes Sender = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];

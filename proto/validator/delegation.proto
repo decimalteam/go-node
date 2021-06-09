@@ -1,0 +1,122 @@
+syntax = "proto3";
+package validator;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/validator/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+message DVPair {
+  bytes DelegatorAddress = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "delegator_address",
+    (gogoproto.moretags) = "yaml:\"delegator_address\""
+  ];
+  bytes ValidatorAddress = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_address",
+    (gogoproto.moretags) = "yaml:\"validator_address\""
+  ];
+}
+
+message DVVTriplet {
+  bytes DelegatorAddress = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false
+  ];
+  bytes ValidatorSrcAddress = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false
+  ];
+  bytes ValidatorDstAddress = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message Delegation {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  bytes DelegatorAddress = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "delegator_address",
+    (gogoproto.moretags) = "yaml:\"delegator_address\""
+  ];
+  bytes ValidatorAddress = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_address",
+    (gogoproto.moretags) = "yaml:\"validator_address\""
+  ];
+  bytes Coin = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "coin",
+    (gogoproto.moretags) = "yaml:\"coin\""
+  ];
+  bytes TokensBase = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "tokens_base",
+    (gogoproto.moretags) = "yaml:\"tokens_base\""
+  ];
+}
+
+message UnbondingDelegation {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  bytes DelegatorAddress = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "delegator_address",
+    (gogoproto.moretags) = "yaml:\"delegator_address\""
+  ];
+  bytes ValidatorAddress = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_address",
+    (gogoproto.moretags) = "yaml:\"validator_address\""
+  ];
+  repeated bytes Entries = 3 [
+    (gogoproto.customtype) = "bitbucket.org/decimalteam/go-node/x/validator/exported.UnbondingDelegationEntryI",
+    (gogoproto.jsontag) = "entries",
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"entries\""
+  ];
+}
+
+message UnbondingDelegationEntry {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  int64 CreationHeight = 1 [
+    (gogoproto.jsontag) = "creation_height",
+    (gogoproto.moretags) = "yaml:\"creation_height\""
+  ];
+  bytes CompletionTime = 2 [
+    (gogoproto.customtype) = "time.Time",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "completion_time",
+    (gogoproto.moretags) = "yaml:\"completion_time\""
+  ];
+  bytes InitialBalance = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "initial_balance",
+    (gogoproto.moretags) = "yaml:\"initial_balance\""
+  ];
+  bytes Balance = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "balance",
+    (gogoproto.moretags) = "yaml:\"balance\""
+  ];
+}

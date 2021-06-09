@@ -1,0 +1,232 @@
+syntax = "proto3";
+package validator;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/validator/types";
+
+import "gogoproto/gogo.proto";
+import "validator/validator.proto";
+
+service Msg {
+  rpc DeclareCandidate(MsgDeclareCandidate) returns (MsgDeclareCandidateResponse);
+  rpc Delegate(MsgDelegate) returns (MsgDelegateResponse);
+  rpc DelegateNFT(MsgDelegateNFT) returns (MsgDelegateNFTResponse);
+  rpc SetOnline(MsgSetOnline) returns (MsgSetOnlineResponse);
+  rpc SetOffline(MsgSetOffline) returns (MsgSetOfflineResponse);
+  rpc MsgUnbond(MsgUnbond) returns (MsgUnbondResponse);
+  rpc MsgUnbondNFT(MsgUnbondNFT) returns (MsgUnbondNFTResponse);
+  rpc MsgEditCandidate(MsgEditCandidate) returns (MsgEditCandidateResponse);
+}
+
+message MsgDeclareCandidate {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes Commission = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "commission",
+    (gogoproto.moretags) = "yaml:\"commission\""
+  ];
+  bytes ValidatorAddr = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_addr",
+    (gogoproto.moretags) = "yaml:\"validator_addr\""
+  ];
+  bytes RewardAddr = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "reward_addr",
+    (gogoproto.moretags) = "yaml:\"reward_addr\""
+  ];
+  bytes Stake = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "stake",
+    (gogoproto.moretags) = "yaml:\"stake\""
+  ];
+  Description Description = 5 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\""
+  ];
+  bytes PubKey = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/tendermint/tendermint/crypto.PubKey",
+    (gogoproto.jsontag) = "pub_key",
+    (gogoproto.moretags) = "yaml:\"pub_key\""
+  ];
+}
+
+message MsgDeclareCandidateResponse {}
+
+message MsgDelegate {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes DelegatorAddress = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "delegator_address",
+    (gogoproto.moretags) = "yaml:\"delegator_address\""
+  ];
+  bytes ValidatorAddress = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_address",
+    (gogoproto.moretags) = "yaml:\"validator_address\""
+  ];
+  bytes Coin = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "coin",
+    (gogoproto.moretags) = "yaml:\"coin\""
+  ];
+}
+
+message MsgDelegateResponse {}
+
+message MsgDelegateNFT {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes DelegatorAddress = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "delegator_address",
+    (gogoproto.moretags) = "yaml:\"delegator_address\""
+  ];
+  bytes ValidatorAddress = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_address",
+    (gogoproto.moretags) = "yaml:\"validator_address\""
+  ];
+  string TokenID = 3 [
+    (gogoproto.jsontag) = "token_id",
+    (gogoproto.moretags) = "yaml:\"token_id\""
+  ];
+  string Denom = 4 [
+    (gogoproto.jsontag) = "denom",
+    (gogoproto.moretags) = "yaml:\"denom\""
+  ];
+  bytes Quantity = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "quantity",
+    (gogoproto.moretags) = "yaml:\"quantity\""
+  ];
+}
+
+message MsgDelegateNFTResponse {}
+
+message MsgSetOnline {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes ValidatorAddress = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_address",
+    (gogoproto.moretags) = "yaml:\"validator_address\""
+  ];
+}
+
+message MsgSetOnlineResponse {}
+
+message MsgSetOffline {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes ValidatorAddress = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_address",
+    (gogoproto.moretags) = "yaml:\"validator_address\""
+  ];
+}
+
+message MsgSetOfflineResponse {}
+
+message MsgUnbond {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes ValidatorAddress = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_address",
+    (gogoproto.moretags) = "yaml:\"validator_address\""
+  ];
+  bytes DelegatorAddress = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "delegator_address",
+    (gogoproto.moretags) = "yaml:\"delegator_address\""
+  ];
+  bytes Coin = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "coin",
+    (gogoproto.moretags) = "yaml:\"coin\""
+  ];
+}
+
+message MsgUnbondResponse {}
+
+message MsgUnbondNFT {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes ValidatorAddress = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_address",
+    (gogoproto.moretags) = "yaml:\"validator_address\""
+  ];
+  bytes DelegatorAddress = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "delegator_address",
+    (gogoproto.moretags) = "yaml:\"delegator_address\""
+  ];
+  string TokenID = 3 [
+    (gogoproto.jsontag) = "token_id",
+    (gogoproto.moretags) = "yaml:\"token_id\""
+  ];
+  string Denom = 4 [
+    (gogoproto.jsontag) = "denom",
+    (gogoproto.moretags) = "yaml:\"denom\""
+  ];
+  bytes Quantity = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "quantity",
+    (gogoproto.moretags) = "yaml:\"quantity\""
+  ];
+}
+
+message MsgUnbondNFTResponse {}
+
+message MsgEditCandidate {
+  bytes ValidatorAddress = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_address",
+    (gogoproto.moretags) = "yaml:\"validator_address\""
+  ];
+  bytes RewardAddress = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "reward_address",
+    (gogoproto.moretags) = "yaml:\"reward_address\""
+  ];
+  Description Description = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\""
+  ];
+}
+
+message MsgEditCandidateResponse {}
+

@@ -24,16 +24,16 @@ import (
 // Coin
 ////////////////////////////////////////////////////////////////
 
-type Coin struct {
-	Title       string         `json:"title" yaml:"title"`                                   // Full coin title (Bitcoin)
-	CRR         uint           `json:"constant_reserve_ratio" yaml:"constant_reserve_ratio"` // between 10 and 100
-	Symbol      string         `json:"symbol" yaml:"symbol"`                                 // Short coin title (BTC)
-	Reserve     sdk.Int        `json:"reserve" yaml:"reserve"`
-	LimitVolume sdk.Int        `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
-	Volume      sdk.Int        `json:"volume" yaml:"volume"`
-	Creator     sdk.AccAddress `json:"creator" yaml:"creator"`
-	Identity    string         `json:"identity" yaml:"identity"`
-}
+//type Coin struct {
+//	Title       string         `json:"title" yaml:"title"`                                   // Full coin title (Bitcoin)
+//	CRR         uint           `json:"constant_reserve_ratio" yaml:"constant_reserve_ratio"` // between 10 and 100
+//	Symbol      string         `json:"symbol" yaml:"symbol"`                                 // Short coin title (BTC)
+//	Reserve     sdk.Int        `json:"reserve" yaml:"reserve"`
+//	LimitVolume sdk.Int        `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
+//	Volume      sdk.Int        `json:"volume" yaml:"volume"`
+//	Creator     sdk.AccAddress `json:"creator" yaml:"creator"`
+//	Identity    string         `json:"identity" yaml:"identity"`
+//}
 
 func (c Coin) String() string {
 	return strings.TrimSpace(fmt.Sprintf(`Title: %s

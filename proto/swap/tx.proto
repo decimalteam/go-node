@@ -23,20 +23,28 @@ message MsgHTLT {
   option (gogoproto.goproto_getters) = false;
 
   TransferType TransferType = 1 [
-    (gogoproto.jsontag) = "transfer_type"
+    (gogoproto.jsontag) = "transfer_type",
+    (gogoproto.moretags) = "yaml:\"transfer_type\""
   ];
   bytes From = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.jsontag) = "from"
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "from",
+    (gogoproto.moretags) = "yaml:\"from\""
   ];
   string Recipient = 3 [
-    (gogoproto.jsontag) = "from"
+    (gogoproto.jsontag) = "recipient",
+    (gogoproto.moretags) = "yaml:\"recipient\""
   ];
   bytes HashedSecret = 4 [
-    (gogoproto.jsontag) = "hashed_secret"
+    (gogoproto.customtype) = "Hash",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "hashed_secret",
+    (gogoproto.moretags) = "yaml:\"hashed_secret\""
   ];
   bytes Secret = 5 [
-    (gogoproto.jsontag) = "secret"
+    (gogoproto.jsontag) = "secret",
+    (gogoproto.moretags) = "yaml:\"secret\""
   ];
   repeated bytes Amount = 6 [
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
@@ -52,12 +60,14 @@ message MsgRedeem {
   option (gogoproto.goproto_getters) = false;
 
   bytes From = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "from",
     (gogoproto.moretags) = "yaml:\"from\""
   ];
   bytes Secret = 2 [
-    (gogoproto.casttype) = "bitbucket.org/decimalteam/go-node/x/swap/types.Secret",
+    (gogoproto.customtype) = "Secret",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "secret"
   ];
 }
@@ -69,12 +79,14 @@ message MsgRefund {
   option (gogoproto.goproto_getters) = false;
 
   bytes From = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "from",
     (gogoproto.moretags) = "yaml:\"from\""
   ];
   bytes HashedSecret = 2 [
-    (gogoproto.casttype) = "bitbucket.org/decimalteam/go-node/x/swap/types.Hash",
+    (gogoproto.customtype) = "Hash",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "hashed_secret"
   ];
 }

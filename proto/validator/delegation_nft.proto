@@ -1,0 +1,80 @@
+syntax = "proto3";
+package validator;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/validator/types";
+
+import "gogoproto/gogo.proto";
+
+message DelegationNFT {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bytes DelegatorAddress = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "delegator_address",
+    (gogoproto.moretags) = "yaml:\"delegator_address\""
+  ];
+  bytes ValidatorAddress = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_address",
+    (gogoproto.moretags) = "yaml:\"validator_address\""
+  ];
+  string Denom = 3 [
+    (gogoproto.jsontag) = "denom",
+    (gogoproto.moretags) = "yaml:\"denom\""
+  ];
+  string TokenID = 4 [
+    (gogoproto.jsontag) = "token_id",
+    (gogoproto.moretags) = "yaml:\"token_id\""
+  ];
+  bytes Quantity = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "quantity",
+    (gogoproto.moretags) = "yaml:\"quantity\""
+  ];
+  bytes Coin = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "coin",
+    (gogoproto.moretags) = "yaml:\"coin\""
+  ];
+}
+
+message UnbondingDelegationNFTEntry {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  int64 CreationHeight = 1 [
+    (gogoproto.jsontag) = "creation_height",
+    (gogoproto.moretags) = "yaml:\"creation_height\""
+  ];
+  bytes CompletionTime = 2 [
+    (gogoproto.customtype) = "time.Time",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "completion_time",
+    (gogoproto.moretags) = "yaml:\"completion_time\""
+  ];
+  string Denom = 3 [
+    (gogoproto.jsontag) = "denom",
+    (gogoproto.moretags) = "yaml:\"denom\""
+  ];
+  string TokenID = 4 [
+    (gogoproto.jsontag) = "token_id",
+    (gogoproto.moretags) = "yaml:\"token_id\""
+  ];
+  bytes Quantity = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "quantity",
+    (gogoproto.moretags) = "yaml:\"quantity\""
+  ];
+  bytes Balance = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "balance",
+    (gogoproto.moretags) = "yaml:\"balance\""
+  ];
+}

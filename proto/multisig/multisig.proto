@@ -15,12 +15,14 @@ message Transaction {
     (gogoproto.moretags) = "yaml:\"id\""
   ];
   bytes Wallet = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
     (gogoproto.jsontag) = "wallet",
     (gogoproto.moretags) = "yaml:\"wallet\""
   ];
   bytes Receiver = 3 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
     (gogoproto.jsontag) = "receiver",
     (gogoproto.moretags) = "yaml:\"receiver\""
   ];
@@ -30,7 +32,8 @@ message Transaction {
     (gogoproto.moretags) = "yaml:\"coins\""
   ];
   repeated bytes Signers = 5 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
     (gogoproto.jsontag) = "signers",
     (gogoproto.moretags) = "yaml:\"signers\""
   ];
@@ -46,12 +49,14 @@ message Wallet {
   option (gogoproto.goproto_stringer) = false;
 
   bytes Address = 1 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
     (gogoproto.jsontag) = "address",
     (gogoproto.moretags) = "yaml:\"address\""
   ];
   repeated bytes Owners = 2 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
     (gogoproto.jsontag) = "owners",
     (gogoproto.moretags) = "yaml:\"owners\""
   ];

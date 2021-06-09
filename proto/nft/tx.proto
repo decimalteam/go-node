@@ -1,0 +1,6 @@
+syntax = "proto3";
+package nft;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/nft/types";
+
+import "gogoproto/gogo.proto";

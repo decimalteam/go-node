@@ -4,6 +4,8 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/types"
+	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
 
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 )
@@ -25,12 +27,28 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgBurnNFT{}, "nft/msg_burn", nil)
 }
 
+func RegisterInterfaces(registry types.InterfaceRegistry) {
+	registry.RegisterInterface("NFT", (*exported.NFT)(nil))
+	registry.RegisterInterface("TokenOwners", (*exported.TokenOwners)(nil))
+	registry.RegisterInterface("TokenOwner", (*exported.TokenOwner)(nil))
+	registry.RegisterImplementations(&BaseNFT{})
+	registry.RegisterImplementations(&IDCollection{})
+	registry.RegisterImplementations(&Collection{})
+	registry.RegisterImplementations(&Owner{})
+	registry.RegisterImplementations(&TokenOwner{})
+	registry.RegisterImplementations(&TokenOwners{})
+	registry.RegisterImplementations(MsgTransferNFT{})
+	registry.RegisterImplementations(MsgEditNFTMetadata{})
+	registry.RegisterImplementations(MsgMintNFT{})
+	registry.RegisterImplementations(MsgBurnNFT{})
+}
+
 // ModuleCdc generic sealed codec to be used throughout this module
 var ModuleCdc *codec.LegacyAmino
 
 func init() {
 	ModuleCdc = codec.NewLegacyAmino()
-	codec.RegisterCrypto(ModuleCdc)
+	codec2.RegisterCrypto(ModuleCdc)
 	RegisterCodec(ModuleCdc)
 	ModuleCdc.Seal()
 }

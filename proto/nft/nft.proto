@@ -1,0 +1,80 @@
+syntax = "proto3";
+package nft;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/nft/types";
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+
+message Owner {
+  bytes Address = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "address",
+    (gogoproto.moretags) = "yaml:\"address\""
+  ];
+}
+
+message IDCollection {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  string Denom = 1 [
+    (gogoproto.jsontag) = "denom",
+    (gogoproto.moretags) = "yaml:\"denom\""
+  ];
+  SortedStringArray IDs = 2 [
+    (gogoproto.jsontag) = "ids",
+    (gogoproto.moretags) = "yaml:\"ids\""
+  ];
+}
+
+message SortedStringArray {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  repeated string Strings = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "strings",
+    (gogoproto.moretags) = "yaml:\"strings\""
+  ];
+}
+
+message BaseNFT {
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  string ID = 1 [
+    (gogoproto.jsontag) = "id",
+    (gogoproto.moretags) = "yaml:\"id\""
+  ];
+  google.protobuf.Any Owners = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "owners",
+    (gogoproto.moretags) = "yaml:\"owners\"",
+    (cosmos_proto.accepts_interface) = "TokenOwners"
+  ];
+  bytes Creator = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "creator",
+    (gogoproto.moretags) = "yaml:\"creator\""
+  ];
+  string TokenURI = 4 [
+    (gogoproto.jsontag) = "token_uri",
+    (gogoproto.moretags) = "yaml:\"token_uri\""
+  ];
+  bytes Reserve = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.jsontag) = "reserve",
+    (gogoproto.moretags) = "yaml:\"reserve\"",
+    (gogoproto.nullable) = false
+  ];
+  bool AllowMint = 6 [
+    (gogoproto.jsontag) = "allow_mint",
+    (gogoproto.moretags) = "yaml:\"allow_mint\""
+  ];
+}

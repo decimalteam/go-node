@@ -14,29 +14,29 @@ import (
 // DVPair is struct that just has a delegator-validator pair with no other data.
 // It is intended to be used as a marshalable pointer. For example, a DVPair can be used to construct the
 // key to getting an UnbondingDelegation from state.
-type DVPair struct {
-	DelegatorAddress sdk.AccAddress
-	ValidatorAddress sdk.ValAddress
-}
+//type DVPair struct {
+//	DelegatorAddress sdk.AccAddress
+//	ValidatorAddress sdk.ValAddress
+//}
 
 // DVVTriplet is struct that just has a delegator-validator-validator triplet with no other data.
 // It is intended to be used as a marshalable pointer. For example, a DVVTriplet can be used to construct the
 // key to getting a Redelegation from state.
-type DVVTriplet struct {
-	DelegatorAddress    sdk.AccAddress
-	ValidatorSrcAddress sdk.ValAddress
-	ValidatorDstAddress sdk.ValAddress
-}
+//type DVVTriplet struct {
+//	DelegatorAddress    sdk.AccAddress
+//	ValidatorSrcAddress sdk.ValAddress
+//	ValidatorDstAddress sdk.ValAddress
+//}
 
 // Delegation represents the bond with tokens held by an account. It is
 // owned by one delegator, and is associated with the voting power of one
 // validator.
-type Delegation struct {
-	DelegatorAddress sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"`
-	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
-	Coin             sdk.Coin       `json:"coin" yaml:"coin"`
-	TokensBase       sdk.Int        `json:"tokens_base" yaml:"tokens_base"`
-}
+//type Delegation struct {
+//	DelegatorAddress sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"`
+//	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
+//	Coin             sdk.Coin       `json:"coin" yaml:"coin"`
+//	TokensBase       sdk.Int        `json:"tokens_base" yaml:"tokens_base"`
+//}
 
 // NewDelegation creates a new delegation object
 func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, coin sdk.Coin) Delegation {
@@ -116,19 +116,19 @@ func GetBaseDelegations(delegations []exported.DelegationI) Delegations {
 
 // UnbondingDelegation stores all of a single delegator's unbonding bonds
 // for a single validator in an time-ordered list
-type UnbondingDelegation struct {
-	DelegatorAddress sdk.AccAddress                       `json:"delegator_address" yaml:"delegator_address"` // delegator
-	ValidatorAddress sdk.ValAddress                       `json:"validator_address" yaml:"validator_address"` // validator unbonding from operator addr
-	Entries          []exported.UnbondingDelegationEntryI `json:"entries" yaml:"entries"`                     // unbonding delegation entries
-}
+//type UnbondingDelegation struct {
+//	DelegatorAddress sdk.AccAddress                       `json:"delegator_address" yaml:"delegator_address"` // delegator
+//	ValidatorAddress sdk.ValAddress                       `json:"validator_address" yaml:"validator_address"` // validator unbonding from operator addr
+//	Entries          []exported.UnbondingDelegationEntryI `json:"entries" yaml:"entries"`                     // unbonding delegation entries
+//}
 
 // UnbondingDelegationEntry - entry to an UnbondingDelegation
-type UnbondingDelegationEntry struct {
-	CreationHeight int64     `json:"creation_height" yaml:"creation_height"` // height which the unbonding took place
-	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"` // time at which the unbonding delegation will complete
-	InitialBalance sdk.Coin  `json:"initial_balance" yaml:"initial_balance"` // atoms initially scheduled to receive at completion
-	Balance        sdk.Coin  `json:"balance" yaml:"balance"`                 // atoms to receive at completion
-}
+//type UnbondingDelegationEntry struct {
+//	CreationHeight int64     `json:"creation_height" yaml:"creation_height"` // height which the unbonding took place
+//	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"` // time at which the unbonding delegation will complete
+//	InitialBalance sdk.Coin  `json:"initial_balance" yaml:"initial_balance"` // atoms initially scheduled to receive at completion
+//	Balance        sdk.Coin  `json:"balance" yaml:"balance"`                 // atoms to receive at completion
+//}
 
 func (e UnbondingDelegationEntry) GetCreationHeight() int64     { return e.CreationHeight }
 func (e UnbondingDelegationEntry) GetCompletionTime() time.Time { return e.CompletionTime }

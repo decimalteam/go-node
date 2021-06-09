@@ -2,7 +2,9 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/types"
 	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // RegisterCodec registers concrete types on codec
@@ -10,6 +12,14 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgHTLT{}, "swap/msg_htlt", nil)
 	cdc.RegisterConcrete(MsgRedeem{}, "swap/msg_redeem", nil)
 	cdc.RegisterConcrete(MsgRefund{}, "swap/msg_refund", nil)
+}
+
+func RegisterInterfaces(registry types.InterfaceRegistry) {
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgHTLT{},
+		&MsgRedeem{},
+		&MsgRefund{},
+	)
 }
 
 // ModuleCdc defines the module codec

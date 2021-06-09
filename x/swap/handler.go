@@ -21,12 +21,12 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		}()
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		case types2.MsgHTLT:
-			return handleMsgHTLT(ctx, keeper, msg)
-		case types2.MsgRedeem:
-			return handleMsgRedeem(ctx, keeper, msg)
-		case types2.MsgRefund:
-			return handleMsgRefund(ctx, keeper, msg)
+		case *types2.MsgHTLT:
+			return handleMsgHTLT(ctx, keeper, *msg)
+		case *types2.MsgRedeem:
+			return handleMsgRedeem(ctx, keeper, *msg)
+		case *types2.MsgRefund:
+			return handleMsgRefund(ctx, keeper, *msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types2.ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -102,7 +102,7 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types2.MsgHTLT) (*sdk.Result, 
 		),
 	)
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types2.MsgRedeem) (*sdk.Result, error) {
@@ -155,7 +155,7 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types2.MsgRedeem) (*sdk.Resu
 		),
 	)
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgRefund(ctx sdk.Context, k Keeper, msg types2.MsgRefund) (*sdk.Result, error) {
@@ -186,7 +186,7 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types2.MsgRefund) (*sdk.Resu
 		),
 	)
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func getHash(secret []byte) [32]byte {

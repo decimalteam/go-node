@@ -7,14 +7,14 @@ import (
 	"time"
 )
 
-type DelegationNFT struct {
-	DelegatorAddress sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"`
-	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
-	Denom            string         `json:"denom" yaml:"denom"`
-	TokenID          string         `json:"token_id" yaml:"token_id"`
-	Quantity         sdk.Int        `json:"quantity" yaml:"quantity"`
-	Coin             sdk.Coin       `json:"coin" yaml:"coin"`
-}
+//type DelegationNFT struct {
+//	DelegatorAddress sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"`
+//	ValidatorAddress sdk.ValAddress `json:"validator_address" yaml:"validator_address"`
+//	Denom            string         `json:"denom" yaml:"denom"`
+//	TokenID          string         `json:"token_id" yaml:"token_id"`
+//	Quantity         sdk.Int        `json:"quantity" yaml:"quantity"`
+//	Coin             sdk.Coin       `json:"coin" yaml:"coin"`
+//}
 
 func NewDelegationNFT(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, tokenID, denom string, quantity sdk.Int, coin sdk.Coin) DelegationNFT {
 	return DelegationNFT{
@@ -54,14 +54,14 @@ func (d DelegationNFT) SetTokensBase(_ sdk.Int) exported.DelegationI { return d 
 
 type DelegationsNFT []DelegationNFT
 
-type UnbondingDelegationNFTEntry struct {
-	CreationHeight int64     `json:"creation_height" yaml:"creation_height"` // height which the unbonding took place
-	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"` // time at which the unbonding delegation will complete
-	Denom          string    `json:"denom" yaml:"denom"`
-	TokenID        string    `json:"token_id" yaml:"token_id"`
-	Quantity       sdk.Int   `json:"quantity" yaml:"quantity"`
-	Balance        sdk.Coin  `json:"balance"`
-}
+//type UnbondingDelegationNFTEntry struct {
+//	CreationHeight int64     `json:"creation_height" yaml:"creation_height"` // height which the unbonding took place
+//	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"` // time at which the unbonding delegation will complete
+//	Denom          string    `json:"denom" yaml:"denom"`
+//	TokenID        string    `json:"token_id" yaml:"token_id"`
+//	Quantity       sdk.Int   `json:"quantity" yaml:"quantity"`
+//	Balance        sdk.Coin  `json:"balance"`
+//}
 
 func NewUnbondingDelegationNFTEntry(creationHeight int64, completionTime time.Time, denom string, tokenID string, quantity sdk.Int, balance sdk.Coin) UnbondingDelegationNFTEntry {
 	return UnbondingDelegationNFTEntry{

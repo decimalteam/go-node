@@ -27,7 +27,27 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
-	registry.RegisterImplementations((*sdk.Msg)(nil), &struct{}{})
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgDeclareCandidate{},
+		&MsgDelegate{},
+		&MsgDelegateNFT{},
+		&MsgUnbond{},
+		&MsgUnbondNFT{},
+		&MsgEditCandidate{},
+		&MsgSetOnline{},
+		&MsgSetOffline{},
+		&Delegation{},
+		&DelegationNFT{},
+		&UnbondingDelegationEntry{},
+		&UnbondingDelegationNFTEntry{},
+	)
+
+	registry.RegisterInterface("DelegationI",
+		(*exported.DelegationI)(nil),
+	)
+	registry.RegisterInterface("UnbondingDelegationEntryI",
+		(*exported.UnbondingDelegationEntryI)(nil),
+	)
 }
 
 // ModuleCdc defines the module codec

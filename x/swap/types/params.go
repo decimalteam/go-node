@@ -19,7 +19,6 @@ var (
 	KeyLockedTimeIn  = []byte("LockedTimeIn")
 )
 
-//
 //type Params struct {
 //	LockedTimeOut time.Duration `json:"locked_time_out"`
 //	LockedTimeIn  time.Duration `json:"locked_time_in"`
