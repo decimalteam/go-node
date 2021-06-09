@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -47,8 +48,9 @@ const (
 
 	CodeErrNoHistoricalInfo CodeType = 700
 
-	CodeDelegatorStakeIsTooLow CodeType = 800
-	CodeEmptyDelegatorAddress  CodeType = 801
+	CodeDelegatorStakeIsTooLow    CodeType = 800
+	CodeEmptyDelegatorAddress     CodeType = 801
+	CodeOwnerDoesNotOwnSubTokenID CodeType = 802
 
 	CodeInsufficientCoinToPayCommission CodeType = 900
 	CodeInsufficientFunds               CodeType = 901
@@ -551,6 +553,12 @@ func ErrInternal(error string) *sdkerrors.Error {
 	)
 }
 
+func ErrOwnerDoesNotOwnSubTokenID(owner sdk.AccAddress, subTokenID int64) *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeOwnerDoesNotOwnSubTokenID, fmt.Sprintf("the owner %s does not own the token with ID = %d", owner.String(), subTokenID))
+}
+
 func getCodeString(code CodeType) string {
 	return strconv.FormatInt(int64(code), 10)
 }
+
+

@@ -19,15 +19,6 @@ type DVPair struct {
 	ValidatorAddress sdk.ValAddress
 }
 
-// DVVTriplet is struct that just has a delegator-validator-validator triplet with no other data.
-// It is intended to be used as a marshalable pointer. For example, a DVVTriplet can be used to construct the
-// key to getting a Redelegation from state.
-type DVVTriplet struct {
-	DelegatorAddress    sdk.AccAddress
-	ValidatorSrcAddress sdk.ValAddress
-	ValidatorDstAddress sdk.ValAddress
-}
-
 // Delegation represents the bond with tokens held by an account. It is
 // owned by one delegator, and is associated with the voting power of one
 // validator.
@@ -122,6 +113,18 @@ type UnbondingDelegation struct {
 	Entries          []exported.UnbondingDelegationEntryI `json:"entries" yaml:"entries"`                     // unbonding delegation entries
 }
 
+type BaseUnbondingDelegation struct {
+	DelegatorAddress sdk.AccAddress             `json:"delegator_address" yaml:"delegator_address"` // delegator
+	ValidatorAddress sdk.ValAddress             `json:"validator_address" yaml:"validator_address"` // validator unbonding from operator addr
+	Entries          []UnbondingDelegationEntry `json:"entries" yaml:"entries"`                     // unbonding delegation entries
+}
+
+type NFTUnbondingDelegation struct {
+	DelegatorAddress sdk.AccAddress                `json:"delegator_address" yaml:"delegator_address"` // delegator
+	ValidatorAddress sdk.ValAddress                `json:"validator_address" yaml:"validator_address"` // validator unbonding from operator addr
+	Entries          []UnbondingDelegationNFTEntry `json:"entries" yaml:"entries"`                     // unbonding delegation entries
+}
+
 // UnbondingDelegationEntry - entry to an UnbondingDelegation
 type UnbondingDelegationEntry struct {
 	CreationHeight int64     `json:"creation_height" yaml:"creation_height"` // height which the unbonding took place
@@ -185,8 +188,8 @@ func (d *UnbondingDelegation) AddEntry(creationHeight int64,
 	d.Entries = append(d.Entries, NewUnbondingDelegationEntry(creationHeight, minTime, balance))
 }
 
-func (d *UnbondingDelegation) AddNFTEntry(creationHeight int64, minTime time.Time, tokenID, denom string, quantity sdk.Int, balance sdk.Coin) {
-	d.Entries = append(d.Entries, NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, quantity, balance))
+func (d *UnbondingDelegation) AddNFTEntry(creationHeight int64, minTime time.Time, tokenID, denom string, subTokenIDs []int64, balance sdk.Coin) {
+	d.Entries = append(d.Entries, NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, subTokenIDs, balance))
 }
 
 // RemoveEntry - remove entry at index i to the unbonding delegation
@@ -228,12 +231,57 @@ func UnmarshalUBD(cdc *codec.Codec, value []byte) (ubd UnbondingDelegation, err 
 	return ubd, err
 }
 
+func MustMarshalBaseUBD(cdc *codec.Codec, ubd BaseUnbondingDelegation) []byte {
+	return cdc.MustMarshalBinaryLengthPrefixed(ubd)
+}
+
+func MustUnmarshalBaseUBD(cdc *codec.Codec, value []byte) BaseUnbondingDelegation {
+	ubd, err := UnmarshalBaseUBD(cdc, value)
+	if err != nil {
+		panic(err)
+	}
+	return ubd
+}
+
+func UnmarshalBaseUBD(cdc *codec.Codec, value []byte) (ubd BaseUnbondingDelegation, err error) {
+	err = cdc.UnmarshalBinaryLengthPrefixed(value, &ubd)
+	return ubd, err
+}
+
+func MustMarshalNFTUBD(cdc *codec.Codec, ubd NFTUnbondingDelegation) []byte {
+	return cdc.MustMarshalBinaryLengthPrefixed(ubd)
+}
+
+func MustUnmarshalNFTUBD(cdc *codec.Codec, value []byte) NFTUnbondingDelegation {
+	ubd, err := UnmarshalNFTUBD(cdc, value)
+	if err != nil {
+		panic(err)
+	}
+	return ubd
+}
+
+func UnmarshalNFTUBD(cdc *codec.Codec, value []byte) (ubd NFTUnbondingDelegation, err error) {
+	err = cdc.UnmarshalBinaryLengthPrefixed(value, &ubd)
+	return ubd, err
+}
+
 // nolint
 // inefficient but only used in testing
 func (d UnbondingDelegation) Equal(d2 UnbondingDelegation) bool {
-	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&d)
-	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&d2)
-	return bytes.Equal(bz1, bz2)
+	if !d.DelegatorAddress.Equals(d2.DelegatorAddress) {
+		return false
+	}
+	if !d.ValidatorAddress.Equals(d2.ValidatorAddress) {
+		return false
+	}
+	for i, entry := range d.Entries {
+		if !d2.Entries[i].GetBalance().IsEqual(entry.GetBalance()) ||
+			!d2.Entries[i].GetInitialBalance().IsEqual(entry.GetInitialBalance()) ||
+			d2.Entries[i].GetCreationHeight() != entry.GetCreationHeight() {
+			return false
+		}
+	}
+	return true
 }
 
 // String returns a human readable string representation of an UnbondingDelegation.
@@ -299,4 +347,19 @@ func (d DelegationResponses) String() (out string) {
 		out += del.String() + "\n"
 	}
 	return strings.TrimSpace(out)
+}
+
+type UnbondingDelegationResponse struct {
+	BaseUnbondingDelegations `json:"base_unbonding_delegations"`
+	NFTUnbondingDelegations  `json:"nft_unbonding_delegation"`
+}
+
+type BaseUnbondingDelegations []BaseUnbondingDelegation
+type NFTUnbondingDelegations []NFTUnbondingDelegation
+
+func NewUnbondingDelegationResp(baseUBDs BaseUnbondingDelegations, nftUBDs NFTUnbondingDelegations) UnbondingDelegationResponse {
+	return UnbondingDelegationResponse{
+		BaseUnbondingDelegations: baseUBDs,
+		NFTUnbondingDelegations:  nftUBDs,
+	}
 }

@@ -53,3 +53,26 @@ func NewQueryNFTParams(denom, id string) QueryNFTParams {
 		TokenID: id,
 	}
 }
+
+// QuerySubTokensParams params for query 'custom/nfts/sub_tokens'
+type QuerySubTokensParams struct {
+	Denom       string  `json:"denom"`
+	TokenID     string  `json:"token_id"`
+	SubTokenIDs []int64 `json:"sub_token_ids"`
+}
+
+// NewQuerySubTokensParams creates a new instance of QuerySubTokensParams
+func NewQuerySubTokensParams(denom, id string, subTokenIDs []int64) QuerySubTokensParams {
+	return QuerySubTokensParams{
+		Denom:       denom,
+		TokenID:     id,
+		SubTokenIDs: subTokenIDs,
+	}
+}
+
+type ResponseSubTokens []ResponseSubToken
+
+type ResponseSubToken struct {
+	ID      int64
+	Reserve sdk.Int
+}

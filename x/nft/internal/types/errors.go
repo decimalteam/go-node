@@ -25,6 +25,9 @@ const (
 	CodeNotAllowedMint    CodeType = 110
 	CodeInvalidDenom      CodeType = 111
 	CodeInvalidTokenID    CodeType = 112
+	ErrInvalidSubTokenID CodeType = 113
+	ErrNotUniqueSubTokenIDs CodeType = 114
+	ErrNotUniqueTokenURI CodeType = 115
 )
 
 func ErrInvalidCollection(denom string) *sdkerrors.Error {

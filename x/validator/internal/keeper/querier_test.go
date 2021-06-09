@@ -425,11 +425,11 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	res, err := queryUnbondingDelegation(ctx, query, keeper)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	var ubDel types.UnbondingDelegation
-	require.NoError(t, cdc.UnmarshalJSON(res, &ubDel))
-	require.Equal(t, addrAcc1, ubDel.DelegatorAddress)
-	require.Equal(t, val1.ValAddress, ubDel.ValidatorAddress)
-	require.Equal(t, 1, len(ubDel.Entries))
+	var resp types.UnbondingDelegationResponse
+	require.NoError(t, cdc.UnmarshalJSON(res, &resp))
+	require.Equal(t, addrAcc1, resp.BaseUnbondingDelegations[0].DelegatorAddress)
+	require.Equal(t, val1.ValAddress, resp.BaseUnbondingDelegations[0].ValidatorAddress)
+	require.Equal(t, 1, len(resp.BaseUnbondingDelegations[0].Entries))
 
 	//
 	// not found: query unbonding delegation by delegator and validator
@@ -457,11 +457,11 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	res, err = queryDelegatorUnbondingDelegations(ctx, query, keeper)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	var ubDels []types.UnbondingDelegation
-	require.NoError(t, cdc.UnmarshalJSON(res, &ubDels))
-	require.Equal(t, 1, len(ubDels))
-	require.Equal(t, addrAcc1, ubDels[0].DelegatorAddress)
-	require.Equal(t, val1.ValAddress, ubDels[0].ValidatorAddress)
+	resp = types.UnbondingDelegationResponse{}
+	require.NoError(t, cdc.UnmarshalJSON(res, &resp))
+	require.Equal(t, 1, len(resp.BaseUnbondingDelegations))
+	require.Equal(t, addrAcc1, resp.BaseUnbondingDelegations[0].DelegatorAddress)
+	require.Equal(t, val1.ValAddress, resp.BaseUnbondingDelegations[0].ValidatorAddress)
 
 	//
 	// not found: query unbonding delegation by delegator and validator
@@ -476,8 +476,9 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	res, err = queryDelegatorUnbondingDelegations(ctx, query, keeper)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	require.NoError(t, cdc.UnmarshalJSON(res, &ubDels))
-	require.Equal(t, 0, len(ubDels))
+	resp = types.UnbondingDelegationResponse{}
+	require.NoError(t, cdc.UnmarshalJSON(res, &resp))
+	require.Equal(t, 0, len(resp.BaseUnbondingDelegations))
 }
 
 func TestQueryHistoricalInfo(t *testing.T) {

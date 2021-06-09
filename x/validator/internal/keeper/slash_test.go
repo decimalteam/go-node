@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -69,6 +68,7 @@ func TestRevocation(t *testing.T) {
 	require.False(t, val.IsJailed())
 }
 
+/*
 func TestSlashBondedDelegationNFT(t *testing.T) {
 	ctx, _, keeper, _, _, nftKeeper := CreateTestInput(t, false, 100)
 
@@ -119,7 +119,7 @@ func TestSlashBondedDelegationNFT(t *testing.T) {
 	delegationNFT, ok := keeper.GetDelegationNFT(ctx, valAddr, delAddr, tokenID, denom)
 	require.True(t, ok)
 	require.Equal(t, sdk.NewInt(99), delegationNFT.Quantity)
-}
+}*/
 
 // tests slashUnbondingDelegation
 func TestSlashUnbondingDelegation(t *testing.T) {

@@ -1,35 +1,29 @@
-package keeper_test
+package keeper
 
-/*
 import (
 	"testing"
 
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/keeper"
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 // nolint: deadcode unused
 var (
-	addresses = types.CreateTestAddrs(4)
+	Addrs = types.CreateTestAddrs(4)
 
-	denom     = "test-denom"
-	denom2    = "test-denom2"
-	denom3    = "test-denom3"
-	id        = "1"
-	id2       = "2"
-	id3       = "3"
-	address   = addresses[0]
-	address2  = addresses[1]
-	address3  = addresses[2]
-	tokenURI  = "https://google.com/token-1.json"
-	tokenURI2 = "https://google.com/token-2.json"
+	Denom1    = "test_denom1"
+	Denom2    = "test_denom2"
+	Denom3    = "test_denom3"
+	ID1       = "1"
+	ID2       = "2"
+	ID3       = "3"
+	TokenURI1 = "https://google.com/token-1.json"
+	TokenURI2 = "https://google.com/token-2.json"
 )
 
-func createTestApp(t *testing.T, isCheckTx bool) (sdk.Context, *codec.Codec, keeper.Keeper) {
-	ctx, nftKeeper := keeper.CreateTestInput(t, isCheckTx, 0)
+func createTestApp(t *testing.T, isCheckTx bool) (sdk.Context, *codec.Codec, Keeper) {
+	ctx, nftKeeper := CreateTestInput(t, isCheckTx, 10000000)
 
-	return ctx, types.MakeTestCodec(), nftKeeper
-}*/
+	return ctx, MakeTestCodec(), nftKeeper
+}

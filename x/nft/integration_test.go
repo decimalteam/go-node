@@ -1,8 +1,6 @@
-package nft_test
+package nft
 
-/*
 import (
-	"bitbucket.org/decimalteam/go-node/x/nft"
 	"fmt"
 	"testing"
 
@@ -15,27 +13,26 @@ import (
 
 // nolint: deadcode unused
 var (
-	denom1    = "test-denom"
-	denom2    = "test-denom2"
-	denom3    = "test-denom3"
-	id        = "1"
-	id2       = "2"
-	id3       = "3"
-	address   = types.CreateTestAddrs(1)[0]
-	address2  = types.CreateTestAddrs(2)[1]
-	address3  = types.CreateTestAddrs(3)[2]
-	tokenURI1 = "https://google.com/token-1.json"
-	tokenURI2 = "https://google.com/token-2.json"
+	Addrs = types.CreateTestAddrs(100)
+
+	Denom1    = "test-denom1"
+	Denom2    = "test-denom2"
+	Denom3    = "test-denom3"
+	ID1       = "1"
+	ID2       = "2"
+	ID3       = "3"
+	TokenURI1 = "https://google.com/token-1.json"
+	TokenURI2 = "https://google.com/token-2.json"
 )
 
 func createTestApp(t *testing.T, isCheckTx bool) (sdk.Context, *codec.Codec, keeper.Keeper) {
-	ctx, nftKeeper := keeper.CreateTestInput(t, isCheckTx, 0)
+	ctx, nftKeeper := keeper.CreateTestInput(t, isCheckTx, 10000000)
 
-	return ctx, types.MakeTestCodec(), nftKeeper
+	return ctx, keeper.MakeTestCodec(), nftKeeper
 }
 
 // CheckInvariants checks the invariants
-func CheckInvariants(k nft.Keeper, ctx sdk.Context) bool {
+func CheckInvariants(k Keeper, ctx sdk.Context) bool {
 	collectionsSupply := make(map[string]int)
 	ownersCollectionsSupply := make(map[string]int)
 
@@ -58,4 +55,4 @@ func CheckInvariants(k nft.Keeper, ctx sdk.Context) bool {
 		}
 	}
 	return true
-}*/
+}

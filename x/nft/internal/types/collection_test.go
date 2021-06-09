@@ -1,6 +1,5 @@
 package types
 
-/*
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,11 +11,14 @@ import (
 // ---------------------------------------- Collection ---------------------------------------------------
 
 func TestNewCollection(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT2 := NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
 	nfts := NewNFTs(testNFT, testNFT2)
-	collection := NewCollection(fmt.Sprintf("      %s      ", denom), nfts)
-	require.Equal(t, collection.Denom, denom)
+
+	collection := NewCollection(fmt.Sprintf("      %s      ", Denom1), nfts)
+	require.Equal(t, collection.Denom, Denom1)
 	require.Equal(t, len(collection.NFTs), 2)
 }
 
@@ -27,39 +29,44 @@ func TestEmptyCollection(t *testing.T) {
 }
 
 func TestCollectionGetNFTMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, []int64{}, true)
 	nfts := NewNFTs(testNFT)
-	collection := NewCollection(denom, nfts)
+	collection := NewCollection(Denom1, nfts)
 
-	returnedNFT, err := collection.GetNFT(id)
+	returnedNFT, err := collection.GetNFT(ID1)
 	require.NoError(t, err)
 	require.Equal(t, testNFT.String(), returnedNFT.String())
 
-	returnedNFT, err = collection.GetNFT(id2)
+	returnedNFT, err = collection.GetNFT(ID2)
 	require.Error(t, err)
 	require.Nil(t, returnedNFT)
 }
 
 func TestCollectionContainsNFTMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
 	nfts := NewNFTs(testNFT)
-	collection := NewCollection(denom, nfts)
+	collection := NewCollection(Denom1, nfts)
 
-	contains := collection.ContainsNFT(id)
+	contains := collection.ContainsNFT(ID1)
 	require.True(t, contains)
 
-	contains = collection.ContainsNFT(id2)
+	contains = collection.ContainsNFT(ID2)
 	require.False(t, contains)
 }
 
 func TestCollectionAddNFTMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT2 := NewBaseNFT(id2, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
 	nfts := NewNFTs(testNFT)
-	collection := NewCollection(denom, nfts)
+	collection := NewCollection(Denom1, nfts)
 
 	newCollection, err := collection.AddNFT(testNFT)
-	require.Error(t, err)
+	require.NoError(t, err)
 	require.Equal(t, collection.String(), newCollection.String())
 
 	newCollection, err = collection.AddNFT(testNFT2)
@@ -69,12 +76,15 @@ func TestCollectionAddNFTMethod(t *testing.T) {
 }
 
 func TestCollectionUpdateNFTMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT3 := NewBaseNFT(id, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI2, reserve, subTokenIDs, true)
+	testNFT3 := NewBaseNFT(ID1, Addrs[1], Addrs[1], TokenURI2, reserve, subTokenIDs, true)
 	nfts := NewNFTs(testNFT)
-	collection := NewCollection(denom, nfts)
+	collection := NewCollection(Denom1, nfts)
 
+	// should fail when nft does not exist in the collection
 	newCollection, err := collection.UpdateNFT(testNFT2)
 	require.Error(t, err)
 	require.Equal(t, collection.String(), newCollection.String())
@@ -82,19 +92,21 @@ func TestCollectionUpdateNFTMethod(t *testing.T) {
 	collection, err = collection.UpdateNFT(testNFT3)
 	require.NoError(t, err)
 
-	returnedNFT, err := collection.GetNFT(id)
+	returnedNFT, err := collection.GetNFT(ID1)
 	require.NoError(t, err)
 
-	require.Equal(t, returnedNFT.GetOwners().GetOwners()[0].GetAddress(), address2)
-	require.Equal(t, returnedNFT.GetTokenURI(), tokenURI2)
+	require.Equal(t, returnedNFT.GetOwners().GetOwners()[0].GetAddress(), Addrs[1])
+	require.Equal(t, returnedNFT.GetTokenURI(), TokenURI2)
 }
 
 func TestCollectionDeleteNFTMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT3 := NewBaseNFT(id3, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI2, reserve, subTokenIDs, true)
+	testNFT3 := NewBaseNFT(ID3, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
 	nfts := NewNFTs(testNFT, testNFT2)
-	collection := NewCollection(denom, nfts)
+	collection := NewCollection(Denom1, nfts)
 
 	newCollection, err := collection.DeleteNFT(testNFT3)
 	require.Error(t, err)
@@ -104,7 +116,7 @@ func TestCollectionDeleteNFTMethod(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(collection.NFTs), 1)
 
-	returnedNFT, err := collection.GetNFT(id2)
+	returnedNFT, err := collection.GetNFT(ID2)
 	require.Nil(t, returnedNFT)
 	require.Error(t, err)
 }
@@ -113,10 +125,12 @@ func TestCollectionSupplyMethod(t *testing.T) {
 	empty := EmptyCollection()
 	require.Equal(t, empty.Supply(), 0)
 
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI2, reserve, subTokenIDs, true)
 	nfts := NewNFTs(testNFT, testNFT2)
-	collection := NewCollection(denom, nfts)
+	collection := NewCollection(Denom1, nfts)
 
 	require.Equal(t, collection.Supply(), 2)
 
@@ -134,21 +148,23 @@ func TestCollectionSupplyMethod(t *testing.T) {
 }
 
 func TestCollectionStringMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI2, reserve, subTokenIDs, true)
 	nfts := NewNFTs(testNFT, testNFT2)
-	collection := NewCollection(denom, nfts)
+	collection := NewCollection(Denom1, nfts)
 	require.Equal(t, collection.String(),
 		fmt.Sprintf(`Denom: 				%s
 NFTs:
 
 ID:				%s
-Owner:			%s
+Owners:			%s 
 TokenURI:		%s
 ID:				%s
-Owner:			%s
-TokenURI:		%s`, denom, id, address.String(), tokenURI,
-			id2, address2.String(), tokenURI2))
+Owners:			%s 
+TokenURI:		%s`, Denom1, ID1, Addrs[0].String(), TokenURI1,
+			ID2, Addrs[1].String(), TokenURI2))
 }
 
 // ---------------------------------------- Collections ---------------------------------------------------
@@ -157,89 +173,98 @@ func TestNewCollections(t *testing.T) {
 	emptyCollections := NewCollections()
 	require.Empty(t, emptyCollections)
 
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	nfts := NewNFTs(testNFT)
-	collection := NewCollection(denom, nfts)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
 
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
+	nfts := NewNFTs(testNFT)
+	collection := NewCollection(Denom1, nfts)
+
+	testNFT2 := NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI2, reserve, subTokenIDs, true)
 	nfts2 := NewNFTs(testNFT2)
-	collection2 := NewCollection(denom2, nfts2)
+	collection2 := NewCollection(Denom2, nfts2)
 
 	collections := NewCollections(collection, collection2)
 	require.Equal(t, len(collections), 2)
 }
 func TestCollectionsAppendMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
 	nfts := NewNFTs(testNFT)
-	collection := NewCollection(denom, nfts)
+	collection := NewCollection(Denom1, nfts)
 
 	collections := NewCollections(collection)
 
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI2, reserve, subTokenIDs, true)
 	nfts2 := NewNFTs(testNFT2)
-	collection2 := NewCollection(denom2, nfts2)
+	collection2 := NewCollection(Denom2, nfts2)
 	collections2 := NewCollections(collection2)
 
 	collections = collections.Append(collections2...)
 	require.Equal(t, len(collections), 2)
 }
 func TestCollectionsFindMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
 	nfts := NewNFTs(testNFT)
-	collection := NewCollection(denom, nfts)
+	collection := NewCollection(Denom1, nfts)
 
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI2, reserve, subTokenIDs, true)
 	nfts2 := NewNFTs(testNFT2)
-	collection2 := NewCollection(denom2, nfts2)
+	collection2 := NewCollection(Denom2, nfts2)
 
 	collections := NewCollections(collection)
 
-	foundCollection, found := collections.Find(denom2)
+	foundCollection, found := collections.Find(Denom2)
 	require.False(t, found)
 	require.Empty(t, foundCollection)
 
 	collections = NewCollections(collection, collection2)
 
-	foundCollection, found = collections.Find(denom2)
+	foundCollection, found = collections.Find(Denom2)
 	require.True(t, found)
 	require.Equal(t, foundCollection.String(), collection2.String())
 
-	collection3 := NewCollection(denom3, nfts)
+	collection3 := NewCollection(Denom3, nfts)
 	collections = NewCollections(collection, collection2, collection3)
 
-	_, found = collections.Find(denom)
+	_, found = collections.Find(Denom1)
 	require.True(t, found)
 
-	_, found = collections.Find(denom2)
+	_, found = collections.Find(Denom2)
 	require.True(t, found)
 
-	_, found = collections.Find(denom3)
+	_, found = collections.Find(Denom3)
 	require.True(t, found)
 }
 
 func TestCollectionsRemoveMethod(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
 	nfts := NewNFTs(testNFT)
-	collection := NewCollection(denom, nfts)
+	collection := NewCollection(Denom1, nfts)
 
 	collections := NewCollections(collection)
 
-	returnedCollections, removed := collections.Remove(denom2)
+	returnedCollections, removed := collections.Remove(Denom2)
 	require.False(t, removed)
 	require.Equal(t, returnedCollections.String(), collections.String())
 
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI2, reserve, subTokenIDs, true)
 	nfts2 := NewNFTs(testNFT2)
-	collection2 := NewCollection(denom2, nfts2)
+	collection2 := NewCollection(Denom2, nfts2)
 
 	collections = NewCollections(collection, collection2)
 
-	returnedCollections, removed = collections.Remove(denom2)
+	returnedCollections, removed = collections.Remove(Denom2)
 	require.True(t, removed)
 	require.NotEqual(t, returnedCollections.String(), collections.String())
 	require.Equal(t, 1, len(returnedCollections))
 
-	foundCollection, found := returnedCollections.Find(denom2)
+	foundCollection, found := returnedCollections.Find(Denom2)
 	require.False(t, found)
 	require.Empty(t, foundCollection)
 }
@@ -248,50 +273,58 @@ func TestCollectionsStringMethod(t *testing.T) {
 	collections := NewCollections()
 	require.Equal(t, collections.String(), "")
 
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	nfts := NewNFTs(testNFT)
-	collection := NewCollection(denom, nfts)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
 
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
+	nfts := NewNFTs(testNFT)
+	collection := NewCollection(Denom1, nfts)
+
+	testNFT2 := NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI2, reserve, subTokenIDs, true)
 	nfts2 := NewNFTs(testNFT2)
-	collection2 := NewCollection(denom2, nfts2)
+	collection2 := NewCollection(Denom2, nfts2)
 
 	collections = NewCollections(collection, collection2)
 	require.Equal(t, fmt.Sprintf(`Denom: 				%s
 NFTs:
 
 ID:				%s
-Owner:			%s
+Owners:			%s 
 TokenURI:		%s
 Denom: 				%s
 NFTs:
 
 ID:				%s
-Owner:			%s
-TokenURI:		%s`, denom, id, address.String(), tokenURI,
-		denom2, id2, address2.String(), tokenURI2), collections.String())
+Owners:			%s 
+TokenURI:		%s`, Denom1, ID1, Addrs[0].String(), TokenURI1,
+		Denom2, ID2, Addrs[1].String(), TokenURI2), collections.String())
 }
 
 func TestCollectionsEmptyMethod(t *testing.T) {
 	collections := NewCollections()
 	require.True(t, collections.Empty())
 
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
+
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
 	nfts := NewNFTs(testNFT)
-	collection := NewCollection(denom, nfts)
+	collection := NewCollection(Denom1, nfts)
 
 	collections = NewCollections(collection)
 	require.False(t, collections.Empty())
 }
 
 func TestCollectionsSortInterface(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
+	reserve := sdk.NewInt(100)
+	var subTokenIDs []int64
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
 	nfts := NewNFTs(testNFT)
-	collection := NewCollection(denom, nfts)
+	collection := NewCollection(Denom1, nfts)
 
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT2 := NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI2, reserve, subTokenIDs, true)
 	nfts2 := NewNFTs(testNFT2)
-	collection2 := NewCollection(denom2, nfts2)
+	collection2 := NewCollection(Denom2, nfts2)
 
 	collections := NewCollections(collection, collection2)
 	require.Equal(t, 2, collections.Len())
@@ -309,21 +342,24 @@ func TestCollectionsSortInterface(t *testing.T) {
 }
 
 func TestCollectionMarshalAndUnmarshalJSON(t *testing.T) {
-	testNFT := NewBaseNFT(id, address, address, tokenURI, sdk.NewInt(1), sdk.NewInt(101), true)
-	nfts := NewNFTs(testNFT)
-	collection := NewCollection(denom, nfts)
+	reserve := sdk.NewInt(100)
+	subTokenIDs := []int64{}
 
-	testNFT2 := NewBaseNFT(id2, address2, address2, tokenURI2, sdk.NewInt(1), sdk.NewInt(101), true)
+	testNFT := NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, subTokenIDs, true)
+	nfts := NewNFTs(testNFT)
+	collection := NewCollection(Denom1, nfts)
+
+	testNFT2 := NewBaseNFT(ID2, Addrs[1], Addrs[1], TokenURI2, reserve, subTokenIDs, true)
 	nfts2 := NewNFTs(testNFT2)
-	collection2 := NewCollection(denom2, nfts2)
+	collection2 := NewCollection(Denom2, nfts2)
 
 	collections := NewCollections(collection, collection2)
 
 	bz, err := collections.MarshalJSON()
 	require.NoError(t, err)
-	require.Equal(t, string(bz), fmt.Sprintf(`{"%s":{"nfts":{"%s":{"id":"%s","owner":"%s","token_uri":"%s"}}},"%s":{"nfts":{"%s":{"id":"%s","owner":"%s","token_uri":"%s"}}}}`,
-		denom, id, id, address.String(), tokenURI,
-		denom2, id2, id2, address2.String(), tokenURI2,
+	require.Equal(t, string(bz), fmt.Sprintf(`{"%s":{"denom":"%s","nfts":{"%s":{"id":"%s","owners":{"owners":[{"address":"%s","sub_token_ids":%v}]},"creator":"%s","token_uri":"%s","reserve":"%s","allow_mint":%t}}},"%s":{"denom":"%s","nfts":{"%s":{"id":"%s","owners":{"owners":[{"address":"%s","sub_token_ids":%v}]},"creator":"%s","token_uri":"%s","reserve":"%s","allow_mint":%t}}}}`,
+		Denom1, Denom1, ID1, ID1, Addrs[0].String(), subTokenIDs, Addrs[0].String(), TokenURI1, reserve.String(), testNFT.GetAllowMint(),
+		Denom2, Denom2, ID2, ID2, Addrs[1].String(), subTokenIDs, Addrs[1].String(), TokenURI2, reserve.String(), testNFT2.GetAllowMint(),
 	))
 
 	var newCollections Collections
@@ -332,4 +368,4 @@ func TestCollectionMarshalAndUnmarshalJSON(t *testing.T) {
 
 	err = newCollections.UnmarshalJSON([]byte{})
 	require.Error(t, err)
-}*/
+}

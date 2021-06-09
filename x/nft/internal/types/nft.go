@@ -24,12 +24,12 @@ type BaseNFT struct {
 }
 
 // NewBaseNFT creates a new NFT instance
-func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity, reserve sdk.Int, allowMint bool) *BaseNFT {
+func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, reserve sdk.Int, subTokenIDs []int64, allowMint bool) exported.NFT {
 	return &BaseNFT{
 		ID: id,
 		Owners: &TokenOwners{Owners: []exported.TokenOwner{&TokenOwner{
-			Address:  owner,
-			Quantity: quantity,
+			Address:     owner,
+			SubTokenIDs: subTokenIDs,
 		}}},
 		TokenURI:  strings.TrimSpace(tokenURI),
 		Creator:   creator,
@@ -119,22 +119,24 @@ func (bnft *BaseNFT) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func TransferNFT(nft exported.NFT, sender, recipient sdk.AccAddress, quantity sdk.Int) (exported.NFT, error) {
+func TransferNFT(nft exported.NFT, sender, recipient sdk.AccAddress, subTokenIDs []int64) (exported.NFT, error) {
 	senderOwner := nft.GetOwners().GetOwner(sender)
-	if senderOwner.GetQuantity().LT(quantity) {
-		return nil, ErrInvalidQuantity(quantity.String())
-	}
 
-	senderOwner = senderOwner.SetQuantity(senderOwner.GetQuantity().Sub(quantity))
+	for _, id := range subTokenIDs {
+		if SortedIntArray(senderOwner.GetSubTokenIDs()).Find(id) == -1 {
+			return nil, ErrInvalidSubTokenID
+		}
+		senderOwner = senderOwner.RemoveSubTokenID(id)
+	}
 
 	recipientOwner := nft.GetOwners().GetOwner(recipient)
 	if recipientOwner == nil {
-		nft = nft.SetOwners(nft.GetOwners().SetOwner(NewTokenOwner(recipient, quantity)))
-		nft = nft.SetOwners(nft.GetOwners().SetOwner(senderOwner))
-		return nft, nil
+		recipientOwner = NewTokenOwner(recipient, subTokenIDs)
+	} else {
+		for _, id := range subTokenIDs {
+			recipientOwner = recipientOwner.SetSubTokenID(id)
+		}
 	}
-
-	recipientOwner = recipientOwner.SetQuantity(recipientOwner.GetQuantity().Add(quantity))
 
 	nft = nft.SetOwners(nft.GetOwners().SetOwner(senderOwner))
 	nft = nft.SetOwners(nft.GetOwners().SetOwner(recipientOwner))

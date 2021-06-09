@@ -155,7 +155,7 @@ $ %s query validator unbonding-delegations-from cosmosvaloper1gghjut3ccd8ay0zduz
 				return err
 			}
 
-			var ubds types.UnbondingDelegations
+			var ubds types.UnbondingDelegationResponse
 			cdc.MustUnmarshalJSON(res, &ubds)
 			return cliCtx.PrintOutput(ubds)
 		},
@@ -343,7 +343,12 @@ $ %s query validator unbonding-delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9l
 				return err
 			}
 
-			return cliCtx.PrintOutput(types.MustUnmarshalUBD(cdc, res))
+			var resp types.UnbondingDelegations
+			if err := cdc.UnmarshalJSON(res, &resp); err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(resp)
 		},
 	}
 }
