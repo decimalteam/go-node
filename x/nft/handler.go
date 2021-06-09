@@ -82,7 +82,7 @@ func HandleMsgEditNFTMetadata(ctx sdk.Context, msg types.MsgEditNFTMetadata, k k
 	}
 
 	if !nft.GetCreator().Equals(msg.Sender) {
-		return nil, ErrNotAllowedMint
+		return nil, ErrNotAllowedMint()
 	}
 
 	// update NFT
@@ -119,7 +119,7 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 		}
 	} else {
 		if k.ExistTokenURI(ctx, msg.TokenURI) {
-			return nil, ErrNotUniqueTokenURI
+			return nil, ErrNotUniqueTokenURI()
 		}
 	}
 

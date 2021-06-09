@@ -36,7 +36,7 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 			// Decode provided check from base58 format to raw bytes
 			checkBytes := base58.Decode(checkBase58)
 			if len(checkBytes) == 0 {
-				return types.ErrUnableDecodeCheck()
+				return types.ErrUnableDecodeCheck(checkBase58)
 			}
 
 			// Parse provided check from raw bytes to ensure it is valid

@@ -124,7 +124,7 @@ func TransferNFT(nft exported.NFT, sender, recipient sdk.AccAddress, subTokenIDs
 
 	for _, id := range subTokenIDs {
 		if SortedIntArray(senderOwner.GetSubTokenIDs()).Find(id) == -1 {
-			return nil, ErrInvalidSubTokenID
+			return nil, ErrOwnerDoesNotOwnSubTokenID(senderOwner.String(), id)
 		}
 		senderOwner = senderOwner.RemoveSubTokenID(id)
 	}

@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -186,11 +185,9 @@ func TestDeleteNFT(t *testing.T) {
 
 	// NFT should no longer exist
 	isNFT := NFTKeeper.IsNFT(ctx, Denom1, ID1)
-	require.False(t, isNFT)
+	require.True(t, isNFT)
 
 	owner := NFTKeeper.GetOwner(ctx, Addrs[0])
-	s := owner.String()
-	fmt.Println(s)
 	require.Equal(t, 0, owner.Supply())
 }
 

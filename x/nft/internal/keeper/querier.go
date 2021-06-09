@@ -150,7 +150,7 @@ func queryNFT(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper) (
 
 	nft, err := k.GetNFT(ctx, params.Denom, params.TokenID)
 	if err != nil {
-		return nil, types.ErrUnknownNFT(params.Denom)
+		return nil, types.ErrUnknownNFT(params.Denom, params.TokenID)
 	}
 
 	bz, err := types.ModuleCdc.MarshalJSON(nft)

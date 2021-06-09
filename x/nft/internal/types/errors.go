@@ -1,7 +1,7 @@
 package types
 
 import (
-	"encoding/json"
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"strconv"
@@ -13,211 +13,166 @@ const (
 	// Default coin codespace
 	DefaultCodespace string = ModuleName
 
-	CodeInvalidCollection CodeType = 101
-	CodeUnknownCollection CodeType = 102
-	CodeInvalidNFT        CodeType = 103
-	CodeUnknownNFT        CodeType = 104
-	CodeNFTAlreadyExists  CodeType = 105
-	CodeEmptyMetadata     CodeType = 106
-	CodeInvalidQuantity   CodeType = 107
-	CodeInvalidReserve    CodeType = 108
-	CodeNotAllowedBurn    CodeType = 109
-	CodeNotAllowedMint    CodeType = 110
-	CodeInvalidDenom      CodeType = 111
-	CodeInvalidTokenID    CodeType = 112
-	ErrInvalidSubTokenID CodeType = 113
-	ErrNotUniqueSubTokenIDs CodeType = 114
-	ErrNotUniqueTokenURI CodeType = 115
+	CodeInvalidCollection         CodeType = 101
+	CodeUnknownCollection         CodeType = 102
+	CodeInvalidNFT                CodeType = 103
+	CodeUnknownNFT                CodeType = 104
+	CodeNFTAlreadyExists          CodeType = 105
+	CodeEmptyMetadata             CodeType = 106
+	CodeInvalidQuantity           CodeType = 107
+	CodeInvalidReserve            CodeType = 108
+	CodeNotAllowedBurn            CodeType = 109
+	CodeNotAllowedMint            CodeType = 110
+	CodeInvalidDenom              CodeType = 111
+	CodeInvalidTokenID            CodeType = 112
+	CodeNotUniqueSubTokenIDs      CodeType = 113
+	CodeNotUniqueTokenURI         CodeType = 114
+	CodeOwnerDoesNotOwnSubTokenID CodeType = 115
 )
 
 func ErrInvalidCollection(denom string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidCollection),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("invalid NFT collection: %s", denom),
-			"denom":     denom,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCollection,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("invalid NFT collection: %s", denom),
+			errors.NewParam("denom", denom)),
 	)
 }
 
 func ErrUnknownCollection(denom string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnknownCollection),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unknown NFT collection: %s", denom),
-			"denom":     denom,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnknownCollection,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unknown NFT collection: %s", denom),
+			errors.NewParam("denom", denom)),
 	)
 }
 
-func ErrInvalidNFT() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidNFT),
-			"codespace": DefaultCodespace,
-			"desc":      "invalid NFT",
-		},
-	)
+func ErrInvalidNFT(id string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidNFT,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("invalid NFT: %s", id),
+			errors.NewParam("id", id)),
 	)
 }
 
-func ErrUnknownNFT(denom string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnknownNFT),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("unknown NFT: %s", denom),
-			"denom":     denom,
-		},
-	)
+func ErrUnknownNFT(denom, id string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnknownNFT,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("unknown NFT: denom = %s, tokenID = %s", denom, id),
+			errors.NewParam("id", id),
+			errors.NewParam("denom", denom)),
 	)
 }
 
-func ErrNFTAlreadyExists() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeNFTAlreadyExists),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("NFT already exists"),
-		},
-	)
+func ErrNFTAlreadyExists(id string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNFTAlreadyExists,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("NFT with ID = %s already exists", id),
+			errors.NewParam("id", id)),
 	)
 }
 
 func ErrEmptyMetadata() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnknownNFT),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("NFT metadata can't be empty"),
-			"denom":     denom,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeEmptyMetadata,
-		string(jsonData),
+		errors.Encode(
+			"NFT metadata can't be empty"),
 	)
 }
 
 func ErrInvalidQuantity(quantity string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidQuantity),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("invalid NFT quantity: %s", quantity),
-			"quantity":  quantity,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidQuantity,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("invalid NFT quantity: %s", quantity),
+			errors.NewParam("quantity", quantity)),
 	)
 }
 
 func ErrInvalidReserve(reserve string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidReserve),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("invalid NFT reserve: %s", reserve),
-			"reserve":   reserve,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidReserve,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("invalid NFT reserve: %s", reserve),
+			errors.NewParam("reserve", reserve)),
 	)
 }
 
 func ErrNotAllowedBurn() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeNotAllowedBurn),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("only the creator can burn a token"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNotAllowedBurn,
-		string(jsonData),
+		errors.Encode(
+			"only the creator can burn a token"),
 	)
 }
 
 func ErrNotAllowedMint() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeNotAllowedMint),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("only the creator can mint a token"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNotAllowedMint,
-		string(jsonData),
+		errors.Encode(
+			"only the creator can mint a token"),
 	)
 }
 
 func ErrInvalidDenom(denom string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidDenom),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("invalid denom name: %s", denom),
-			"denom":     denom,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidDenom,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("invalid denom name: %s", denom),
+			errors.NewParam("denom", denom)),
 	)
 }
 
 func ErrInvalidTokenID(name string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidTokenID),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("invalid token name: %s", name),
-			"name":      name,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidTokenID,
-		string(jsonData),
+		errors.Encode(
+			fmt.Sprintf("invalid token name: %s", name),
+			errors.NewParam("name", name)),
 	)
 }
 
-func getCodeString(code CodeType) string {
-	return strconv.FormatInt(int64(code), 10)
+func ErrNotUniqueSubTokenIDs() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeNotUniqueSubTokenIDs,
+		errors.Encode(
+			"not unique subTokenIDs"),
+	)
+}
+
+func ErrNotUniqueTokenURI() *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeNotUniqueTokenURI,
+		errors.Encode(
+			"not unique tokenURI"),
+	)
+}
+
+func ErrOwnerDoesNotOwnSubTokenID(owner string, subTokenID int64) *sdkerrors.Error {
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeOwnerDoesNotOwnSubTokenID,
+		errors.Encode(
+			fmt.Sprintf("owner %s does not own sub tokenID %d", owner, subTokenID),
+			errors.NewParam("owner", owner),
+			errors.NewParam("sub_token_id", strconv.FormatInt(subTokenID, 10))),
+	)
 }

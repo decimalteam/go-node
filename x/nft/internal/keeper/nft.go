@@ -157,11 +157,10 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 func (k Keeper) UpdateNFT(ctx sdk.Context, denom string, nft exported.NFT) (err error) {
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
-		return sdkerrors.Wrap(types.ErrUnknownCollection, fmt.Sprintf("collection #%s doesn't exist", denom))
+		return types.ErrUnknownCollection(denom)
 	}
 
 	oldNFT, err := collection.GetNFT(nft.GetID())
-
 	if err != nil {
 		return err
 	}
@@ -187,7 +186,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
 	for _, subTokenID := range subTokenIDs {
 		if ownerSubTokenIDs.Find(subTokenID) == -1 {
-			return sdkerrors.Wrap(types.ErrNotAllowedBurn,
+			return sdkerrors.Wrap(types.ErrNotAllowedBurn(),
 				fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(),
 					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
 		}

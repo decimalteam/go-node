@@ -394,7 +394,7 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 
 	if !coinKeeper.IsCoinBase(fee.Denom) {
 		if feeCoin.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
-			return coin.ErrTxBreaksMinReserveRule(ctx, feeCoin.Reserve.Sub(fee.Amount).String())
+			return coin.ErrTxBreaksMinReserveRule(coin.MinCoinReserve(ctx).String(), feeCoin.Reserve.Sub(fee.Amount).String())
 		}
 	}
 
