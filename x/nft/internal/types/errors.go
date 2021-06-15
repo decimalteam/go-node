@@ -34,9 +34,7 @@ func ErrInvalidCollection(denom string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCollection,
-		errors.Encode(
-			fmt.Sprintf("invalid NFT collection: %s", denom),
-			errors.NewParam("denom", denom)),
+		errors.Encode("", fmt.Sprintf("invalid NFT collection: %s", denom), errors.NewParam("denom", denom)),
 	)
 }
 
@@ -44,9 +42,7 @@ func ErrUnknownCollection(denom string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnknownCollection,
-		errors.Encode(
-			fmt.Sprintf("unknown NFT collection: %s", denom),
-			errors.NewParam("denom", denom)),
+		errors.Encode("", fmt.Sprintf("unknown NFT collection: %s", denom), errors.NewParam("denom", denom)),
 	)
 }
 
@@ -54,9 +50,7 @@ func ErrInvalidNFT(id string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidNFT,
-		errors.Encode(
-			fmt.Sprintf("invalid NFT: %s", id),
-			errors.NewParam("id", id)),
+		errors.Encode("", fmt.Sprintf("invalid NFT: %s", id), errors.NewParam("id", id)),
 	)
 }
 
@@ -75,9 +69,7 @@ func ErrNFTAlreadyExists(id string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNFTAlreadyExists,
-		errors.Encode(
-			fmt.Sprintf("NFT with ID = %s already exists", id),
-			errors.NewParam("id", id)),
+		errors.Encode("", fmt.Sprintf("NFT with ID = %s already exists", id), errors.NewParam("id", id)),
 	)
 }
 
@@ -85,8 +77,7 @@ func ErrEmptyMetadata() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeEmptyMetadata,
-		errors.Encode(
-			"NFT metadata can't be empty"),
+		errors.Encode("", "NFT metadata can't be empty"),
 	)
 }
 
@@ -94,9 +85,7 @@ func ErrInvalidQuantity(quantity string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidQuantity,
-		errors.Encode(
-			fmt.Sprintf("invalid NFT quantity: %s", quantity),
-			errors.NewParam("quantity", quantity)),
+		errors.Encode("", fmt.Sprintf("invalid NFT quantity: %s", quantity), errors.NewParam("quantity", quantity)),
 	)
 }
 
@@ -104,9 +93,7 @@ func ErrInvalidReserve(reserve string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidReserve,
-		errors.Encode(
-			fmt.Sprintf("invalid NFT reserve: %s", reserve),
-			errors.NewParam("reserve", reserve)),
+		errors.Encode("", fmt.Sprintf("invalid NFT reserve: %s", reserve), errors.NewParam("reserve", reserve)),
 	)
 }
 
@@ -114,8 +101,7 @@ func ErrNotAllowedBurn() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNotAllowedBurn,
-		errors.Encode(
-			"only the creator can burn a token"),
+		errors.Encode("", "only the creator can burn a token"),
 	)
 }
 
@@ -123,8 +109,7 @@ func ErrNotAllowedMint() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNotAllowedMint,
-		errors.Encode(
-			"only the creator can mint a token"),
+		errors.Encode("", "only the creator can mint a token"),
 	)
 }
 
@@ -132,9 +117,7 @@ func ErrInvalidDenom(denom string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidDenom,
-		errors.Encode(
-			fmt.Sprintf("invalid denom name: %s", denom),
-			errors.NewParam("denom", denom)),
+		errors.Encode("", fmt.Sprintf("invalid denom name: %s", denom), errors.NewParam("denom", denom)),
 	)
 }
 
@@ -142,9 +125,7 @@ func ErrInvalidTokenID(name string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidTokenID,
-		errors.Encode(
-			fmt.Sprintf("invalid token name: %s", name),
-			errors.NewParam("name", name)),
+		errors.Encode("", fmt.Sprintf("invalid token name: %s", name), errors.NewParam("name", name)),
 	)
 }
 
@@ -152,8 +133,7 @@ func ErrNotUniqueSubTokenIDs() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNotUniqueSubTokenIDs,
-		errors.Encode(
-			"not unique subTokenIDs"),
+		errors.Encode("", "not unique subTokenIDs"),
 	)
 }
 
@@ -161,8 +141,7 @@ func ErrNotUniqueTokenURI() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNotUniqueTokenURI,
-		errors.Encode(
-			"not unique tokenURI"),
+		errors.Encode("", "not unique tokenURI"),
 	)
 }
 

@@ -4,6 +4,7 @@ import "encoding/json"
 
 type Err struct {
 	Description string            `json:"description"`
+	Codespace   string            `json:"codespace"`
 	Params      map[string]string `json:"params,omitempty"`
 }
 
@@ -19,9 +20,10 @@ func NewParam(key, value string) Param {
 	}
 }
 
-func Encode(description string, params ...Param) string {
+func Encode(codespace, description string, params ...Param) string {
 	err := Err{
 		Description: description,
+		Codespace:   codespace,
 	}
 
 	if params != nil {
