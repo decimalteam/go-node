@@ -24,6 +24,8 @@ const (
 	CodeNotExpired        = 105
 	CodeExpired           = 106
 	CodeWrongSecret       = 107
+
+	CodeDestChainNotExist = 200
 )
 
 func ErrSwapNotFound() *sdkerrors.Error {
@@ -145,6 +147,22 @@ func ErrWrongSecret() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeWrongSecret,
+		string(jsonData),
+	)
+}
+
+func ErrDestChainNotExist(destChain int) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":       getCodeString(CodeDestChainNotExist),
+			"codespace":  DefaultCodespace,
+			"desc":       fmt.Sprintf("destChain %d does not exist", destChain),
+			"dest_chain": strconv.Itoa(destChain),
+		},
+	)
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeDestChainNotExist,
 		string(jsonData),
 	)
 }

@@ -1,5 +1,7 @@
 package types
 
+import "encoding/binary"
+
 const (
 	// ModuleName is the name of the module
 	ModuleName = "swap"
@@ -14,9 +16,21 @@ const (
 )
 
 var (
-	SwapKey = []byte{0x01}
+	SwapKey      = []byte{0x01}
+	SwapV2Key    = []byte{0x02}
+	DestChainKey = []byte{0x03}
 )
 
 func GetSwapKey(hash [32]byte) []byte {
 	return append(SwapKey, hash[:]...)
+}
+
+func GetSwapV2Key(hash [32]byte) []byte {
+	return append(SwapV2Key, hash[:]...)
+}
+
+func GetDestChainKey(destChain int) []byte {
+	var buf []byte
+	binary.BigEndian.PutUint64(buf, uint64(destChain))
+	return append(DestChainKey, buf...)
 }
