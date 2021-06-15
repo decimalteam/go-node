@@ -4,6 +4,7 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"strconv"
 )
 
 // Governance message types and routes
@@ -49,7 +50,8 @@ func (msg MsgSubmitProposal) ValidateBasic() error {
 	}
 
 	if msg.VotingStartBlock >= msg.VotingEndBlock {
-		return ErrInvalidStartEndBlocks(msg.VotingStartBlock, msg.VotingEndBlock)
+		return ErrInvalidStartEndBlocks(
+			strconv.FormatUint(msg.VotingStartBlock, 10), strconv.FormatUint(msg.VotingEndBlock, 10))
 	}
 
 	if msg.VotingEndBlock-msg.VotingStartBlock > 1296000 {
