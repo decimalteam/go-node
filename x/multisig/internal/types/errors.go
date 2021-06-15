@@ -1,7 +1,7 @@
 package types
 
 import (
-	"encoding/json"
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -29,150 +29,116 @@ const (
 )
 
 func ErrInvalidSender() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidSender),
-			"codespace": DefaultCodespace,
-			"desc":      "Invalid sender address: sender address cannot be empty",
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidSender,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("Invalid sender address: sender address cannot be empty"),
+		),
 	)
 }
 
 func ErrInvalidOwnerCount(more bool) *sdkerrors.Error {
 	var AppendWord string = "need at least"
-	ownerCount := MinOwnerCount
+	ownerCount := fmt.Sprintf("%d", MinOwnerCount)
 	if more {
 		AppendWord = "allowed no more"
-		ownerCount = MaxOwnerCount
+		ownerCount = fmt.Sprintf("%d", MaxOwnerCount)
 	}
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":       getCodeString(CodeInvalidOwnerCount),
-			"codespace":  DefaultCodespace,
-			"desc":       fmt.Sprintf("Invalid owner count: %s %d owners", AppendWord, ownerCount),
-			"AppendWord": AppendWord,
-		},
-	)
+
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidOwnerCount,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("Invalid owner count: %s %s owners", AppendWord, ownerCount),
+			errors.NewParam("AppendWord", AppendWord),
+			errors.NewParam("ownerCount", ownerCount),
+		),
 	)
 }
 
 func ErrInvalidOwner() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidOwner),
-			"codespace": DefaultCodespace,
-			"desc":      "Invalid owner address: owner address cannot be empty",
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidOwner,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			"Invalid owner address: owner address cannot be empty",
+		),
 	)
 }
 
-func ErrInvalidWeightCount(LenMsgWeights int, LenMsgOwners int) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":          getCodeString(CodeInvalidWeightCount),
-			"codespace":     DefaultCodespace,
-			"desc":          fmt.Sprintf("Invalid weight count: weight count (%d) is not equal to owner count (%d)", LenMsgWeights, LenMsgOwners),
-			"LenMsgWeights": fmt.Sprintf("%d", LenMsgWeights),
-			"LenMsgOwners":  fmt.Sprintf("%d", LenMsgOwners),
-		},
-	)
+func ErrInvalidWeightCount(LenMsgWeights string, LenMsgOwners string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidWeightCount,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("Invalid weight count: weight count (%s) is not equal to owner count (%s)", LenMsgWeights, LenMsgOwners),
+			errors.NewParam("LenMsgWeights", LenMsgWeights),
+			errors.NewParam("LenMsgOwners", LenMsgOwners),
+		),
 	)
 }
 
-func ErrInvalidWeight(weight int, data string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidWeight),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("Invalid weight: weight cannot be %s than %d", data, weight),
-			"weight":    fmt.Sprintf("%d", weight),
-			"data":      data,
-		},
-	)
+func ErrInvalidWeight(weight string, data string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidWeight,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("Invalid weight: weight cannot be %s than %s", data, weight),
+			errors.NewParam("data", data),
+			errors.NewParam("weight", weight),
+		),
 	)
 }
 func ErrInvalidCoinToSend(denom string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidCoinToSend),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("Coin to send with symbol %s does not exist", denom),
-			"denom":     denom,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidCoinToSend,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("Coin to send with symbol %s does not exist", denom),
+			errors.NewParam("denom", denom),
+		),
 	)
 }
 
 func ErrWalletAccountNotFound() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeWalletAccountNotFound),
-			"codespace": DefaultCodespace,
-			"desc":      "wallet account not found",
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeWalletAccountNotFound,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("wallet account not found"),
+		),
 	)
 }
 
 func ErrInsufficientFunds(funds string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInsufficientFunds),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("Insufficient funds: wanted = %s", funds),
-			"funds":     funds,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInsufficientFunds,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("Insufficient funds: wanted = %s", funds),
+			errors.NewParam("funds", funds),
+		),
 	)
 }
 
 func ErrDuplicateOwner(address sdk.AccAddress) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeDuplicateOwner),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("Invalid owners: owner with address %s is duplicated", address),
-			"address":   address.String(),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeDuplicateOwner,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("Invalid owners: owner with address %s is duplicated", address),
+			errors.NewParam("address", address.String()),
+		),
 	)
 }
 
