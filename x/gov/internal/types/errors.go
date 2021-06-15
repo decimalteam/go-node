@@ -1,7 +1,7 @@
 package types
 
 import (
-	"encoding/json"
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"strconv"
@@ -39,269 +39,201 @@ const (
 	CodeNotAllowed              CodeType = 1300
 )
 
-func ErrUnknownProposal(proposalID uint64) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":       getCodeString(CodeUnknownProposal),
-			"codespace":  DefaultCodespace,
-			"desc":       fmt.Sprintf("unknown proposal: %d", proposalID),
-			"proposalID": fmt.Sprintf("%d", proposalID),
-		},
-	)
+func ErrUnknownProposal(proposalID string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeUnknownProposal,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("unknown proposal: %s", proposalID),
+			errors.NewParam("proposalID", proposalID),
+		),
 	)
 }
 
-func ErrInactiveProposal(proposalID uint64) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":       getCodeString(CodeInactiveProposal),
-			"codespace":  DefaultCodespace,
-			"desc":       fmt.Sprintf("inactive proposal: %d", proposalID),
-			"proposalID": fmt.Sprintf("%d", proposalID),
-		},
-	)
+func ErrInactiveProposal(proposalID string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInactiveProposal,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("inactive proposal: %s", proposalID),
+			errors.NewParam("proposalID", proposalID),
+		),
 	)
 }
 
 func ErrAlreadyActiveProposal() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeAlreadyActiveProposal),
-			"codespace": DefaultCodespace,
-			"desc":      "proposal already active",
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeAlreadyActiveProposal,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("proposal already active"),
+		),
 	)
 }
 
 func ErrInvalidProposalContent() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidProposalContent),
-			"codespace": DefaultCodespace,
-			"desc":      "missing content",
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidProposalContent,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("missing content"),
+		),
 	)
 }
 
 func ErrInvalidProposalContentTitleBlank() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidProposalContentTitleBlank),
-			"codespace": DefaultCodespace,
-			"desc":      "proposal title cannot be blank",
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidProposalContentTitleBlank,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("proposal title cannot be blank"),
+		),
 	)
 }
 
-func ErrInvalidProposalContentTitleLong(MaxTitleLength int) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":           getCodeString(CodeInvalidProposalContentTitleLong),
-			"codespace":      DefaultCodespace,
-			"desc":           fmt.Sprintf("proposal title is longer than max length of %d", MaxTitleLength),
-			"MaxTitleLength": fmt.Sprintf("%d", MaxTitleLength),
-		},
-	)
+func ErrInvalidProposalContentTitleLong(MaxTitleLength string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidProposalContentTitleLong,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("proposal title is longer than max length of %s", MaxTitleLength),
+			errors.NewParam("MaxTitleLength", MaxTitleLength),
+		),
 	)
 }
 
 func ErrInvalidProposalContentDescrBlank() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidProposalContentDescrBlank),
-			"codespace": DefaultCodespace,
-			"desc":      "proposal description cannot be blank",
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidProposalContentDescrBlank,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("proposal description cannot be blank"),
+		),
 	)
 }
 
-func ErrInvalidProposalContentDescrLong(MaxDescriptionLength int) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":                 getCodeString(CodeInvalidProposalContentDescrLong),
-			"codespace":            DefaultCodespace,
-			"desc":                 fmt.Sprintf("proposal description is longer than max length of %d", MaxDescriptionLength),
-			"MaxDescriptionLength": fmt.Sprintf("%d", MaxDescriptionLength),
-		},
-	)
+func ErrInvalidProposalContentDescrLong(MaxDescriptionLength string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidProposalContentDescrLong,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("proposal description is longer than max length of %d", MaxDescriptionLength),
+			errors.NewParam("MaxDescriptionLength", MaxDescriptionLength),
+		),
 	)
 }
 
 func ErrInvalidProposalType(ProposalType string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":         getCodeString(CodeInvalidProposalType),
-			"codespace":    DefaultCodespace,
-			"desc":         fmt.Sprintf("invalid proposal type: %s", ProposalType),
-			"ProposalType": ProposalType,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidProposalType,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("invalid proposal type: %s", ProposalType),
+			errors.NewParam("ProposalType", ProposalType),
+		),
 	)
 }
 
 func ErrInvalidVote(option string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidVote),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("invalid vote option: %s", option),
-			"option":    option,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidVote,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("invalid vote option: %s", option),
+			errors.NewParam("option", option),
+		),
 	)
 }
 
 func ErrInvalidGenesis() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidGenesis),
-			"codespace": DefaultCodespace,
-			"desc":      "initial proposal ID hasn't been set",
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidGenesis,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("initial proposal ID hasn't been set"),
+		),
 	)
 }
 
 func ErrNoProposalHandlerExists() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeNoProposalHandlerExists),
-			"codespace": DefaultCodespace,
-			"desc":      "no handler exists for proposal type",
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNoProposalHandlerExists,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("no handler exists for proposal type"),
+		),
 	)
 }
 
-func ErrInvalidStartEndBlocks(StartBlock uint64, EndBlock uint64) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":       getCodeString(CodeInvalidStartEndBlocks),
-			"codespace":  DefaultCodespace,
-			"desc":       fmt.Sprintf("invalid start or end blocks: start %d,  end %d ", StartBlock, EndBlock),
-			"StartBlock": fmt.Sprintf("%d", StartBlock),
-			"EndBlock":   fmt.Sprintf("%d", EndBlock),
-		},
-	)
+func ErrInvalidStartEndBlocks(StartBlock string, EndBlock string) *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeInvalidStartEndBlocks,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("invalid start or end blocks: start %s,  end %s ", StartBlock, EndBlock),
+			errors.NewParam("StartBlock", StartBlock),
+			errors.NewParam("EndBlock", EndBlock),
+		),
 	)
 }
 
 func ErrSubmitProposal(error string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeSubmitProposal),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("error submit proposal: %s", error),
-			"error":     error,
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeSubmitProposal,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("error submit proposal: %s", error),
+			errors.NewParam("error", error),
+		),
 	)
 }
 
 func ErrStartBlock() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeStartBlock),
-			"codespace": DefaultCodespace,
-			"desc":      "start block must greater then current block height",
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeStartBlock,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("start block must greater then current block height"),
+		),
 	)
 }
 
 func ErrDurationTooLong() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":                getCodeString(CodeDurationTooLong),
-			"codespace":           DefaultCodespace,
-			"desc":                "start block must greater then current block height",
-			"maxDurationInMonth":  fmt.Sprintf("%d", DurationInMonth),
-			"maxDurationInBlocks": fmt.Sprintf("%d", DurationInBlocks),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeDurationTooLong,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("start block must greater then current block height"),
+			errors.NewParam("maxDurationInMonth", fmt.Sprintf("%d", DurationInMonth)),
+			errors.NewParam("maxDurationInBlocks", fmt.Sprintf("%d", DurationInBlocks)),
+		),
 	)
 }
 
 func ErrNotAllowed() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeNotAllowed),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("not allowed to create the proposal from this address"),
-		},
-	)
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeNotAllowed,
-		string(jsonData),
+		errors.Encode(
+			DefaultCodespace,
+			fmt.Sprintf("not allowed to create the proposal from this address"),
+		),
 	)
 }
 
