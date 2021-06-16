@@ -115,7 +115,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 
 	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(coin.Symbol)))
 	if err != nil {
-		return nil, types.ErrCalculateCommission(err)
+		return nil, types.ErrCalculateCommission(err.Error())
 	}
 
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)

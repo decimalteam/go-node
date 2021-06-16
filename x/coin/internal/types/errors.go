@@ -97,7 +97,7 @@ func ErrForbiddenCoinSymbol(symbol string) *sdkerrors.Error {
 	)
 }
 
-func ErrRetrievedAnotherCoin(symbolWant, symbolRetrieved string) *sdkerrors.Error {
+func ErrRetrievedAnotherCoin(symbolWant string, symbolRetrieved string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeRetrievedAnotherCoin,
@@ -171,7 +171,7 @@ func ErrInsufficientFundsToPayCommission(commission string) *sdkerrors.Error {
 	)
 }
 
-func ErrInsufficientFunds(fundsWant, fundsExist string) *sdkerrors.Error {
+func ErrInsufficientFunds(fundsWant string, fundsExist string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeInsufficientFunds,
@@ -181,11 +181,11 @@ func ErrInsufficientFunds(fundsWant, fundsExist string) *sdkerrors.Error {
 	)
 }
 
-func ErrCalculateCommission(err error) *sdkerrors.Error {
+func ErrCalculateCommission(err string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeCalculateCommission,
-		err.Error(),
+		err,
 	)
 }
 
@@ -233,7 +233,7 @@ func ErrTxBreaksMinReserveRule(minCoinReserve string, reserve string) *sdkerrors
 	)
 }
 
-func ErrMaximumValueToSellReached(amount, max string) *sdkerrors.Error {
+func ErrMaximumValueToSellReached(amount string, max string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeMaximumValueToSellReached,
@@ -243,7 +243,7 @@ func ErrMaximumValueToSellReached(amount, max string) *sdkerrors.Error {
 	)
 }
 
-func ErrMinimumValueToBuyReached(amount, min string) *sdkerrors.Error {
+func ErrMinimumValueToBuyReached(amount string, min string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeMinimumValueToBuyReached,

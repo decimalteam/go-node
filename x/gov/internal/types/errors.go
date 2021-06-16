@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strconv"
 )
 
 // x/gov module sentinel errors
@@ -184,8 +183,4 @@ func ErrNotAllowed() *sdkerrors.Error {
 		CodeNotAllowed,
 		fmt.Sprintf("not allowed to create the proposal from this address"),
 	)
-}
-
-func getCodeString(code CodeType) string {
-	return strconv.FormatInt(int64(code), 10)
 }
