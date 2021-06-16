@@ -3,9 +3,7 @@ package types
 import (
 	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strconv"
 )
 
 // CodeType defines the local code type.
@@ -106,15 +104,11 @@ func ErrInsufficientFunds(funds string) *sdkerrors.Error {
 	)
 }
 
-func ErrDuplicateOwner(address sdk.AccAddress) *sdkerrors.Error {
+func ErrDuplicateOwner(address string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeDuplicateOwner,
 		fmt.Sprintf("Invalid owners: owner with address %s is duplicated", address),
-		errors.NewParam("address", address.String()),
+		errors.NewParam("address", address),
 	)
-}
-
-func getCodeString(code CodeType) string {
-	return strconv.FormatInt(int64(code), 10)
 }

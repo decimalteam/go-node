@@ -65,7 +65,7 @@ func (msg MsgCreateWallet) ValidateBasic() error {
 			return ErrInvalidOwner()
 		}
 		if owners[msg.Owners[i].String()] {
-			return ErrDuplicateOwner(msg.Owners[i])
+			return ErrDuplicateOwner(msg.Owners[i].String())
 		}
 		owners[msg.Owners[i].String()] = true
 	}
