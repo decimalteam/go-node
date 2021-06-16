@@ -56,11 +56,11 @@ func ErrInvalidNFT(id string) *sdkerrors.Error {
 	)
 }
 
-func ErrUnknownNFT(denom, id string) *sdkerrors.Error {
+func ErrUnknownNFT(denom string, id string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeUnknownNFT,
-		"", /*fmt.Sprintf("unknown NFT: denom = %s, tokenID = %s", denom, id)*/
+		fmt.Sprintf("unknown NFT: denom = %s, tokenID = %s", denom, id),
 		errors.NewParam("id", id),
 		errors.NewParam("denom", denom),
 	)
