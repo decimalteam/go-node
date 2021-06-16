@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strconv"
 )
 
 // Local code type
@@ -329,12 +328,12 @@ func ErrInvalidNonce() *sdkerrors.Error {
 	)
 }
 
-func ErrCheckExpired(block uint64) *sdkerrors.Error {
+func ErrCheckExpired(block string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeCheckExpired,
 		fmt.Sprintf("check was expired at block %d", block),
-		errors.NewParam("block", strconv.FormatInt(int64(block), 10)),
+		errors.NewParam("block", block),
 	)
 }
 

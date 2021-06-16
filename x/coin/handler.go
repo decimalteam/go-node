@@ -512,7 +512,8 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 
 	// Check block number
 	if check.DueBlock < uint64(ctx.BlockHeight()) {
-		return nil, types.ErrCheckExpired(check.DueBlock)
+		return nil, types.ErrCheckExpired(
+			strconv.FormatInt(int64(check.DueBlock), 10))
 	}
 
 	// Ensure check is not redeemed yet
