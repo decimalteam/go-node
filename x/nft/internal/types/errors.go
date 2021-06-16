@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strconv"
 )
 
 type CodeType = uint32
@@ -152,12 +151,12 @@ func ErrNotUniqueTokenURI() *sdkerrors.Error {
 	)
 }
 
-func ErrOwnerDoesNotOwnSubTokenID(owner string, subTokenID int64) *sdkerrors.Error {
+func ErrOwnerDoesNotOwnSubTokenID(owner string, subTokenID string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeOwnerDoesNotOwnSubTokenID,
-		fmt.Sprintf("owner %s does not own sub tokenID %d", owner, subTokenID),
+		fmt.Sprintf("owner %s does not own sub tokenID %s", owner, subTokenID),
 		errors.NewParam("owner", owner),
-		errors.NewParam("sub_token_id", strconv.FormatInt(subTokenID, 10)),
+		errors.NewParam("sub_token_id", subTokenID),
 	)
 }

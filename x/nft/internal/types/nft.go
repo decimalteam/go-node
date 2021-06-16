@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -124,7 +125,8 @@ func TransferNFT(nft exported.NFT, sender, recipient sdk.AccAddress, subTokenIDs
 
 	for _, id := range subTokenIDs {
 		if SortedIntArray(senderOwner.GetSubTokenIDs()).Find(id) == -1 {
-			return nil, ErrOwnerDoesNotOwnSubTokenID(senderOwner.String(), id)
+			return nil, ErrOwnerDoesNotOwnSubTokenID(
+				senderOwner.String(), strconv.FormatInt(id, 10))
 		}
 		senderOwner = senderOwner.RemoveSubTokenID(id)
 	}
