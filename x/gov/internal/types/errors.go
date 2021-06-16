@@ -40,200 +40,149 @@ const (
 )
 
 func ErrUnknownProposal(proposalID string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnknownProposal,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("unknown proposal: %s", proposalID),
-			errors.NewParam("proposalID", proposalID),
-		),
+		fmt.Sprintf("unknown proposal: %s", proposalID),
+		errors.NewParam("proposalID", proposalID),
 	)
 }
 
 func ErrInactiveProposal(proposalID string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInactiveProposal,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("inactive proposal: %s", proposalID),
-			errors.NewParam("proposalID", proposalID),
-		),
+		fmt.Sprintf("inactive proposal: %s", proposalID),
+		errors.NewParam("proposalID", proposalID),
 	)
 }
 
 func ErrAlreadyActiveProposal() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeAlreadyActiveProposal,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("proposal already active"),
-		),
+		fmt.Sprintf("proposal already active"),
 	)
 }
 
 func ErrInvalidProposalContent() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidProposalContent,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("missing content"),
-		),
+		fmt.Sprintf("missing content"),
 	)
 }
 
 func ErrInvalidProposalContentTitleBlank() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidProposalContentTitleBlank,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("proposal title cannot be blank"),
-		),
+		fmt.Sprintf("proposal title cannot be blank"),
 	)
 }
 
 func ErrInvalidProposalContentTitleLong(MaxTitleLength string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidProposalContentTitleLong,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("proposal title is longer than max length of %s", MaxTitleLength),
-			errors.NewParam("MaxTitleLength", MaxTitleLength),
-		),
+		fmt.Sprintf("proposal title is longer than max length of %s", MaxTitleLength),
+		errors.NewParam("MaxTitleLength", MaxTitleLength),
 	)
 }
 
 func ErrInvalidProposalContentDescrBlank() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidProposalContentDescrBlank,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("proposal description cannot be blank"),
-		),
+		fmt.Sprintf("proposal description cannot be blank"),
 	)
 }
 
 func ErrInvalidProposalContentDescrLong(MaxDescriptionLength string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidProposalContentDescrLong,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("proposal description is longer than max length of %d", MaxDescriptionLength),
-			errors.NewParam("MaxDescriptionLength", MaxDescriptionLength),
-		),
+		fmt.Sprintf("proposal description is longer than max length of %d", MaxDescriptionLength),
+		errors.NewParam("MaxDescriptionLength", MaxDescriptionLength),
 	)
 }
 
 func ErrInvalidProposalType(ProposalType string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidProposalType,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("invalid proposal type: %s", ProposalType),
-			errors.NewParam("ProposalType", ProposalType),
-		),
+		fmt.Sprintf("invalid proposal type: %s", ProposalType),
+		errors.NewParam("ProposalType", ProposalType),
 	)
 }
 
 func ErrInvalidVote(option string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidVote,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("invalid vote option: %s", option),
-			errors.NewParam("option", option),
-		),
+		fmt.Sprintf("invalid vote option: %s", option),
+		errors.NewParam("option", option),
 	)
 }
 
 func ErrInvalidGenesis() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidGenesis,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("initial proposal ID hasn't been set"),
-		),
+		fmt.Sprintf("initial proposal ID hasn't been set"),
 	)
 }
 
 func ErrNoProposalHandlerExists() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeNoProposalHandlerExists,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("no handler exists for proposal type"),
-		),
+		fmt.Sprintf("no handler exists for proposal type"),
 	)
 }
 
 func ErrInvalidStartEndBlocks(StartBlock string, EndBlock string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidStartEndBlocks,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("invalid start or end blocks: start %s,  end %s ", StartBlock, EndBlock),
-			errors.NewParam("StartBlock", StartBlock),
-			errors.NewParam("EndBlock", EndBlock),
-		),
+		fmt.Sprintf("invalid start or end blocks: start %s,  end %s ", StartBlock, EndBlock),
+		errors.NewParam("StartBlock", StartBlock),
+		errors.NewParam("EndBlock", EndBlock),
 	)
 }
 
 func ErrSubmitProposal(error string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeSubmitProposal,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("error submit proposal: %s", error),
-			errors.NewParam("error", error),
-		),
+		fmt.Sprintf("error submit proposal: %s", error),
+		errors.NewParam("error", error),
 	)
 }
 
 func ErrStartBlock() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeStartBlock,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("start block must greater then current block height"),
-		),
+		fmt.Sprintf("start block must greater then current block height"),
 	)
 }
 
 func ErrDurationTooLong() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeDurationTooLong,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("start block must greater then current block height"),
-			errors.NewParam("maxDurationInMonth", fmt.Sprintf("%d", DurationInMonth)),
-			errors.NewParam("maxDurationInBlocks", fmt.Sprintf("%d", DurationInBlocks)),
-		),
+		fmt.Sprintf("start block must greater then current block height"),
+		errors.NewParam("maxDurationInMonth", fmt.Sprintf("%d", DurationInMonth)),
+		errors.NewParam("maxDurationInBlocks", fmt.Sprintf("%d", DurationInBlocks)),
 	)
 }
 
 func ErrNotAllowed() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeNotAllowed,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("not allowed to create the proposal from this address"),
-		),
+		fmt.Sprintf("not allowed to create the proposal from this address"),
 	)
 }
 
