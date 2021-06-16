@@ -5,22 +5,25 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (k Keeper) HasDestChain(ctx sdk.Context, destChain int) bool {
+func (k Keeper) HasChain(ctx sdk.Context, chainNumber int) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.GetDestChainKey(destChain))
+	return store.Has(types.GetChainKey(chainNumber))
 }
 
-func (k Keeper) SetDestChain(ctx sdk.Context, destChain int, name string) {
+func (k Keeper) SetChain(ctx sdk.Context, chainNumber int, chain types.Chain) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetDestChainKey(destChain), []byte(name))
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(types.NewChain(chain.Name, chain.Active))
+	store.Set(types.GetChainKey(chainNumber), bz)
 }
 
-func (k Keeper) GetDestChainName(ctx sdk.Context, destChain int) string {
+func (k Keeper) GetChain(ctx sdk.Context, chainNumber int) (types.Chain, bool) {
 	store := ctx.KVStore(k.storeKey)
-	return string(store.Get(types.GetDestChainKey(destChain)))
-}
+	bz := store.Get(types.GetChainKey(chainNumber))
+	if bz == nil {
+		return types.Chain{}, false
+	}
 
-func (k Keeper) DeleteDestChain(ctx sdk.Context, destChain int) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetDestChainKey(destChain))
+	var chain types.Chain
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &chain)
+	return chain, true
 }

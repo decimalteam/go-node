@@ -30,10 +30,14 @@ func NewHandler(keeper Keeper) sdk.Handler {
 			return handleMsgRedeem(ctx, keeper, msg)
 		case types.MsgRefund:
 			return handleMsgRefund(ctx, keeper, msg)
-		case types.MsgBurn:
-			return handleMsgBurn(ctx, keeper, msg)
-		case types.MsgClaim:
-			return handleMsgClaim(ctx, keeper, msg)
+		case types.MsgSwapInitialize:
+			return handleMsgSwapInitialize(ctx, keeper, msg)
+		case types.MsgRedeemV2:
+			return handleMsgRedeemV2(ctx, keeper, msg)
+		case types.MsgChainActivate:
+			return handleMsgChainActivate(ctx, keeper, msg)
+		case types.MsgChainDeactivate:
+			return handleMsgChainDeactivate(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -196,9 +200,12 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Resul
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgBurn(ctx sdk.Context, k Keeper, msg types.MsgBurn) (*sdk.Result, error) {
-	if k.HasDestChain(ctx, msg.DestChain) {
-		return nil, types.ErrDestChainNotExist(msg.DestChain)
+func handleMsgSwapInitialize(ctx sdk.Context, k Keeper, msg types.MsgSwapInitialize) (*sdk.Result, error) {
+	if !k.HasChain(ctx, msg.DestChain) {
+		return nil, types.ErrChainNotExist(msg.DestChain)
+	}
+	if !k.HasChain(ctx, msg.FromChain) {
+		return nil, types.ErrChainNotExist(msg.FromChain)
 	}
 
 	funds := sdk.NewCoins(sdk.NewCoin(strings.ToLower(msg.TokenSymbol), msg.Amount))
@@ -234,7 +241,7 @@ func handleMsgBurn(ctx sdk.Context, k Keeper, msg types.MsgBurn) (*sdk.Result, e
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgClaim(ctx sdk.Context, k Keeper, msg types.MsgClaim) (*sdk.Result, error) {
+func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.Result, error) {
 	hash, err := types.GetHash(msg.TransactionNumber, msg.TokenName, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.DestChain)
 	if err != nil {
 		return nil, err
@@ -290,6 +297,31 @@ func handleMsgClaim(ctx sdk.Context, k Keeper, msg types.MsgClaim) (*sdk.Result,
 			sdk.NewAttribute(types.AttributeKeyTokenSymbol, msg.TokenSymbol),
 		),
 	)
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgChainActivate(ctx sdk.Context, k Keeper, msg types.MsgChainActivate) (*sdk.Result, error) {
+	chain, found := k.GetChain(ctx, msg.ChainNumber)
+	if found {
+		chain.Active = true
+	} else {
+		chain = types.NewChain(msg.ChainName, true)
+	}
+
+	k.SetChain(ctx, msg.ChainNumber, chain)
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgChainDeactivate(ctx sdk.Context, k Keeper, msg types.MsgChainDeactivate) (*sdk.Result, error) {
+	chain, found := k.GetChain(ctx, msg.ChainNumber)
+	if !found {
+		return nil, types.ErrChainNotExist(msg.ChainNumber)
+	}
+
+	chain.Active = false
+	k.SetChain(ctx, msg.ChainNumber, chain)
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

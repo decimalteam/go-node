@@ -16,9 +16,9 @@ const (
 )
 
 var (
-	SwapKey      = []byte{0x01}
-	SwapV2Key    = []byte{0x02}
-	DestChainKey = []byte{0x03}
+	SwapKey   = []byte{0x01}
+	SwapV2Key = []byte{0x02}
+	ChainKey  = []byte{0x03}
 )
 
 func GetSwapKey(hash [32]byte) []byte {
@@ -29,8 +29,8 @@ func GetSwapV2Key(hash [32]byte) []byte {
 	return append(SwapV2Key, hash[:]...)
 }
 
-func GetDestChainKey(destChain int) []byte {
+func GetChainKey(chain int) []byte {
 	var buf []byte
-	binary.BigEndian.PutUint64(buf, uint64(destChain))
-	return append(DestChainKey, buf...)
+	binary.BigEndian.PutUint64(buf, uint64(chain))
+	return append(ChainKey, buf...)
 }
