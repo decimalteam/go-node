@@ -2,11 +2,8 @@ package types
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/errors"
-	"encoding/hex"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strconv"
 )
 
 // Local code type
@@ -34,22 +31,22 @@ func ErrSwapNotFound() *sdkerrors.Error {
 	)
 }
 
-func ErrSwapAlreadyExist(hash Hash) *sdkerrors.Error {
+func ErrSwapAlreadyExist(hash string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeSwapAlreadyExist,
-		fmt.Sprintf(`swap with hash %s already exist`, hex.EncodeToString(hash[:])),
-		errors.NewParam("hash", hex.EncodeToString(hash[:])),
+		fmt.Sprintf(`swap with hash %s already exist`, hash),
+		errors.NewParam("hash", hash),
 	)
 }
 
-func ErrFromFieldNotEqual(fromMsg, fromSwap sdk.AccAddress) *sdkerrors.Error {
+func ErrFromFieldNotEqual(fromMsg string, fromSwap string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeFromFieldNotEqual,
-		fmt.Sprintf(`'from' field not equal: %s != %s`, fromMsg.String(), fromSwap.String()),
-		errors.NewParam("fromMsg", fromMsg.String()),
-		errors.NewParam("fromSwap", fromSwap.String()),
+		fmt.Sprintf(`'from' field not equal: %s != %s`, fromMsg, fromSwap),
+		errors.NewParam("fromMsg", fromMsg),
+		errors.NewParam("fromSwap", fromSwap),
 	)
 }
 
@@ -91,8 +88,4 @@ func ErrWrongSecret() *sdkerrors.Error {
 		CodeWrongSecret,
 		"wrong secret",
 	)
-}
-
-func getCodeString(code CodeType) string {
-	return strconv.FormatInt(int64(code), 10)
 }

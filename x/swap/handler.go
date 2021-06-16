@@ -36,7 +36,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, error) {
 	if k.HasSwap(ctx, msg.HashedSecret) {
-		return nil, types.ErrSwapAlreadyExist(msg.HashedSecret)
+		return nil, types.ErrSwapAlreadyExist(
+			hex.EncodeToString(msg.HashedSecret[:]))
 	}
 
 	if msg.TransferType == types.TransferTypeOut {
