@@ -63,491 +63,376 @@ const (
 )
 
 func ErrInvalidCRR(crr string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidCRR,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("coin CRR must be between 10 and 100, crr is: %s", crr),
-			errors.NewParam("crr", crr),
-		),
+		fmt.Sprintf("coin CRR must be between 10 and 100, crr is: %s", crr),
+		errors.NewParam("crr", crr),
 	)
 }
 
 func ErrCoinDoesNotExist(symbol string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeCoinDoesNotExist,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("coin %s does not exist", symbol),
-			errors.NewParam("symbol", symbol),
-		),
+		fmt.Sprintf("coin %s does not exist", symbol),
+		errors.NewParam("symbol", symbol),
 	)
 }
 
 func ErrInvalidCoinSymbol(symbol string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidCoinSymbol,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("invalid coin symbol %s. Symbol must match this regular expression: %s", symbol, allowedCoinSymbols),
-			errors.NewParam("symbol", symbol),
-		),
+		fmt.Sprintf("invalid coin symbol %s. Symbol must match this regular expression: %s", symbol, allowedCoinSymbols),
+		errors.NewParam("symbol", symbol),
 	)
 }
 
 func ErrForbiddenCoinSymbol(symbol string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeForbiddenCoinSymbol,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("forbidden coin symbol %s", symbol),
-			errors.NewParam("symbol", symbol),
-		),
+		fmt.Sprintf("forbidden coin symbol %s", symbol),
+		errors.NewParam("symbol", symbol),
 	)
 }
 
 func ErrRetrievedAnotherCoin(symbolWant, symbolRetrieved string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeRetrievedAnotherCoin,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("retrieved coin %s instead %s", symbolRetrieved, symbolWant),
-			errors.NewParam("symbol_want", symbolWant),
-			errors.NewParam("symbol_retrieved", symbolRetrieved),
-		),
+		fmt.Sprintf("retrieved coin %s instead %s", symbolRetrieved, symbolWant),
+		errors.NewParam("symbol_want", symbolWant),
+		errors.NewParam("symbol_retrieved", symbolRetrieved),
 	)
 }
 
 func ErrCoinAlreadyExist(coin string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeCoinAlreadyExists,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("coin %s already exist", coin),
-			errors.NewParam("coin", coin),
-		),
+		fmt.Sprintf("coin %s already exist", coin),
+		errors.NewParam("coin", coin),
 	)
 }
 
 func ErrInvalidCoinTitle(title string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidCoinTitle,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("invalid coin title: %s. Allowed up to %d bytes", title, maxCoinNameBytes),
-			errors.NewParam("title", title),
-		),
+		fmt.Sprintf("invalid coin title: %s. Allowed up to %d bytes", title, maxCoinNameBytes),
+		errors.NewParam("title", title),
 	)
 }
 
 func ErrInvalidCoinInitialVolume(initialVolume string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidCoinInitialVolume,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), initialVolume), errors.NewParam("min_coin_supply", minCoinSupply.String()), errors.NewParam("max_coin_supply", maxCoinSupply.String()),
-			errors.NewParam("initial_volume", initialVolume),
-		),
+		fmt.Sprintf("coin initial volume should be between %s and %s. Given %s", minCoinSupply.String(), maxCoinSupply.String(), initialVolume), errors.NewParam("min_coin_supply", minCoinSupply.String()), errors.NewParam("max_coin_supply", maxCoinSupply.String()),
+		errors.NewParam("initial_volume", initialVolume),
 	)
 }
 
 func ErrInvalidCoinInitialReserve(reserve string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidCoinInitialReserve,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("coin initial reserve should be greater than or equal to %s", reserve),
-			errors.NewParam("reserve", reserve),
-		),
+		fmt.Sprintf("coin initial reserve should be greater than or equal to %s", reserve),
+		errors.NewParam("reserve", reserve),
 	)
 }
 
 func ErrInternal(err string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInternal,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("Internal error: %s", err),
-			errors.NewParam("err", err),
-		),
+		fmt.Sprintf("Internal error: %s", err),
+		errors.NewParam("err", err),
 	)
 }
 
 func ErrInsufficientCoinReserve() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInsufficientCoinReserve,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("not enough coin to reserve"),
-		),
+		fmt.Sprintf("not enough coin to reserve"),
 	)
 }
 
 func ErrInsufficientFundsToPayCommission(commission string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInsufficientCoinToPayCommission,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("insufficient funds to pay commission: wanted = %s", commission),
-			errors.NewParam("commission", commission),
-		),
+		fmt.Sprintf("insufficient funds to pay commission: wanted = %s", commission),
+		errors.NewParam("commission", commission),
 	)
 }
 
 func ErrInsufficientFunds(fundsWant, fundsExist string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInsufficientFunds,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("insufficient account funds; %s < %s", fundsExist, fundsWant),
-			errors.NewParam("funds_want", fundsWant),
-			errors.NewParam("funds_exist", fundsExist)),
+		fmt.Sprintf("insufficient account funds; %s < %s", fundsExist, fundsWant),
+		errors.NewParam("funds_want", fundsWant),
+		errors.NewParam("funds_exist", fundsExist),
 	)
 }
 
 func ErrCalculateCommission(err error) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeCalculateCommission,
-		errors.Encode(
-			DefaultCodespace,
-			err.Error(),
-		),
+		err.Error(),
 	)
 }
 
 func ErrUpdateOnlyForCreator() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeForbiddenUpdate,
-		errors.Encode(
-			DefaultCodespace,
-			"updating allowed only for creator of coin"),
+		"updating allowed only for creator of coin",
 	)
 }
 
 func ErrSameCoin() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeSameCoins,
-		errors.Encode(
-			DefaultCodespace,
-			"can't buy same coins",
-		),
+		"can't buy same coins",
 	)
 }
 
 func ErrInsufficientFundsToSellAll() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInsufficientFundsToSellAll,
-		errors.Encode(
-			DefaultCodespace,
-			"not enough coin to sell",
-		),
+		"not enough coin to sell",
 	)
 }
 
 func ErrTxBreaksVolumeLimit(volume string, limitVolume string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeTxBreaksVolumeLimit,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("tx breaks LimitVolume rule: %s > %s", volume, limitVolume),
-			errors.NewParam("volume", volume),
-			errors.NewParam("limit_volume", limitVolume),
-		),
+		fmt.Sprintf("tx breaks LimitVolume rule: %s > %s", volume, limitVolume),
+		errors.NewParam("volume", volume),
+		errors.NewParam("limit_volume", limitVolume),
 	)
 }
 
 func ErrTxBreaksMinReserveRule(minCoinReserve string, reserve string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeTxBreaksMinReserveLimit,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("tx breaks MinReserveLimit rule: %s < %s", reserve, minCoinReserve),
-			errors.NewParam("reserve", reserve),
-			errors.NewParam("min_coin_reserve", minCoinReserve),
-		),
+		fmt.Sprintf("tx breaks MinReserveLimit rule: %s < %s", reserve, minCoinReserve),
+		errors.NewParam("reserve", reserve),
+		errors.NewParam("min_coin_reserve", minCoinReserve),
 	)
 }
 
 func ErrMaximumValueToSellReached(amount, max string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeMaximumValueToSellReached,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("wanted to sell maximum %s, but required to spend %s at the moment", max, amount),
-			errors.NewParam("max", max),
-			errors.NewParam("amount", amount),
-		),
+		fmt.Sprintf("wanted to sell maximum %s, but required to spend %s at the moment", max, amount),
+		errors.NewParam("max", max),
+		errors.NewParam("amount", amount),
 	)
 }
 
 func ErrMinimumValueToBuyReached(amount, min string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeMinimumValueToBuyReached,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("wanted to buy minimum %s, but expected to receive %s at the moment", min, amount),
-			errors.NewParam("min", min),
-			errors.NewParam("amount", amount),
-		),
+		fmt.Sprintf("wanted to buy minimum %s, but expected to receive %s at the moment", min, amount),
+		errors.NewParam("min", min),
+		errors.NewParam("amount", amount),
 	)
 }
 
 func ErrUpdateBalance(account string, err string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUpdateBalance,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("unable to update balance of account %s: %s", account, err),
-			errors.NewParam("account", account),
-			errors.NewParam("err", err),
-		),
+		fmt.Sprintf("unable to update balance of account %s: %s", account, err),
+		errors.NewParam("account", account),
+		errors.NewParam("err", err),
 	)
 }
 
 func ErrLimitVolumeBroken(volume string, limit string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeLimitVolumeBroken,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("volume should be less than or equal the volume limit: %s > %s", volume, limit),
-			errors.NewParam("volume", volume),
-			errors.NewParam("limit", limit),
-		),
+		fmt.Sprintf("volume should be less than or equal the volume limit: %s > %s", volume, limit),
+		errors.NewParam("volume", volume),
+		errors.NewParam("limit", limit),
 	)
 }
 
 func ErrInvalidAmount() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidAmount,
-		errors.Encode(
-			DefaultCodespace,
-			"amount should be greater than 0",
-		),
+		"amount should be greater than 0",
 	)
 }
 
 // Redeem check
 
 func ErrInvalidCheck(data string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidCheck,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("unable to parse check: %s", data),
-			errors.NewParam("data", data),
-		),
+		fmt.Sprintf("unable to parse check: %s", data),
+		errors.NewParam("data", data),
 	)
 }
 
 func ErrInvalidProof(error string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidProof,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("provided proof is invalid %s", error),
-			errors.NewParam("error", error),
-		),
+		fmt.Sprintf("provided proof is invalid %s", error),
+		errors.NewParam("error", error),
 	)
 }
 
 func ErrInvalidPassphrase(error string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidPassphrase,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("unable to create private key from passphrase: %s", error),
-			errors.NewParam("error", error),
-		),
+		fmt.Sprintf("unable to create private key from passphrase: %s", error),
+		errors.NewParam("error", error),
 	)
 }
 
 func ErrInvalidChainID(wanted string, issued string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidChainID,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("wanted chain ID %s, but check is issued for chain with ID %s", wanted, issued),
-			errors.NewParam("wanted", wanted),
-			errors.NewParam("issued", issued),
-		),
+		fmt.Sprintf("wanted chain ID %s, but check is issued for chain with ID %s", wanted, issued),
+		errors.NewParam("wanted", wanted),
+		errors.NewParam("issued", issued),
 	)
 }
 
 func ErrInvalidNonce() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidNonce,
-		errors.Encode(
-			DefaultCodespace,
-			"nonce is too big (should be up to 16 bytes)",
-		),
+		"nonce is too big (should be up to 16 bytes)",
 	)
 }
 
 func ErrCheckExpired(block uint64) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeCheckExpired,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("check was expired at block %d", block),
-			errors.NewParam("block", strconv.FormatInt(int64(block), 10)),
-		),
+		fmt.Sprintf("check was expired at block %d", block),
+		errors.NewParam("block", strconv.FormatInt(int64(block), 10)),
 	)
 }
 
 func ErrCheckRedeemed() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeCheckRedeemed,
-		errors.Encode(
-			DefaultCodespace,
-			"check was redeemed already",
-		),
+		"check was redeemed already",
 	)
 }
 
 func ErrUnableDecodeCheck(check string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnableDecodeCheck,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("unable to decode check from base58 %s", check),
-			errors.NewParam("check", check),
-		),
+		fmt.Sprintf("unable to decode check from base58 %s", check),
+		errors.NewParam("check", check),
 	)
 }
 
 func ErrUnableRPLEncodeCheck(error string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnableRPLEncodeCheck,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("unable to RLP encode check receiver address: %s", error),
-			errors.NewParam("error", error),
-		),
+		fmt.Sprintf("unable to RLP encode check receiver address: %s", error),
+		errors.NewParam("error", error),
 	)
 }
 
 func ErrUnableSignCheck(error string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnableSignCheck,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("unable to sign check receiver address by private key generated from passphrase: %s", error),
-			errors.NewParam("error", error),
-		),
+		fmt.Sprintf("unable to sign check receiver address by private key generated from passphrase: %s", error),
+		errors.NewParam("error", error),
 	)
 }
 
 func ErrUnableDecodeProof() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnableDecodeProof,
-		errors.Encode(
-			DefaultCodespace,
-			"unable to decode proof from base64",
-		),
+		"unable to decode proof from base64",
 	)
 }
 
 func ErrUnableRecoverAddress(error string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnableRecoverAddress,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("unable to recover check issuer address: %s", error),
-			errors.NewParam("error", error),
-		),
+		fmt.Sprintf("unable to recover check issuer address: %s", error),
+		errors.NewParam("error", error),
 	)
 }
 
 func ErrUnableRecoverLockPkey(error string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnableRecoverLockPkey,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("unable to recover lock public key from check: %s", error), errors.NewParam("error", error)),
+		fmt.Sprintf("unable to recover lock public key from check: %s", error),
+		errors.NewParam("error", error),
 	)
 }
 
 // AccountKeys Errors
 
 func ErrInvalidPkey() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidPkey,
-		errors.Encode(
-			DefaultCodespace,
-			"invalid private key"),
+		"invalid private key",
 	)
 }
 
 func ErrUnableRetrieveArmoredPkey(name string, error string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnableRetriveArmoredPkey,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("unable to retrieve armored private key for account %s: %s", name, error),
-			errors.NewParam("name", name),
-			errors.NewParam("error", error)),
+		fmt.Sprintf("unable to retrieve armored private key for account %s: %s", name, error),
+		errors.NewParam("name", name),
+		errors.NewParam("error", error),
 	)
 }
 
 func ErrUnableRetrievePkey(name string, error string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnableRetrivePkey,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("unable to retrieve private key for account %s: %s", name, error),
-			errors.NewParam("name", name),
-			errors.NewParam("error", error)),
+		fmt.Sprintf("unable to retrieve private key for account %s: %s", name, error),
+		errors.NewParam("name", name),
+		errors.NewParam("error", error),
 	)
 }
 
 func ErrUnableRetrieveSECPPkey(name string, algo string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnableRetriveSECPPkey,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", name, algo),
-			errors.NewParam("name", name),
-			errors.NewParam("algo", algo)),
+		fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", name, algo),
+		errors.NewParam("name", name),
+		errors.NewParam("algo", algo),
 	)
 }
