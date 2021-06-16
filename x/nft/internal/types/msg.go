@@ -36,7 +36,7 @@ func NewMsgMintNFT(sender, recipient sdk.AccAddress, id, denom, tokenURI string,
 	}
 }
 
-const regName = "^[a-zA-Z0-9_]{1,255}$"
+const regName = "^[a-zA-Z0-9_-]{1,255}$"
 
 var minReserve = sdk.NewInt(100)
 
@@ -260,9 +260,9 @@ func (msg MsgEditNFTMetadata) GetSigners() []sdk.AccAddress {
 
 /* --------------------------------------------------------------------------- */
 func CheckUnique(arr []int64) bool {
-	for _, el := range arr {
-		for _, el2 := range arr {
-			if el == el2 {
+	for i, el := range arr {
+		for j, el2 := range arr {
+			if i != j && el == el2 {
 				return false
 			}
 		}
