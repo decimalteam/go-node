@@ -29,13 +29,10 @@ const (
 )
 
 func ErrInvalidSender() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidSender,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("Invalid sender address: sender address cannot be empty"),
-		),
+		fmt.Sprintf("Invalid sender address: sender address cannot be empty"),
 	)
 }
 
@@ -47,98 +44,74 @@ func ErrInvalidOwnerCount(more bool) *sdkerrors.Error {
 		ownerCount = fmt.Sprintf("%d", MaxOwnerCount)
 	}
 
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidOwnerCount,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("Invalid owner count: %s %s owners", AppendWord, ownerCount),
-			errors.NewParam("AppendWord", AppendWord),
-			errors.NewParam("ownerCount", ownerCount),
-		),
+		fmt.Sprintf("Invalid owner count: %s %s owners", AppendWord, ownerCount),
+		errors.NewParam("AppendWord", AppendWord),
+		errors.NewParam("ownerCount", ownerCount),
 	)
 }
 
 func ErrInvalidOwner() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidOwner,
-		errors.Encode(
-			DefaultCodespace,
-			"Invalid owner address: owner address cannot be empty",
-		),
+		"Invalid owner address: owner address cannot be empty",
 	)
 }
 
 func ErrInvalidWeightCount(LenMsgWeights string, LenMsgOwners string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidWeightCount,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("Invalid weight count: weight count (%s) is not equal to owner count (%s)", LenMsgWeights, LenMsgOwners),
-			errors.NewParam("LenMsgWeights", LenMsgWeights),
-			errors.NewParam("LenMsgOwners", LenMsgOwners),
-		),
+		fmt.Sprintf("Invalid weight count: weight count (%s) is not equal to owner count (%s)", LenMsgWeights, LenMsgOwners),
+		errors.NewParam("LenMsgWeights", LenMsgWeights),
+		errors.NewParam("LenMsgOwners", LenMsgOwners),
 	)
 }
 
 func ErrInvalidWeight(weight string, data string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidWeight,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("Invalid weight: weight cannot be %s than %s", data, weight),
-			errors.NewParam("data", data),
-			errors.NewParam("weight", weight),
-		),
+		fmt.Sprintf("Invalid weight: weight cannot be %s than %s", data, weight),
+		errors.NewParam("data", data),
+		errors.NewParam("weight", weight),
 	)
 }
 func ErrInvalidCoinToSend(denom string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidCoinToSend,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("Coin to send with symbol %s does not exist", denom),
-			errors.NewParam("denom", denom),
-		),
+		fmt.Sprintf("Coin to send with symbol %s does not exist", denom),
+		errors.NewParam("denom", denom),
 	)
 }
 
 func ErrWalletAccountNotFound() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeWalletAccountNotFound,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("wallet account not found"),
-		),
+		fmt.Sprintf("wallet account not found"),
 	)
 }
 
 func ErrInsufficientFunds(funds string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInsufficientFunds,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("Insufficient funds: wanted = %s", funds),
-			errors.NewParam("funds", funds),
-		),
+		fmt.Sprintf("Insufficient funds: wanted = %s", funds),
+		errors.NewParam("funds", funds),
 	)
 }
 
 func ErrDuplicateOwner(address sdk.AccAddress) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeDuplicateOwner,
-		errors.Encode(
-			DefaultCodespace,
-			fmt.Sprintf("Invalid owners: owner with address %s is duplicated", address),
-			errors.NewParam("address", address.String()),
-		),
+		fmt.Sprintf("Invalid owners: owner with address %s is duplicated", address),
+		errors.NewParam("address", address.String()),
 	)
 }
 
