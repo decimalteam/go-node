@@ -1,12 +1,8 @@
 package types
 
 import (
-	"encoding/json"
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
-	"strconv"
-	"strings"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -62,503 +58,277 @@ const (
 )
 
 func ErrEmptyValidatorAddr() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeEmptyValidatorAddr),
-			"codespace": DefaultCodespace,
-			"desc":      "empty validator address",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeEmptyValidatorAddr,
-		string(jsonData),
+		"empty validator address",
 	)
 }
 
 func ErrValidatorOwnerExists() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeValidatorAddressAlreadyExist),
-			"codespace": DefaultCodespace,
-			"desc":      "validator already exist for this operator address, must use new validator operator address",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeValidatorAddressAlreadyExist,
-		string(jsonData),
+		"validator already exist for this operator address, must use new validator operator address",
 	)
 }
 
 func ErrValidatorPubKeyExists() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeValidatorPubKeyAlreadyExist),
-			"codespace": DefaultCodespace,
-			"desc":      "validator already exist for this pubkey, must use new validator pubkey",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeValidatorPubKeyAlreadyExist,
-		string(jsonData),
+		"validator already exist for this pubkey, must use new validator pubkey",
 	)
 }
 
 func ErrNoValidatorFound() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeValidatorDoesNotExist),
-			"codespace": DefaultCodespace,
-			"desc":      "validator does not exist for that address",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeValidatorDoesNotExist,
-		string(jsonData),
+		"validator does not exist for that address",
 	)
 }
 
 func ErrCommissionNegative() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeCommissionNegative),
-			"codespace": DefaultCodespace,
-			"desc":      "commission must be positive",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeCommissionNegative,
-		string(jsonData),
+		"commission must be positive",
 	)
 }
 
 func ErrCommissionHuge() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeCommissionHuge),
-			"codespace": DefaultCodespace,
-			"desc":      "commission cannot be more than 100%",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeCommissionHuge,
-		string(jsonData),
+		"commission cannot be more than 100%",
 	)
 }
 
 func ErrValidatorAlreadyOnline() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeValidatorAlreadyOnline),
-			"codespace": DefaultCodespace,
-			"desc":      "validator already online",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeValidatorAlreadyOnline,
-		string(jsonData),
+		"validator already online",
 	)
 }
 
 func ErrValidatorAlreadyOffline() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeValidatorAlreadyOffline),
-			"codespace": DefaultCodespace,
-			"desc":      "validator already offline",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeValidatorAlreadyOffline,
-		string(jsonData),
+		"validator already offline",
 	)
 }
 
 func ErrInvalidStruct() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidStruct),
-			"codespace": DefaultCodespace,
-			"desc":      "invalid struct",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidStruct,
-		string(jsonData),
+		"invalid struct",
 	)
 }
 
 func ErrAccountNotSet() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeAccountNotSet),
-			"codespace": DefaultCodespace,
-			"desc":      "pool accounts haven't been set",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeAccountNotSet,
-		string(jsonData),
+		"pool accounts haven't been set",
 	)
 }
 
 func ErrNoDelegation() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInvalidDelegation),
-			"codespace": DefaultCodespace,
-			"desc":      "no delegation for this (address, validator) pair",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidDelegation,
-		string(jsonData),
+		"no delegation for this (address, validator) pair",
 	)
 }
 
 func ErrInsufficientShares() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInsufficientShares),
-			"codespace": DefaultCodespace,
-			"desc":      "insufficient delegation shares",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInsufficientShares,
-		string(jsonData),
+		"insufficient delegation shares",
 	)
 }
 
 func ErrDelegatorShareExRateInvalid() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeDelegatorShareExRateInvalid),
-			"codespace": DefaultCodespace,
-			"desc":      "cannot delegate to validators with invalid (zero) ex-rate",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeDelegatorShareExRateInvalid,
-		string(jsonData),
+		"cannot delegate to validators with invalid (zero) ex-rate",
 	)
 }
 
 func ErrUnbondingDelegationNotFound() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUnbondingDelegationNotFound),
-			"codespace": DefaultCodespace,
-			"desc":      "unbonding delegation not found",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnbondingDelegationNotFound,
-		string(jsonData),
+		"unbonding delegation not found",
 	)
 }
 
 func ErrBadDelegationAmount() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeBadDelegationAmount),
-			"codespace": DefaultCodespace,
-			"desc":      "amount must be > 0",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeBadDelegationAmount,
-		string(jsonData),
+		"amount must be > 0",
 	)
 }
 
 func ErrNoDelegatorForAddress() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeNoDelegatorForAddress),
-			"codespace": DefaultCodespace,
-			"desc":      "delegator does not contain this address",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeNoDelegatorForAddress,
-		string(jsonData),
+		"delegator does not contain this address",
 	)
 }
 
 func ErrNotEnoughDelegationShares(shares string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeNotEnoughDelegationShares),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("not enough shares only have %v", shares),
-			"shares":    shares,
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeNotEnoughDelegationShares,
-		string(jsonData),
+		fmt.Sprintf("not enough shares only have %v", shares),
+		errors.NewParam("shares", shares),
 	)
 }
 
 func ErrEmptyPubKey() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeEmptyPubKey),
-			"codespace": DefaultCodespace,
-			"desc":      "empty PubKey",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeEmptyPubKey,
-		string(jsonData),
+		"empty PubKey",
 	)
 }
 
-func ErrValidatorPubKeyTypeNotSupported(PKeyType string, AllowedTypes []string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":         getCodeString(CodeValidatorPubKeyTypeNotSupported),
-			"codespace":    DefaultCodespace,
-			"desc":         fmt.Sprintf("validator pubkey type is not supported. got: %s, valid: %s", PKeyType, strings.Join(AllowedTypes, ",")),
-			"PKeyType":     PKeyType,
-			"AllowedTypes": strings.Join(AllowedTypes, ","),
-		},
-	)
-	return sdkerrors.New(
+func ErrValidatorPubKeyTypeNotSupported(PKeyType string, AllowedTypes string) *sdkerrors.Error {
+	return errors.Encode(
 		DefaultCodespace,
 		CodeValidatorPubKeyTypeNotSupported,
-		string(jsonData),
+		fmt.Sprintf("validator pubkey type is not supported. got: %s, valid: %s", PKeyType, AllowedTypes),
+		errors.NewParam("PKeyType", PKeyType),
+		errors.NewParam("AllowedTypes", AllowedTypes),
 	)
 }
 
 func ErrCoinReserveIsNotSufficient(reserve string, amount string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeCoinReserveIsNotSufficient),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("Coin reserve balance is not sufficient for transaction. Has: %s, required %s", reserve, amount),
-			"reserve":   reserve,
-			"amount":    amount,
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeCoinReserveIsNotSufficient,
-		string(jsonData),
+		fmt.Sprintf("Coin reserve balance is not sufficient for transaction. Has: %s, required %s", reserve, amount),
+		errors.NewParam("reserve", reserve),
+		errors.NewParam("amount", amount),
 	)
 }
 
 func ErrInvalidHistoricalInfo() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeErrInvalidHistoricalInfo),
-			"codespace": DefaultCodespace,
-			"desc":      "invalid historical info",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeErrInvalidHistoricalInfo,
-		string(jsonData),
+		"invalid historical info",
 	)
 }
 
 func ErrValidatorSetEmpty() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeValidatorSetEmpty),
-			"codespace": DefaultCodespace,
-			"desc":      "validator set is empty",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeValidatorSetEmpty,
-		string(jsonData),
+		"validator set is empty",
 	)
 }
 
 func ErrValidatorSetNotSorted() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeValidatorSetEmpty),
-			"codespace": DefaultCodespace,
-			"desc":      "validator set is not sorted by address",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeValidatorSetNotSorted,
-		string(jsonData),
+		"validator set is not sorted by address",
 	)
 }
 
-func ErrNoHistoricalInfo(height int64) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeErrNoHistoricalInfo),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("no historical info found: %d", height),
-			"height":    strconv.FormatInt(int64(height), 10),
-		},
-	)
-	return sdkerrors.New(
+func ErrNoHistoricalInfo(height string) *sdkerrors.Error {
+	return errors.Encode(
 		DefaultCodespace,
 		CodeErrNoHistoricalInfo,
-		string(jsonData),
+		fmt.Sprintf("no historical info found: %s", height),
+		errors.NewParam("height", height),
 	)
 }
 
 func ErrDelegatorStakeIsTooLow() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeDelegatorStakeIsTooLow),
-			"codespace": DefaultCodespace,
-			"desc":      "stake is too low",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeDelegatorStakeIsTooLow,
-		string(jsonData),
+		"stake is too low",
 	)
 }
 
 func ErrEmptyDelegatorAddr() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeEmptyDelegatorAddress),
-			"codespace": DefaultCodespace,
-			"desc":      "empty delegator address",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeEmptyDelegatorAddress,
-		string(jsonData),
+		"empty delegator address",
 	)
 }
 
 func ErrInsufficientCoinToPayCommission(commission string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":       getCodeString(CodeInsufficientCoinToPayCommission),
-			"codespace":  DefaultCodespace,
-			"desc":       fmt.Sprintf("Insufficient coin to pay commission: wanted = %s", commission),
-			"commission": commission,
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInsufficientCoinToPayCommission,
-		string(jsonData),
+		fmt.Sprintf("Insufficient coin to pay commission: wanted = %s", commission),
+		errors.NewParam("commission", commission),
 	)
 }
 
 func ErrInsufficientFunds(funds string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInsufficientFunds),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("Insufficient funds: wanted = %s", funds),
-			"funds":     funds,
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInsufficientFunds,
-		string(jsonData),
+		fmt.Sprintf("Insufficient funds: wanted = %s", funds),
+		errors.NewParam("funds", funds),
 	)
 }
 
-func ErrUpdateBalance(error error) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeUpdateBalanceError),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("update balance error: %s", error.Error()),
-			"error":     error.Error(),
-		},
-	)
-	return sdkerrors.New(
+func ErrUpdateBalance(error string) *sdkerrors.Error {
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUpdateBalanceError,
-		string(jsonData),
+		fmt.Sprintf("update balance error: %s", error),
+		errors.NewParam("error", error),
 	)
 }
 
-func ErrCalculateCommission(error error) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeErrCalculateCommission),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("calculate commision error: %s", error.Error()),
-			"error":     error.Error(),
-		},
-	)
-	return sdkerrors.New(
+func ErrCalculateCommission(error string) *sdkerrors.Error {
+	return errors.Encode(
 		DefaultCodespace,
 		CodeErrCalculateCommission,
-		string(jsonData),
+		fmt.Sprintf("calculate commision error: %s", error),
+		errors.NewParam("error", error),
 	)
 }
 
 func ErrCoinDoesNotExist(symbol string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeCoinDoesNotExist),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("coin %s does not exist", symbol),
-			"symbol":    symbol,
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeCoinDoesNotExist,
-		string(jsonData),
+		fmt.Sprintf("coin %s does not exist", symbol),
+		errors.NewParam("symbol", symbol),
 	)
 }
 
 func ErrInternal(error string) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeInternalError),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("internal error: %s", error),
-			"error":     error,
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInternalError,
-		string(jsonData),
+		fmt.Sprintf("internal error: %s", error),
+		errors.NewParam("error", error),
 	)
 }
 
-func ErrOwnerDoesNotOwnSubTokenID(owner sdk.AccAddress, subTokenID int64) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeOwnerDoesNotOwnSubTokenID, fmt.Sprintf("the owner %s does not own the token with ID = %d", owner.String(), subTokenID))
+func ErrOwnerDoesNotOwnSubTokenID(owner string, subTokenID string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeOwnerDoesNotOwnSubTokenID,
+		fmt.Sprintf("the owner %s does not own the token with ID = %s", owner, subTokenID),
+	)
 }
-
-func getCodeString(code CodeType) string {
-	return strconv.FormatInt(int64(code), 10)
-}
-
-

@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strconv"
 	"time"
 
 	nftTypes "bitbucket.org/decimalteam/go-node/x/nft"
@@ -154,7 +155,8 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 	// ensure that we have enough shares to remove
 	for _, id := range subTokenIDs {
 		if nftTypes.SortedIntArray(delegation.SubTokenIDs).Find(id) == -1 {
-			return types.ErrOwnerDoesNotOwnSubTokenID(delAddr, id)
+			return types.ErrOwnerDoesNotOwnSubTokenID(
+				delAddr.String(), strconv.FormatInt(int64(id), 10))
 		}
 	}
 
