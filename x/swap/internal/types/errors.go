@@ -13,7 +13,6 @@ import (
 type CodeType = uint32
 
 const (
-	// Default validator codespace
 	DefaultCodespace string = ModuleName
 
 	CodeSwapNotFound      = 100
@@ -24,6 +23,8 @@ const (
 	CodeNotExpired        = 105
 	CodeExpired           = 106
 	CodeWrongSecret       = 107
+
+	CodeChainNotExist = 200
 )
 
 func ErrSwapNotFound() *sdkerrors.Error {
@@ -145,6 +146,22 @@ func ErrWrongSecret() *sdkerrors.Error {
 	return sdkerrors.New(
 		DefaultCodespace,
 		CodeWrongSecret,
+		string(jsonData),
+	)
+}
+
+func ErrChainNotExist(chain int) *sdkerrors.Error {
+	jsonData, _ := json.Marshal(
+		map[string]string{
+			"code":      getCodeString(CodeChainNotExist),
+			"codespace": DefaultCodespace,
+			"desc":      fmt.Sprintf("chain %d does not exist", chain),
+			"chain":     strconv.Itoa(chain),
+		},
+	)
+	return sdkerrors.New(
+		DefaultCodespace,
+		CodeChainNotExist,
 		string(jsonData),
 	)
 }
