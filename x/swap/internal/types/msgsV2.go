@@ -79,7 +79,7 @@ type MsgRedeemV2 struct {
 }
 
 func NewMsgRedeemV2(sender, recipient sdk.AccAddress, from string, amount sdk.Int, tokenName, tokenSymbol,
-	transactionNumber string, fromChain, destChain int) MsgRedeemV2 {
+	transactionNumber string, fromChain, destChain int, v uint8, r, s [32]byte) MsgRedeemV2 {
 	return MsgRedeemV2{
 		Sender:            sender,
 		From:              from,
@@ -90,6 +90,9 @@ func NewMsgRedeemV2(sender, recipient sdk.AccAddress, from string, amount sdk.In
 		TransactionNumber: transactionNumber,
 		FromChain:         fromChain,
 		DestChain:         destChain,
+		V:                 v,
+		R:                 r,
+		S:                 s,
 	}
 }
 
@@ -124,6 +127,10 @@ type MsgChainActivate struct {
 	ChainName   string         `json:"chain_name"`
 }
 
+func NewMsgChainActivate(from sdk.AccAddress, chainNumber int, chainName string) MsgChainActivate {
+	return MsgChainActivate{From: from, ChainNumber: chainNumber, ChainName: chainName}
+}
+
 func (msg MsgChainActivate) Route() string { return RouterKey }
 
 func (msg MsgChainActivate) Type() string { return TypeMsgChainActivate }
@@ -156,6 +163,10 @@ func (msg MsgChainActivate) GetSigners() []sdk.AccAddress {
 type MsgChainDeactivate struct {
 	From        sdk.AccAddress `json:"from"`
 	ChainNumber int            `json:"chain_number"`
+}
+
+func NewMsgChainDeactivate(from sdk.AccAddress, chainNumber int) MsgChainDeactivate {
+	return MsgChainDeactivate{From: from, ChainNumber: chainNumber}
 }
 
 func (msg MsgChainDeactivate) Route() string { return RouterKey }
