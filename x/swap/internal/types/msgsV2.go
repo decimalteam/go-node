@@ -140,7 +140,7 @@ func (msg MsgChainActivate) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
 	}
 
-	if !msg.From.Equals(SwapServiceAddress) {
+	if !msg.From.Equals(SwapServiceAddress()) {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
 	}
 
@@ -178,7 +178,7 @@ func (msg MsgChainDeactivate) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
 	}
 
-	if !msg.From.Equals(SwapServiceAddress) {
+	if !msg.From.Equals(SwapServiceAddress()) {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
 	}
 

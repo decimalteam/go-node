@@ -30,7 +30,7 @@ func GetSwapV2Key(hash [32]byte) []byte {
 }
 
 func GetChainKey(chain int) []byte {
-	var buf []byte
+	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, uint64(chain))
 	return append(ChainKey, buf...)
 }

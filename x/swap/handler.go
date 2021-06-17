@@ -262,7 +262,7 @@ func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.R
 		return nil, err
 	}
 
-	if !address.Equals(types.SwapServiceAddress) {
+	if !address.Equals(types.SwapServiceAddress()) {
 		return nil, fmt.Errorf("invalid ecrecover address")
 	}
 
