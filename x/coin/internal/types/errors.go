@@ -158,7 +158,7 @@ func ErrInsufficientCoinReserve() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeInsufficientCoinReserve,
-		fmt.Sprintf("not enough coin to reserve"),
+		"not enough coin to reserve",
 	)
 }
 

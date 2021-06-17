@@ -60,7 +60,7 @@ func ErrAlreadyActiveProposal() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeAlreadyActiveProposal,
-		fmt.Sprintf("proposal already active"),
+		"proposal already active",
 	)
 }
 
@@ -68,7 +68,7 @@ func ErrInvalidProposalContent() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidProposalContent,
-		fmt.Sprintf("missing content"),
+		"missing content",
 	)
 }
 
@@ -76,7 +76,7 @@ func ErrInvalidProposalContentTitleBlank() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidProposalContentTitleBlank,
-		fmt.Sprintf("proposal title cannot be blank"),
+		"proposal title cannot be blank",
 	)
 }
 
@@ -93,7 +93,7 @@ func ErrInvalidProposalContentDescrBlank() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidProposalContentDescrBlank,
-		fmt.Sprintf("proposal description cannot be blank"),
+		"proposal description cannot be blank",
 	)
 }
 
@@ -128,7 +128,7 @@ func ErrInvalidGenesis() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidGenesis,
-		fmt.Sprintf("initial proposal ID hasn't been set"),
+		"initial proposal ID hasn't been set",
 	)
 }
 
@@ -136,7 +136,7 @@ func ErrNoProposalHandlerExists() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeNoProposalHandlerExists,
-		fmt.Sprintf("no handler exists for proposal type"),
+		"no handler exists for proposal type",
 	)
 }
 
@@ -163,7 +163,7 @@ func ErrStartBlock() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeStartBlock,
-		fmt.Sprintf("start block must greater then current block height"),
+		"start block must greater then current block height",
 	)
 }
 
@@ -181,6 +181,6 @@ func ErrNotAllowed() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeNotAllowed,
-		fmt.Sprintf("not allowed to create the proposal from this address"),
+		"not allowed to create the proposal from this address",
 	)
 }

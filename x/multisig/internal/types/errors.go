@@ -30,7 +30,7 @@ func ErrInvalidSender() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidSender,
-		fmt.Sprintf("Invalid sender address: sender address cannot be empty"),
+		"Invalid sender address: sender address cannot be empty",
 	)
 }
 
@@ -91,7 +91,7 @@ func ErrWalletAccountNotFound() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeWalletAccountNotFound,
-		fmt.Sprintf("wallet account not found"),
+		"wallet account not found",
 	)
 }
 
