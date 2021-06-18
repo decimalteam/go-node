@@ -81,8 +81,8 @@ var (
 	}
 )
 
-// MakeCodec generates the necessary codecs for Amino
-func MakeCodec() *codec.LegacyAmino {
+// MakeAminoCodec generates the necessary codecs for Amino
+func MakeAminoCodec() *codec.LegacyAmino {
 	var cdc = codec.NewLegacyAmino()
 	ModuleBasics.RegisterLegacyAminoCodec(cdc)
 	sdk.RegisterLegacyAminoCodec(cdc)
@@ -121,11 +121,13 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
 
 	encodingConfig := appParams.NewEncodingConfig()
+	encodingConfig.Amino = MakeAminoCodec()
 
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 
 	bApp.SetAppVersion(config.DecimalVersion)
+	bApp.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 
 	// TODO: Add the keys that module requires
 	keys := sdk.NewKVStoreKeys(

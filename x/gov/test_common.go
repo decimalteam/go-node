@@ -26,8 +26,8 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/mock"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	supplyexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
@@ -62,7 +62,7 @@ func getTestInput(t *testing.T, numGenAccs int, genState types2.GenesisState, ge
 
 	keyValidator := sdk.NewKVStoreKey(validator.StoreKey)
 	tkeyValidator := sdk.NewTransientStoreKey(validator.TStoreKey)
-	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
+	keySupply := sdk.NewKVStoreKey(auth.StoreKey)
 	keyCoin := sdk.NewKVStoreKey(coin.StoreKey)
 	keyMultisig := sdk.NewKVStoreKey(multisig.StoreKey)
 	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)

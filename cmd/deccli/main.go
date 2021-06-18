@@ -31,7 +31,7 @@ import (
 func main() {
 	cobra.EnableCommandSorting = false
 
-	cdc := app.MakeCodec()
+	cdc := app.MakeAminoCodec()
 
 	// Read in the configuration file for the sdk
 	_config := sdk.GetConfig()

@@ -3,7 +3,7 @@ package keeper
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/supply/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 )
 
 func (k Keeper) GetReservedPool(ctx sdk.Context) exported.ModuleAccountI {

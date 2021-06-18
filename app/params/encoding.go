@@ -17,7 +17,6 @@ type EncodingConfig struct {
 }
 
 func NewEncodingConfig() EncodingConfig {
-	cdc := codec.NewLegacyAmino()
 	interfaceRegistry := types.NewInterfaceRegistry()
 	marshaler := codec.NewProtoCodec(interfaceRegistry)
 
@@ -25,6 +24,5 @@ func NewEncodingConfig() EncodingConfig {
 		InterfaceRegistry: interfaceRegistry,
 		Marshaler:         marshaler,
 		TxConfig:          tx.NewTxConfig(marshaler, tx.DefaultSignModes),
-		Amino:             cdc,
 	}
 }

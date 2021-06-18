@@ -44,7 +44,7 @@ const flagInvCheckPeriod = "inv-check-period"
 var invCheckPeriod uint
 
 func main() {
-	cdc := app.MakeCodec()
+	cdc := app.MakeAminoCodec()
 
 	_config := sdk.GetConfig()
 	_config.SetCoinType(60)

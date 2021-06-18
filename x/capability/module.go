@@ -2,6 +2,7 @@ package capability
 
 import (
 	keeper2 "bitbucket.org/decimalteam/go-node/x/capability/keeper"
+	"bitbucket.org/decimalteam/go-node/x/capability/simulation"
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/capability/types"

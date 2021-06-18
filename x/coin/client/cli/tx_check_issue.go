@@ -24,7 +24,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 )
@@ -36,7 +36,6 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			var coinSymbol = args[0]
 			var amount, _ = sdk.NewIntFromString(args[1])
