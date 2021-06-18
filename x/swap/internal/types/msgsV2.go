@@ -74,8 +74,8 @@ type MsgRedeemV2 struct {
 	FromChain         int            `json:"from_chain"`
 	DestChain         int            `json:"dest_chain"`
 	V                 uint8          `json:"v"`
-	R                 [32]byte       `json:"r"`
-	S                 [32]byte       `json:"s"`
+	R                 Hash           `json:"r"`
+	S                 Hash           `json:"s"`
 }
 
 func NewMsgRedeemV2(sender, recipient sdk.AccAddress, from string, amount sdk.Int, tokenName, tokenSymbol,
