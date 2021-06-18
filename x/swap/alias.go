@@ -24,6 +24,8 @@ type (
 	MsgHTLT      = types.MsgHTLT
 	MsgRedeem    = types.MsgRedeem
 	MsgRefund    = types.MsgRefund
+	MsgBurn      = types.MsgBurn
+	MsgClaim     = types.MsgClaim
 	GenesisState = types.GenesisState
 )
 
