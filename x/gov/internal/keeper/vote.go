@@ -4,16 +4,17 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strconv"
 )
 
 // AddVote adds a vote on a specific proposal
 func (keeper Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.ValAddress, option types.VoteOption) error {
 	proposal, ok := keeper.GetProposal(ctx, proposalID)
 	if !ok {
-		return types.ErrUnknownProposal(proposalID)
+		return types.ErrUnknownProposal(strconv.FormatInt(int64(proposalID), 10))
 	}
 	if proposal.Status != types.StatusVotingPeriod {
-		return types.ErrInactiveProposal(proposalID)
+		return types.ErrInactiveProposal(strconv.FormatInt(int64(proposalID), 10))
 	}
 
 	if !types.ValidVoteOption(option) {

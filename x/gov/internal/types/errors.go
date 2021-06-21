@@ -101,7 +101,7 @@ func ErrInvalidProposalContentDescrLong(MaxDescriptionLength string) *sdkerrors.
 	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidProposalContentDescrLong,
-		fmt.Sprintf("proposal description is longer than max length of %d", MaxDescriptionLength),
+		fmt.Sprintf("proposal description is longer than max length of %s", MaxDescriptionLength),
 		errors.NewParam("MaxDescriptionLength", MaxDescriptionLength),
 	)
 }

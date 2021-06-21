@@ -332,7 +332,7 @@ func ErrCheckExpired(block string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeCheckExpired,
-		fmt.Sprintf("check was expired at block %d", block),
+		fmt.Sprintf("check was expired at block %s", block),
 		errors.NewParam("block", block),
 	)
 }
