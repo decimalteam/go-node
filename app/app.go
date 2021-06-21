@@ -13,7 +13,6 @@ import (
 	tos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
 
@@ -24,8 +23,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
-
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -73,7 +70,7 @@ var (
 	)
 	// account permissions
 	maccPerms = map[string][]string{
-		authTypes.FeeCollectorName:       {authTypes.Burner, authTypes.Minter},
+		authTypes.FeeCollectorName:  {authTypes.Burner, authTypes.Minter},
 		validator.BondedPoolName:    {authTypes.Burner, authTypes.Staking},
 		validator.NotBondedPoolName: {authTypes.Burner, authTypes.Staking},
 		swap.PoolName:               {authTypes.Minter, authTypes.Burner},
@@ -147,12 +144,12 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// Here you initialize your application with the store keys it requires
 	var app = &newApp{
-		BaseApp: bApp,
-		cdc:     encodingConfig.Amino,
-		appCodec: encodingConfig.Marshaler,
+		BaseApp:           bApp,
+		cdc:               encodingConfig.Amino,
+		appCodec:          encodingConfig.Marshaler,
 		interfaceRegistry: encodingConfig.InterfaceRegistry,
-		keys:    keys,
-		tkeys:   tkeys,
+		keys:              keys,
+		tkeys:             tkeys,
 	}
 
 	// The ParamsKeeper handles parameter storage for the application
@@ -165,7 +162,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	validatorSubspace := app.paramsKeeper.Subspace(validator.ModuleName)
 	govSubspace := app.paramsKeeper.Subspace(gov.ModuleName).WithKeyTable(gov.ParamKeyTable())
 	swapSubspace := app.paramsKeeper.Subspace(swap.ModuleName)
-	capabilitySubspace := app.paramsKeeper.Subspace(capability.ModuleName)
+	//todo unused variable
+	//capabilitySubspace := app.paramsKeeper.Subspace(capability.ModuleName)
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = authKeeper.NewAccountKeeper(
@@ -212,7 +210,12 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.bankKeeper,
 	)
 
-	app.nftKeeper = nft.NewKeeper(app.cdc, keys[nft.StoreKey], app.supplyKeeper, validator.DefaultBondDenom)
+	app.nftKeeper = nft.NewKeeper(
+		app.cdc,
+		keys[nft.StoreKey],
+		app.bankKeeper,
+		validator.DefaultBondDenom,
+	)
 
 	app.validatorKeeper = validator.NewKeeper(
 		app.cdc,
@@ -220,7 +223,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		validatorSubspace,
 		app.coinKeeper,
 		app.accountKeeper,
-		app.supplyKeeper,
+		app.bankKeeper,
 		app.multisigKeeper,
 		app.nftKeeper,
 		authTypes.FeeCollectorName,
@@ -232,7 +235,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.cdc,
 		keys[gov.StoreKey],
 		govSubspace,
-		app.supplyKeeper,
+		app.bankKeeper,
 		&app.validatorKeeper,
 		govRouter,
 	)
@@ -243,7 +246,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		swapSubspace,
 		app.coinKeeper,
 		app.accountKeeper,
-		app.supplyKeeper,
+		app.bankKeeper,
 	)
 
 	app.capabilityKeeper = capability.NewKeeper()
@@ -256,7 +259,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		capability.NewAppModule(*app.cdc, app.capabilityKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.accountKeeper, app.bankKeeper, app.coinKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper),
 		swap.NewAppModule(app.swapKeeper),
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
 	)
@@ -293,7 +296,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 			app.accountKeeper,
 			app.validatorKeeper,
 			app.coinKeeper,
-			app.supplyKeeper,
+			app.bankKeeper,
 			ante.DefaultSigVerificationGasConsumer,
 		),
 	)

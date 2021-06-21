@@ -6,6 +6,8 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/nft/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/nft/client/rest"
 	"bitbucket.org/decimalteam/go-node/x/nft/simulation"
+
+	//"bitbucket.org/decimalteam/go-node/x/nft/simulation"
 	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -32,7 +34,7 @@ var (
 
 // AppModuleBasic app module basics object
 type AppModuleBasic struct {
-	cdc codec.Marshaler
+	cdc codec.LegacyAmino
 }
 
 // var _ module.AppModuleBasic = AppModuleBasic{}
@@ -167,7 +169,8 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 
 // RegisterStoreDecoder registers a decoder for nft module's types
 func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[StoreKey] = simulation.DecodeStore
+	//todo change it for correct decode store
+	sdr[StoreKey] = sim.NewDecodeStore(am.cdc)
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
