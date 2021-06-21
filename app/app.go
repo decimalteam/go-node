@@ -1,10 +1,9 @@
 package app
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/capability"
+	types2 "bitbucket.org/decimalteam/go-node/x/capability/types"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-
 	"io"
 	"os"
 
@@ -13,7 +12,6 @@ import (
 	tos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
 
@@ -23,17 +21,26 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/capability"
 	"github.com/cosmos/cosmos-sdk/x/params"
-
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	ibc "github.com/cosmos/ibc-go/modules/core"
 
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	paramsKeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
-
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	capabilityKeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	capabilityTypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	paramsKeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	stakingKeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	ibckeeper "github.com/cosmos/ibc-go/modules/core/keeper"
+
+	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
 
 	appParams "bitbucket.org/decimalteam/go-node/app/params"
 
@@ -73,7 +80,7 @@ var (
 	)
 	// account permissions
 	maccPerms = map[string][]string{
-		authTypes.FeeCollectorName:       {authTypes.Burner, authTypes.Minter},
+		authTypes.FeeCollectorName:  {authTypes.Burner, authTypes.Minter},
 		validator.BondedPoolName:    {authTypes.Burner, authTypes.Staking},
 		validator.NotBondedPoolName: {authTypes.Burner, authTypes.Staking},
 		swap.PoolName:               {authTypes.Minter, authTypes.Burner},
@@ -93,22 +100,24 @@ func MakeAminoCodec() *codec.LegacyAmino {
 type newApp struct {
 	*bam.BaseApp
 	cdc               *codec.LegacyAmino
-	appCodec          codec.Marshaler
+	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
 
 	// keys to access the substores
-	keys  map[string]*sdk.KVStoreKey
-	tkeys map[string]*sdk.TransientStoreKey
+	keys    map[string]*sdk.KVStoreKey
+	tkeys   map[string]*sdk.TransientStoreKey
+	memKeys map[string]*sdk.MemoryStoreKey
 
 	// Keepers
 	accountKeeper    authKeeper.AccountKeeper
+	ibcKeeper        *ibckeeper.Keeper
+	capabilityKeeper *capabilityKeeper.Keeper
 	bankKeeper       bankKeeper.BaseKeeper
 	paramsKeeper     paramsKeeper.Keeper
 	coinKeeper       coin.Keeper
 	multisigKeeper   multisig.Keeper
 	validatorKeeper  validator.Keeper
 	govKeeper        gov.Keeper
-	capabilityKeeper capability.Keeper
 	swapKeeper       swap.Keeper
 	nftKeeper        nft.Keeper
 
@@ -139,33 +148,39 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		validator.StoreKey,
 		gov.StoreKey,
 		swap.StoreKey,
+		ibchost.StoreKey,
+		capabilityTypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramsTypes.TStoreKey)
+	memKeys := sdk.NewMemoryStoreKeys(capabilityTypes.MemStoreKey)
 
 	config := config.GetDefaultConfig(config.ChainID)
 
 	// Here you initialize your application with the store keys it requires
 	var app = &newApp{
-		BaseApp: bApp,
-		cdc:     encodingConfig.Amino,
-		appCodec: encodingConfig.Marshaler,
+		BaseApp:           bApp,
+		cdc:               encodingConfig.Amino,
+		appCodec:          encodingConfig.Marshaler,
 		interfaceRegistry: encodingConfig.InterfaceRegistry,
-		keys:    keys,
-		tkeys:   tkeys,
+		keys:              keys,
+		tkeys:             tkeys,
+		memKeys:           memKeys,
 	}
 
 	// The ParamsKeeper handles parameter storage for the application
 	app.paramsKeeper = paramsKeeper.NewKeeper(app.appCodec, app.cdc, keys[paramsTypes.StoreKey], tkeys[paramsTypes.TStoreKey])
+
 	// Set specific subspaces
 	authSubspace := app.paramsKeeper.Subspace(authTypes.ModuleName)
+	stakingSubspace := app.paramsKeeper.Subspace(stakingTypes.ModuleName)
 	bankSupspace := app.paramsKeeper.Subspace(bankTypes.ModuleName)
 	coinSubspace := app.paramsKeeper.Subspace(coin.ModuleName)
 	multisigSubspace := app.paramsKeeper.Subspace(multisig.ModuleName)
 	validatorSubspace := app.paramsKeeper.Subspace(validator.ModuleName)
 	govSubspace := app.paramsKeeper.Subspace(gov.ModuleName).WithKeyTable(gov.ParamKeyTable())
 	swapSubspace := app.paramsKeeper.Subspace(swap.ModuleName)
-	capabilitySubspace := app.paramsKeeper.Subspace(capability.ModuleName)
+	_ = app.paramsKeeper.Subspace(ibchost.ModuleName)
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = authKeeper.NewAccountKeeper(
@@ -175,6 +190,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		authTypes.ProtoBaseAccount,
 		maccPerms,
 	)
+	app.capabilityKeeper = capabilityKeeper.NewKeeper(app.appCodec, keys[capabilityTypes.StoreKey], memKeys[types2.MemStoreKey])
+	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.StoreKey)
 
 	// The BankKeeper allows you perform sdk.Coins interactions
 	app.bankKeeper = bankKeeper.NewBaseKeeper(
@@ -184,15 +201,20 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		bankSupspace,
 		app.ModuleAccountAddrs(),
 	)
+	//cdc codec.BinaryCodec, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
+	//	ps paramtypes.Subspace,
 
-	// The SupplyKeeper collects transaction fees and renders them to the fee distribution module
-	//app.supplyKeeper = authKeeper.NewKeeper(
-	//	app.cdc,
-	//	keys[auth.StoreKey],
-	//	app.accountKeeper,
-	//	app.bankKeeper,
-	//	maccPerms,
-	//)
+	stakingKeeper := stakingKeeper.NewKeeper(app.appCodec, keys[stakingTypes.StoreKey], app.accountKeeper, app.bankKeeper, stakingSubspace)
+
+	// Create ibc keeper
+	app.ibcKeeper = ibckeeper.NewKeeper(
+		app.appCodec, keys[ibchost.StoreKey], app.paramsKeeper.Subspace(ibchost.ModuleName), stakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
+	)
+
+	ibcRouter := porttypes.NewRouter()
+	// ibcRouter.AddRoute(...)
+	// ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
+	app.ibcKeeper.SetRouter(ibcRouter)
 
 	app.coinKeeper = coin.NewKeeper(
 		app.cdc,
@@ -246,28 +268,31 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.supplyKeeper,
 	)
 
-	app.capabilityKeeper = capability.NewKeeper()
-
+	//type RandomGenesisAccountsFn func(simState *module.SimulationState) GenesisAccounts
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),
-		auth.NewAppModule(app.appCodec, app.accountKeeper),
+		auth.NewAppModule(app.appCodec, app.accountKeeper, func(state *module.SimulationState) authTypes.GenesisAccounts {
+			return authTypes.GenesisAccounts{}
+		}),
 		bank.NewAppModule(app.appCodec, app.bankKeeper, app.accountKeeper),
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
-		capability.NewAppModule(*app.cdc, app.capabilityKeeper),
+		capability.NewAppModule(app.appCodec, *app.capabilityKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.accountKeeper, app.bankKeeper, app.coinKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		swap.NewAppModule(app.swapKeeper),
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
+		ibc.NewAppModule(app.ibcKeeper),
 	)
 
 	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
-	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName)
+	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName, ibchost.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
 	// NOTE: The genutils moodule must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
+		capabilityTypes.ModuleName,
 		validator.ModuleName,
 		authTypes.ModuleName,
 		bankTypes.ModuleName,
@@ -277,6 +302,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		gov.ModuleName,
 		swap.ModuleName,
 		nft.ModuleName,
+		ibchost.ModuleName,
 	)
 
 	// register all module routes and module queriers
@@ -313,8 +339,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 // GenesisState represents chain state at the start of the chain. Any initial state (account balances) are stored here.
 type GenesisState map[string]json.RawMessage
 
-func NewDefaultGenesisState() GenesisState {
-	return ModuleBasics.DefaultGenesis()
+func (app *newApp) NewDefaultGenesisState() GenesisState {
+	return ModuleBasics.DefaultGenesis(app.appCodec)
 }
 
 func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
