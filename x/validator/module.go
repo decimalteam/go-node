@@ -191,3 +191,7 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return EndBlocker(ctx, am.keeper, am.coinKeeper, am.accKeeper, am.bankKeeper, true)
 }
+
+func (am AppModule) ConsensusVersion() uint64 {
+	return 1
+}

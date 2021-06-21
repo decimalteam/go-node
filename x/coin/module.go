@@ -42,12 +42,12 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 // DefaultGenesis returns default genesis state as raw bytes for the coin
 // module.
-func (AppModuleBasic) DefaultGenesis(_ codec.JSONMarshaler) json.RawMessage {
+func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
 	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the coin module.
-func (AppModuleBasic) ValidateGenesis(marshaler codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var data GenesisState
 	err := ModuleCdc.UnmarshalJSON(bz, &data)
 	if err != nil {
@@ -85,6 +85,10 @@ type AppModule struct {
 
 	keeper        Keeper
 	accountKeeper keeper.AccountKeeper
+}
+
+func (am AppModule) ConsensusVersion() uint64 {
+	return 0
 }
 
 // NewAppModule creates a new AppModule object
@@ -136,7 +140,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 
 // InitGenesis performs genesis initialization for the coin module. It returns
 // no coin updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.keeper, genesisState)
@@ -145,7 +149,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONMarshaler, data jso
 
 // ExportGenesis returns the exported genesis state as raw bytes for the coin
 // module.
-func (am AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONMarshaler) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
 	return ModuleCdc.MustMarshalJSON(gs)
 }

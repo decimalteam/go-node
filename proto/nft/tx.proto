@@ -4,3 +4,80 @@ package nft;
 option go_package = "bitbucket.org/decimalteam/go-node/x/nft/types";
 
 import "gogoproto/gogo.proto";
+
+service Msg {
+  rpc TransferNFT(MsgTransferNFT) returns (MsgTransferNFTResponse);
+  rpc EditNFTMetadata(MsgEditNFTMetadata) returns (MsgEditNFTMetadataResponse);
+  rpc DelegateNFT(MsgDelegateNFT) returns (MsgDelegateNFTResponse);
+}
+
+message MsgTransferNFT {
+  bytes Sender = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "sender"
+  ];
+  bytes Recipient = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "recipient"
+  ];
+  string ID = 3 [
+    (gogoproto.jsontag) = "id"
+  ];
+  string Denom = 4 [
+    (gogoproto.jsontag) = "denom"
+  ];
+  bytes Quantity = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "quantity"
+  ];
+}
+
+message MsgTransferNFTResponse {}
+
+message MsgEditNFTMetadata {
+  bytes Sender = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "sender"
+  ];
+  string ID = 2 [
+    (gogoproto.jsontag) = "id"
+  ];
+  string Denom = 3 [
+    (gogoproto.jsontag) = "denom"
+  ];
+  string TokenURI = 5 [
+    (gogoproto.jsontag) = "token_uri"
+  ];
+}
+
+message MsgEditNFTMetadataResponse {}
+
+message MsgDelegateNFT {
+  bytes DelegatorAddress = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "delegator_address"
+  ];
+  bytes ValidatorAddress = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "validator_address"
+  ];
+  string ID = 3 [
+    (gogoproto.jsontag) = "id"
+  ];
+  string Denom = 4 [
+    (gogoproto.jsontag) = "denom"
+  ];
+  bytes Quantity = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "quantity"
+  ];
+}
+
+message MsgDelegateNFTResponse {}
