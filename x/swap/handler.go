@@ -243,13 +243,13 @@ func handleMsgSwapInitialize(ctx sdk.Context, k Keeper, msg types.MsgSwapInitial
 }
 
 func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.Result, error) {
-	hash, err := types.GetHash(msg.TransactionNumber, msg.TokenName, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.DestChain)
+	hash, err := types.GetHash(msg.TransactionNumber, msg.TokenName, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.FromChain, msg.DestChain)
 	if err != nil {
 		return nil, err
 	}
 
 	if k.HasSwapV2(ctx, hash) {
-		return nil, fmt.Errorf("swap already redeemed")
+		return nil, types.ErrAlreadyRedeemed()
 	}
 
 	R := big.NewInt(0)
@@ -264,7 +264,7 @@ func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.R
 	}
 
 	if !address.Equals(types.SwapServiceAddress()) {
-		return nil, fmt.Errorf("invalid ecrecover address")
+		return nil, types.ErrInvalidServiceAddress(types.SwapServiceAddress().String(), address.String())
 	}
 
 	k.SetSwapV2(ctx, hash)

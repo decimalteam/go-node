@@ -21,7 +21,9 @@ const (
 	CodeNotExpired        = 105
 	CodeExpired           = 106
 	CodeWrongSecret       = 107
-	CodeChainNotExist     = 200
+
+	CodeChainNotExist         = 200
+	CodeInvalidServiceAddress = 201
 )
 
 func ErrSwapNotFound() *sdkerrors.Error {
@@ -95,7 +97,17 @@ func ErrChainNotExist(chain string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeChainNotExist,
-		fmt.Sprintf("chain %d does not exist", chain),
+		fmt.Sprintf("chain %s does not exist", chain),
 		errors.NewParam("chain", chain),
+	)
+}
+
+func ErrInvalidServiceAddress(want string, receive string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidServiceAddress,
+		fmt.Sprintf("invalid service address: want = %s, receive = %s", want, receive),
+		errors.NewParam("want", want),
+		errors.NewParam("receive", receive),
 	)
 }

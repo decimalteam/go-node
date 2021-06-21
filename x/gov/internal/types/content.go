@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strconv"
 	"strings"
 )
 
@@ -31,7 +32,7 @@ func Validate(c Content) error {
 		return ErrInvalidProposalContentTitleBlank()
 	}
 	if len(title) > MaxTitleLength {
-		return ErrInvalidProposalContentTitleLong(MaxTitleLength)
+		return ErrInvalidProposalContentTitleLong(strconv.Itoa(MaxTitleLength))
 	}
 
 	description := c.GetDescription()
@@ -39,7 +40,7 @@ func Validate(c Content) error {
 		return ErrInvalidProposalContentDescrBlank()
 	}
 	if len(description) > MaxDescriptionLength {
-		return ErrInvalidProposalContentDescrLong(MaxDescriptionLength)
+		return ErrInvalidProposalContentDescrLong(strconv.Itoa(MaxDescriptionLength))
 	}
 
 	return nil
