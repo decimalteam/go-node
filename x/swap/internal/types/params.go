@@ -12,6 +12,8 @@ const (
 	DefaultLockedTimeIn  = time.Hour * 12
 )
 
+const CheckingAddress = "0xFF100f6C6bA673F7dC522f561644555c2C61B6B8"
+
 func SwapServiceAddress() sdk.AccAddress {
 	swapServiceAddress, _ := sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
 	return swapServiceAddress

@@ -2,12 +2,11 @@ package types
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	ethcmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/tendermint/crypto/ripemd160"
 	"math/big"
 )
 
@@ -45,13 +44,13 @@ func encodeUint8(v uint8) []byte {
 	return new(big.Int).SetUint64(uint64(v)).Bytes()
 }
 
-func Ecrecover(sighash [32]byte, R, S, Vb *big.Int) (sdk.AccAddress, error) {
+func Ecrecover(sighash [32]byte, R, S, Vb *big.Int) (ethcmn.Address, error) {
 	if Vb.BitLen() > 8 {
-		return sdk.AccAddress{}, errors.New("invalid sig")
+		return ethcmn.Address{}, errors.New("invalid sig")
 	}
 	V := byte(Vb.Uint64() - 27)
 	if !crypto.ValidateSignatureValues(V, R, S, true) {
-		return sdk.AccAddress{}, errors.New("invalid sig")
+		return ethcmn.Address{}, errors.New("invalid sig")
 	}
 	// encode the signature in uncompressed format
 	r, s := R.Bytes(), S.Bytes()
@@ -62,21 +61,15 @@ func Ecrecover(sighash [32]byte, R, S, Vb *big.Int) (sdk.AccAddress, error) {
 	// recover the public key from the signature
 	pub, err := crypto.Ecrecover(sighash[:], sig)
 	if err != nil {
-		return sdk.AccAddress{}, err
+		return ethcmn.Address{}, err
 	}
-	if len(pub) == 0 || pub[0] != 4 {
-		return sdk.AccAddress{}, errors.New("invalid public key")
-	}
-	pub2, err := crypto.UnmarshalPubkey(pub)
-	if err != nil {
-		return sdk.AccAddress{}, err
-	}
-	pub3 := crypto.CompressPubkey(pub2)
 
-	hasherSHA256 := sha256.New()
-	hasherSHA256.Write(pub3)
-	sha := hasherSHA256.Sum(nil)
-	hasherRIPEMD160 := ripemd160.New()
-	hasherRIPEMD160.Write(sha)
-	return hasherRIPEMD160.Sum(nil), nil
+	if len(pub) == 0 || pub[0] != 4 {
+		return ethcmn.Address{}, errors.New("invalid public key")
+	}
+
+	var addr ethcmn.Address
+	copy(addr[:], crypto.Keccak256(pub[1:])[12:])
+
+	return addr, nil
 }

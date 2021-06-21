@@ -3,7 +3,7 @@ package types
 import (
 	"bitbucket.org/decimalteam/go-node/config"
 	"encoding/hex"
-	"github.com/cosmos/cosmos-sdk/types"
+	ethcmn "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	"math/big"
 	"reflect"
@@ -74,20 +74,20 @@ func TestEcrecover(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    types.AccAddress
+		want    ethcmn.Address
 		wantErr bool
 	}{
-		//{
-		//	"Test1",
-		//	args{
-		//		sighash: hash,
-		//		R:       R,
-		//		S:       S,
-		//		Vb:      sdk.NewInt(int64(msg.V)).BigInt(),
-		//	},
-		//	wantAddress,
-		//	false,
-		//},
+		{
+			"Test1",
+			args{
+				sighash: hash,
+				R:       R,
+				S:       S,
+				Vb:      sdk.NewInt(int64(msg.V)).BigInt(),
+			},
+			ethcmn.HexToAddress(CheckingAddress),
+			false,
+		},
 	}
 
 	for _, tt := range tests {
