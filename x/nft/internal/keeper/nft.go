@@ -182,6 +182,8 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 		return err
 	}
 
+	var reserveForReturn sdk.Int
+
 	owner := nft.GetOwners().GetOwner(nft.GetCreator())
 	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
 	for _, subTokenID := range subTokenIDs {
@@ -191,6 +193,11 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
 		}
 		owner = owner.RemoveSubTokenID(subTokenID)
+		reserve, ok := k.GetSubToken(ctx, denom, id, subTokenID)
+		if !ok {
+			return fmt.Errorf("subToken with ID = %d not found", subTokenID)
+		}
+		reserveForReturn = reserveForReturn.Add(reserve)
 		k.RemoveSubToken(ctx, denom, id, subTokenID)
 	}
 
@@ -199,7 +206,6 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 		SetOwner(owner))
 
 	nftOwner, err := k.GetOwner(ctx, nft.GetCreator()).DeleteID(denom, nft.GetID())
-
 	if err != nil {
 		return err
 	}
@@ -213,8 +219,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 
 	k.SetCollection(ctx, denom, collection)
 
-	err = k.BurnTokens(ctx, sdk.NewCoins(
-		sdk.NewCoin(k.baseDenom, nft.GetReserve().MulRaw(int64(len(subTokenIDs))))))
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ReservedPool, owner.GetAddress(), sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForReturn)))
 	if err != nil {
 		return err
 	}

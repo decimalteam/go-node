@@ -178,10 +178,13 @@ func (msg MsgTransferNFT) ValidateBasic() error {
 		return ErrInvalidCollection(msg.Denom)
 	}
 	if msg.Sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
+		return ErrInvalidRecipientAddress(msg.Sender.String())
 	}
 	if msg.Recipient.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid recipient address")
+		return ErrInvalidRecipientAddress(msg.Recipient.String())
+	}
+	if msg.Sender.Equals(msg.Recipient) {
+		return ErrForbiddenToTransferToYourself()
 	}
 	if strings.TrimSpace(msg.ID) == "" {
 		return ErrInvalidCollection(msg.ID)

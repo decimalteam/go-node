@@ -264,7 +264,7 @@ func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.R
 	}
 
 	if address.String() != types.CheckingAddress {
-		return nil, types.ErrInvalidServiceAddress(types.SwapServiceAddress().String(), address.String())
+		return nil, types.ErrInvalidServiceAddress(types.CheckingAddress, address.String())
 	}
 
 	k.SetSwapV2(ctx, hash)

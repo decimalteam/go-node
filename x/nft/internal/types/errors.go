@@ -12,21 +12,24 @@ const (
 	// Default coin codespace
 	DefaultCodespace string = ModuleName
 
-	CodeInvalidCollection         CodeType = 101
-	CodeUnknownCollection         CodeType = 102
-	CodeInvalidNFT                CodeType = 103
-	CodeUnknownNFT                CodeType = 104
-	CodeNFTAlreadyExists          CodeType = 105
-	CodeEmptyMetadata             CodeType = 106
-	CodeInvalidQuantity           CodeType = 107
-	CodeInvalidReserve            CodeType = 108
-	CodeNotAllowedBurn            CodeType = 109
-	CodeNotAllowedMint            CodeType = 110
-	CodeInvalidDenom              CodeType = 111
-	CodeInvalidTokenID            CodeType = 112
-	CodeNotUniqueSubTokenIDs      CodeType = 113
-	CodeNotUniqueTokenURI         CodeType = 114
-	CodeOwnerDoesNotOwnSubTokenID CodeType = 115
+	CodeInvalidCollection             CodeType = 101
+	CodeUnknownCollection             CodeType = 102
+	CodeInvalidNFT                    CodeType = 103
+	CodeUnknownNFT                    CodeType = 104
+	CodeNFTAlreadyExists              CodeType = 105
+	CodeEmptyMetadata                 CodeType = 106
+	CodeInvalidQuantity               CodeType = 107
+	CodeInvalidReserve                CodeType = 108
+	CodeNotAllowedBurn                CodeType = 109
+	CodeNotAllowedMint                CodeType = 110
+	CodeInvalidDenom                  CodeType = 111
+	CodeInvalidTokenID                CodeType = 112
+	CodeNotUniqueSubTokenIDs          CodeType = 113
+	CodeNotUniqueTokenURI             CodeType = 114
+	CodeOwnerDoesNotOwnSubTokenID     CodeType = 115
+	CodeInvalidSenderAddress          CodeType = 116
+	CodeInvalidRecipientAddress       CodeType = 117
+	CodeForbiddenToTransferToYourself CodeType = 118
 )
 
 func ErrInvalidCollection(denom string) *sdkerrors.Error {
@@ -158,5 +161,31 @@ func ErrOwnerDoesNotOwnSubTokenID(owner string, subTokenID string) *sdkerrors.Er
 		fmt.Sprintf("owner %s does not own sub tokenID %s", owner, subTokenID),
 		errors.NewParam("owner", owner),
 		errors.NewParam("sub_token_id", subTokenID),
+	)
+}
+
+func ErrInvalidSenderAddress(address string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidSenderAddress,
+		fmt.Sprintf("invalid sender address: %s", address),
+		errors.NewParam("address", address),
+	)
+}
+
+func ErrInvalidRecipientAddress(address string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidRecipientAddress,
+		fmt.Sprintf("invalid recipient address: %s", address),
+		errors.NewParam("address", address),
+	)
+}
+
+func ErrForbiddenToTransferToYourself() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeForbiddenToTransferToYourself,
+		"Forbidden to transfer to yourself",
 	)
 }
