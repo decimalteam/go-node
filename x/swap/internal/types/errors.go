@@ -1,18 +1,16 @@
 package types
 
 import (
-	"encoding/hex"
-	"encoding/json"
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strconv"
 )
 
 // Local code type
 type CodeType = uint32
 
 const (
+	// Default validator codespace
 	DefaultCodespace string = ModuleName
 
 	CodeSwapNotFound      = 100
@@ -23,149 +21,81 @@ const (
 	CodeNotExpired        = 105
 	CodeExpired           = 106
 	CodeWrongSecret       = 107
-
-	CodeChainNotExist = 200
+	CodeChainNotExist     = 200
 )
 
 func ErrSwapNotFound() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeSwapNotFound),
-			"codespace": DefaultCodespace,
-			"desc":      `swap not found`,
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeSwapNotFound,
-		string(jsonData),
+		`swap not found`,
 	)
 }
 
-func ErrSwapAlreadyExist(hash Hash) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeSwapAlreadyExist),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf(`swap with hash %s already exist`, hex.EncodeToString(hash[:])),
-			"hash":      hex.EncodeToString(hash[:]),
-		},
-	)
-	return sdkerrors.New(
+func ErrSwapAlreadyExist(hash string) *sdkerrors.Error {
+	return errors.Encode(
 		DefaultCodespace,
 		CodeSwapAlreadyExist,
-		string(jsonData),
+		fmt.Sprintf(`swap with hash %s already exist`, hash),
+		errors.NewParam("hash", hash),
 	)
 }
 
-func ErrFromFieldNotEqual(fromMsg, fromSwap sdk.AccAddress) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeFromFieldNotEqual),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf(`'from' field not equal: %s != %s`, fromMsg.String(), fromSwap.String()),
-			"fromMsg":   fromMsg.String(),
-			"fromSwap":  fromSwap.String(),
-		},
-	)
-	return sdkerrors.New(
+func ErrFromFieldNotEqual(fromMsg string, fromSwap string) *sdkerrors.Error {
+	return errors.Encode(
 		DefaultCodespace,
 		CodeFromFieldNotEqual,
-		string(jsonData),
+		fmt.Sprintf(`'from' field not equal: %s != %s`, fromMsg, fromSwap),
+		errors.NewParam("fromMsg", fromMsg),
+		errors.NewParam("fromSwap", fromSwap),
 	)
 }
 
 func ErrAlreadyRefunded() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeAlreadyRefunded),
-			"codespace": DefaultCodespace,
-			"desc":      "start block must greater then current block height",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeAlreadyRefunded,
-		string(jsonData),
+		"start block must greater then current block height",
 	)
 }
 
 func ErrAlreadyRedeemed() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeAlreadyRedeemed),
-			"codespace": DefaultCodespace,
-			"desc":      "already redeemed",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeAlreadyRedeemed,
-		string(jsonData),
+		"already redeemed",
 	)
 }
 
 func ErrNotExpired() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeNotExpired),
-			"codespace": DefaultCodespace,
-			"desc":      "swap not expired",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeNotExpired,
-		string(jsonData),
+		"swap not expired",
 	)
 }
 
 func ErrExpired() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeExpired),
-			"codespace": DefaultCodespace,
-			"desc":      "swap expired",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeExpired,
-		string(jsonData),
+		"swap expired",
 	)
 }
 
 func ErrWrongSecret() *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeWrongSecret),
-			"codespace": DefaultCodespace,
-			"desc":      "wrong secret",
-		},
-	)
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeWrongSecret,
-		string(jsonData),
+		"wrong secret",
 	)
 }
 
-func ErrChainNotExist(chain int) *sdkerrors.Error {
-	jsonData, _ := json.Marshal(
-		map[string]string{
-			"code":      getCodeString(CodeChainNotExist),
-			"codespace": DefaultCodespace,
-			"desc":      fmt.Sprintf("chain %d does not exist", chain),
-			"chain":     strconv.Itoa(chain),
-		},
-	)
-	return sdkerrors.New(
+func ErrChainNotExist(chain string) *sdkerrors.Error {
+	return errors.Encode(
 		DefaultCodespace,
 		CodeChainNotExist,
-		string(jsonData),
+		fmt.Sprintf("chain %d does not exist", chain),
+		errors.NewParam("chain", chain),
 	)
-}
-
-func getCodeString(code CodeType) string {
-	return strconv.FormatInt(int64(code), 10)
 }

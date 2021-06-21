@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strconv"
 )
 
 var _ sdk.Msg = &MsgCreateWallet{}
@@ -55,7 +56,7 @@ func (msg MsgCreateWallet) ValidateBasic() error {
 	}
 	// Validate weight count
 	if len(msg.Owners) != len(msg.Weights) {
-		return ErrInvalidWeightCount(len(msg.Weights), len(msg.Owners))
+		return ErrInvalidWeightCount(strconv.Itoa(len(msg.Weights)), strconv.Itoa(len(msg.Owners)))
 	}
 	// Validate owners (ensure there are no duplicates)
 	owners := make(map[string]bool, len(msg.Owners))
@@ -64,17 +65,17 @@ func (msg MsgCreateWallet) ValidateBasic() error {
 			return ErrInvalidOwner()
 		}
 		if owners[msg.Owners[i].String()] {
-			return ErrDuplicateOwner(msg.Owners[i])
+			return ErrDuplicateOwner(msg.Owners[i].String())
 		}
 		owners[msg.Owners[i].String()] = true
 	}
 	// Validate weights
 	for i, c := 0, len(msg.Weights); i < c; i++ {
 		if msg.Weights[i] < MinWeight {
-			return ErrInvalidWeight(MinWeight, "less")
+			return ErrInvalidWeight(strconv.Itoa(MinWeight), "less")
 		}
 		if msg.Weights[i] > MaxWeight {
-			return ErrInvalidWeight(MaxWeight, "greater")
+			return ErrInvalidWeight(strconv.Itoa(MaxWeight), "greater")
 		}
 	}
 	return nil

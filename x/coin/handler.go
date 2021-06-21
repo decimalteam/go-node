@@ -115,7 +115,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 
 	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(coin.Symbol)))
 	if err != nil {
-		return nil, types.ErrCalculateCommission(err)
+		return nil, types.ErrCalculateCommission(err.Error())
 	}
 
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)
@@ -512,7 +512,8 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 
 	// Check block number
 	if check.DueBlock < uint64(ctx.BlockHeight()) {
-		return nil, types.ErrCheckExpired(check.DueBlock)
+		return nil, types.ErrCheckExpired(
+			strconv.FormatInt(int64(check.DueBlock), 10))
 	}
 
 	// Ensure check is not redeemed yet

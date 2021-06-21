@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strconv"
 )
 
 type CodeType = uint32
@@ -31,148 +30,133 @@ const (
 )
 
 func ErrInvalidCollection(denom string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidCollection,
-		errors.Encode(
-			fmt.Sprintf("invalid NFT collection: %s", denom),
-			errors.NewParam("denom", denom)),
+		fmt.Sprintf("invalid NFT collection: %s", denom),
+		errors.NewParam("denom", denom),
 	)
 }
 
 func ErrUnknownCollection(denom string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnknownCollection,
-		errors.Encode(
-			fmt.Sprintf("unknown NFT collection: %s", denom),
-			errors.NewParam("denom", denom)),
+		fmt.Sprintf("unknown NFT collection: %s", denom),
+		errors.NewParam("denom", denom),
 	)
 }
 
 func ErrInvalidNFT(id string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidNFT,
-		errors.Encode(
-			fmt.Sprintf("invalid NFT: %s", id),
-			errors.NewParam("id", id)),
+		fmt.Sprintf("invalid NFT: %s", id),
+		errors.NewParam("id", id),
 	)
 }
 
-func ErrUnknownNFT(denom, id string) *sdkerrors.Error {
-	return sdkerrors.New(
+func ErrUnknownNFT(denom string, id string) *sdkerrors.Error {
+	return errors.Encode(
 		DefaultCodespace,
 		CodeUnknownNFT,
-		errors.Encode(
-			fmt.Sprintf("unknown NFT: denom = %s, tokenID = %s", denom, id),
-			errors.NewParam("id", id),
-			errors.NewParam("denom", denom)),
+		fmt.Sprintf("unknown NFT: denom = %s, tokenID = %s", denom, id),
+		errors.NewParam("id", id),
+		errors.NewParam("denom", denom),
 	)
 }
 
 func ErrNFTAlreadyExists(id string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeNFTAlreadyExists,
-		errors.Encode(
-			fmt.Sprintf("NFT with ID = %s already exists", id),
-			errors.NewParam("id", id)),
+		fmt.Sprintf("NFT with ID = %s already exists", id),
+		errors.NewParam("id", id),
 	)
 }
 
 func ErrEmptyMetadata() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeEmptyMetadata,
-		errors.Encode(
-			"NFT metadata can't be empty"),
+		"NFT metadata can't be empty",
 	)
 }
 
 func ErrInvalidQuantity(quantity string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidQuantity,
-		errors.Encode(
-			fmt.Sprintf("invalid NFT quantity: %s", quantity),
-			errors.NewParam("quantity", quantity)),
+		fmt.Sprintf("invalid NFT quantity: %s", quantity),
+		errors.NewParam("quantity", quantity),
 	)
 }
 
 func ErrInvalidReserve(reserve string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidReserve,
-		errors.Encode(
-			fmt.Sprintf("invalid NFT reserve: %s", reserve),
-			errors.NewParam("reserve", reserve)),
+		fmt.Sprintf("invalid NFT reserve: %s", reserve),
+		errors.NewParam("reserve", reserve),
 	)
 }
 
 func ErrNotAllowedBurn() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeNotAllowedBurn,
-		errors.Encode(
-			"only the creator can burn a token"),
+		"only the creator can burn a token",
 	)
 }
 
 func ErrNotAllowedMint() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeNotAllowedMint,
-		errors.Encode(
-			"only the creator can mint a token"),
+		"only the creator can mint a token",
 	)
 }
 
 func ErrInvalidDenom(denom string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidDenom,
-		errors.Encode(
-			fmt.Sprintf("invalid denom name: %s", denom),
-			errors.NewParam("denom", denom)),
+		fmt.Sprintf("invalid denom name: %s", denom),
+		errors.NewParam("denom", denom),
 	)
 }
 
 func ErrInvalidTokenID(name string) *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeInvalidTokenID,
-		errors.Encode(
-			fmt.Sprintf("invalid token name: %s", name),
-			errors.NewParam("name", name)),
+		fmt.Sprintf("invalid token name: %s", name),
+		errors.NewParam("name", name),
 	)
 }
 
 func ErrNotUniqueSubTokenIDs() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeNotUniqueSubTokenIDs,
-		errors.Encode(
-			"not unique subTokenIDs"),
+		"not unique subTokenIDs",
 	)
 }
 
 func ErrNotUniqueTokenURI() *sdkerrors.Error {
-	return sdkerrors.New(
+	return errors.Encode(
 		DefaultCodespace,
 		CodeNotUniqueTokenURI,
-		errors.Encode(
-			"not unique tokenURI"),
+		"not unique tokenURI",
 	)
 }
 
-func ErrOwnerDoesNotOwnSubTokenID(owner string, subTokenID int64) *sdkerrors.Error {
-	return sdkerrors.New(
+func ErrOwnerDoesNotOwnSubTokenID(owner string, subTokenID string) *sdkerrors.Error {
+	return errors.Encode(
 		DefaultCodespace,
 		CodeOwnerDoesNotOwnSubTokenID,
-		errors.Encode(
-			fmt.Sprintf("owner %s does not own sub tokenID %d", owner, subTokenID),
-			errors.NewParam("owner", owner),
-			errors.NewParam("sub_token_id", strconv.FormatInt(subTokenID, 10))),
+		fmt.Sprintf("owner %s does not own sub tokenID %s", owner, subTokenID),
+		errors.NewParam("owner", owner),
+		errors.NewParam("sub_token_id", subTokenID),
 	)
 }

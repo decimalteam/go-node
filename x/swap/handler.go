@@ -47,7 +47,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, error) {
 	if k.HasSwap(ctx, msg.HashedSecret) {
-		return nil, types.ErrSwapAlreadyExist(msg.HashedSecret)
+		return nil, types.ErrSwapAlreadyExist(
+			hex.EncodeToString(msg.HashedSecret[:]))
 	}
 
 	if msg.TransferType == types.TransferTypeOut {
@@ -202,10 +203,10 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Resul
 
 func handleMsgSwapInitialize(ctx sdk.Context, k Keeper, msg types.MsgSwapInitialize) (*sdk.Result, error) {
 	if !k.HasChain(ctx, msg.DestChain) {
-		return nil, types.ErrChainNotExist(msg.DestChain)
+		return nil, types.ErrChainNotExist(strconv.Itoa(msg.DestChain))
 	}
 	if !k.HasChain(ctx, msg.FromChain) {
-		return nil, types.ErrChainNotExist(msg.FromChain)
+		return nil, types.ErrChainNotExist(strconv.Itoa(msg.FromChain))
 	}
 
 	funds := sdk.NewCoins(sdk.NewCoin(strings.ToLower(msg.TokenSymbol), msg.Amount))
@@ -317,7 +318,7 @@ func handleMsgChainActivate(ctx sdk.Context, k Keeper, msg types.MsgChainActivat
 func handleMsgChainDeactivate(ctx sdk.Context, k Keeper, msg types.MsgChainDeactivate) (*sdk.Result, error) {
 	chain, found := k.GetChain(ctx, msg.ChainNumber)
 	if !found {
-		return nil, types.ErrChainNotExist(msg.ChainNumber)
+		return nil, types.ErrChainNotExist(strconv.Itoa(msg.ChainNumber))
 	}
 
 	chain.Active = false

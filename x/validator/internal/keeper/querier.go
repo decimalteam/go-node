@@ -6,8 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	abci "github.com/tendermint/tendermint/abci/types"
+	"strconv"
 	"strings"
 )
 
@@ -375,7 +375,8 @@ func queryHistoricalInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 
 	hi, found := k.GetHistoricalInfo(ctx, params.Height)
 	if !found {
-		return nil, types.ErrNoHistoricalInfo(params.Height)
+		return nil, types.ErrNoHistoricalInfo(
+			strconv.FormatInt(int64(params.Height), 10))
 	}
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, hi)
