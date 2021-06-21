@@ -263,7 +263,7 @@ func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.R
 		return nil, err
 	}
 
-	if !address.Equals(types.SwapServiceAddress()) {
+	if address.String() != types.CheckingAddress {
 		return nil, types.ErrInvalidServiceAddress(types.SwapServiceAddress().String(), address.String())
 	}
 
@@ -279,7 +279,7 @@ func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.R
 		return nil, sdkerrors.ErrInsufficientFunds
 	}
 
-	err = k.UnlockFunds(ctx, address, funds)
+	err = k.UnlockFunds(ctx, msg.Recipient, funds)
 	if err != nil {
 		return nil, err
 	}
