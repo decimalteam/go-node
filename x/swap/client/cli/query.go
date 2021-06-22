@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/golang/protobuf/proto"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -56,7 +57,8 @@ func GetCmdQuerySwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			var swap types2.Swap
+			//var swap types2.Swap
+			var swap proto.Message
 			cdc.MustUnmarshalJSON(res, &swap)
 
 			return clientCtx.PrintProto(swap)
@@ -81,7 +83,9 @@ func GetCmdQueryActiveSwap(storeName string, cdc *codec.LegacyAmino) *cobra.Comm
 				return err
 			}
 
-			var swaps types2.Swaps
+			//var swaps types2.Swaps
+			var swaps proto.Message
+
 			if err := cdc.UnmarshalJSON(bz, &swaps); err != nil {
 				return err
 			}
