@@ -276,7 +276,7 @@ func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.R
 		return nil, err
 	}
 	if !ok {
-		return nil, sdkerrors.ErrInsufficientFunds
+		return nil, types.ErrInsufficientPoolFunds(funds.String(), k.GetLockedFunds(ctx).String())
 	}
 
 	err = k.UnlockFunds(ctx, msg.Recipient, funds)

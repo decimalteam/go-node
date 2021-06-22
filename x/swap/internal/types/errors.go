@@ -24,6 +24,7 @@ const (
 
 	CodeChainNotExist         = 200
 	CodeInvalidServiceAddress = 201
+	CodeInsufficientPoolFunds = 202
 )
 
 func ErrSwapNotFound() *sdkerrors.Error {
@@ -109,5 +110,15 @@ func ErrInvalidServiceAddress(want string, receive string) *sdkerrors.Error {
 		fmt.Sprintf("invalid service address: want = %s, receive = %s", want, receive),
 		errors.NewParam("want", want),
 		errors.NewParam("receive", receive),
+	)
+}
+
+func ErrInsufficientPoolFunds(want string, exists string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInsufficientPoolFunds,
+		fmt.Sprintf("insufficient pool funds: want = %s, exists = %s", want, exists),
+		errors.NewParam("want", want),
+		errors.NewParam("exists", exists),
 	)
 }
