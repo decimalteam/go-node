@@ -182,7 +182,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 		return err
 	}
 
-	var reserveForReturn sdk.Int
+	reserveForReturn := sdk.ZeroInt()
 
 	owner := nft.GetOwners().GetOwner(nft.GetCreator())
 	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())

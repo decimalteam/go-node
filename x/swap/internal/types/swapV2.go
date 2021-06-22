@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethcmn "github.com/ethereum/go-ethereum/common"
@@ -24,6 +25,9 @@ func GetHash(transactionNumber, tokenName, tokenSymbol string, amount sdk.Int, r
 	)
 
 	copy(hash[:], crypto.Keccak256(encoded))
+	copy(hash[:], crypto.Keccak256(encodePacked(
+		encodeString(fmt.Sprintf("\x19Ethereum Signed Message:\n%d", len(hash))),
+		hash[:])))
 
 	return hash, nil
 }
@@ -58,18 +62,14 @@ func Ecrecover(sighash [32]byte, R, S, Vb *big.Int) (ethcmn.Address, error) {
 	copy(sig[32-len(r):32], r)
 	copy(sig[64-len(s):64], s)
 	sig[64] = V
+
 	// recover the public key from the signature
-	pub, err := crypto.Ecrecover(sighash[:], sig)
+	pub, err := crypto.SigToPub(sighash[:], sig)
 	if err != nil {
 		return ethcmn.Address{}, err
 	}
 
-	if len(pub) == 0 || pub[0] != 4 {
-		return ethcmn.Address{}, errors.New("invalid public key")
-	}
-
-	var addr ethcmn.Address
-	copy(addr[:], crypto.Keccak256(pub[1:])[12:])
+	addr := crypto.PubkeyToAddress(*pub)
 
 	return addr, nil
 }

@@ -250,6 +250,9 @@ func TestBurnNFTMsg(t *testing.T) {
 	// event events should be emitted correctly
 	for _, event := range res.Events {
 		for _, attribute := range event.Attributes {
+			if event.Type != sdk.EventTypeMessage || event.Type != types.EventTypeBurnNFT {
+				continue
+			}
 			value := string(attribute.Value)
 			switch key := string(attribute.Key); key {
 			case moduleKey:
