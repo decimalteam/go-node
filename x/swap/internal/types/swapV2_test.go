@@ -6,7 +6,6 @@ import (
 	ethcmn "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	"math/big"
-	"reflect"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -97,8 +96,8 @@ func TestEcrecover(t *testing.T) {
 				t.Errorf("Ecrecover() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Ecrecover() got = %v, want %v", got, tt.want)
+			if hex.EncodeToString(got.Bytes()) != CheckingAddress {
+				t.Errorf("Ecrecover() got = %v, want %v", hex.EncodeToString(got.Bytes()), CheckingAddress)
 			}
 		})
 	}
