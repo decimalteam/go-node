@@ -234,7 +234,12 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.bankKeeper,
 	)
 
-	app.nftKeeper = nft.NewKeeper(app.cdc, keys[nft.StoreKey], app.supplyKeeper, validator.DefaultBondDenom)
+	app.nftKeeper = nft.NewKeeper(
+		app.cdc,
+		keys[nft.StoreKey],
+		app.bankKeeper,
+		validator.DefaultBondDenom,
+	)
 
 	app.validatorKeeper = validator.NewKeeper(
 		app.cdc,
@@ -242,7 +247,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		validatorSubspace,
 		app.coinKeeper,
 		app.accountKeeper,
-		app.supplyKeeper,
+		app.bankKeeper,
 		app.multisigKeeper,
 		app.nftKeeper,
 		authTypes.FeeCollectorName,
@@ -254,7 +259,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.cdc,
 		keys[gov.StoreKey],
 		govSubspace,
-		app.supplyKeeper,
+		app.bankKeeper,
 		&app.validatorKeeper,
 		govRouter,
 	)
@@ -265,7 +270,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		swapSubspace,
 		app.coinKeeper,
 		app.accountKeeper,
-		app.supplyKeeper,
+		app.bankKeeper,
 	)
 
 	//type RandomGenesisAccountsFn func(simState *module.SimulationState) GenesisAccounts
@@ -279,7 +284,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		capability.NewAppModule(app.appCodec, *app.capabilityKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.accountKeeper, app.bankKeeper, app.coinKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper),
 		swap.NewAppModule(app.swapKeeper),
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
@@ -319,7 +324,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 			app.accountKeeper,
 			app.validatorKeeper,
 			app.coinKeeper,
-			app.supplyKeeper,
+			app.bankKeeper,
 			ante.DefaultSigVerificationGasConsumer,
 		),
 	)
