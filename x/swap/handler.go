@@ -263,7 +263,7 @@ func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.R
 		return nil, err
 	}
 
-	if address.String() != types.CheckingAddress {
+	if hex.EncodeToString(address.Bytes()) != types.CheckingAddress {
 		return nil, types.ErrInvalidServiceAddress(types.CheckingAddress, address.String())
 	}
 

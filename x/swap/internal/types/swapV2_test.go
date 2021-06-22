@@ -20,13 +20,13 @@ func TestEcrecover(t *testing.T) {
 	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
 	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
 
-	_r, err := hex.DecodeString("a123e32e2696b0a4aab0fcd751221b5312bc4a99a59d9a97d45f77896818945b")
+	_r, err := hex.DecodeString("b8b3eb4980e649a65b7e136fbcafda4d12e3b11a40d8aaa7d951e13fbe483579")
 	require.NoError(t, err)
 
 	var r Hash
 	copy(r[:], _r)
 
-	_s, err := hex.DecodeString("155f4ebb4cad76f92b2df4f70940055b9c49ba85d49aa9416473b131b30db2a2")
+	_s, err := hex.DecodeString("74de77f4a9f4045992cf6f220cff9be67a2c0332124e60af0a6791c9b0a64c36")
 	require.NoError(t, err)
 
 	var s Hash
@@ -35,7 +35,7 @@ func TestEcrecover(t *testing.T) {
 	sender, err := sdk.AccAddressFromBech32("dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v")
 	require.NoError(t, err)
 
-	recipient, err := sdk.AccAddressFromBech32("dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v")
+	recipient, err := sdk.AccAddressFromBech32("dx1twj64nphm8zl98uxv7gnt6xg4tpkk4gyr3tux9")
 	require.NoError(t, err)
 
 	//wantAddress := SwapServiceAddress()
@@ -43,12 +43,12 @@ func TestEcrecover(t *testing.T) {
 	msg := NewMsgRedeemV2(
 		sender,
 		recipient,
-		"0x45376AD024c767577714C7B92882578aE8B7f98C",
-		sdk.NewInt(1000000000000000000),
-		"decimal",
-		"del",
-		"lksdnd-asvkla-SDCds",
-		3,
+		"0x856F08B12cB844fa05CDF1eBfFd303B091D34d09",
+		sdk.NewInt(2000000000000000000),
+		"muh coin",
+		"coin",
+		"qqqqqqqq",
+		2,
 		1,
 		28,
 		r,
@@ -57,7 +57,7 @@ func TestEcrecover(t *testing.T) {
 	hash, err := GetHash(msg.TransactionNumber, msg.TokenName, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.FromChain, msg.DestChain)
 	require.NoError(t, err)
 
-	//require.Equal(t, "8e17832d052e16307cc695a1c6fbb0f30e2524e65eddddd8879660a08b07e1d9", hex.EncodeToString(hash[:]))
+	require.Equal(t, "d90ed147ca8100c8329314b74466e1b2f154eeeb26bdfcd9af84f68901f9bf4c", hex.EncodeToString(hash[:]))
 
 	R := big.NewInt(0)
 	R.SetBytes(msg.R[:])
