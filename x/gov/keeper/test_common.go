@@ -184,10 +184,10 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 		require.Nil(t, err)
 	}
 
-	keeper.supplyKeeper.SetModuleAccount(ctx, feeCollectorAcc)
-	keeper.supplyKeeper.SetModuleAccount(ctx, govAcc)
-	keeper.supplyKeeper.SetModuleAccount(ctx, bondPool)
-	keeper.supplyKeeper.SetModuleAccount(ctx, notBondedPool)
+	keeper.accountKeeper.SetModuleAccount(ctx, feeCollectorAcc)
+	keeper.accountKeeper.SetModuleAccount(ctx, govAcc)
+	keeper.accountKeeper.SetModuleAccount(ctx, bondPool)
+	keeper.accountKeeper.SetModuleAccount(ctx, notBondedPool)
 
 	return ctx, accountKeeper, keeper, sk, supplyKeeper, coinKeeper
 }

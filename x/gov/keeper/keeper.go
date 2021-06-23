@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -15,7 +16,7 @@ type Keeper struct {
 	paramSpace types2.ParamSubspace
 
 	// The SupplyKeeper to reduce the supply of the network
-	supplyKeeper types2.SupplyKeeper
+	accountKeeper keeper.AccountKeeper
 
 	// The reference to the DelegationSet and ValidatorSet to get information about validators and delegators
 	vk types2.ValidatorKeeper
@@ -39,7 +40,7 @@ type Keeper struct {
 // CONTRACT: the parameter Subspace must have the param key table already initialized
 func NewKeeper(
 	cdc *codec.LegacyAmino, key sdk.StoreKey, paramSpace types2.ParamSubspace,
-	supplyKeeper types2.SupplyKeeper, vk types2.ValidatorKeeper, rtr types2.Router,
+	accKeeper keeper.AccountKeeper, vk types2.ValidatorKeeper, rtr types2.Router,
 ) Keeper {
 
 	// It is vital to seal the governance proposal router here as to not allow
@@ -48,12 +49,12 @@ func NewKeeper(
 	rtr.Seal()
 
 	return Keeper{
-		storeKey:     key,
-		paramSpace:   paramSpace,
-		supplyKeeper: supplyKeeper,
-		vk:           vk,
-		cdc:          cdc,
-		router:       rtr,
+		storeKey:      key,
+		paramSpace:    paramSpace,
+		accountKeeper: accKeeper,
+		vk:            vk,
+		cdc:           cdc,
+		router:        rtr,
 	}
 }
 
