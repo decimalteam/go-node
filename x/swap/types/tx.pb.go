@@ -504,9 +504,13 @@ func (m *MsgHTLT) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = l
 	if len(m.Amount) > 0 {
 		for iNdEx := len(m.Amount) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.Amount[iNdEx])
-			copy(dAtA[i:], m.Amount[iNdEx])
-			i = encodeVarintTx(dAtA, i, uint64(len(m.Amount[iNdEx])))
+			//todo check it i -= m.Amount[iNdEx]
+			coin := m.Amount[iNdEx]
+			i -= coin.Size()
+			//copy(dAtA[i:], m.Amount[iNdEx])
+			copy(dAtA[i:], coin.String())
+			// todo i = encodeVarintTx(dAtA, i, uint64(len(m.Amount[iNdEx])))
+			i = encodeVarintTx(dAtA, i, uint64(coin.Size()))
 			i--
 			dAtA[i] = 0x32
 		}
@@ -519,9 +523,11 @@ func (m *MsgHTLT) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x2a
 	}
 	{
-		size := m.HashedSecret.Size()
+		//todo check len() for bytes ??
+		size := len(m.HashedSecret) //.Size()
 		i -= size
-		if _, err := m.HashedSecret.MarshalTo(dAtA[i:]); err != nil {
+		//todo check m.HashedSecret.MarshalTo(dAtA[i:])
+		if _, err := m.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
 		}
 		i = encodeVarintTx(dAtA, i, uint64(size))
@@ -536,7 +542,8 @@ func (m *MsgHTLT) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x1a
 	}
 	{
-		size := m.From.Size()
+		//todo check len() for bytes ??
+		size := len(m.From) //.Size()
 		i -= size
 		if _, err := m.From.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
@@ -597,7 +604,8 @@ func (m *MsgRedeem) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	var l int
 	_ = l
 	{
-		size := m.Secret.Size()
+		//todo check len() for bytes ??
+		size := len(m.Secret) //.Size()
 		i -= size
 		if _, err := m.Secret.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
@@ -607,7 +615,8 @@ func (m *MsgRedeem) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i--
 	dAtA[i] = 0x12
 	{
-		size := m.From.Size()
+		//todo check len() for bytes ??
+		size := len(m.From) //.Size()
 		i -= size
 		if _, err := m.From.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
@@ -663,7 +672,8 @@ func (m *MsgRefund) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	var l int
 	_ = l
 	{
-		size := m.HashedSecret.Size()
+		//todo check len() for bytes ??
+		size := len(m.HashedSecret) //.Size()
 		i -= size
 		if _, err := m.HashedSecret.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
@@ -673,7 +683,8 @@ func (m *MsgRefund) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i--
 	dAtA[i] = 0x12
 	{
-		size := m.From.Size()
+		//todo check len() for bytes ??
+		size := len(m.From) //.Size()
 		i -= size
 		if _, err := m.From.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
@@ -728,13 +739,15 @@ func (m *MsgHTLT) Size() (n int) {
 	if m.TransferType != 0 {
 		n += 1 + sovTx(uint64(m.TransferType))
 	}
-	l = m.From.Size()
+	//todo check len() for bytes ??
+	l = len(m.From) //.Size()
 	n += 1 + l + sovTx(uint64(l))
 	l = len(m.Recipient)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = m.HashedSecret.Size()
+	//todo check len() for bytes ??
+	l = len(m.HashedSecret) //.Size()
 	n += 1 + l + sovTx(uint64(l))
 	l = len(m.Secret)
 	if l > 0 {
@@ -742,6 +755,7 @@ func (m *MsgHTLT) Size() (n int) {
 	}
 	if len(m.Amount) > 0 {
 		for _, b := range m.Amount {
+			//todo ?? len Coin ??
 			l = len(b)
 			n += 1 + l + sovTx(uint64(l))
 		}
@@ -764,9 +778,11 @@ func (m *MsgRedeem) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.From.Size()
+	//todo check len() for bytes ??
+	l = len(m.From) //.Size()
 	n += 1 + l + sovTx(uint64(l))
-	l = m.Secret.Size()
+	//todo check len() for bytes ??
+	l = len(m.Secret) //.Size()
 	n += 1 + l + sovTx(uint64(l))
 	return n
 }
@@ -786,9 +802,11 @@ func (m *MsgRefund) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.From.Size()
+	//todo check len() for bytes ??
+	l = len(m.From) //.Size()
 	n += 1 + l + sovTx(uint64(l))
-	l = m.HashedSecret.Size()
+	//todo check len() for bytes ??
+	l = len(m.HashedSecret) //.Size()
 	n += 1 + l + sovTx(uint64(l))
 	return n
 }

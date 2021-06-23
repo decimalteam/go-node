@@ -123,7 +123,7 @@ $ %s query swap pool
 
 			fmt.Println(string(bz))
 
-			var pool client.Account
+			var pool proto.Message
 			if err := cdc.UnmarshalJSON(bz, &pool); err != nil {
 				return err
 			}
