@@ -1,7 +1,6 @@
 package app
 
 import (
-	types2 "bitbucket.org/decimalteam/go-node/x/capability/types"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"io"
@@ -77,6 +76,7 @@ var (
 		gov.AppModuleBasic{},
 		swap.AppModuleBasic{},
 		nft.AppModuleBasic{},
+		ibc.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
@@ -88,7 +88,7 @@ var (
 	}
 )
 
-// MakeAminoCodec generates the necessary codecs for Amino
+// MakeAminoCodec generates necessary codec for Amino
 func MakeAminoCodec() *codec.LegacyAmino {
 	var cdc = codec.NewLegacyAmino()
 	ModuleBasics.RegisterLegacyAminoCodec(cdc)
@@ -135,7 +135,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 
-	bApp.SetAppVersion(config.DecimalVersion)
+	bApp.SetVersion(config.DecimalVersion)
 	bApp.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 
 	// TODO: Add the keys that module requires
@@ -190,7 +190,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		authTypes.ProtoBaseAccount,
 		maccPerms,
 	)
-	app.capabilityKeeper = capabilityKeeper.NewKeeper(app.appCodec, keys[capabilityTypes.StoreKey], memKeys[types2.MemStoreKey])
+
+	app.capabilityKeeper = capabilityKeeper.NewKeeper(app.appCodec, keys[capabilityTypes.StoreKey], memKeys[capabilityTypes.MemStoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.StoreKey)
 
 	// The BankKeeper allows you perform sdk.Coins interactions
@@ -201,8 +202,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		bankSupspace,
 		app.ModuleAccountAddrs(),
 	)
-	//cdc codec.BinaryCodec, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper,
-	//	ps paramtypes.Subspace,
 
 	stakingKeeper := stakingKeeper.NewKeeper(app.appCodec, keys[stakingTypes.StoreKey], app.accountKeeper, app.bankKeeper, stakingSubspace)
 
@@ -211,17 +210,15 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.appCodec, keys[ibchost.StoreKey], app.paramsKeeper.Subspace(ibchost.ModuleName), stakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
 
-	ibcRouter := porttypes.NewRouter()
-	// ibcRouter.AddRoute(...)
-	// ibcRouter.AddRoute(ibcmock.ModuleName, mockModule)
-	app.ibcKeeper.SetRouter(ibcRouter)
-
 	app.coinKeeper = coin.NewKeeper(
 		app.cdc,
 		keys[coin.StoreKey],
 		coinSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
+		app.ibcKeeper.ChannelKeeper,
+		&app.ibcKeeper.PortKeeper,
+		scopedIBCKeeper,
 		config,
 	)
 
@@ -259,7 +256,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.cdc,
 		keys[gov.StoreKey],
 		govSubspace,
-		app.bankKeeper,
+		app.accountKeeper,
 		&app.validatorKeeper,
 		govRouter,
 	)
@@ -284,11 +281,17 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		capability.NewAppModule(app.appCodec, *app.capabilityKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.accountKeeper, app.bankKeeper, app.coinKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper),
 		swap.NewAppModule(app.swapKeeper),
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 	)
+
+	coinModule := coin.NewAppModule(app.coinKeeper, app.accountKeeper)
+
+	ibcRouter := porttypes.NewRouter()
+	ibcRouter.AddRoute(coin.ModuleName, coinModule)
+	app.ibcKeeper.SetRouter(ibcRouter)
 
 	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
 	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName, ibchost.ModuleName)

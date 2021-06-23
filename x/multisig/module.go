@@ -4,8 +4,12 @@ import (
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gorilla/mux"
@@ -165,4 +169,109 @@ func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Validato
 
 func (am AppModule) ConsensusVersion() uint64 {
 	return 1
+}
+
+// OnChanOpenInit implements the IBCModule interface
+func (am AppModule) OnChanOpenInit(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionHops []string,
+	portID string,
+	channelID string,
+	chanCap *capabilitytypes.Capability,
+	counterparty channeltypes.Counterparty,
+	version string,
+) error {
+
+	return nil
+}
+
+// OnChanOpenTry implements the IBCModule interface
+func (am AppModule) OnChanOpenTry(
+	ctx sdk.Context,
+	order channeltypes.Order,
+	connectionHops []string,
+	portID,
+	channelID string,
+	chanCap *capabilitytypes.Capability,
+	counterparty channeltypes.Counterparty,
+	version,
+	counterpartyVersion string,
+) error {
+	return nil
+}
+
+// OnChanOpenAck implements the IBCModule interface
+func (am AppModule) OnChanOpenAck(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+	counterpartyVersion string,
+) error {
+	if counterpartyVersion != types.Version {
+		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
+	}
+	return nil
+}
+
+// OnChanOpenConfirm implements the IBCModule interface
+func (am AppModule) OnChanOpenConfirm(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+) error {
+	return nil
+}
+
+// OnChanCloseInit implements the IBCModule interface
+func (am AppModule) OnChanCloseInit(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+) error {
+	// Disallow user-initiated channel closing for transfer channels
+	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
+}
+
+// OnChanCloseConfirm implements the IBCModule interface
+func (am AppModule) OnChanCloseConfirm(
+	ctx sdk.Context,
+	portID,
+	channelID string,
+) error {
+	return nil
+}
+
+// OnRecvPacket implements the IBCModule interface. A successful acknowledgement
+// is returned if the packet data is succesfully decoded and the receive application
+// logic returns without error.
+func (am AppModule) OnRecvPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	relayer sdk.AccAddress,
+) ibcexported.Acknowledgement {
+	return nil
+}
+
+// OnAcknowledgementPacket implements the IBCModule interface
+func (am AppModule) OnAcknowledgementPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	acknowledgement []byte,
+	relayer sdk.AccAddress,
+) (*sdk.Result, error) {
+	return &sdk.Result{
+		Events: ctx.EventManager().Events().ToABCIEvents(),
+	}, nil
+}
+
+// OnTimeoutPacket implements the IBCModule interface
+func (am AppModule) OnTimeoutPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	relayer sdk.AccAddress,
+) (*sdk.Result, error) {
+	return &sdk.Result{
+		Events: ctx.EventManager().Events().ToABCIEvents(),
+	}, nil
 }

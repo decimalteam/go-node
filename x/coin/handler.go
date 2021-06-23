@@ -163,7 +163,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types2.MsgCreateCoin) (*
 		sdk.NewAttribute(types2.AttributeCommissionCreateCoin, sdk.NewCoin(strings.ToLower(feeCoin), commission).String()),
 	))
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 ////////////////////////////////////////////////////////////////
@@ -189,7 +189,7 @@ func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types2.MsgUpdateCoin) (*
 
 	k.SetCoin(ctx, coin)
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 ////////////////////////////////////////////////////////////////
@@ -210,7 +210,7 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgSendCoin) (*sdk.
 		sdk.NewAttribute(types2.AttributeReceiver, msg.Receiver.String()),
 	))
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgMultiSendCoin) (*sdk.Result, error) {
@@ -229,7 +229,7 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgMultiSendCo
 		))
 	}
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 ////////////////////////////////////////////////////////////////
@@ -337,7 +337,7 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types2.MsgBuyCoin) (*sdk.Re
 		sdk.NewAttribute(types2.AttributeAmountInBaseCoin, amountInBaseCoin.String()),
 	))
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types2.MsgSellCoin, sellAll bool) (*sdk.Result, error) {
@@ -441,7 +441,7 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types2.MsgSellCoin, sellAl
 		sdk.NewAttribute(types2.AttributeAmountInBaseCoin, amountInBaseCoin.String()),
 	))
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 ////////////////////////////////////////////////////////////////
@@ -581,5 +581,5 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types2.MsgRedeemCheck) 
 		sdk.NewAttribute(types2.AttributeCommissionRedeemCheck, sdk.NewCoin(feeCoin, commission).String()),
 	))
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }

@@ -1,16 +1,19 @@
 package keeper
 
 import (
-	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"encoding/hex"
 	"fmt"
-	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"strings"
 	"sync"
 
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	capabilityKeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
+	host "github.com/cosmos/ibc-go/modules/core/24-host"
+
 	"github.com/tendermint/tendermint/libs/log"
 
+	"bitbucket.org/decimalteam/go-node/x/coin/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -23,25 +26,41 @@ import (
 type Keeper struct {
 	storeKey      sdk.StoreKey
 	cdc           *codec.LegacyAmino
-	paramspace    types2.ParamSubspace
+	paramspace    types.ParamSubspace
 	AccountKeeper authKeeper.AccountKeeper
 	BankKeeper    bankKeeper.Keeper
 	Config        *config.Config
+	ScopedKeeper  capabilityKeeper.ScopedKeeper
+	channelKeeper types.ChannelKeeper
+	portKeeper    types.PortKeeper
 
 	coinCache      map[string]bool
 	coinCacheMutex *sync.Mutex
 }
 
 // NewKeeper creates a coin keeper
-func NewKeeper(cdc *codec.LegacyAmino, key sdk.StoreKey, paramspace types2.ParamSubspace, accountKeeper authKeeper.AccountKeeper, coinKeeper bankKeeper.Keeper, config *config.Config) Keeper {
+func NewKeeper(
+	cdc *codec.LegacyAmino,
+	key sdk.StoreKey,
+	paramspace types.ParamSubspace,
+	accountKeeper authKeeper.AccountKeeper,
+	coinKeeper bankKeeper.Keeper,
+	channelKeeper types.ChannelKeeper,
+	portKeeper types.PortKeeper,
+	scopedKeeper capabilityKeeper.ScopedKeeper,
+	config *config.Config,
+) Keeper {
 	keeper := Keeper{
 		storeKey:       key,
 		cdc:            cdc,
-		paramspace:     paramspace.WithKeyTable(types2.ParamKeyTable()),
+		paramspace:     paramspace.WithKeyTable(types.ParamKeyTable()),
 		AccountKeeper:  accountKeeper,
 		BankKeeper:     coinKeeper,
 		Config:         config,
 		coinCache:      make(map[string]bool),
+		ScopedKeeper:   scopedKeeper,
+		portKeeper:     portKeeper,
+		channelKeeper:  channelKeeper,
 		coinCacheMutex: &sync.Mutex{},
 	}
 	return keeper
@@ -49,14 +68,14 @@ func NewKeeper(cdc *codec.LegacyAmino, key sdk.StoreKey, paramspace types2.Param
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types2.ModuleName))
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
 // GetCoin returns types.Coin instance if exists in KVStore
-func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (types2.Coin, error) {
+func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (types.Coin, error) {
 	store := ctx.KVStore(k.storeKey)
-	var coin types2.Coin
-	key := []byte(types2.CoinPrefix + strings.ToLower(symbol))
+	var coin types.Coin
+	key := []byte(types.CoinPrefix + strings.ToLower(symbol))
 	value := store.Get(key)
 	if value == nil {
 		return coin, fmt.Errorf("coin %s is not found in the key-value store", strings.ToLower(symbol))
@@ -68,26 +87,26 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (types2.Coin, error) {
 	return coin, nil
 }
 
-func (k Keeper) SetCoin(ctx sdk.Context, coin types2.Coin) {
+func (k Keeper) SetCoin(ctx sdk.Context, coin types.Coin) {
 	store := ctx.KVStore(k.storeKey)
 	value := k.cdc.MustMarshalBinaryLengthPrefixed(coin)
-	key := []byte(types2.CoinPrefix + strings.ToLower(coin.Symbol))
+	key := []byte(types.CoinPrefix + strings.ToLower(coin.Symbol))
 	store.Set(key, value)
 }
 
 // GetCoinsIterator gets an iterator over all Coins in which the keys are the symbols and the values are the coins
 func (k Keeper) GetCoinsIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
-	return sdk.KVStorePrefixIterator(store, []byte(types2.CoinPrefix))
+	return sdk.KVStorePrefixIterator(store, []byte(types.CoinPrefix))
 }
 
-func (k Keeper) GetAllCoins(ctx sdk.Context) []types2.Coin {
-	var coins []types2.Coin
+func (k Keeper) GetAllCoins(ctx sdk.Context) []types.Coin {
+	var coins []types.Coin
 	iterator := k.GetCoinsIterator(ctx)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var coin types2.Coin
+		var coin types.Coin
 		err := k.cdc.UnmarshalBinaryLengthPrefixed(iterator.Value(), &coin)
 		if err != nil {
 			panic(err)
@@ -137,7 +156,7 @@ func (k Keeper) IsCoinBase(symbol string) bool {
 	return k.Config.SymbolBaseCoin == symbol
 }
 
-func (k Keeper) UpdateCoin(ctx sdk.Context, coin types2.Coin, reserve sdk.Int, volume sdk.Int) {
+func (k Keeper) UpdateCoin(ctx sdk.Context, coin types.Coin, reserve sdk.Int, volume sdk.Int) {
 	if !coin.IsBase() {
 		k.SetCachedCoin(coin.Symbol)
 	}
@@ -145,24 +164,24 @@ func (k Keeper) UpdateCoin(ctx sdk.Context, coin types2.Coin, reserve sdk.Int, v
 	coin.Volume = volume
 	k.SetCoin(ctx, coin)
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types2.EventTypeUpdateCoin,
-		sdk.NewAttribute(types2.AttributeSymbol, coin.Symbol),
-		sdk.NewAttribute(types2.AttributeVolume, coin.Volume.String()),
-		sdk.NewAttribute(types2.AttributeReserve, coin.Reserve.String()),
+		types.EventTypeUpdateCoin,
+		sdk.NewAttribute(types.AttributeSymbol, coin.Symbol),
+		sdk.NewAttribute(types.AttributeVolume, coin.Volume.String()),
+		sdk.NewAttribute(types.AttributeReserve, coin.Reserve.String()),
 	))
 }
 
-func (k Keeper) IsCheckRedeemed(ctx sdk.Context, check *types2.Check) bool {
+func (k Keeper) IsCheckRedeemed(ctx sdk.Context, check *types.Check) bool {
 	checkHash := check.HashFull()
 	store := ctx.KVStore(k.storeKey)
-	key := []byte(types2.CheckPrefix + hex.EncodeToString(checkHash[:]))
+	key := []byte(types.CheckPrefix + hex.EncodeToString(checkHash[:]))
 	return len(store.Get(key)) > 0
 }
 
-func (k Keeper) SetCheckRedeemed(ctx sdk.Context, check *types2.Check) {
+func (k Keeper) SetCheckRedeemed(ctx sdk.Context, check *types.Check) {
 	checkHash := check.HashFull()
 	store := ctx.KVStore(k.storeKey)
-	key := []byte(types2.CheckPrefix + hex.EncodeToString(checkHash[:]))
+	key := []byte(types.CheckPrefix + hex.EncodeToString(checkHash[:]))
 	store.Set(key, []byte{1})
 	return
 }
@@ -223,4 +242,37 @@ func (k Keeper) GetCoinCache(symbol string) bool {
 	k.coinCacheMutex.Lock()
 	_, ok := k.coinCache[symbol]
 	return ok
+}
+
+// IsBound checks if the transfer module is already bound to the desired port
+func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
+	_, ok := k.ScopedKeeper.GetCapability(ctx, host.PortPath(portID))
+	return ok
+}
+
+// BindPort defines a wrapper function for the ort Keeper's function in
+// order to expose it to module's InitGenesis function
+func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
+	cap := k.portKeeper.BindPort(ctx, portID)
+	return k.ClaimCapability(ctx, cap, host.PortPath(portID))
+}
+
+// GetPort returns the portID for the transfer module. Used in ExportGenesis
+func (k Keeper) GetPort(ctx sdk.Context) string {
+	store := ctx.KVStore(k.storeKey)
+	return string(store.Get(types.PortKey))
+}
+
+// SetPort sets the portID for the transfer module. Used in InitGenesis
+func (k Keeper) SetPort(ctx sdk.Context, portID string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.PortKey, []byte(portID))
+}
+
+func ClaimCapability(ctx sdk.Context) error {
+	return nil
+}
+
+func AuthenticateCapability(ctx sdk.Context) error {
+	return nil
 }
