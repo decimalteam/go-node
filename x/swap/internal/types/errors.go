@@ -25,6 +25,8 @@ const (
 	CodeChainNotExist         = 200
 	CodeInvalidServiceAddress = 201
 	CodeInsufficientPoolFunds = 202
+
+	CodeDeprecated = 300
 )
 
 func ErrSwapNotFound() *sdkerrors.Error {
@@ -120,5 +122,13 @@ func ErrInsufficientPoolFunds(want string, exists string) *sdkerrors.Error {
 		fmt.Sprintf("insufficient pool funds: want = %s, exists = %s", want, exists),
 		errors.NewParam("want", want),
 		errors.NewParam("exists", exists),
+	)
+}
+
+func ErrDeprecated() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeDeprecated,
+		"msg deprecated",
 	)
 }
