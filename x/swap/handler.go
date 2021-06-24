@@ -243,7 +243,7 @@ func handleMsgSwapInitialize(ctx sdk.Context, k Keeper, msg types.MsgSwapInitial
 }
 
 func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.Result, error) {
-	hash, err := types.GetHash(msg.TransactionNumber, msg.TokenName, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.FromChain, msg.DestChain)
+	hash, err := types.GetHash(msg.TransactionNumber, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.FromChain, msg.DestChain)
 	if err != nil {
 		return nil, err
 	}

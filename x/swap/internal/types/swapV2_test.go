@@ -19,13 +19,13 @@ func TestEcrecover(t *testing.T) {
 	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
 	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
 
-	_r, err := hex.DecodeString("b8b3eb4980e649a65b7e136fbcafda4d12e3b11a40d8aaa7d951e13fbe483579")
+	_r, err := hex.DecodeString("34cfb64ceb647462e0c27cd88b0d32d0ac464ffe4b3dd8dde17d80906c189f73")
 	require.NoError(t, err)
 
 	var r Hash
 	copy(r[:], _r)
 
-	_s, err := hex.DecodeString("74de77f4a9f4045992cf6f220cff9be67a2c0332124e60af0a6791c9b0a64c36")
+	_s, err := hex.DecodeString("6d2180b81bf6db0baa923145fddc190a2eef55f6d16ce067fb3564235721dd93")
 	require.NoError(t, err)
 
 	var s Hash
@@ -34,29 +34,32 @@ func TestEcrecover(t *testing.T) {
 	sender, err := sdk.AccAddressFromBech32("dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v")
 	require.NoError(t, err)
 
-	recipient, err := sdk.AccAddressFromBech32("dx1twj64nphm8zl98uxv7gnt6xg4tpkk4gyr3tux9")
+	recipient, err := sdk.AccAddressFromBech32("dx1tlhpwr6t9nnq95xjet3ap2lc9zlxyw9dhr9y0z")
 	require.NoError(t, err)
 
 	//wantAddress := SwapServiceAddress()
 
+	amount, ok := sdk.NewIntFromString("100000000000000000000")
+	require.True(t, ok)
+
 	msg := NewMsgRedeemV2(
 		sender,
 		recipient,
-		"0x856F08B12cB844fa05CDF1eBfFd303B091D34d09",
-		sdk.NewInt(2000000000000000000),
-		"muh coin",
-		"coin",
-		"qqqqqqqq",
+		"0x45376AD024c767577714C7B92882578aE8B7f98C",
+		amount,
+		"Decimal coin",
+		"del",
+		"038f8f78-b06e-486f-9203-d79817568dcf",
 		2,
 		1,
 		28,
 		r,
 		s)
 
-	hash, err := GetHash(msg.TransactionNumber, msg.TokenName, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.FromChain, msg.DestChain)
+	hash, err := GetHash(msg.TransactionNumber, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.FromChain, msg.DestChain)
 	require.NoError(t, err)
 
-	require.Equal(t, "d90ed147ca8100c8329314b74466e1b2f154eeeb26bdfcd9af84f68901f9bf4c", hex.EncodeToString(hash[:]))
+	require.Equal(t, "495cd998e5e9046b5f9116d4fc9c3ee8b3a9dbbbdba5a2defe06aad242ea723b", hex.EncodeToString(hash[:]))
 
 	R := big.NewInt(0)
 	R.SetBytes(msg.R[:])

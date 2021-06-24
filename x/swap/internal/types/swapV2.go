@@ -12,13 +12,12 @@ import (
 	"math/big"
 )
 
-func GetHash(transactionNumber, tokenName, tokenSymbol string, amount sdk.Int, recipient sdk.AccAddress, fromChain int, destChain int) (Hash, error) {
+func GetHash(transactionNumber, tokenSymbol string, amount sdk.Int, recipient sdk.AccAddress, fromChain, destChain int) (Hash, error) {
 	var hash [32]byte
 
 	encoded := encodePacked(
 		encodeString(transactionNumber),
 		encodeUint256(amount.BigInt()),
-		encodeString(tokenName),
 		encodeString(tokenSymbol),
 		encodeString(recipient.String()),
 		encodeUint8(uint8(fromChain)),
