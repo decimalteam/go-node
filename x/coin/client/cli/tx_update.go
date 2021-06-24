@@ -3,6 +3,7 @@ package cli
 import (
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,7 +25,7 @@ func GetCmdUpdateCoin(cdc *codec.Codec) *cobra.Command {
 			var symbol = args[0]
 			var limitVolume, ok = sdk.NewIntFromString(args[1])
 			if !ok {
-				return types.ErrInvalidLimitVolume
+				return fmt.Errorf("invalid limit volume")
 			}
 			var identity = args[2]
 

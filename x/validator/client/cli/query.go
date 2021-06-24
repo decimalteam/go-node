@@ -155,7 +155,7 @@ $ %s query validator unbonding-delegations-from cosmosvaloper1gghjut3ccd8ay0zduz
 				return err
 			}
 
-			var ubds types.UnbondingDelegations
+			var ubds types.UnbondingDelegationResponse
 			cdc.MustUnmarshalJSON(res, &ubds)
 			return cliCtx.PrintOutput(ubds)
 		},

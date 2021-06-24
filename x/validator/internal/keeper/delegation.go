@@ -227,18 +227,29 @@ func (k Keeper) GetUnbondingDelegationsFromValidator(ctx sdk.Context, valAddr sd
 			ubd.Entries = append(ubd.Entries, entry)
 		}
 
-		key = types.GetUnbondingDelegationNFTByValIndexKey(baseUBD.DelegatorAddress, baseUBD.ValidatorAddress)
-		value = store.Get(key)
-		if value != nil {
-			nftUBD := types.MustUnmarshalNFTUBD(k.cdc, value)
+		ubds = append(ubds, ubd)
+	}
 
-			for _, entry := range nftUBD.Entries {
-				ubd.Entries = append(ubd.Entries, entry)
-			}
+	iteratorNFT := sdk.KVStorePrefixIterator(store, types.GetUnbondingDelegationNFTsByValIndexKey(valAddr))
+	defer iteratorNFT.Close()
+
+	for ; iteratorNFT.Valid(); iteratorNFT.Next() {
+		key := types.GetUnbondingDelegationNFTKeyFromValIndexKey(iteratorNFT.Key())
+		value := store.Get(key)
+		nftUBD := types.MustUnmarshalNFTUBD(k.cdc, value)
+		ubd := types.UnbondingDelegation{
+			DelegatorAddress: nftUBD.DelegatorAddress,
+			ValidatorAddress: nftUBD.ValidatorAddress,
+			Entries:          []exported.UnbondingDelegationEntryI{},
+		}
+
+		for _, entry := range nftUBD.Entries {
+			ubd.Entries = append(ubd.Entries, entry)
 		}
 
 		ubds = append(ubds, ubd)
 	}
+
 	return ubds
 }
 
@@ -314,6 +325,9 @@ func (k Keeper) RemoveUnbondingDelegation(ctx sdk.Context, ubd types.UnbondingDe
 	key := types.GetUBDKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
 	store.Delete(key)
 	store.Delete(types.GetUBDByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress))
+	key = types.GetUnbondingDelegationNFTKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
+	store.Delete(key)
+	store.Delete(types.GetUnbondingDelegationNFTByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress))
 }
 
 // SetUnbondingDelegationEntry adds an entry to the unbonding delegation at

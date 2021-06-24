@@ -1,0 +1,107 @@
+package types
+
+import (
+	"bitbucket.org/decimalteam/go-node/config"
+	"encoding/hex"
+	ethcmn "github.com/ethereum/go-ethereum/common"
+	"github.com/stretchr/testify/require"
+	"math/big"
+	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+func TestEcrecover(t *testing.T) {
+	_config := sdk.GetConfig()
+	_config.SetCoinType(60)
+	_config.SetFullFundraiserPath("44'/60'/0'/0/0")
+	_config.SetBech32PrefixForAccount(config.DecimalPrefixAccAddr, config.DecimalPrefixAccPub)
+	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
+	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
+
+	_r, err := hex.DecodeString("34cfb64ceb647462e0c27cd88b0d32d0ac464ffe4b3dd8dde17d80906c189f73")
+	require.NoError(t, err)
+
+	var r Hash
+	copy(r[:], _r)
+
+	_s, err := hex.DecodeString("6d2180b81bf6db0baa923145fddc190a2eef55f6d16ce067fb3564235721dd93")
+	require.NoError(t, err)
+
+	var s Hash
+	copy(s[:], _s)
+
+	sender, err := sdk.AccAddressFromBech32("dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v")
+	require.NoError(t, err)
+
+	recipient, err := sdk.AccAddressFromBech32("dx1tlhpwr6t9nnq95xjet3ap2lc9zlxyw9dhr9y0z")
+	require.NoError(t, err)
+
+	//wantAddress := SwapServiceAddress()
+
+	amount, ok := sdk.NewIntFromString("100000000000000000000")
+	require.True(t, ok)
+
+	msg := NewMsgRedeemV2(
+		sender,
+		recipient,
+		"0x45376AD024c767577714C7B92882578aE8B7f98C",
+		amount,
+		"Decimal coin",
+		"del",
+		"038f8f78-b06e-486f-9203-d79817568dcf",
+		2,
+		1,
+		28,
+		r,
+		s)
+
+	hash, err := GetHash(msg.TransactionNumber, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.FromChain, msg.DestChain)
+	require.NoError(t, err)
+
+	require.Equal(t, "495cd998e5e9046b5f9116d4fc9c3ee8b3a9dbbbdba5a2defe06aad242ea723b", hex.EncodeToString(hash[:]))
+
+	R := big.NewInt(0)
+	R.SetBytes(msg.R[:])
+
+	S := big.NewInt(0)
+	S.SetBytes(msg.S[:])
+
+	type args struct {
+		sighash [32]byte
+		R       *big.Int
+		S       *big.Int
+		Vb      *big.Int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    ethcmn.Address
+		wantErr bool
+	}{
+		{
+			"Test1",
+			args{
+				sighash: hash,
+				R:       R,
+				S:       S,
+				Vb:      sdk.NewInt(int64(msg.V)).BigInt(),
+			},
+			ethcmn.HexToAddress(CheckingAddress),
+			false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := Ecrecover(tt.args.sighash, tt.args.R, tt.args.S, tt.args.Vb)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Ecrecover() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if hex.EncodeToString(got.Bytes()) != CheckingAddress {
+				t.Errorf("Ecrecover() got = %v, want %v", hex.EncodeToString(got.Bytes()), CheckingAddress)
+			}
+		})
+	}
+}

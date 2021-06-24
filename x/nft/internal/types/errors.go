@@ -1,23 +1,191 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/errors"
+	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-var (
-	ErrInvalidCollection    = sdkerrors.Register(ModuleName, 1, "invalid NFT collection")
-	ErrUnknownCollection    = sdkerrors.Register(ModuleName, 2, "unknown NFT collection")
-	ErrInvalidNFT           = sdkerrors.Register(ModuleName, 3, "invalid NFT")
-	ErrUnknownNFT           = sdkerrors.Register(ModuleName, 4, "unknown NFT")
-	ErrNFTAlreadyExists     = sdkerrors.Register(ModuleName, 5, "NFT already exists")
-	ErrEmptyMetadata        = sdkerrors.Register(ModuleName, 6, "NFT metadata can't be empty")
-	ErrInvalidQuantity      = sdkerrors.Register(ModuleName, 7, "invalid NFT quantity")
-	ErrInvalidReserve       = sdkerrors.Register(ModuleName, 8, "invalid NFT reserve")
-	ErrNotAllowedBurn       = sdkerrors.Register(ModuleName, 9, "only the creator can burn a token")
-	ErrNotAllowedMint       = sdkerrors.Register(ModuleName, 10, "only the creator can mint a token")
-	ErrInvalidDenom         = sdkerrors.Register(ModuleName, 11, "invalid denom name")
-	ErrInvalidTokenID       = sdkerrors.Register(ModuleName, 12, "invalid token name")
-	ErrInvalidSubTokenID    = sdkerrors.Register(ModuleName, 13, "invalid subTokenID")
-	ErrNotUniqueSubTokenIDs = sdkerrors.Register(ModuleName, 14, "subTokenIDs does not unique")
-	ErrNotUniqueTokenURI    = sdkerrors.Register(ModuleName, 15, "tokenURI does not unique")
+type CodeType = uint32
+
+const (
+	// Default coin codespace
+	DefaultCodespace string = ModuleName
+
+	CodeInvalidCollection             CodeType = 101
+	CodeUnknownCollection             CodeType = 102
+	CodeInvalidNFT                    CodeType = 103
+	CodeUnknownNFT                    CodeType = 104
+	CodeNFTAlreadyExists              CodeType = 105
+	CodeEmptyMetadata                 CodeType = 106
+	CodeInvalidQuantity               CodeType = 107
+	CodeInvalidReserve                CodeType = 108
+	CodeNotAllowedBurn                CodeType = 109
+	CodeNotAllowedMint                CodeType = 110
+	CodeInvalidDenom                  CodeType = 111
+	CodeInvalidTokenID                CodeType = 112
+	CodeNotUniqueSubTokenIDs          CodeType = 113
+	CodeNotUniqueTokenURI             CodeType = 114
+	CodeOwnerDoesNotOwnSubTokenID     CodeType = 115
+	CodeInvalidSenderAddress          CodeType = 116
+	CodeInvalidRecipientAddress       CodeType = 117
+	CodeForbiddenToTransferToYourself CodeType = 118
 )
+
+func ErrInvalidCollection(denom string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidCollection,
+		fmt.Sprintf("invalid NFT collection: %s", denom),
+		errors.NewParam("denom", denom),
+	)
+}
+
+func ErrUnknownCollection(denom string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeUnknownCollection,
+		fmt.Sprintf("unknown NFT collection: %s", denom),
+		errors.NewParam("denom", denom),
+	)
+}
+
+func ErrInvalidNFT(id string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidNFT,
+		fmt.Sprintf("invalid NFT: %s", id),
+		errors.NewParam("id", id),
+	)
+}
+
+func ErrUnknownNFT(denom string, id string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeUnknownNFT,
+		fmt.Sprintf("unknown NFT: denom = %s, tokenID = %s", denom, id),
+		errors.NewParam("id", id),
+		errors.NewParam("denom", denom),
+	)
+}
+
+func ErrNFTAlreadyExists(id string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeNFTAlreadyExists,
+		fmt.Sprintf("NFT with ID = %s already exists", id),
+		errors.NewParam("id", id),
+	)
+}
+
+func ErrEmptyMetadata() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeEmptyMetadata,
+		"NFT metadata can't be empty",
+	)
+}
+
+func ErrInvalidQuantity(quantity string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidQuantity,
+		fmt.Sprintf("invalid NFT quantity: %s", quantity),
+		errors.NewParam("quantity", quantity),
+	)
+}
+
+func ErrInvalidReserve(reserve string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidReserve,
+		fmt.Sprintf("invalid NFT reserve: %s", reserve),
+		errors.NewParam("reserve", reserve),
+	)
+}
+
+func ErrNotAllowedBurn() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeNotAllowedBurn,
+		"only the creator can burn a token",
+	)
+}
+
+func ErrNotAllowedMint() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeNotAllowedMint,
+		"only the creator can mint a token",
+	)
+}
+
+func ErrInvalidDenom(denom string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidDenom,
+		fmt.Sprintf("invalid denom name: %s", denom),
+		errors.NewParam("denom", denom),
+	)
+}
+
+func ErrInvalidTokenID(name string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidTokenID,
+		fmt.Sprintf("invalid token name: %s", name),
+		errors.NewParam("name", name),
+	)
+}
+
+func ErrNotUniqueSubTokenIDs() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeNotUniqueSubTokenIDs,
+		"not unique subTokenIDs",
+	)
+}
+
+func ErrNotUniqueTokenURI() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeNotUniqueTokenURI,
+		"not unique tokenURI",
+	)
+}
+
+func ErrOwnerDoesNotOwnSubTokenID(owner string, subTokenID string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeOwnerDoesNotOwnSubTokenID,
+		fmt.Sprintf("owner %s does not own sub tokenID %s", owner, subTokenID),
+		errors.NewParam("owner", owner),
+		errors.NewParam("sub_token_id", subTokenID),
+	)
+}
+
+func ErrInvalidSenderAddress(address string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidSenderAddress,
+		fmt.Sprintf("invalid sender address: %s", address),
+		errors.NewParam("address", address),
+	)
+}
+
+func ErrInvalidRecipientAddress(address string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidRecipientAddress,
+		fmt.Sprintf("invalid recipient address: %s", address),
+		errors.NewParam("address", address),
+	)
+}
+
+func ErrForbiddenToTransferToYourself() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeForbiddenToTransferToYourself,
+		"Forbidden to transfer to yourself",
+	)
+}
