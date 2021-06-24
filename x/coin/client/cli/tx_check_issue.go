@@ -4,8 +4,9 @@ import (
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"crypto/sha256"
 	"fmt"
+	"github.com/Workiva/go-datastructures/threadsafe/err"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+	//bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	"math/big"
 	"strconv"
 
@@ -20,22 +21,22 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/mintkey"
+	//"github.com/cosmos/cosmos-sdk/crypto/keys/mintkey"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client"
+	authclient "github.com/cosmos/cosmos-sdk/x/auth/client/"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 )
 
-func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
+func GetCmdIssueCheck(cdc *codec.ProtoCodec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "issue-check [coin] [amount] [nonce] [dueBlock] [passphrase]",
 		Short: "Issue check",
 		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			var coinSymbol = args[0]
 			var amount, _ = sdk.NewIntFromString(args[1])
@@ -44,8 +45,8 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			var passphrase = args[4] // TODO: Read passphrase by request to avoid saving it in terminal history
 
 			// Check if coin exists
-			coin, _ := cliUtils.GetCoin(cliCtx, coinSymbol)
-			if coin.Symbol != coinSymbol {
+			coin, err := cliUtils.GetCoin(clientCtx, coinSymbol)
+			if err != nil {
 				return types2.ErrCoinDoesNotExist(coinSymbol)
 			}
 
@@ -57,7 +58,7 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 
 			// Prepare check without lock
 			check := &types2.Check{
-				ChainID:  cliCtx.ChainID,
+				ChainID:  clientCtx.ChainID,
 				Coin:     coin.Symbol,
 				Amount:   amount.BigInt(),
 				Nonce:    nonce.BigInt().Bytes(),
@@ -72,8 +73,13 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			check.Lock = big.NewInt(0).SetBytes(lock)
 
 			// Retrieve private key from the keybase account
-			ExportPrivKeyArmor
-			privKeyArmored, err := txBldr.Keybase().ExportPrivKey(cliCtx.FromName, "", "")
+
+			txBldr := auth.NewTxBuilderFromCLI(clientCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+//todo !!!!!!!! use crypto module for crypt !!!!!!!!!!!! "github.com/cosmos/cosmos-sdk/crypto"
+			//ExportPrivKeyArmor
+			privKeyArmored, err := txBldr.Keybase().ExportPrivKey(clientCtx.FromName, "", "")
+crypto.
 			keyring.Exporter().ExportPrivKeyArmor()
 			if err != nil {
 				msgError := fmt.Sprintf("unable to retrieve armored private key for account %s: %s", cliCtx.FromName, err.Error())

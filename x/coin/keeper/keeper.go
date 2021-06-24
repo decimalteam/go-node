@@ -25,10 +25,11 @@ import (
 // Keeper of the coin store
 type Keeper struct {
 	storeKey      sdk.StoreKey
-	cdc           *codec.LegacyAmino
+	cdc           *codec.ProtoCodec//LegacyAmino
 	paramspace    types.ParamSubspace
 	AccountKeeper authKeeper.AccountKeeper
 	BankKeeper    bankKeeper.Keeper
+	SendKeeper    bankKeeper.BaseKeeper
 	Config        *config.Config
 	ScopedKeeper  capabilityKeeper.ScopedKeeper
 	channelKeeper types.ChannelKeeper
@@ -40,7 +41,7 @@ type Keeper struct {
 
 // NewKeeper creates a coin keeper
 func NewKeeper(
-	cdc *codec.LegacyAmino,
+	cdc *codec.ProtoCodec,
 	key sdk.StoreKey,
 	paramspace types.ParamSubspace,
 	accountKeeper authKeeper.AccountKeeper,
@@ -80,7 +81,8 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (types.Coin, error) {
 	if value == nil {
 		return coin, fmt.Errorf("coin %s is not found in the key-value store", strings.ToLower(symbol))
 	}
-	err := k.cdc.UnmarshalBinaryLengthPrefixed(value, &coin)
+	//err := k.cdc.UnmarshalBinaryLengthPrefixed(value, &coin)
+	err := k.cdc.UnmarshalLengthPrefixed(value, &coin)
 	if err != nil {
 		return coin, err
 	}
@@ -89,7 +91,8 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (types.Coin, error) {
 
 func (k Keeper) SetCoin(ctx sdk.Context, coin types.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	value := k.cdc.MustMarshalBinaryLengthPrefixed(coin)
+	//value := k.cdc.MustMarshalBinaryLengthPrefixed(coin)
+	value := k.cdc.MustMarshalLengthPrefixed(&coin)
 	key := []byte(types.CoinPrefix + strings.ToLower(coin.Symbol))
 	store.Set(key, value)
 }
@@ -107,7 +110,8 @@ func (k Keeper) GetAllCoins(ctx sdk.Context) []types.Coin {
 
 	for ; iterator.Valid(); iterator.Next() {
 		var coin types.Coin
-		err := k.cdc.UnmarshalBinaryLengthPrefixed(iterator.Value(), &coin)
+		//err := k.cdc.UnmarshalBinaryLengthPrefixed(iterator.Value(), &coin)
+		err := k.cdc.UnmarshalLengthPrefixed(iterator.Value(), &coin)
 		if err != nil {
 			panic(err)
 		}
@@ -143,7 +147,9 @@ func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int
 		coins = coins.Add(updCoin...)
 	}
 	// Update coin information
+	//todo check it ?? https://docs.cosmos.network/v0.42/modules/bank/02_keepers.html#basekeeper
 	err := k.BankKeeper.SetBalances(ctx, acc.GetAddress(), coins)
+
 	if err != nil {
 		return err
 	}
@@ -211,7 +217,11 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 				commissionInBaseCoin.String())
 		}
 
-		commission = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, commissionInBaseCoin)
+		commission = formulas.CalculateSaleAmount(
+			coinInfo.Volume,
+			coinInfo.Reserve,
+			uint(coinInfo.CRR),
+			commissionInBaseCoin)
 	}
 
 	return commission, feeCoin, nil
@@ -253,8 +263,8 @@ func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
 // BindPort defines a wrapper function for the ort Keeper's function in
 // order to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
-	cap := k.portKeeper.BindPort(ctx, portID)
-	return k.ClaimCapability(ctx, cap, host.PortPath(portID))
+	capability := k.portKeeper.BindPort(ctx, portID)
+	return k.ScopedKeeper.ClaimCapability(ctx, capability, host.PortPath(portID))
 }
 
 // GetPort returns the portID for the transfer module. Used in ExportGenesis

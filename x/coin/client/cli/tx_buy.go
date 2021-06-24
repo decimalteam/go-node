@@ -2,7 +2,6 @@ package cli
 
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
-	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,7 +20,7 @@ func GetCmdBuyCoin(cdc *codec.LegacyAmino) *cobra.Command {
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
-			txBuilder := authTx.NewTxConfig(cdc, clientCtx.BroadcastMode)
+			//txBuilder := authTx.NewTxConfig(cdc, clientCtx.BroadcastMode)
 
 			var coinToBuySymbol = args[0]
 			var coinToSellSymbol = args[2]
