@@ -33,6 +33,9 @@ import (
 	paramsKeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	upgradeKeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
+	upgradeTypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	stakingKeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -97,6 +100,10 @@ func MakeAminoCodec() *codec.LegacyAmino {
 	return cdc
 }
 
+type versionSetter struct {}
+
+func (vs *versionSetter) SetProtocolVersion(version int64) {}
+
 type newApp struct {
 	*bam.BaseApp
 	cdc               *codec.LegacyAmino
@@ -120,6 +127,7 @@ type newApp struct {
 	govKeeper        gov.Keeper
 	swapKeeper       swap.Keeper
 	nftKeeper        nft.Keeper
+	upgradeKeeper    upgradeKeeper.Keeper
 
 	// Module Manager
 	mm *module.Manager
@@ -191,6 +199,10 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		maccPerms,
 	)
 
+	upgradesMap := map[int64]bool{}
+
+	app.upgradeKeeper = upgradeKeeper.NewKeeper(upgradesMap, keys[upgradeTypes.StoreKey], , "/upgrades", versionSetter{})
+
 	app.capabilityKeeper = capabilityKeeper.NewKeeper(app.appCodec, keys[capabilityTypes.StoreKey], memKeys[capabilityTypes.MemStoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.StoreKey)
 
@@ -207,7 +219,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// Create ibc keeper
 	app.ibcKeeper = ibckeeper.NewKeeper(
-		app.appCodec, keys[ibchost.StoreKey], app.paramsKeeper.Subspace(ibchost.ModuleName), stakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
+		app.appCodec, keys[ibchost.StoreKey], app.paramsKeeper.Subspace(ibchost.ModuleName), stakingKeeper, app.upgradeKeeper, scopedIBCKeeper,
 	)
 
 	app.coinKeeper = coin.NewKeeper(
@@ -235,6 +247,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.cdc,
 		keys[nft.StoreKey],
 		app.bankKeeper,
+		app.accountKeeper,
 		validator.DefaultBondDenom,
 	)
 
