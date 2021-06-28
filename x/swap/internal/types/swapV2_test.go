@@ -19,13 +19,13 @@ func TestEcrecover(t *testing.T) {
 	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
 	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
 
-	_r, err := hex.DecodeString("34cfb64ceb647462e0c27cd88b0d32d0ac464ffe4b3dd8dde17d80906c189f73")
+	_r, err := hex.DecodeString("d8c0c8ff4a9b168be168f480bae61ead0a7f2b973f983a038f867621451fa553")
 	require.NoError(t, err)
 
 	var r Hash
 	copy(r[:], _r)
 
-	_s, err := hex.DecodeString("6d2180b81bf6db0baa923145fddc190a2eef55f6d16ce067fb3564235721dd93")
+	_s, err := hex.DecodeString("641ba9f5749afbb425e83b69ecacb3a0c6e32e2431609d474d4300a7cce5eb41")
 	require.NoError(t, err)
 
 	var s Hash
@@ -49,17 +49,20 @@ func TestEcrecover(t *testing.T) {
 		amount,
 		"Decimal coin",
 		"del",
-		"038f8f78-b06e-486f-9203-d79817568dcf",
+		"123",
 		2,
 		1,
-		28,
+		27,
 		r,
 		s)
 
-	hash, err := GetHash(msg.TransactionNumber, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.FromChain, msg.DestChain)
+	transactionNumber, ok := sdk.NewIntFromString(msg.TransactionNumber)
+	require.True(t, ok)
+
+	hash, err := GetHash(transactionNumber, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.FromChain, msg.DestChain)
 	require.NoError(t, err)
 
-	require.Equal(t, "495cd998e5e9046b5f9116d4fc9c3ee8b3a9dbbbdba5a2defe06aad242ea723b", hex.EncodeToString(hash[:]))
+	require.Equal(t, "b3d218b80efdaaac18e3df1647786f1200fb330cf90bfef72baa0073f6bf872b", hex.EncodeToString(hash[:]))
 
 	R := big.NewInt(0)
 	R.SetBytes(msg.R[:])

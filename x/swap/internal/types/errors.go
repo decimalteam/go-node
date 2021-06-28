@@ -25,6 +25,7 @@ const (
 	CodeChainNotExist         = 200
 	CodeInvalidServiceAddress = 201
 	CodeInsufficientPoolFunds = 202
+	CodeInvalidTransactionNumber = 203
 
 	CodeDeprecated = 300
 )
@@ -122,6 +123,14 @@ func ErrInsufficientPoolFunds(want string, exists string) *sdkerrors.Error {
 		fmt.Sprintf("insufficient pool funds: want = %s, exists = %s", want, exists),
 		errors.NewParam("want", want),
 		errors.NewParam("exists", exists),
+	)
+}
+
+func ErrInvalidTransactionNumber() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidTransactionNumber,
+		"invalid transaction number",
 	)
 }
 

@@ -256,7 +256,12 @@ func handleMsgSwapInitialize(ctx sdk.Context, k Keeper, msg types.MsgSwapInitial
 }
 
 func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.Result, error) {
-	hash, err := types.GetHash(msg.TransactionNumber, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.FromChain, msg.DestChain)
+	transactionNumber, ok := sdk.NewIntFromString(msg.TransactionNumber)
+	if !ok {
+		return nil, types.ErrInvalidTransactionNumber()
+	}
+
+	hash, err := types.GetHash(transactionNumber, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.FromChain, msg.DestChain)
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +289,7 @@ func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.R
 
 	funds := sdk.NewCoins(sdk.NewCoin(strings.ToLower(msg.TokenSymbol), msg.Amount))
 
-	ok, err := k.CheckPoolFunds(ctx, funds)
+	ok, err = k.CheckPoolFunds(ctx, funds)
 	if err != nil {
 		return nil, err
 	}
