@@ -47,7 +47,6 @@ func TestEcrecover(t *testing.T) {
 		recipient,
 		"0x45376AD024c767577714C7B92882578aE8B7f98C",
 		amount,
-		"Decimal coin",
 		"del",
 		"123",
 		2,
