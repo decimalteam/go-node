@@ -234,7 +234,6 @@ func handleMsgSwapInitialize(ctx sdk.Context, k Keeper, msg types.MsgSwapInitial
 			sdk.NewAttribute(types.AttributeKeyRecipient, msg.Recipient),
 			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyTransactionNumber, msg.TransactionNumber),
-			sdk.NewAttribute(types.AttributeKeyTokenName, msg.TokenName),
 			sdk.NewAttribute(types.AttributeKeyTokenSymbol, msg.TokenSymbol),
 		),
 	)
@@ -299,7 +298,6 @@ func handleMsgRedeemV2(ctx sdk.Context, k Keeper, msg types.MsgRedeemV2) (*sdk.R
 			sdk.NewAttribute(types.AttributeKeyRecipient, msg.Recipient.String()),
 			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyTransactionNumber, msg.TransactionNumber),
-			sdk.NewAttribute(types.AttributeKeyTokenName, msg.TokenName),
 			sdk.NewAttribute(types.AttributeKeyTokenSymbol, msg.TokenSymbol),
 		),
 	)
