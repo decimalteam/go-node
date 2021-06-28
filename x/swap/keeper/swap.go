@@ -7,7 +7,7 @@ import (
 
 func (k Keeper) SetSwap(ctx sdk.Context, swap types2.Swap) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(swap)
+	bz := k.cdc.MustMarshalLengthPrefixed(swap)
 	store.Set(types2.GetSwapKey(swap.HashedSecret), bz)
 }
 
@@ -24,7 +24,7 @@ func (k Keeper) GetSwap(ctx sdk.Context, hash types2.Hash) (types2.Swap, bool) {
 	}
 
 	var swap types2.Swap
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &swap)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &swap)
 	return swap, true
 }
 
@@ -37,7 +37,7 @@ func (k Keeper) GetAllSwaps(ctx sdk.Context) types2.Swaps {
 
 	for ; iterator.Valid(); iterator.Next() {
 		var swap types2.Swap
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &swap)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &swap)
 		swaps = append(swaps, swap)
 	}
 
