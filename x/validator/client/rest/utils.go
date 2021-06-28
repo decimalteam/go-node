@@ -3,6 +3,7 @@ package rest
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -10,8 +11,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-
-	auth "github.com/cosmos/cosmos-sdk/x/auth/client"
 )
 
 // contains checks if the a given query contains one of the tx types
@@ -33,7 +32,7 @@ func queryTxs(clientCtx client.Context, action string, delegatorAddr string) (*s
 		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeySender, delegatorAddr),
 	}
 
-	return auth.QueryTxsByEvents(clientCtx, events, page, limit, "desc")
+	return tx.QueryTxsByEvents(clientCtx, events, page, limit, "desc")
 }
 
 func queryBonds(clientCtx client.Context, endpoint string) http.HandlerFunc {

@@ -49,7 +49,7 @@ func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, c
 
 // return the delegation
 func MustMarshalDelegation(cdc *codec.LegacyAmino, delegation Delegation) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(delegation)
+	return cdc.MustMarshalLengthPrefixed(delegation)
 }
 
 // return the delegation
@@ -63,7 +63,7 @@ func MustUnmarshalDelegation(cdc *codec.LegacyAmino, value []byte) Delegation {
 
 // return the delegation
 func UnmarshalDelegation(cdc *codec.LegacyAmino, value []byte) (delegation Delegation, err error) {
-	err = cdc.UnmarshalBinaryLengthPrefixed(value, &delegation)
+	err = cdc.UnmarshalLengthPrefixed(value, &delegation)
 	return delegation, err
 }
 
@@ -210,7 +210,7 @@ func (d UnbondingDelegation) GetEvents(ctxTime time.Time) sdk.Events {
 
 // return the unbonding delegation
 func MustMarshalUBD(cdc *codec.LegacyAmino, ubd UnbondingDelegation) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(ubd)
+	return cdc.MustMarshalLengthPrefixed(ubd)
 }
 
 // unmarshal a unbonding delegation from a store value
@@ -224,15 +224,15 @@ func MustUnmarshalUBD(cdc *codec.LegacyAmino, value []byte) UnbondingDelegation 
 
 // unmarshal a unbonding delegation from a store value
 func UnmarshalUBD(cdc *codec.LegacyAmino, value []byte) (ubd UnbondingDelegation, err error) {
-	err = cdc.UnmarshalBinaryLengthPrefixed(value, &ubd)
+	err = cdc.UnmarshalLengthPrefixed(value, &ubd)
 	return ubd, err
 }
 
 // nolint
 // inefficient but only used in testing
 func (d UnbondingDelegation) Equal(d2 UnbondingDelegation) bool {
-	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&d)
-	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&d2)
+	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&d)
+	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&d2)
 	return bytes.Equal(bz1, bz2)
 }
 

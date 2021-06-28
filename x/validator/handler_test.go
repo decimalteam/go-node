@@ -99,7 +99,7 @@ func TestValidatorByPowerIndex(t *testing.T) {
 	require.NotNil(t, res)
 
 	var finishTime time.Time
-	types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(res.Data, &finishTime)
 
 	ctx = ctx.WithBlockTime(finishTime)
 	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
@@ -303,7 +303,7 @@ func TestIncrementsMsgUnbond(t *testing.T) {
 		require.NotNil(t, res)
 
 		var finishTime time.Time
-		types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
+		types.ModuleCdc.MustUnmarshalLengthPrefixed(res.Data, &finishTime)
 
 		ctx = ctx.WithBlockTime(finishTime)
 		EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
@@ -416,7 +416,7 @@ func TestMultipleMsgCreateValidator(t *testing.T) {
 		require.NotNil(t, res)
 
 		var finishTime time.Time
-		types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
+		types.ModuleCdc.MustUnmarshalLengthPrefixed(res.Data, &finishTime)
 
 		// adds validator into unbonding queue
 		EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
@@ -467,7 +467,7 @@ func TestMultipleMsgDelegate(t *testing.T) {
 		require.NotNil(t, res)
 
 		var finishTime time.Time
-		types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
+		types.ModuleCdc.MustUnmarshalLengthPrefixed(res.Data, &finishTime)
 
 		ctx = ctx.WithBlockTime(finishTime)
 		EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
@@ -504,7 +504,7 @@ func TestValidatorQueue(t *testing.T) {
 	require.NotNil(t, res)
 
 	var finishTime time.Time
-	types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(res.Data, &finishTime)
 
 	ctx = ctx.WithBlockTime(finishTime)
 	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
@@ -618,7 +618,7 @@ func TestUnbondingFromUnbondingValidator(t *testing.T) {
 
 	// change the ctx to Block Time one second before the validator would have unbonded
 	var finishTime time.Time
-	types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(res.Data, &finishTime)
 	ctx = ctx.WithBlockTime(finishTime.Add(time.Second * -1))
 
 	// unbond the delegator from the validator
@@ -962,7 +962,7 @@ func TestUnbondNFT(t *testing.T) {
 	require.Equal(t, validator.Tokens, valTokens.Add(unbondQuantity.Mul(reserve)))
 
 	var finishTime time.Time
-	types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(res.Data, &finishTime)
 
 	ctx = ctx.WithBlockTime(finishTime)
 	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)

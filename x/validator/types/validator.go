@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"fmt"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"sort"
@@ -12,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto"
 	tmtypes "github.com/tendermint/tendermint/types"
 	"gopkg.in/yaml.v2"
 )
@@ -48,7 +48,7 @@ type Stake struct {
 
 // String returns a human readable string representation of a validator.
 func (v Validator) String() string {
-	bechConsPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
+	bechConsPubKey, err := sdk.Bech32ifyAddressBytes(sdk.Bech32PrefixConsPub, v.PubKey.Bytes())
 	if err != nil {
 		panic(err)
 	}
@@ -87,12 +87,12 @@ type bechValidator struct {
 
 // MarshalJSON marshals the validator to JSON using Bech32
 func (v Validator) MarshalJSON() ([]byte, error) {
-	bechConsPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
+	bechConsPubKey, err := sdk.Bech32ifyAddressBytes(sdk.Bech32PrefixConsPub, v.PubKey.Bytes())
 	if err != nil {
 		return nil, err
 	}
 
-	return codec.Cdc.MarshalJSON(bechValidator{
+	return codec.JSONCodec.MarshalJSON(bechValidator{
 		ValAddress:              v.ValAddress,
 		PubKey:                  bechConsPubKey,
 		Jailed:                  v.Jailed,
@@ -111,10 +111,11 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals the validator from JSON using Bech32
 func (v *Validator) UnmarshalJSON(data []byte) error {
 	bv := &bechValidator{}
-	if err := codec.Cdc.UnmarshalJSON(data, bv); err != nil {
+	if err := codec.AminoCodec.UnmarshalJSON(data, bv); err != nil {
 		return err
 	}
-	consPubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, bv.PubKey)
+	consPubKey, err := sdk.GetFromBech32(sdk.Bech32PrefixConsPub, bv.PubKey)
+
 	if err != nil {
 		return err
 	}
@@ -153,7 +154,7 @@ func (v Validator) MarshalYAML() (interface{}, error) {
 	}{
 		ValAddress:              v.ValAddress,
 		RewardAddress:           v.RewardAddress,
-		PubKey:                  sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey),
+		PubKey:                  sdk.MustBech32ifyAddressBytes(sdk.Bech32PrefixConsPub, v.PubKey.Bytes()),
 		Jailed:                  v.Jailed,
 		Status:                  v.Status,
 		Tokens:                  v.Tokens,
@@ -344,7 +345,7 @@ func NewValidator(valAddress sdk.ValAddress, pubKey types.PubKey, commission sdk
 
 // unmarshal a validator from a store value
 func UnmarshalValidator(cdc *codec.LegacyAmino, value []byte) (validator Validator, err error) {
-	err = cdc.UnmarshalBinaryLengthPrefixed(value, &validator)
+	err = cdc.UnmarshalLengthPrefixed(value, &validator)
 	return validator, err
 }
 
@@ -401,8 +402,16 @@ func (v Validator) PotentialConsensusPower() int64 {
 // ABCIValidatorUpdate returns an abci.ValidatorUpdate from a staking validator type
 // with the full validator power
 func (v Validator) ABCIValidatorUpdate() abci.ValidatorUpdate {
+	pk := v.GetConsPubKey()
+
+	tmPk, err := cryptocodec.ToTmProtoPublicKey(pk)
+
+	if err != nil {
+		panic(err)
+	}
+
 	return abci.ValidatorUpdate{
-		PubKey: tmtypes.TM2PB.PubKey(v.PubKey),
+		PubKey: tmPk,
 		Power:  v.ConsensusPower(),
 	}
 }

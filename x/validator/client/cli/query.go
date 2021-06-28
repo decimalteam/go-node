@@ -105,14 +105,14 @@ $ %s query validator validators
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
-			resKVs, _, err := clientCtx.QuerySubspace([]byte{types.ValidatorsKey}, storeName)
+			resKVs, _, err := clientCtx.QueryStore([]byte{types.ValidatorsKey}, storeName)
 			if err != nil {
 				return err
 			}
 
 			var validators types.Validators
 			for _, kv := range resKVs {
-				validator, err := types.UnmarshalValidator(cdc, kv.Value)
+				validator, err := types.UnmarshalValidator(cdc, kv)
 				if err != nil {
 					return err
 				}

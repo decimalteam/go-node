@@ -5,6 +5,8 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+
 	"github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -120,6 +122,7 @@ func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Kee
 	}
 
 	if bankKeeper.GetAllBalances(ctx, addr).IsZero() {
+		bankKeeper.
 		if err := bankKeeper.SetBalances(ctx, addr, notBondedTokens); err != nil {
 			panic(err)
 		}
@@ -197,9 +200,17 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 
 // WriteValidators returns a slice of bonded genesis validators.
 func WriteValidators(ctx sdk.Context, keeper Keeper) (vals []tmtypes.GenesisValidator) {
+
 	keeper.IterateLastValidators(ctx, func(_ int64, validator types.Validator) (stop bool) {
+		pk := validator.GetConsPubKey()
+
+		tmPk, err := cryptocodec.ToTmPubKeyInterface(pk)
+		if err != nil {
+			return true
+		}
+
 		vals = append(vals, tmtypes.GenesisValidator{
-			PubKey: validator.PubKey,
+			PubKey: tmPk,
 			Power:  validator.ConsensusPower(),
 			Name:   validator.Description.Moniker,
 		})

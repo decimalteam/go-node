@@ -255,14 +255,14 @@ func (k Keeper) GetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (dvPa
 	if bz == nil {
 		return []types.DVPair{}
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &dvPairs)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &dvPairs)
 	return dvPairs
 }
 
 // Sets a specific unbonding queue timeslice.
 func (k Keeper) SetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []types.DVPair) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(keys)
+	bz := k.cdc.MustMarshalLengthPrefixed(keys)
 	store.Set(types.GetUnbondingDelegationTimeKey(timestamp), bz)
 }
 
@@ -298,7 +298,7 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
 	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
 		timeslice := []types.DVPair{}
 		value := unbondingTimesliceIterator.Value()
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+		k.cdc.MustUnmarshalLengthPrefixed(value, &timeslice)
 		matureUnbonds = append(matureUnbonds, timeslice...)
 		store.Delete(unbondingTimesliceIterator.Key())
 	}

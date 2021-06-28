@@ -2,11 +2,10 @@ package types
 
 import (
 	"encoding/binary"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
 	"strconv"
 	"time"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -92,7 +91,7 @@ func GetValidatorsByPowerIndexKey(validator Validator, power sdk.Int) []byte {
 	powerBytesLen := len(powerBytes) // 16
 
 	// key is of format prefix || powerbytes || addrBytes
-	key := make([]byte, 1+powerBytesLen+sdk.AddrLen)
+	key := make([]byte, 1+powerBytesLen+AddrLen)
 
 	key[0] = ValidatorsByPowerIndexKey
 	copy(key[1:powerBytesLen+1], powerBytes)
@@ -163,11 +162,11 @@ func GetUBDByValIndexKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte 
 // rearranges the ValIndexKey to get the UBDKey
 func GetUBDKeyFromValIndexKey(IndexKey []byte) []byte {
 	addrs := IndexKey[1:] // remove prefix bytes
-	if len(addrs) != 2*sdk.AddrLen {
+	if len(addrs) != 2*AddrLen {
 		panic("unexpected key length")
 	}
-	valAddr := addrs[:sdk.AddrLen]
-	delAddr := addrs[sdk.AddrLen:]
+	valAddr := addrs[:AddrLen]
+	delAddr := addrs[AddrLen:]
 	return GetUBDKey(delAddr, valAddr)
 }
 
@@ -211,7 +210,7 @@ func GetValidatorMissedBlockBitArrayKey(v sdk.ConsAddress, i int64) []byte {
 // parse the validators operator address from power rank key
 func ParseValidatorPowerRankKey(key []byte) (operAddr []byte) {
 	powerBytesLen := 16
-	if len(key) != 1+powerBytesLen+sdk.AddrLen {
+	if len(key) != 1+powerBytesLen+AddrLen {
 		panic("Invalid validator power rank key length")
 	}
 	operAddr = sdk.CopyBytes(key[powerBytesLen+1:])

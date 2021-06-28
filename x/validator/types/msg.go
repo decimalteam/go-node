@@ -1,8 +1,8 @@
 package types
 
 import (
+	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 var _ sdk.Msg = &MsgDeclareCandidate{}
@@ -16,7 +16,7 @@ var _ sdk.Msg = &MsgDeclareCandidate{}
 //	Description   Description    `json:"description"`
 //}
 
-func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey crypto.PubKey, commission sdk.Dec, stake sdk.Coin, description Description, rewardAddress sdk.AccAddress) MsgDeclareCandidate {
+func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey types.PubKey, commission sdk.Dec, stake sdk.Coin, description Description, rewardAddress sdk.AccAddress) MsgDeclareCandidate {
 	return MsgDeclareCandidate{
 		Commission:    commission,
 		ValidatorAddr: validatorAddr,
@@ -36,7 +36,7 @@ func (msg MsgDeclareCandidate) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgDeclareCandidate) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
@@ -84,7 +84,7 @@ func (msg MsgDelegate) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgDelegate) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
@@ -127,7 +127,7 @@ func (msg MsgDelegateNFT) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgDelegateNFT) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
@@ -160,7 +160,7 @@ func (msg MsgSetOnline) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgSetOnline) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
@@ -190,7 +190,7 @@ func (msg MsgSetOffline) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgSetOffline) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
@@ -226,7 +226,7 @@ func (msg MsgUnbond) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgUnbond) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
@@ -269,7 +269,7 @@ func (msg MsgUnbondNFT) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgUnbondNFT) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
@@ -308,7 +308,7 @@ func (msg MsgEditCandidate) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgEditCandidate) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 

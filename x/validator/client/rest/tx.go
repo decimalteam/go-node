@@ -71,7 +71,7 @@ func postDelegationsHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		tx.WriteGeneratedTxResponse(clientCtx, w, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(clientCtx, w, req.BaseReq, &msg)
 	}
 }
 
@@ -105,6 +105,6 @@ func postUnbondingDelegationsHandlerFn(clientCtx client.Context) http.HandlerFun
 			return
 		}
 
-		tx.WriteGeneratedTxResponse(clientCtx, w, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(clientCtx, w, req.BaseReq, &msg)
 	}
 }

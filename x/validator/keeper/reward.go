@@ -169,7 +169,7 @@ func (k Keeper) getDAO(ctx sdk.Context) (sdk.AccAddress, error) {
 	wallet = multisig.Wallet{
 		Address:   address,
 		Owners:    owners,
-		Weights:   []uint{1, 1, 1},
+		Weights:   []uint64{1, 1, 1},
 		Threshold: 3}
 
 	k.multisigKeeper.SetWallet(ctx, wallet)
@@ -211,7 +211,7 @@ func (k Keeper) getDevelop(ctx sdk.Context) (sdk.AccAddress, error) {
 	wallet = multisig.Wallet{
 		Address:   address,
 		Owners:    owners,
-		Weights:   []uint{1, 1, 1},
+		Weights:   []uint64{1, 1, 1},
 		Threshold: 3}
 
 	k.multisigKeeper.SetWallet(ctx, wallet)

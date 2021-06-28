@@ -28,8 +28,8 @@ func NewGenesisState(params Params, validators []Validator, delegations Delegati
 }
 
 // get raw genesis raw message for testing
-func DefaultGenesisState() GenesisState {
-	return GenesisState{
+func DefaultGenesisState() *GenesisState {
+	return &GenesisState{
 		Params: DefaultParams(),
 	}
 }

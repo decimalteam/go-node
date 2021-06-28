@@ -1,8 +1,8 @@
 package exported
 
 import (
+	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/crypto"
 	"time"
 )
 
@@ -32,7 +32,7 @@ type ValidatorI interface {
 	IsUnbonded() bool             // check if has status unbonded
 	IsUnbonding() bool            // check if has status unbonding
 	GetOperator() sdk.ValAddress  // operator address to receive/return validators coins
-	GetConsPubKey() crypto.PubKey // validation consensus pubkey
+	GetConsPubKey() types.PubKey // validation consensus pubkey
 	GetConsAddr() sdk.ConsAddress // validation consensus address
 	GetTokens() sdk.Int           // validation tokens
 	GetBondedTokens() sdk.Int     // validator bonded tokens

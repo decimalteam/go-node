@@ -4,6 +4,8 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"encoding/hex"
+	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
+	types2 "github.com/cosmos/cosmos-sdk/crypto/types"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -210,7 +212,7 @@ func NewPubKey(pk string) (res crypto.PubKey) {
 		panic(err)
 	}
 	//res, err = crypto.PubKeyFromBytes(pkBytes)
-	var pkEd ed25519.PubKeyEd25519
+	var pkEd ed25519.PubKey
 	copy(pkEd[:], pkBytes[:])
 	return pkEd
 }
@@ -258,8 +260,8 @@ func createTestAddrs(numAddrs int) []sdk.AccAddress {
 }
 
 // nolint: unparam
-func createTestPubKeys(numPubKeys int) []crypto.PubKey {
-	var publicKeys []crypto.PubKey
+func createTestPubKeys(numPubKeys int) []types2.PubKey {
+	var publicKeys []types2.PubKey
 	var buffer bytes.Buffer
 
 	//start at 10 to avoid changing 1 to 01, 2 to 02, etc

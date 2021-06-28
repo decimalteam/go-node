@@ -25,22 +25,22 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		}()
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		case types.MsgDeclareCandidate:
-			return handleMsgDeclareCandidate(ctx, keeper, msg)
-		case types.MsgDelegate:
-			return handleMsgDelegate(ctx, keeper, msg)
-		case types.MsgDelegateNFT:
-			return handleMsgDelegateNFT(ctx, keeper, msg)
-		case types.MsgUnbond:
-			return handleMsgUnbond(ctx, keeper, msg)
-		case types.MsgUnbondNFT:
-			return handleMsgUnbondNFT(ctx, keeper, msg)
-		case types.MsgEditCandidate:
-			return handleMsgEditCandidate(ctx, keeper, msg)
-		case types.MsgSetOnline:
-			return handleMsgSetOnline(ctx, keeper, msg)
-		case types.MsgSetOffline:
-			return handleMsgSetOffline(ctx, keeper, msg)
+		case *types.MsgDeclareCandidate:
+			return handleMsgDeclareCandidate(ctx, keeper, *msg)
+		case *types.MsgDelegate:
+			return handleMsgDelegate(ctx, keeper, *msg)
+		case *types.MsgDelegateNFT:
+			return handleMsgDelegateNFT(ctx, keeper, *msg)
+		case *types.MsgUnbond:
+			return handleMsgUnbond(ctx, keeper, *msg)
+		case *types.MsgUnbondNFT:
+			return handleMsgUnbondNFT(ctx, keeper, *msg)
+		case *types.MsgEditCandidate:
+			return handleMsgEditCandidate(ctx, keeper, *msg)
+		case *types.MsgSetOnline:
+			return handleMsgSetOnline(ctx, keeper, *msg)
+		case *types.MsgSetOffline:
+			return handleMsgSetOffline(ctx, keeper, *msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -103,7 +103,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		sdk.NewAttribute(types.AttributeKeyDescriptionDetails, msg.Description.Details),
 	))
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.Result, error) {
@@ -138,7 +138,7 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		sdk.NewAttribute(types.AttributeKeyCoin, msg.Coin.String()),
 	))
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgDelegateNFT(ctx sdk.Context, k Keeper, msg types.MsgDelegateNFT) (*sdk.Result, error) {
@@ -164,7 +164,7 @@ func handleMsgDelegateNFT(ctx sdk.Context, k Keeper, msg types.MsgDelegateNFT) (
 		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
 	))
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgUnbondNFT(ctx sdk.Context, k Keeper, msg types.MsgUnbondNFT) (*sdk.Result, error) {
@@ -178,7 +178,7 @@ func handleMsgUnbondNFT(ctx sdk.Context, k Keeper, msg types.MsgUnbondNFT) (*sdk
 		}
 	}
 
-	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
+	completionTimeBz := types.ModuleCdc.MustMarshalLengthPrefixed(completionTime)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -188,7 +188,7 @@ func handleMsgUnbondNFT(ctx sdk.Context, k Keeper, msg types.MsgUnbondNFT) (*sdk
 		sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 	))
 
-	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Result, error) {
@@ -202,7 +202,7 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 		}
 	}
 
-	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
+	completionTimeBz := types.ModuleCdc.MustMarshalLengthPrefixed(completionTime)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -213,7 +213,7 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 		sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 	))
 
-	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidate) (*sdk.Result, error) {
@@ -244,7 +244,7 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 		sdk.NewAttribute(types.AttributeKeyDescriptionSecurityContact, msg.Description.SecurityContact),
 	))
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk.Result, error) {
@@ -274,7 +274,7 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk
 		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
 	))
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*sdk.Result, error) {
@@ -302,5 +302,5 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*s
 		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
 	))
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }

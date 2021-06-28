@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	tx "github.com/cosmos/cosmos-sdk/client/tx"
+	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -62,7 +63,7 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, args[0])
+			pubKey, err := sdk.GetFromBech32(sdk.Bech32PrefixConsAddr, args[0])
 			if err != nil {
 				return err
 			}
@@ -84,7 +85,7 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 
@@ -145,7 +146,7 @@ func PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string
 	viper.Set(flags.FlagFrom, viper.GetString(flags.FlagName))
 	viper.Set(FlagNodeID, nodeID)
 	viper.Set(FlagIP, ip)
-	viper.Set(FlagPubKey, sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, valPubKey))
+	viper.Set(FlagPubKey, sdk.MustBech32ifyAddressBytes(sdk.Bech32PrefixConsPub, valPubKey.Bytes()))
 	viper.Set(FlagMoniker, config.Moniker)
 	viper.Set(FlagWebsite, website)
 	viper.Set(FlagSecurityContact, securityContact)
@@ -183,7 +184,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, txBldr client.TxBuilder) 
 	}
 	pkStr := viper.GetString(FlagPubKey)
 
-	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
+	pk, err := sdk.GetFromBech32(sdk.Bech32PrefixConsPub, pkStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
@@ -203,6 +204,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, txBldr client.TxBuilder) 
 		return txBldr, nil, err
 	}
 
+
 	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, description, rewardAddr)
 
 	// NOTE: No need to show public IP of the node
@@ -212,7 +214,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, txBldr client.TxBuilder) 
 	// 	txBldr = txBldr.WithMemo(fmt.Sprintf("%s@%s:26656", nodeID, ip))
 	// }
 
-	return txBldr, msg, nil
+	return txBldr, &msg, nil
 }
 
 // GetDelegate .
@@ -237,7 +239,7 @@ func GetDelegate(cdc *codec.LegacyAmino) *cobra.Command {
 			}
 
 			msg := types.NewMsgDelegate(valAddress, delAddress, coin)
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 
@@ -270,7 +272,7 @@ func GetDelegateNFT(cdc *codec.LegacyAmino) *cobra.Command {
 			denom := args[2]
 
 			msg := types.NewMsgDelegateNFT(valAddress, delAddress, tokenID, denom, quantity)
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}......)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 
@@ -291,7 +293,7 @@ func GetSetOnline(cdc *codec.LegacyAmino) *cobra.Command {
 			valAddress := clientCtx.GetFromAddress()
 
 			msg := types.NewMsgSetOnline(sdk.ValAddress(valAddress))
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 }
@@ -308,7 +310,7 @@ func GetSetOffline(cdc *codec.LegacyAmino) *cobra.Command {
 			valAddress := clientCtx.GetFromAddress()
 
 			msg := types.NewMsgSetOffline(sdk.ValAddress(valAddress))
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 }
@@ -335,7 +337,7 @@ func GetUnbond(cdc *codec.LegacyAmino) *cobra.Command {
 			}
 
 			msg := types.NewMsgUnbond(valAddress, delAddress, coin)
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 
@@ -369,7 +371,7 @@ func GetUnbondNFT(cdc *codec.LegacyAmino) *cobra.Command {
 			denom := args[2]
 
 			msg := types.NewMsgUnbondNFT(valAddress, delAddress, tokenID, denom, quantity)
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 
@@ -406,7 +408,7 @@ func GetEditCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 			)
 
 			msg := types.NewMsgEditCandidate(valAddress, rewardAddress, description)
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 

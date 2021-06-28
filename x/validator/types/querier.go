@@ -41,9 +41,9 @@ func NewQueryDelegatorParams(delegatorAddr sdk.AccAddress) QueryDelegatorParams 
 // - 'custom/validator/validatorDelegations'
 // - 'custom/validator/validatorUnbondingDelegations'
 // - 'custom/validator/validatorRedelegations'
-type QueryValidatorParams struct {
-	ValidatorAddr sdk.ValAddress
-}
+//type QueryValidatorParams struct {
+//	ValidatorAddr sdk.ValAddress
+//}
 
 func NewQueryValidatorParams(validatorAddr sdk.ValAddress) QueryValidatorParams {
 	return QueryValidatorParams{
@@ -71,13 +71,13 @@ func NewQueryBondsParams(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddr
 
 // QueryValidatorsParams defines the params for the following queries:
 // - 'custom/validator/validators'
-type QueryValidatorsParams struct {
-	Page, Limit int
-	Status      string
-}
+//type QueryValidatorsParams struct {
+//	Page, Limit int
+//	Status      string
+//}
 
 func NewQueryValidatorsParams(page, limit int, status string) QueryValidatorsParams {
-	return QueryValidatorsParams{page, limit, status}
+	return QueryValidatorsParams{int32(page), int32(limit), status}
 }
 
 // QueryHistoricalInfoParams defines the params for the following queries:

@@ -96,13 +96,13 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		}
 
 		// fetch the old power bytes
-		var valAddrBytes [sdk.AddrLen]byte
+		var valAddrBytes [types.AddrLen]byte
 		copy(valAddrBytes[:], validator.ValAddress[:])
 		oldPowerBytes, found := last[valAddrBytes]
 
 		// calculate the new power bytes
 		newPower := validator.ConsensusPower()
-		newPowerBytes := k.cdc.MustMarshalBinaryLengthPrefixed(newPower)
+		newPowerBytes := k.cdc.MustMarshalLengthPrefixed(newPower)
 
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
@@ -232,7 +232,7 @@ func (k Keeper) completeUnbondingValidator(ctx sdk.Context, validator types.Vali
 }
 
 // map of operator addresses to serialized power
-type validatorsByAddr map[[sdk.AddrLen]byte][]byte
+type validatorsByAddr map[[types.AddrLen]byte][]byte
 
 // get the last validator set
 func (k Keeper) getLastValidatorsByAddr(ctx sdk.Context) validatorsByAddr {
@@ -242,7 +242,7 @@ func (k Keeper) getLastValidatorsByAddr(ctx sdk.Context) validatorsByAddr {
 	defer iterator.Close()
 	// iterate over the last validator set index
 	for ; iterator.Valid(); iterator.Next() {
-		var valAddr [sdk.AddrLen]byte
+		var valAddr [types.AddrLen]byte
 		// extract the validator address from the key (prefix is 1-byte)
 		copy(valAddr[:], iterator.Key()[1:])
 		// power bytes is just the value
@@ -386,7 +386,7 @@ func sortNoLongerBonded(last validatorsByAddr) [][]byte {
 	noLongerBonded := make([][]byte, len(last))
 	index := 0
 	for valAddrBytes := range last {
-		valAddr := make([]byte, sdk.AddrLen)
+		valAddr := make([]byte, types.AddrLen)
 		copy(valAddr[:], valAddrBytes[:])
 		noLongerBonded[index] = valAddr
 		index++

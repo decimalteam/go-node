@@ -242,7 +242,7 @@ func (k Keeper) GetAllMatureValidatorQueue(ctx sdk.Context) (matureValsAddrs []s
 
 	for ; validatorTimesliceIterator.Valid(); validatorTimesliceIterator.Next() {
 		var timeslice []sdk.ValAddress
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
+		k.cdc.MustUnmarshalLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
 		matureValsAddrs = append(matureValsAddrs, timeslice...)
 	}
 
@@ -256,7 +256,7 @@ func (k Keeper) UnbondAllMatureValidatorQueue(ctx sdk.Context) {
 
 	for ; validatorTimesliceIterator.Valid(); validatorTimesliceIterator.Next() {
 		var timeslice []sdk.ValAddress
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
+		k.cdc.MustUnmarshalLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
 
 		for _, valAddr := range timeslice {
 			val, err := k.GetValidator(ctx, valAddr)
@@ -325,7 +325,7 @@ func (k Keeper) IterateLastValidatorPowers(ctx sdk.Context, handler func(operato
 	for ; iter.Valid(); iter.Next() {
 		addr := sdk.ValAddress(iter.Key()[1:])
 		var power int64
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &power)
+		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &power)
 		if handler(addr, power) {
 			break
 		}
