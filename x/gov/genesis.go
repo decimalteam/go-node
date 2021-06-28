@@ -1,12 +1,11 @@
 package gov
 
 import (
-	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // InitGenesis - store genesis parameters
-func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types2.SupplyKeeper, data GenesisState) {
+func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
 
 	k.SetProposalID(ctx, data.StartingProposalID)
 	k.SetTallyParams(ctx, data.TallyParams)
@@ -17,9 +16,9 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types2.SupplyKeeper, da
 
 	for _, proposal := range data.Proposals {
 		switch proposal.Status {
-		case StatusWaiting:
+		case int32(StatusWaiting):
 			k.InsertInactiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingStartBlock)
-		case StatusVotingPeriod:
+		case int32(StatusVotingPeriod):
 			k.InsertActiveProposalQueue(ctx, proposal.ProposalID, proposal.VotingEndBlock)
 		}
 		k.SetProposal(ctx, proposal)

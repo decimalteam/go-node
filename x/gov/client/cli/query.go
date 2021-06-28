@@ -73,7 +73,7 @@ $ %s query gov proposal 1
 
 			var proposal types2.Proposal
 			cdc.MustUnmarshalJSON(res, &proposal)
-			return clientCtx.PrintProto(proposal) // nolint:errcheck
+			return clientCtx.PrintProto(&proposal) // nolint:errcheck
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
@@ -148,7 +148,7 @@ $ %s query gov proposals --page=2 --limit=100
 				return fmt.Errorf("no matching proposals found")
 			}
 
-			return clientCtx.PrintProto(matchingProposals) // nolint:errcheck
+			return clientCtx.PrintObjectLegacy(matchingProposals) // nolint:errcheck
 		},
 	}
 
@@ -290,7 +290,7 @@ $ %[1]s query gov votes 1 --page=2 --limit=100
 
 			var votes types2.Votes
 			cdc.MustUnmarshalJSON(res, &votes)
-			return clientCtx.PrintProto(votes)
+			return clientCtx.PrintObjectLegacy(votes)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
@@ -345,7 +345,7 @@ $ %s query gov tally 1
 
 			var tally types2.TallyResult
 			cdc.MustUnmarshalJSON(res, &tally)
-			return clientCtx.PrintProto(tally)
+			return clientCtx.PrintObjectLegacy(tally)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
@@ -421,7 +421,7 @@ $ %s query gov param deposit
 				return fmt.Errorf("argument must be one of (voting|tallying|deposit), was %s", args[0])
 			}
 
-			return clientCtx.PrintProto(out)
+			return clientCtx.PrintObjectLegacy(out)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
@@ -458,7 +458,7 @@ $ %s query gov proposer 1
 				return err
 			}
 
-			return clientCtx.PrintProto(prop)
+			return clientCtx.PrintObjectLegacy(prop)
 		},
 	}
 	flags.AddTxFlagsToCmd(cmd)

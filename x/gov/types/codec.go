@@ -1,6 +1,10 @@
 package types
 
-import "github.com/cosmos/cosmos-sdk/codec"
+import (
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 var ModuleCdc = codec.NewLegacyAmino()
 
@@ -16,6 +20,13 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 // to be correctly Amino encoded and decoded.
 func RegisterProposalTypeCodec(o interface{}, name string) {
 	ModuleCdc.RegisterConcrete(o, name, nil)
+}
+
+func RegisterInterfaces(registry types.InterfaceRegistry) {
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgVote{},
+		&MsgSubmitProposal{},
+	)
 }
 
 // TODO determine a good place to seal this codec

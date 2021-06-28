@@ -1,12 +1,13 @@
 package gov
 
 import (
-	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"runtime/debug"
 	"strconv"
+
+	"bitbucket.org/decimalteam/go-node/x/gov/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewHandler creates an sdk.Handler for all the gov type messages
@@ -21,11 +22,11 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 		switch msg := msg.(type) {
 
-		case types2.MsgSubmitProposal:
-			return handleMsgSubmitProposal(ctx, keeper, msg)
+		case *types.MsgSubmitProposal:
+			return handleMsgSubmitProposal(ctx, keeper, *msg)
 
-		case types2.MsgVote:
-			return handleMsgVote(ctx, keeper, msg)
+		case *types.MsgVote:
+			return handleMsgVote(ctx, keeper, *msg)
 
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
@@ -33,39 +34,39 @@ func NewHandler(keeper Keeper) sdk.Handler {
 	}
 }
 
-func handleMsgSubmitProposal(ctx sdk.Context, keeper Keeper, msg types2.MsgSubmitProposal) (*sdk.Result, error) {
+func handleMsgSubmitProposal(ctx sdk.Context, keeper Keeper, msg types.MsgSubmitProposal) (*sdk.Result, error) {
 	//if !types.CheckProposalAddress(msg.Proposer) {
 	//	return nil, types.ErrNotAllowed
 	//}
 
 	if int64(msg.VotingStartBlock) <= ctx.BlockHeight() {
-		return nil, types2.ErrStartBlock
+		return nil, types.ErrStartBlock
 	}
 
 	proposal, err := keeper.SubmitProposal(ctx, msg.Content, msg.VotingStartBlock, msg.VotingEndBlock)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types2.ErrSubmitProposal, err.Error())
+		return nil, sdkerrors.Wrap(types.ErrSubmitProposal, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Proposer.String()),
-			sdk.NewAttribute(types2.AttributeKeyProposalTitle, msg.Content.Title),
-			sdk.NewAttribute(types2.AttributeKeyProposalDescription, msg.Content.Description),
-			sdk.NewAttribute(types2.AttributeKeyProposalVotingStartBlock, strconv.FormatUint(msg.VotingStartBlock, 10)),
-			sdk.NewAttribute(types2.AttributeKeyProposalVotingEndBlock, strconv.FormatUint(msg.VotingEndBlock, 10)),
+			sdk.NewAttribute(types.AttributeKeyProposalTitle, msg.Content.Title),
+			sdk.NewAttribute(types.AttributeKeyProposalDescription, msg.Content.Description),
+			sdk.NewAttribute(types.AttributeKeyProposalVotingStartBlock, strconv.FormatUint(msg.VotingStartBlock, 10)),
+			sdk.NewAttribute(types.AttributeKeyProposalVotingEndBlock, strconv.FormatUint(msg.VotingEndBlock, 10)),
 		),
 	)
 
 	return &sdk.Result{
-		Data:   types2.GetProposalIDBytes(proposal.ProposalID),
-		Events: ctx.EventManager().Events(),
+		Data:   types.GetProposalIDBytes(proposal.ProposalID),
+		Events: ctx.EventManager().ABCIEvents(),
 	}, nil
 }
 
-func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types2.MsgVote) (*sdk.Result, error) {
+func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types.MsgVote) (*sdk.Result, error) {
 	err := keeper.CheckValidator(ctx, msg.Voter)
 	if err != nil {
 		return nil, err
@@ -79,12 +80,12 @@ func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types2.MsgVote) (*sdk.Res
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter.String()),
-			sdk.NewAttribute(types2.AttributeKeyProposalID, strconv.FormatUint(msg.ProposalID, 10)),
-			sdk.NewAttribute(types2.AttributeKeyOption, msg.Option.String()),
+			sdk.NewAttribute(types.AttributeKeyProposalID, strconv.FormatUint(msg.ProposalID, 10)),
+			sdk.NewAttribute(types.AttributeKeyOption, msg.Option.String()),
 		),
 	)
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }

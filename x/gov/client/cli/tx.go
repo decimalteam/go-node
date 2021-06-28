@@ -4,7 +4,7 @@ import (
 	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"bufio"
 	"fmt"
-	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"strconv"
 	"strings"
 
@@ -12,8 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
 
 	govutils "bitbucket.org/decimalteam/go-node/x/gov/client/utils"
@@ -100,11 +98,6 @@ $ %s tx gov submit-proposal --title="Test Proposal" --description="My awesome pr
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc).WithInput(inBuf)
-			client2.GetTxEncoder(cdc)
-			txBuilder := clientCtx.TxConfig.NewTxBuilder()
-
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
 			proposal, err := parseSubmitProposalFlags()
 			if err != nil {
@@ -114,12 +107,12 @@ $ %s tx gov submit-proposal --title="Test Proposal" --description="My awesome pr
 			msg := types2.NewMsgSubmitProposal(types2.Content{
 				Title:       proposal.Title,
 				Description: proposal.Description,
-			}, cliCtx.GetFromAddress(), proposal.VotingStartBlock, proposal.VotingEndBlock)
+			}, clientCtx.GetFromAddress(), proposal.VotingStartBlock, proposal.VotingEndBlock)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 
@@ -146,16 +139,15 @@ find the proposal-id by running "%s query gov proposals".
 Example:
 $ %s tx gov vote 1 yes --from mykey
 `,
-				version.ClientName, version.ClientName,
+				version.AppName, version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc).WithInput(inBuf)
 
 			// Get voting address
-			from := cliCtx.GetFromAddress()
+			from := clientCtx.GetFromAddress()
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -176,7 +168,7 @@ $ %s tx gov vote 1 yes --from mykey
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 }

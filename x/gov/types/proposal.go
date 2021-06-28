@@ -47,7 +47,7 @@ func NewProposal(content Content, id, votingStartBlock, VotingEndBlock uint64) P
 	return Proposal{
 		Content:          content,
 		ProposalID:       id,
-		Status:           int32(StatusWaiting),
+		Status:           StatusWaiting,
 		FinalTallyResult: EmptyTallyResult(),
 		VotingStartBlock: votingStartBlock,
 		VotingEndBlock:   VotingEndBlock,

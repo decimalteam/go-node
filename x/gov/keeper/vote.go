@@ -43,14 +43,14 @@ func (keeper Keeper) GetVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.V
 		return vote, false
 	}
 
-	keeper.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &vote)
+	keeper.cdc.MustUnmarshalLengthPrefixed(bz, &vote)
 	return vote, true
 }
 
 // SetVote sets a Vote to the gov store
 func (keeper Keeper) SetVote(ctx sdk.Context, vote types2.Vote) {
 	store := ctx.KVStore(keeper.storeKey)
-	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(vote)
+	bz := keeper.cdc.MustMarshalLengthPrefixed(vote)
 	store.Set(types2.VoteKey(vote.ProposalID, vote.Voter), bz)
 }
 
@@ -80,7 +80,7 @@ func (keeper Keeper) IterateAllVotes(ctx sdk.Context, cb func(vote types2.Vote) 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types2.Vote
-		keeper.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
+		keeper.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break
@@ -96,7 +96,7 @@ func (keeper Keeper) IterateVotes(ctx sdk.Context, proposalID uint64, cb func(vo
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types2.Vote
-		keeper.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
+		keeper.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break
