@@ -160,7 +160,7 @@ func GetRefund(cdc *codec.Codec) *cobra.Command {
 
 func GetSwapInitialize(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "init [recipient] [amount] [token_symbol] [token_name] [tx_number] [from_chain] [dest_chain] --from",
+		Use:   "init [recipient] [amount] [token_symbol] [tx_number] [from_chain] [dest_chain] --from",
 		Short: "Swap initialize",
 		Args:  cobra.ExactArgs(7),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -175,18 +175,17 @@ func GetSwapInitialize(cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("invalid amount")
 			}
 			symbol := args[2]
-			name := args[3]
-			txNumber := args[4]
-			fromChain, err := strconv.Atoi(args[5])
+			txNumber := args[3]
+			fromChain, err := strconv.Atoi(args[4])
 			if err != nil {
 				return err
 			}
-			destChain, err := strconv.Atoi(args[6])
+			destChain, err := strconv.Atoi(args[5])
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgSwapInitialize(from, recipient, amount, name, symbol, txNumber, fromChain, destChain)
+			msg := types.NewMsgSwapInitialize(from, recipient, amount, symbol, txNumber, fromChain, destChain)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -200,7 +199,7 @@ func GetSwapInitialize(cdc *codec.Codec) *cobra.Command {
 
 func GetRedeemV2(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "redeemV2 [from] [recipient] [amount] [token_symbol] [token_name] [tx_number] [from_chain] [dest_chain] [v] [r] [s] --from",
+		Use:   "redeemV2 [from] [recipient] [amount] [token_symbol] [tx_number] [from_chain] [dest_chain] [v] [r] [s] --from",
 		Short: "Swap initialize",
 		Args:  cobra.ExactArgs(11),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -219,24 +218,23 @@ func GetRedeemV2(cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("invalid amount")
 			}
 			symbol := args[3]
-			name := args[4]
-			txNumber := args[5]
-			fromChain, err := strconv.Atoi(args[6])
+			txNumber := args[4]
+			fromChain, err := strconv.Atoi(args[5])
 			if err != nil {
 				return err
 			}
-			destChain, err := strconv.Atoi(args[7])
-			if err != nil {
-				return err
-			}
-
-			v, err := strconv.Atoi(args[8])
+			destChain, err := strconv.Atoi(args[6])
 			if err != nil {
 				return err
 			}
 
-			r, err := hex.DecodeString(args[9])
-			s, err := hex.DecodeString(args[10])
+			v, err := strconv.Atoi(args[7])
+			if err != nil {
+				return err
+			}
+
+			r, err := hex.DecodeString(args[8])
+			s, err := hex.DecodeString(args[9])
 
 			var _r [32]byte
 			copy(_r[:], r)
@@ -245,7 +243,7 @@ func GetRedeemV2(cdc *codec.Codec) *cobra.Command {
 			copy(_s[:], s)
 
 			msg := types.NewMsgRedeemV2(
-				sender, recipient, from, amount, name, symbol, txNumber, fromChain, destChain, uint8(v), _r, _s)
+				sender, recipient, from, amount, symbol, txNumber, fromChain, destChain, uint8(v), _r, _s)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

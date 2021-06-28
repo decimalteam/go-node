@@ -8,7 +8,6 @@ const (
 	AttributeKeyRecipient         = "recipient"
 	AttributeKeyAmount            = "amount"
 	AttributeKeySecret            = "secret"
-	AttributeKeyTokenName         = "token_name"
 	AttributeKeyTokenSymbol       = "token_symbol"
 	AttributeKeyTransactionNumber = "transaction_number"
 	AttributeKeyFrom              = "from"
