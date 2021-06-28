@@ -21,8 +21,8 @@ func DecodeStore(cdc *codec.LegacyAmino, kvA, kvB tmkv.Pair) string {
 		return fmt.Sprintf("%v\n%v", accA, accB)
 	case bytes.Equal(kvA.Key, types.GlobalAccountNumberKey):
 		var globalAccNumberA, globalAccNumberB uint64
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &globalAccNumberA)
-		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &globalAccNumberB)
+		cdc.MustUnmarshalLengthPrefixed(kvA.Value, &globalAccNumberA)
+		cdc.MustUnmarshalLengthPrefixed(kvB.Value, &globalAccNumberB)
 		return fmt.Sprintf("GlobalAccNumberA: %d\nGlobalAccNumberB: %d", globalAccNumberA, globalAccNumberB)
 	default:
 		panic(fmt.Sprintf("invalid account key %X", kvA.Key))

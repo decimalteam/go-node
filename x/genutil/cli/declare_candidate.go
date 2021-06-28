@@ -3,11 +3,12 @@ package cli
 import (
 	"bytes"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	kbkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
@@ -53,7 +54,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm m
 			}
 			// Read --pubkey, if empty take it from priv_validator.json
 			if valPubKeyString := viper.GetString(flagPubKey); valPubKeyString != "" {
-				valPubKey, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valPubKeyString)
+				valPubKey, err = sdk.GetFromBech32(sdk.Bech32PrefixConsPub, valPubKeyString)
 				if err != nil {
 					return err
 				}
@@ -83,8 +84,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm m
 				return err
 			}
 
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			viper.Set(flags.FlagGenerateOnly, true)
 
@@ -106,9 +106,9 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm m
 
 			// write the unsigned transaction to the buffer
 			w := bytes.NewBuffer([]byte{})
-			cliCtx = cliCtx.WithOutput(w)
+			clientCtx = clientCtx.WithOutput(w)
 
-			if err = utils.PrintUnsignedStdTx(txBldr, cliCtx, []sdk.Msg{msg}); err != nil {
+			if err = client2.PrintUnsignedStdTx(txBldr, cliCtx, []sdk.Msg{msg}); err != nil {
 				return err
 			}
 

@@ -4,6 +4,8 @@ import (
 	gcutils "bitbucket.org/decimalteam/go-node/x/gov/client/utils"
 	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -48,7 +50,7 @@ func postProposalHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, &msg)
 	}
 }
 
@@ -90,6 +92,6 @@ func voteHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, &msg)
 	}
 }

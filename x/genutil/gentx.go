@@ -96,9 +96,9 @@ func DeliverGenTxs(ctx sdk.Context, cdc *codec.LegacyAmino, genTxs []json.RawMes
 	validatorKeeper validator.Keeper, deliverTx deliverTxfn) ([]abci.ValidatorUpdate, error) {
 
 	for _, genTx := range genTxs {
-		var tx authtypes.StdTx
+		var tx legacytx.StdTx
 		cdc.MustUnmarshalJSON(genTx, &tx)
-		bz := cdc.MustMarshalBinaryLengthPrefixed(tx)
+		bz := cdc.MustMarshalLengthPrefixed(tx)
 		res := deliverTx(abci.RequestDeliverTx{Tx: bz})
 		if !res.IsOK() {
 			panic(res.Log)
@@ -129,7 +129,11 @@ func InitializeNodeValidatorFiles(config *cfg.Config,
 		return nodeID, valPubKey, nil
 	}
 
-	valPubKey = privval.LoadOrGenFilePV(pvKeyFile, pvStateFile).GetPubKey()
+	valPubKey, err = privval.LoadOrGenFilePV(pvKeyFile, pvStateFile).GetPubKey()
+
+	if err != nil {
+		return nodeID, valPubKey, err
+	}
 
 	return nodeID, valPubKey, nil
 }

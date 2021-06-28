@@ -10,17 +10,17 @@ import (
 /* --------------------------------------------------------------------------- */
 // MsgMintNFT
 /* --------------------------------------------------------------------------- */
-
-type MsgMintNFT struct {
-	Sender    sdk.AccAddress `json:"sender"`
-	Recipient sdk.AccAddress `json:"recipient"`
-	ID        string         `json:"id"`
-	Denom     string         `json:"denom"`
-	Quantity  sdk.Int        `json:"quantity"`
-	TokenURI  string         `json:"token_uri"`
-	Reserve   sdk.Int        `json:"reserve"`
-	AllowMint bool           `json:"allow_mint"`
-}
+//
+//type MsgMintNFT struct {
+//	Sender    sdk.AccAddress `json:"sender"`
+//	Recipient sdk.AccAddress `json:"recipient"`
+//	ID        string         `json:"id"`
+//	Denom     string         `json:"denom"`
+//	Quantity  sdk.Int        `json:"quantity"`
+//	TokenURI  string         `json:"token_uri"`
+//	Reserve   sdk.Int        `json:"reserve"`
+//	AllowMint bool           `json:"allow_mint"`
+//}
 
 // NewMsgMintNFT is a constructor function for MsgMintNFT
 func NewMsgMintNFT(sender, recipient sdk.AccAddress, id, denom, tokenURI string, quantity, reserve sdk.Int, allowMint bool) MsgMintNFT {
@@ -90,13 +90,13 @@ func (msg MsgMintNFT) GetSigners() []sdk.AccAddress {
 /* --------------------------------------------------------------------------- */
 // MsgBurnNFT
 /* --------------------------------------------------------------------------- */
-
-type MsgBurnNFT struct {
-	Sender   sdk.AccAddress `json:"sender"`
-	ID       string         `json:"id"`
-	Denom    string         `json:"denom"`
-	Quantity sdk.Int        `json:"quantity"`
-}
+//
+//type MsgBurnNFT struct {
+//	Sender   sdk.AccAddress `json:"sender"`
+//	ID       string         `json:"id"`
+//	Denom    string         `json:"denom"`
+//	Quantity sdk.Int        `json:"quantity"`
+//}
 
 // NewMsgBurnNFT is a constructor function for MsgBurnNFT
 func NewMsgBurnNFT(sender sdk.AccAddress, id string, denom string, quantity sdk.Int) MsgBurnNFT {
@@ -147,13 +147,13 @@ func (msg MsgBurnNFT) GetSigners() []sdk.AccAddress {
 // MsgTransferNFT
 /* --------------------------------------------------------------------------- */
 
-type MsgTransferNFT struct {
-	Sender    sdk.AccAddress `json:"sender"`
-	Recipient sdk.AccAddress `json:"recipient"`
-	ID        string         `json:"id"`
-	Denom     string         `json:"denom"`
-	Quantity  sdk.Int        `json:"quantity"`
-}
+//type MsgTransferNFT struct {
+//	Sender    sdk.AccAddress `json:"sender"`
+//	Recipient sdk.AccAddress `json:"recipient"`
+//	ID        string         `json:"id"`
+//	Denom     string         `json:"denom"`
+//	Quantity  sdk.Int        `json:"quantity"`
+//}
 
 // NewMsgTransferNFT is a constructor function for MsgSetName
 func NewMsgTransferNFT(sender, recipient sdk.AccAddress, denom, id string, quantity sdk.Int) MsgTransferNFT {
@@ -208,12 +208,12 @@ func (msg MsgTransferNFT) GetSigners() []sdk.AccAddress {
 // MsgEditNFTMetadata
 /* --------------------------------------------------------------------------- */
 
-type MsgEditNFTMetadata struct {
-	Sender   sdk.AccAddress `json:"sender"`
-	ID       string         `json:"id"`
-	Denom    string         `json:"denom"`
-	TokenURI string         `json:"token_uri"`
-}
+//type MsgEditNFTMetadata struct {
+//	Sender   sdk.AccAddress `json:"sender"`
+//	ID       string         `json:"id"`
+//	Denom    string         `json:"denom"`
+//	TokenURI string         `json:"token_uri"`
+//}
 
 // NewMsgEditNFTMetadata is a constructor function for MsgSetName
 func NewMsgEditNFTMetadata(sender sdk.AccAddress, id,
@@ -262,10 +262,10 @@ func (msg MsgEditNFTMetadata) GetSigners() []sdk.AccAddress {
 // MsgDelegateNFT
 /* --------------------------------------------------------------------------- */
 
-type MsgDelegateNFT struct {
-	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
-	ValidatorAddress sdk.ValAddress `json:"validator_address"`
-	ID               string         `json:"id"`
-	Denom            string         `json:"denom"`
-	Quantity         sdk.Int        `json:"quantity"`
-}
+//type MsgDelegateNFT struct {
+//	DelegatorAddress sdk.AccAddress `json:"delegator_address"`
+//	ValidatorAddress sdk.ValAddress `json:"validator_address"`
+//	ID               string         `json:"id"`
+//	Denom            string         `json:"denom"`
+//	Quantity         sdk.Int        `json:"quantity"`
+//}

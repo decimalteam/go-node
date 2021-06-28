@@ -3,6 +3,8 @@ package keeper
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
 	"fmt"
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -18,17 +20,19 @@ type Keeper struct {
 
 	cdc *codec.LegacyAmino // The amino codec for binary encoding/decoding.
 
-	supplyKeeper supply.Keeper
+	accKeeper authKeeper.AccountKeeper
+	bankKeeper bankkeeper.BaseKeeper
 
 	baseDenom string
 }
 
 // NewKeeper creates new instances of the nft Keeper
-func NewKeeper(cdc *codec.LegacyAmino, storeKey sdk.StoreKey, supplyKeeper supply.Keeper, baseDenom string) Keeper {
+func NewKeeper(cdc *codec.LegacyAmino, storeKey sdk.StoreKey, bankKeeper bankkeeper.BaseKeeper, accKeeper authKeeper.AccountKeeper, baseDenom string) Keeper {
 	return Keeper{
 		storeKey:     storeKey,
 		cdc:          cdc,
-		supplyKeeper: supplyKeeper,
+		accKeeper: accKeeper,
+		bankKeeper: bankKeeper,
 		baseDenom:    baseDenom,
 	}
 }

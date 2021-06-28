@@ -14,10 +14,10 @@ import (
 
 // IDCollection defines a set of nft ids that belong to a specific
 // collection
-type IDCollection struct {
-	Denom string            `json:"denom" yaml:"denom"`
-	IDs   SortedStringArray `json:"ids" yaml:"ids"`
-}
+//type IDCollection struct {
+//	Denom string            `json:"denom" yaml:"denom"`
+//	IDs   SortedStringArray `json:"ids" yaml:"ids"`
+//}
 
 // SortedStringArray is an array of strings whose sole purpose is to help with find
 type SortedStringArray []string
@@ -101,10 +101,10 @@ func (idCollections IDCollections) find(denom string) int {
 }
 
 // Owner of non fungible tokens
-type Owner struct {
-	Address       sdk.AccAddress `json:"address" yaml:"address"`
-	IDCollections IDCollections  `json:"idCollections" yaml:"idCollections"`
-}
+//type Owner struct {
+//	Address       sdk.AccAddress `json:"address" yaml:"address"`
+//	IDCollections IDCollections  `json:"idCollections" yaml:"idCollections"`
+//}
 
 // NewOwner creates a new Owner
 func NewOwner(owner sdk.AccAddress, idCollections ...IDCollection) Owner {

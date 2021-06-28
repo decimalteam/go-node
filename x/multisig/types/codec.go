@@ -1,4 +1,4 @@
-package types
+p.ackage types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"

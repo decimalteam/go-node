@@ -12,7 +12,7 @@ func (k Keeper) IterateCollections(ctx sdk.Context, handler func(collection type
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var collection types2.Collection
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &collection)
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &collection)
 		if handler(collection) {
 			break
 		}
@@ -23,7 +23,7 @@ func (k Keeper) IterateCollections(ctx sdk.Context, handler func(collection type
 func (k Keeper) SetCollection(ctx sdk.Context, denom string, collection types2.Collection) {
 	store := ctx.KVStore(k.storeKey)
 	collectionKey := types2.GetCollectionKey(denom)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(collection)
+	bz := k.cdc.MustMarshalLengthPrefixed(collection)
 	store.Set(collectionKey, bz)
 }
 
@@ -35,7 +35,7 @@ func (k Keeper) GetCollection(ctx sdk.Context, denom string) (collection types2.
 	if bz == nil {
 		return
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &collection)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &collection)
 	return collection, true
 }
 

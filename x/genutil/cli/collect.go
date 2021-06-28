@@ -3,6 +3,9 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -162,7 +165,7 @@ func GenAppStateFromConfig(cdc *codec.LegacyAmino, config *cfg.Config,
 // the list of appGenTxs, and persistent peers required to generate genesis.json.
 func CollectStdTxs(cdc *codec.LegacyAmino, moniker, genTxsDir string,
 	genDoc tmtypes.GenesisDoc, genAccIterator types.GenesisAccountsIterator,
-) (appGenTxs []authtypes.StdTx, err error) {
+) (appGenTxs []legacytx.StdTx, err error) {
 
 	var fos []os.FileInfo
 	fos, err = ioutil.ReadDir(genTxsDir)
@@ -177,9 +180,9 @@ func CollectStdTxs(cdc *codec.LegacyAmino, moniker, genTxsDir string,
 		return appGenTxs, err
 	}
 
-	addrMap := make(map[string]authexported.Account)
+	addrMap := make(map[string]client.Account)
 	genAccIterator.IterateGenesisAccounts(cdc, appState,
-		func(acc authexported.Account) (stop bool) {
+		func(acc authtypes.AccountI) (stop bool) {
 			addrMap[acc.GetAddress().String()] = acc
 			return false
 		},
@@ -196,7 +199,7 @@ func CollectStdTxs(cdc *codec.LegacyAmino, moniker, genTxsDir string,
 		if jsonRawTx, err = ioutil.ReadFile(filename); err != nil {
 			return appGenTxs, err
 		}
-		var genStdTx authtypes.StdTx
+		var genStdTx legacytx.StdTx
 		if err = cdc.UnmarshalJSON(jsonRawTx, &genStdTx); err != nil {
 			return appGenTxs, err
 		}
@@ -209,7 +212,7 @@ func CollectStdTxs(cdc *codec.LegacyAmino, moniker, genTxsDir string,
 				"each genesis transaction must provide a single genesis message")
 		}
 
-		msg := msgs[0].(validator.MsgDeclareCandidate)
+		msg := msgs[0].(*validator.MsgDeclareCandidate)
 		// validate delegator and validator addresses and funds against the accounts in the state
 		delAddr := sdk.AccAddress(msg.ValidatorAddr).String()
 		valAddr := sdk.AccAddress(msg.ValidatorAddr).String()
@@ -226,6 +229,9 @@ func CollectStdTxs(cdc *codec.LegacyAmino, moniker, genTxsDir string,
 				"account %v not in genesis.json: %+v", valAddr, addrMap)
 		}
 
+		if !k.baseKeeper.GetAllBalances(ctx, account.GetAddress()).IsAllGTE(coins) {
+			return false, nil
+		}
 		if delAcc.GetCoins().AmountOf(msg.Stake.Denom).LT(msg.Stake.Amount) {
 			return appGenTxs, fmt.Errorf(
 				"insufficient fund for delegation %v: %v < %v",

@@ -2,12 +2,13 @@ package rest
 
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"net/http"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	"github.com/gorilla/mux"
 )
@@ -80,7 +81,7 @@ func transferNFTHandler(cdc *codec.LegacyAmino, cliCtx client.Context) http.Hand
 		// create the message
 		msg := types2.NewMsgTransferNFT(fromAddr, recipient, req.Denom, req.ID, quantity)
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, &msg)
 	}
 }
 
@@ -112,7 +113,7 @@ func editNFTMetadataHandler(cdc *codec.LegacyAmino, cliCtx client.Context) http.
 		// create the message
 		msg := types2.NewMsgEditNFTMetadata(fromAddr, req.ID, req.Denom, req.TokenURI)
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, &msg)
 	}
 }
 
@@ -152,7 +153,7 @@ func mintNFTHandler(cdc *codec.LegacyAmino, cliCtx client.Context) http.HandlerF
 		// create the message
 		msg := types2.NewMsgMintNFT(fromAddr, req.Recipient, req.ID, req.Denom, req.TokenURI, quantity, sdk.NewInt(1), false)
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, &msg)
 	}
 }
 
@@ -189,6 +190,6 @@ func burnNFTHandler(cdc *codec.LegacyAmino, cliCtx client.Context) http.HandlerF
 
 		// create the message
 		msg := types2.NewMsgBurnNFT(fromAddr, req.ID, req.Denom, quantity)
-		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, &msg)
 	}
 }

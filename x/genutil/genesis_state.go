@@ -104,7 +104,7 @@ func ValidateGenesis(cdc *codec.LegacyAmino, genesisState GenesisState) error {
 				"must provide genesis StdTx with exactly 1 CreateValidator message")
 		}
 
-		if _, ok := msgs[0].(validator.MsgDeclareCandidate); !ok {
+		if _, ok := msgs[0].(*validator.MsgDeclareCandidate); !ok {
 			return fmt.Errorf(
 				"genesis transaction %v does not contain a MsgCreateValidator", i)
 		}

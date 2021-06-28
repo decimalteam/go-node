@@ -19,14 +19,14 @@ func GenericHandler(k keeper2.Keeper) sdk.Handler {
 			}
 		}()
 		switch msg := msg.(type) {
-		case types2.MsgTransferNFT:
-			return HandleMsgTransferNFT(ctx, msg, k)
-		case types2.MsgEditNFTMetadata:
-			return HandleMsgEditNFTMetadata(ctx, msg, k)
-		case types2.MsgMintNFT:
-			return HandleMsgMintNFT(ctx, msg, k)
-		case types2.MsgBurnNFT:
-			return HandleMsgBurnNFT(ctx, msg, k)
+		case *types2.MsgTransferNFT:
+			return HandleMsgTransferNFT(ctx, *msg, k)
+		case *types2.MsgEditNFTMetadata:
+			return HandleMsgEditNFTMetadata(ctx, *msg, k)
+		case *types2.MsgMintNFT:
+			return HandleMsgMintNFT(ctx, *msg, k)
+		case *types2.MsgBurnNFT:
+			return HandleMsgBurnNFT(ctx, *msg, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unrecognized nft message type: %T", msg))
 		}
@@ -67,7 +67,7 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types2.MsgTransferNFT, k keeper2.
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		),
 	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 // HandleMsgEditNFTMetadata handler for MsgEditNFTMetadata
@@ -94,7 +94,7 @@ func HandleMsgEditNFTMetadata(ctx sdk.Context, msg types2.MsgEditNFTMetadata, k 
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		),
 	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 // HandleMsgMintNFT handles MsgMintNFT
@@ -129,7 +129,7 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types2.MsgMintNFT, k keeper2.Keeper,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		),
 	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 // HandleMsgBurnNFT handles MsgBurnNFT
@@ -162,5 +162,5 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types2.MsgBurnNFT, k keeper2.Keeper,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		),
 	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }

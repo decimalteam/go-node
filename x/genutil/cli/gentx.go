@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"io"
 	"io/ioutil"
 	"log"
@@ -42,7 +43,7 @@ const (
 type StakingMsgBuildingHelpers interface {
 	CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string)
 	PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey)
-	BuildCreateValidatorMsg(cliCtx client.Context, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error)
+	BuildCreateValidatorMsg(cliCtx client.Context, txBldr client.TxBuilder) (client.TxBuilder, sdk.Msg, error)
 }
 
 // GenTxCmd builds the application's gentx command.
@@ -77,7 +78,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManag
 			}
 			// Read --pubkey, if empty take it from priv_validator.json
 			if valPubKeyString := viper.GetString(flagPubKey); valPubKeyString != "" {
-				valPubKey, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valPubKeyString)
+				valPubKey, err = sdk.GetFromBech32(sdk.Bech32PrefixConsPub, valPubKeyString)
 				if err != nil {
 					return err
 				}
@@ -93,7 +94,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManag
 				return err
 			}
 
-			if err = mbm.ValidateGenesis(genesisState); err != nil {
+			if err = mbm.ValidateGenesis(cdc, genesisState); err != nil {
 				return err
 			}
 
@@ -114,7 +115,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManag
 
 			// Fetch the amount of coins staked
 			amount := viper.GetString(flagAmount)
-			coin, err := sdk.ParseCoin(amount)
+			coin, err := sdk.ParseCoinNormalized(amount)
 			if err != nil {
 				return err
 			}
@@ -204,8 +205,8 @@ func makeOutputFilepath(rootDir, nodeID string) (string, error) {
 	return filepath.Join(writePath, fmt.Sprintf("gentx-%v.json", nodeID)), nil
 }
 
-func readUnsignedGenTxFile(cdc *codec.LegacyAmino, r io.Reader) (auth.StdTx, error) {
-	var stdTx auth.StdTx
+func readUnsignedGenTxFile(cdc *codec.LegacyAmino, r io.Reader) (legacytx.StdTx, error) {
+	var stdTx legacytx.StdTx
 	bytes, err := ioutil.ReadAll(r)
 	if err != nil {
 		return stdTx, err
@@ -214,7 +215,7 @@ func readUnsignedGenTxFile(cdc *codec.LegacyAmino, r io.Reader) (auth.StdTx, err
 	return stdTx, err
 }
 
-func writeSignedGenTx(cdc *codec.LegacyAmino, outputDocument string, tx auth.StdTx) error {
+func writeSignedGenTx(cdc *codec.LegacyAmino, outputDocument string, tx legacytx.StdTx) error {
 	outputFile, err := os.OpenFile(outputDocument, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
