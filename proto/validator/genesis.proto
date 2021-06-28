@@ -9,6 +9,10 @@ import "validator/delegation.proto";
 import "validator/delegation_nft.proto";
 
 message GenesisState {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
   Params Params = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "params",
@@ -38,6 +42,7 @@ message GenesisState {
     (gogoproto.moretags) = "yaml:\"delegations\""
   ];
   repeated UnbondingDelegation UnbondingDelegations = 6 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "unbonding_delegations",
     (gogoproto.moretags) = "yaml:\"unbonding_delegations\""
   ];

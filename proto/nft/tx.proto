@@ -11,6 +11,41 @@ service Msg {
   rpc DelegateNFT(MsgDelegateNFT) returns (MsgDelegateNFTResponse);
 }
 
+message MsgMintNFT {
+  bytes Sender = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "sender"
+  ];
+  bytes Recipient = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "recipient"
+  ];
+  string ID = 3 [
+    (gogoproto.jsontag) = "id"
+  ];
+  string Denom = 4 [
+    (gogoproto.jsontag) = "denom"
+  ];
+  bytes Quantity = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "quantity"
+  ];
+  string TokenURI = 6 [
+    (gogoproto.jsontag) = "token_uri"
+  ];
+  bytes Reserve = 7 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "reserve"
+  ];
+  bool AllowMint = 8 [
+    (gogoproto.jsontag) = "allow_mint"
+  ];
+}
+
 message MsgTransferNFT {
   bytes Sender = 1 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
@@ -81,3 +116,22 @@ message MsgDelegateNFT {
 }
 
 message MsgDelegateNFTResponse {}
+
+message MsgBurnNFT {
+  bytes Sender = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "sender"
+  ];
+  string ID = 2 [
+    (gogoproto.jsontag) = "id"
+  ];
+  string Denom = 3 [
+    (gogoproto.jsontag) = "denom"
+  ];
+  bytes Quantity = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "quantity"
+  ];
+}

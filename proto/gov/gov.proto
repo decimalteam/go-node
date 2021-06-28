@@ -8,6 +8,7 @@ import "gogoproto/gogo.proto";
 message Vote {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
 
   uint64 ProposalID = 1 [
     (gogoproto.jsontag) = "proposal_id",
@@ -21,6 +22,8 @@ message Vote {
   ];
   // VoteOption
   bytes Option = 3 [
+    (gogoproto.customtype) = "VoteOption",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "option",
     (gogoproto.moretags) = "yaml:\"option\""
   ];
@@ -57,6 +60,8 @@ message ValidatorGovInfo {
     (gogoproto.moretags) = "yaml:\"bonded_tokens\""
   ];
   bytes Vote = 3 [
+    (gogoproto.customtype) = "VoteOption",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "vote",
     (gogoproto.moretags) = "yaml:\"vote\""
   ];
@@ -120,7 +125,12 @@ message Proposal {
     (gogoproto.jsontag) = "proposal_id",
     (gogoproto.moretags) = "yaml:\"proposal_id\""
   ];
-  int32 Status = 3;
+  bytes Status = 3 [
+    (gogoproto.customtype) = "ProposalStatus",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "proposal_status",
+    (gogoproto.moretags) = "yaml:\"proposal_status\""
+  ];
   TallyResult FinalTallyResult = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "final_tally_result",

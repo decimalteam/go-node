@@ -52,7 +52,7 @@ message MsgDeclareCandidate {
   ];
   bytes PubKey = 6 [
     (gogoproto.nullable) = false,
-    (gogoproto.customtype) = "github.com/tendermint/tendermint/crypto.PubKey",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types/crypto.PubKey",
     (gogoproto.jsontag) = "pub_key",
     (gogoproto.moretags) = "yaml:\"pub_key\""
   ];
