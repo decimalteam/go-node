@@ -18,7 +18,7 @@ func newFloat(x float64) *big.Float {
 
 // Return = supply * ((1 + deposit / reserve) ^ (crr / 100) - 1)
 // Рассчитывает сколько монет мы получим заплатив deposit DEL (Покупка формула 2)
-func CalculatePurchaseReturn(supply sdk.Int, reserve sdk.Int, crr uint, deposit sdk.Int) sdk.Int {
+func CalculatePurchaseReturn(supply sdk.Int, reserve sdk.Int, crr uint64, deposit sdk.Int) sdk.Int {
 	if deposit.Equal(sdk.NewInt(0)) {
 		return sdk.NewInt(0)
 	}
@@ -47,7 +47,7 @@ func CalculatePurchaseReturn(supply sdk.Int, reserve sdk.Int, crr uint, deposit 
 // deposit = reserve * (((wantReceive + supply) / supply)^(100 / crr) - 1)
 // Рассчитывает сколько DEL надо заплатить , чтобы получить wantReceive монет (Покупка)
 
-func CalculatePurchaseAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantReceive sdk.Int) sdk.Int {
+func CalculatePurchaseAmount(supply sdk.Int, reserve sdk.Int, crr uint64, wantReceive sdk.Int) sdk.Int {
 	if wantReceive.Equal(sdk.NewInt(0)) {
 		return sdk.NewInt(0)
 	}
@@ -76,7 +76,7 @@ func CalculatePurchaseAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantRece
 
 // Return = reserve * (1 - (1 - sellAmount / supply) ^ (100 / crr))
 // Рассчитывает сколько DEL вы получите, если продадите sellAmount монет. (Продажа)
-func CalculateSaleReturn(supply sdk.Int, reserve sdk.Int, crr uint, sellAmount sdk.Int) sdk.Int {
+func CalculateSaleReturn(supply sdk.Int, reserve sdk.Int, crr uint64, sellAmount sdk.Int) sdk.Int {
 	// special case for 0 sell amount
 	if sellAmount.Equal(sdk.NewInt(0)) {
 		return sdk.NewInt(0)
@@ -115,7 +115,7 @@ func CalculateSaleReturn(supply sdk.Int, reserve sdk.Int, crr uint, sellAmount s
 // -(-1 + (-(wantReceive - reserve)/reserve)^(crr / 100)) * supply
 // Рассчитывает сколько монет надо продать, чтобы получить wantReceive DEL. (Продажа 2)
 
-func CalculateSaleAmount(supply sdk.Int, reserve sdk.Int, crr uint, wantReceive sdk.Int) sdk.Int {
+func CalculateSaleAmount(supply sdk.Int, reserve sdk.Int, crr uint64, wantReceive sdk.Int) sdk.Int {
 	if wantReceive.Equal(sdk.NewInt(0)) {
 		return sdk.NewInt(0)
 	}

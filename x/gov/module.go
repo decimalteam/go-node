@@ -5,11 +5,11 @@ package gov
 import (
 	"bitbucket.org/decimalteam/go-node/x/gov/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/gov/client/rest"
-	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
@@ -88,11 +88,11 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper        Keeper
-	accountKeeper types2.AccountKeeper
+	accountKeeper authKeeper.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, accountKeeper types2.AccountKeeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper authKeeper.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,

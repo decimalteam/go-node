@@ -3,11 +3,11 @@ package simulation
 import (
 	"bytes"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 
 	tmkv "github.com/tendermint/tendermint/libs/kv"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
@@ -15,7 +15,7 @@ import (
 func DecodeStore(cdc *codec.LegacyAmino, kvA, kvB tmkv.Pair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], types.AddressStoreKeyPrefix):
-		var accA, accB exported.Account
+		var accA, accB client.Account
 		cdc.MustUnmarshalBinaryBare(kvA.Value, &accA)
 		cdc.MustUnmarshalBinaryBare(kvB.Value, &accB)
 		return fmt.Sprintf("%v\n%v", accA, accB)

@@ -24,7 +24,7 @@ func (app *newApp) ExportAppStateAndValidators(
 		app.prepForZeroHeightGenesis(ctx, jailWhiteList)
 	}
 
-	genState := app.mm.ExportGenesis(ctx, app.cdc)
+	genState := app.mm.ExportGenesis(ctx, app.appCodec)
 	appState, err = codec.MarshalJSONIndent(app.cdc, genState)
 	if err != nil {
 		return nil, nil, err

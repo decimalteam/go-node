@@ -5,7 +5,6 @@ import (
 	"fmt"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -20,7 +19,7 @@ type Keeper struct {
 
 	cdc *codec.LegacyAmino // The amino codec for binary encoding/decoding.
 
-	accKeeper authKeeper.AccountKeeper
+	accKeeper  authKeeper.AccountKeeper
 	bankKeeper bankkeeper.BaseKeeper
 
 	baseDenom string
@@ -29,11 +28,11 @@ type Keeper struct {
 // NewKeeper creates new instances of the nft Keeper
 func NewKeeper(cdc *codec.LegacyAmino, storeKey sdk.StoreKey, bankKeeper bankkeeper.BaseKeeper, accKeeper authKeeper.AccountKeeper, baseDenom string) Keeper {
 	return Keeper{
-		storeKey:     storeKey,
-		cdc:          cdc,
-		accKeeper: accKeeper,
+		storeKey:   storeKey,
+		cdc:        cdc,
+		accKeeper:  accKeeper,
 		bankKeeper: bankKeeper,
-		baseDenom:    baseDenom,
+		baseDenom:  baseDenom,
 	}
 }
 

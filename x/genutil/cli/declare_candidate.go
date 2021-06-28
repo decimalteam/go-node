@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/spf13/cobra"
@@ -11,12 +12,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
-	kbkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
+	kbkeys "github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	"bitbucket.org/decimalteam/go-node/x/genutil"
@@ -79,7 +78,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm m
 
 			// Fetch the amount of coins staked
 			amount := viper.GetString(flagAmount)
-			_, err = sdk.ParseCoin(amount)
+			_, err = sdk.ParseCoinNormalized(amount)
 			if err != nil {
 				return err
 			}
@@ -89,7 +88,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm m
 			viper.Set(flags.FlagGenerateOnly, true)
 
 			// create a 'create-validator' message
-			txBldr, msg, err := smbh.BuildCreateValidatorMsg(cliCtx, txBldr)
+			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, txBldr)
 			if err != nil {
 				return err
 			}
@@ -101,14 +100,15 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm m
 
 			if info.GetType() == kbkeys.TypeOffline || info.GetType() == kbkeys.TypeMulti {
 				fmt.Println("Offline key passed in. Use `tx sign` command to sign:")
-				return utils.PrintUnsignedStdTx(txBldr, cliCtx, []sdk.Msg{msg})
+				return utils.PrintUnsignedStdTx(txBldr, clientCtx, []sdk.Msg{msg})
 			}
 
 			// write the unsigned transaction to the buffer
 			w := bytes.NewBuffer([]byte{})
 			clientCtx = clientCtx.WithOutput(w)
+			txFactory := tx.Factory{}
 
-			if err = client2.PrintUnsignedStdTx(txBldr, cliCtx, []sdk.Msg{msg}); err != nil {
+			if err = client2.PrintUnsignedStdTx(txFactory, clientCtx, []sdk.Msg{msg}); err != nil {
 				return err
 			}
 
@@ -119,7 +119,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm m
 			}
 
 			// sign the transaction and write it to the output file
-			signedTx, err := utils.SignStdTx(txBldr, cliCtx, name, stdTx, false, true)
+			signedTx, err := utils.SignStdTx(txBldr, clientCtx, name, stdTx, false, true)
 			if err != nil {
 				return err
 			}

@@ -9,10 +9,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
+
+	"github.com/cosmos/cosmos-sdk/types/simulation"
 )
 
 // Simulation parameter constants
@@ -95,7 +95,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 }
 
 // RandomGenesisAccounts returns randomly generated genesis accounts
-func RandomGenesisAccounts(simState *module.SimulationState) (genesisAccs exported.GenesisAccounts) {
+func RandomGenesisAccounts(simState *module.SimulationState) (genesisAccs types.GenesisAccounts) {
 	for i, acc := range simState.Accounts {
 		coins := sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(simState.InitialStake))}
 		bacc := types.NewBaseAccountWithAddress(acc.Address)
@@ -103,7 +103,7 @@ func RandomGenesisAccounts(simState *module.SimulationState) (genesisAccs export
 			panic(err)
 		}
 
-		var gacc exported.GenesisAccount = &bacc
+		var gacc types.GenesisAccount = bacc
 
 		// Only consider making a vesting account once the initial bonded validator
 		// set is exhausted due to needing to track DelegatedVesting.
@@ -120,9 +120,9 @@ func RandomGenesisAccounts(simState *module.SimulationState) (genesisAccs export
 			}
 
 			if simState.Rand.Intn(100) < 50 {
-				gacc = vestingtypes.NewContinuousVestingAccount(&bacc, startTime, endTime)
+				gacc = vestingtypes.NewContinuousVestingAccount(bacc, coins, startTime, endTime)
 			} else {
-				gacc = vestingtypes.NewDelayedVestingAccount(&bacc, endTime)
+				gacc = vestingtypes.NewDelayedVestingAccount(bacc, coins, endTime)
 			}
 		}
 		genesisAccs = append(genesisAccs, gacc)

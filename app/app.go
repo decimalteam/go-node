@@ -338,9 +338,9 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.SetAnteHandler(
 		utils.NewAnteHandler(
 			app.accountKeeper,
+			app.bankKeeper,
 			app.validatorKeeper,
 			app.coinKeeper,
-			app.bankKeeper,
 			ante.DefaultSigVerificationGasConsumer,
 		),
 	)
