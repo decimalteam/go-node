@@ -4,14 +4,17 @@ import (
 	"bitbucket.org/decimalteam/go-node/config"
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"bytes"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -27,7 +30,7 @@ var (
 
 // create a codec used only for testing
 func MakeTestCodec() *codec.LegacyAmino {
-	var cdc = codec.New()
+	var cdc = codec.NewLegacyAmino()
 
 	// Register Msgs
 	cdc.RegisterInterface((*sdk.Msg)(nil), nil)
@@ -39,10 +42,9 @@ func MakeTestCodec() *codec.LegacyAmino {
 	cdc.RegisterConcrete(types2.MsgMultiSendCoin{}, "test/coin/multi_send_coin", nil)
 
 	// Register AppAccount
-	cdc.RegisterInterface((*authexported.Account)(nil), nil)
-	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/coin/base_account", nil)
-	supply.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
+	cdc.RegisterInterface((*client.Account)(nil), nil)
+	cdc.RegisterConcrete(&authtypes.BaseAccount{}, "test/coin/base_account", nil)
+	codec2.RegisterCrypto(cdc)
 
 	return cdc
 }
@@ -50,10 +52,10 @@ func MakeTestCodec() *codec.LegacyAmino {
 // Hogpodge of all sorts of input required for testing.
 // `initPower` is converted to an amount of tokens.
 // If `initPower` is 0, no addrs get created.
-func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, Keeper, auth.AccountKeeper) {
-	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
-	keyParams := sdk.NewKVStoreKey(params.StoreKey)
-	tKeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
+func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, Keeper, authkeeper.AccountKeeper) {
+	keyAcc := sdk.NewKVStoreKey(authtypes.StoreKey)
+	keyParams := sdk.NewKVStoreKey(authtypes.StoreKey)
+	tKeyParams := sdk.NewTransientStoreKey(.TStoreKey)
 	keyCoin := sdk.NewKVStoreKey(types2.StoreKey)
 
 	db := dbm.NewMemDB()
@@ -77,16 +79,16 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, Keeper, auth.Ac
 
 	blacklistedAddrs := make(map[string]bool)
 
-	pk := params.NewKeeper(cdc, keyParams, tKeyParams)
+	pk := paramskeeper.NewKeeper(codec.BinaryCodec, cdc, keyParams, tKeyParams)
 
-	accountKeeper := auth.NewAccountKeeper(
+	accountKeeper := authkeeper.NewAccountKeeper(
 		cdc,    // amino codec
 		keyAcc, // target store
-		pk.Subspace(auth.DefaultParamspace),
-		auth.ProtoBaseAccount, // prototype
+		pk.Subspace(authtypes.DefaultParams()),
+		authtypes.ProtoBaseAccount, // prototype
 	)
 
-	bk := bank.NewBaseKeeper(
+	bk := bankkeeper.NewBaseKeeper(
 		accountKeeper,
 		pk.Subspace(bank.DefaultParamspace),
 		blacklistedAddrs,

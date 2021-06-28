@@ -56,7 +56,7 @@ func GetCmdCreateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 				return types2.ErrCoinAlreadyExist(symbol)
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{&msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 }

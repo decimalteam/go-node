@@ -70,6 +70,6 @@ func CoinSendRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, []sdk.Msg{&msg}...)
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, &msg)
 	}
 }

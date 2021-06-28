@@ -102,7 +102,7 @@ func BuyCoinCalculateAmounts(ctx sdk.Context, coinToBuy types2.Coin, coinToSell 
 		return sdk.Int{}, sdk.Int{}, types2.ErrTxBreaksVolumeLimit(coinToBuy.Volume.Add(wantsBuy).String(), coinToBuy.LimitVolume.String())
 	}
 
-	coinToSellMinReserve := formulas.GetReserveLimitFromCRR(coinToSell.CRR)
+	coinToSellMinReserve := formulas.GetReserveLimitFromCRR(uint(coinToSell.CRR))
 	if coinToSell.Reserve.Sub(amountSellInBaseCoin).LT(coinToSellMinReserve) && !coinToSell.IsBase() {
 		return sdk.Int{}, sdk.Int{}, types2.ErrTxBreaksMinReserveRule(ctx, coinToSell.Reserve.Sub(amountSellInBaseCoin).String())
 	}

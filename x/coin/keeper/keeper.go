@@ -80,7 +80,7 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (types.Coin, error) {
 	if value == nil {
 		return coin, fmt.Errorf("coin %s is not found in the key-value store", strings.ToLower(symbol))
 	}
-	err := k.cdc.UnmarshalBinaryLengthPrefixed(value, &coin)
+	err := k.cdc.UnmarshalLengthPrefixed(value, &coin)
 	if err != nil {
 		return coin, err
 	}
@@ -89,7 +89,7 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (types.Coin, error) {
 
 func (k Keeper) SetCoin(ctx sdk.Context, coin types.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	value := k.cdc.MustMarshalBinaryLengthPrefixed(coin)
+	value := k.cdc.MustMarshalLengthPrefixed(coin)
 	key := []byte(types.CoinPrefix + strings.ToLower(coin.Symbol))
 	store.Set(key, value)
 }
@@ -107,7 +107,7 @@ func (k Keeper) GetAllCoins(ctx sdk.Context) []types.Coin {
 
 	for ; iterator.Valid(); iterator.Next() {
 		var coin types.Coin
-		err := k.cdc.UnmarshalBinaryLengthPrefixed(iterator.Value(), &coin)
+		err := k.cdc.UnmarshalLengthPrefixed(iterator.Value(), &coin)
 		if err != nil {
 			panic(err)
 		}
@@ -242,31 +242,6 @@ func (k Keeper) GetCoinCache(symbol string) bool {
 	k.coinCacheMutex.Lock()
 	_, ok := k.coinCache[symbol]
 	return ok
-}
-
-// IsBound checks if the transfer module is already bound to the desired port
-func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
-	_, ok := k.ScopedKeeper.GetCapability(ctx, host.PortPath(portID))
-	return ok
-}
-
-// BindPort defines a wrapper function for the ort Keeper's function in
-// order to expose it to module's InitGenesis function
-func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
-	cap := k.portKeeper.BindPort(ctx, portID)
-	return k.ClaimCapability(ctx, cap, host.PortPath(portID))
-}
-
-// GetPort returns the portID for the transfer module. Used in ExportGenesis
-func (k Keeper) GetPort(ctx sdk.Context) string {
-	store := ctx.KVStore(k.storeKey)
-	return string(store.Get(types.PortKey))
-}
-
-// SetPort sets the portID for the transfer module. Used in InitGenesis
-func (k Keeper) SetPort(ctx sdk.Context, portID string) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.PortKey, []byte(portID))
 }
 
 func ClaimCapability(ctx sdk.Context) error {

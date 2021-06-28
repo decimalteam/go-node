@@ -31,7 +31,7 @@ func TestChangeCoinStruct(t *testing.T) {
 	}
 
 	cdc := codec.New()
-	value := cdc.MustMarshalBinaryLengthPrefixed(coin)
+	value := cdc.MustMarshalLengthPrefixed(coin)
 	fmt.Println(value)
 
 	type NewCoin struct {
@@ -46,7 +46,7 @@ func TestChangeCoinStruct(t *testing.T) {
 	}
 
 	newCoin := NewCoin{}
-	cdc.MustUnmarshalBinaryLengthPrefixed(value, &newCoin)
-	value = cdc.MustMarshalBinaryLengthPrefixed(newCoin)
+	cdc.MustUnmarshalLengthPrefixed(value, &newCoin)
+	value = cdc.MustMarshalLengthPrefixed(newCoin)
 	fmt.Println(value)
 }

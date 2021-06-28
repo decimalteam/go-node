@@ -56,7 +56,7 @@ func GetCmdSellAllCoin(cdc *codec.LegacyAmino) *cobra.Command {
 				return validationErr
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{&msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 }

@@ -14,6 +14,13 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 		Volume: k.Config.InitialVolumeBaseCoin,
 	}
 	k.SetCoin(ctx, coin)
+	//
+	//if !isBound(ctx, data.PortID) {
+	//	cap1 := k.IBCPortKeeper.BindPort(ctx, port1)
+	//	k.sc
+	//	k.ScopedKeeper.ClaimCapability(cap1)
+	//}
+
 	return []abci.ValidatorUpdate{}
 }
 

@@ -55,7 +55,7 @@ func GetCmdMultiSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 				return types2.ErrInsufficientFunds(wantFunds, balance.String())
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{&msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 }

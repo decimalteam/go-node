@@ -4,8 +4,9 @@ import (
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"crypto/sha256"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	cosmoscrypto "github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	"math/big"
 	"strconv"
 
@@ -18,13 +19,9 @@ import (
 
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/mintkey"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 )
@@ -44,7 +41,7 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			var passphrase = args[4] // TODO: Read passphrase by request to avoid saving it in terminal history
 
 			// Check if coin exists
-			coin, _ := cliUtils.GetCoin(cliCtx, coinSymbol)
+			coin, _ := cliUtils.GetCoin(clientCtx, coinSymbol)
 			if coin.Symbol != coinSymbol {
 				return types2.ErrCoinDoesNotExist(coinSymbol)
 			}
@@ -57,7 +54,7 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 
 			// Prepare check without lock
 			check := &types2.Check{
-				ChainID:  cliCtx.ChainID,
+				ChainID:  clientCtx.ChainID,
 				Coin:     coin.Symbol,
 				Amount:   amount.BigInt(),
 				Nonce:    nonce.BigInt().Bytes(),
@@ -72,23 +69,23 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 			check.Lock = big.NewInt(0).SetBytes(lock)
 
 			// Retrieve private key from the keybase account
-			ExportPrivKeyArmor
+			// todo with the upgrade
 			privKeyArmored, err := txBldr.Keybase().ExportPrivKey(cliCtx.FromName, "", "")
 			keyring.Exporter().ExportPrivKeyArmor()
 			if err != nil {
-				msgError := fmt.Sprintf("unable to retrieve armored private key for account %s: %s", cliCtx.FromName, err.Error())
+				msgError := fmt.Sprintf("unable to retrieve armored private key for account %s: %s", clientCtx.FromName, err.Error())
 				return sdkerrors.New(types2.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
 			}
-			privKey, algo, err := mintkey.UnarmorDecryptPrivKey(privKeyArmored, "")
+			privKey, algo, err := cosmoscrypto.UnarmorDecryptPrivKey(privKeyArmored, "")
 			if err != nil {
-				msgError := fmt.Sprintf("unable to retrieve private key for account %s: %s", cliCtx.FromName, err.Error())
+				msgError := fmt.Sprintf("unable to retrieve private key for account %s: %s", clientCtx.FromName, err.Error())
 				return sdkerrors.New(types2.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
 			}
 			if algo != "secp256k1" {
-				msgError := fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", cliCtx.FromName, algo)
+				msgError := fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", clientCtx.FromName, algo)
 				return sdkerrors.New(types2.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
 			}
-			privKeySecp256k1, ok := privKey.(secp256k1.PrivKeySecp256k1)
+			privKeySecp256k1, ok := privKey.(secp256k1.PrivKey)
 			if !ok {
 				panic("invalid private key")
 			}

@@ -50,7 +50,7 @@ func GetCmdSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 			if balance.AmountOf(strings.ToLower(coin)).LT(amount) {
 				return types2.ErrInsufficientFunds(amount.String(), balance.AmountOf(strings.ToLower(coin)).String())
 			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), []sdk.Msg{&msg}...)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
 }

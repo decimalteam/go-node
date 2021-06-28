@@ -75,6 +75,6 @@ func CoinBuyRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "Not enough coin to sell")
 			return
 		}
-		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, []sdk.Msg{&msg}...)
+		tx.WriteGeneratedTxResponse(cliCtx, w, baseReq, &msg)
 	}
 }
