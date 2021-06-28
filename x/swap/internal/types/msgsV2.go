@@ -17,18 +17,20 @@ type MsgSwapInitialize struct {
 	From              sdk.AccAddress `json:"from"`
 	Recipient         string         `json:"recipient"`
 	Amount            sdk.Int        `json:"amount"`
+	TokenName         string         `json:"token_name"`
 	TokenSymbol       string         `json:"token_symbol"`
 	TransactionNumber string         `json:"transaction_number"`
 	FromChain         int            `json:"from_chain"`
 	DestChain         int            `json:"dest_chain"`
 }
 
-func NewMsgSwapInitialize(from sdk.AccAddress, recipient string, amount sdk.Int, tokenSymbol,
+func NewMsgSwapInitialize(from sdk.AccAddress, recipient string, amount sdk.Int, tokenName, tokenSymbol,
 	transactionNumber string, fromChain, destChain int) MsgSwapInitialize {
 	return MsgSwapInitialize{
 		From:              from,
 		Recipient:         recipient,
 		Amount:            amount,
+		TokenName:         tokenName,
 		TokenSymbol:       tokenSymbol,
 		TransactionNumber: transactionNumber,
 		FromChain:         fromChain,
@@ -66,6 +68,7 @@ type MsgRedeemV2 struct {
 	From              string         `json:"from"`
 	Recipient         sdk.AccAddress `json:"recipient"`
 	Amount            sdk.Int        `json:"amount"`
+	TokenName         string         `json:"token_name"`
 	TokenSymbol       string         `json:"token_symbol"`
 	TransactionNumber string         `json:"transaction_number"`
 	FromChain         int            `json:"from_chain"`
@@ -75,13 +78,14 @@ type MsgRedeemV2 struct {
 	S                 Hash           `json:"s"`
 }
 
-func NewMsgRedeemV2(sender, recipient sdk.AccAddress, from string, amount sdk.Int, tokenSymbol,
+func NewMsgRedeemV2(sender, recipient sdk.AccAddress, from string, amount sdk.Int, tokenName, tokenSymbol,
 	transactionNumber string, fromChain, destChain int, v uint8, r, s [32]byte) MsgRedeemV2 {
 	return MsgRedeemV2{
 		Sender:            sender,
 		From:              from,
 		Recipient:         recipient,
 		Amount:            amount,
+		TokenName:         tokenName,
 		TokenSymbol:       tokenSymbol,
 		TransactionNumber: transactionNumber,
 		FromChain:         fromChain,
