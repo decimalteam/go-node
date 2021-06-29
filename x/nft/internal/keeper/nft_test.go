@@ -188,7 +188,7 @@ func TestDeleteNFT(t *testing.T) {
 	require.True(t, isNFT)
 
 	owner := NFTKeeper.GetOwner(ctx, Addrs[0])
-	require.Equal(t, 0, owner.Supply())
+	require.Equal(t, 1, owner.Supply())
 }
 
 func TestIsNFT(t *testing.T) {

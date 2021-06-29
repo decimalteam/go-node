@@ -282,7 +282,7 @@ func TestBurnNFTMsg(t *testing.T) {
 	require.True(t, exists)
 
 	ownerReturned := NFTKeeper.GetOwner(ctx, Addrs[0])
-	require.Equal(t, 0, ownerReturned.Supply())
+	require.Equal(t, 1, ownerReturned.Supply())
 
 	//require.True(t, CheckInvariants(NFTKeeper, ctx))
 }
