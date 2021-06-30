@@ -18,7 +18,7 @@ message GenesisState {
     (gogoproto.jsontag) = "params",
     (gogoproto.moretags) = "yaml:\"params\""
   ];
-  bytes LastTotalPower = 2 [
+  string LastTotalPower = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "last_total_power",

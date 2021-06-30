@@ -65,7 +65,7 @@ message BaseNFT {
     (gogoproto.jsontag) = "token_uri",
     (gogoproto.moretags) = "yaml:\"token_uri\""
   ];
-  bytes Reserve = 5 [
+  string Reserve = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "reserve",
     (gogoproto.moretags) = "yaml:\"reserve\"",

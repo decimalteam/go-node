@@ -28,7 +28,7 @@ message MsgMintNFT {
   string Denom = 4 [
     (gogoproto.jsontag) = "denom"
   ];
-  bytes Quantity = 5 [
+  string Quantity = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "quantity"
@@ -36,7 +36,7 @@ message MsgMintNFT {
   string TokenURI = 6 [
     (gogoproto.jsontag) = "token_uri"
   ];
-  bytes Reserve = 7 [
+  string Reserve = 7 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "reserve"
@@ -63,7 +63,7 @@ message MsgTransferNFT {
   string Denom = 4 [
     (gogoproto.jsontag) = "denom"
   ];
-  bytes Quantity = 5 [
+  string Quantity = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "quantity"
@@ -108,7 +108,7 @@ message MsgDelegateNFT {
   string Denom = 4 [
     (gogoproto.jsontag) = "denom"
   ];
-  bytes Quantity = 5 [
+  string Quantity = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "quantity"
@@ -129,7 +129,7 @@ message MsgBurnNFT {
   string Denom = 3 [
     (gogoproto.jsontag) = "denom"
   ];
-  bytes Quantity = 4 [
+  string Quantity = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "quantity"

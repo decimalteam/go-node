@@ -53,7 +53,7 @@ message ValidatorGovInfo {
     (gogoproto.jsontag) = "address",
     (gogoproto.moretags) = "yaml:\"address\""
   ];
-  bytes BondedTokens = 2 [
+  string BondedTokens = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "bonded_tokens",
@@ -72,19 +72,19 @@ message TallyResult {
   option (gogoproto.goproto_getters) = false;
   option (gogoproto.goproto_stringer) = false;
 
-  bytes Yes = 1 [
+  string Yes = 1 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "yes",
     (gogoproto.moretags) = "yaml:\"yes\""
   ];
-  bytes Abstain = 2 [
+  string Abstain = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "abstain",
     (gogoproto.moretags) = "yaml:\"abstain\""
   ];
-  bytes No = 3 [
+  string No = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "no",
