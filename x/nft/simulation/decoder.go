@@ -5,19 +5,18 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 
-	tmkv "github.com/tendermint/tendermint/libs/kv"
+	tmtypes "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // DecodeStore unmarshals the KVPair's Value to the corresponding auth type
-func DecodeStore(cdc *codec.LegacyAmino, kvA, kvB tmkv.Pair) string {
+func DecodeStore(cdc *codec.LegacyAmino, kvA, kvB tmtypes.EventAttribute) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], types.AddressStoreKeyPrefix):
 		var accA, accB client.Account
-		cdc.MustUnmarshalBinaryBare(kvA.Value, &accA)
-		cdc.MustUnmarshalBinaryBare(kvB.Value, &accB)
+		cdc.MustUnmarshal(kvB.Value, accB)
 		return fmt.Sprintf("%v\n%v", accA, accB)
 	case bytes.Equal(kvA.Key, types.GlobalAccountNumberKey):
 		var globalAccNumberA, globalAccNumberB uint64

@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	tmtypes "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
-	tmkv "github.com/tendermint/tendermint/libs/kv"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -32,10 +32,10 @@ func TestDecodeStore(t *testing.T) {
 	acc := types.NewBaseAccountWithAddress(delAddr1)
 	globalAccNumber := uint64(10)
 
-	kvPairs := tmkv.Pairs{
-		tmkv.Pair{Key: types.AddressStoreKey(delAddr1), Value: cdc.MustMarshalBinaryBare(acc)},
-		tmkv.Pair{Key: types.GlobalAccountNumberKey, Value: cdc.MustMarshalLengthPrefixed(globalAccNumber)},
-		tmkv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
+	kvPairs := []tmtypes.EventAttribute{
+		tmtypes.EventAttribute{Key: types.AddressStoreKey(delAddr1), Value: cdc.MustMarshal(acc)},
+		tmtypes.EventAttribute{Key: types.GlobalAccountNumberKey, Value: cdc.MustMarshalLengthPrefixed(globalAccNumber)},
+		tmtypes.EventAttribute{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 	tests := []struct {
 		name        string

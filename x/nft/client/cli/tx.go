@@ -2,23 +2,18 @@ package cli
 
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
-	"bufio"
 	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 )
 
 // Edit metadata flags
@@ -59,7 +54,7 @@ dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p dx1l2rsakp388kuv9k8qzq6lrm9taddae7fpx5
 crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa \
 --from mykey
 `,
-				version.ClientName, types2.ModuleName,
+				version.AppName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(5),
@@ -106,7 +101,7 @@ Example:
 $ %s tx %s edit-metadata crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa \
 --tokenURI path_to_token_URI_JSON --from mykey
 `,
-				version.ClientName, types2.ModuleName,
+				version.AppName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(2),
@@ -142,7 +137,7 @@ Example:
 $ %s tx %s mint crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa \
 dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 `,
-				version.ClientName, types2.ModuleName,
+				version.AppName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(6),
@@ -200,7 +195,7 @@ Example:
 $ %s tx %s burn crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa \
 --from mykey
 `,
-				version.ClientName, types2.ModuleName,
+				version.AppName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(3),

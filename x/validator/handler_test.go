@@ -6,8 +6,8 @@ import (
 	val "bitbucket.org/decimalteam/go-node/x/validator/keeper"
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"github.com/stretchr/testify/assert"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	"testing"
 	"time"
@@ -176,8 +176,8 @@ func TestInvalidPubKeyTypeMsgCreateValidator(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, res)
 
-	ctx = ctx.WithConsensusParams(&abci.ConsensusParams{
-		Validator: &abci.ValidatorParams{PubKeyTypes: []string{tmtypes.ABCIPubKeyTypeSecp256k1}},
+	ctx = ctx.WithConsensusParams(&tmproto.ConsensusParams{
+		Validator: &tmproto.ValidatorParams{PubKeyTypes: []string{tmtypes.ABCIPubKeyTypeSecp256k1}},
 	})
 
 	res, err = handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
@@ -812,7 +812,7 @@ func TestInvalidMsg(t *testing.T) {
 	k := val.Keeper{}
 	h := NewHandler(k)
 
-	_, err := h(sdk.NewContext(nil, abci.Header{}, false, nil), sdk.NewTestMsg())
+	_, err := h(sdk.NewContext(nil, tmproto.Header{}, false, nil), sdk.NewTestMsg())
 	require.Errorf(t, err, "unrecognized staking message type")
 }
 
