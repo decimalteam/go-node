@@ -10,10 +10,13 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bytes"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
@@ -23,15 +26,11 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/mock"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 var (
@@ -53,7 +52,7 @@ type testInput struct {
 	privKeys []crypto.PrivKey
 }
 
-func getTestInput(t *testing.T, numGenAccs int, genState types2.GenesisState, genAccs []authexported.Account) testInput {
+func getTestInput(t *testing.T, numGenAccs int, genState types2.GenesisState, genAccs []client.Account) testInput {
 
 	_config := sdk.GetConfig()
 	_config.SetBech32PrefixForAccount(config.DecimalPrefixAccAddr, config.DecimalPrefixAccPub)
@@ -62,12 +61,12 @@ func getTestInput(t *testing.T, numGenAccs int, genState types2.GenesisState, ge
 
 	keyValidator := sdk.NewKVStoreKey(validator.StoreKey)
 	tkeyValidator := sdk.NewTransientStoreKey(validator.TStoreKey)
-	keySupply := sdk.NewKVStoreKey(auth.StoreKey)
+	keySupply := sdk.NewKVStoreKey(types.StoreKey)
 	keyCoin := sdk.NewKVStoreKey(coin.StoreKey)
 	keyMultisig := sdk.NewKVStoreKey(multisig.StoreKey)
-	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
-	keyParams := sdk.NewKVStoreKey(params.StoreKey)
-	tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
+	keyAcc := sdk.NewKVStoreKey(types.StoreKey)
+	keyParams := sdk.NewKVStoreKey(paramstypes.StoreKey)
+	tkeyParams := sdk.NewTransientStoreKey(types.TStoreKey)
 	keyNFT := sdk.NewKVStoreKey(nft.StoreKey)
 
 	db := dbm.NewMemDB()
@@ -83,10 +82,10 @@ func getTestInput(t *testing.T, numGenAccs int, genState types2.GenesisState, ge
 	err := ms.LoadLatestVersion()
 	require.Nil(t, err)
 
-	ctx := sdk.NewContext(ms, abci.Header{ChainID: "foochainid"}, false, log.NewNopLogger())
+	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: "foochainid"}, false, log.NewNopLogger())
 	ctx = ctx.WithConsensusParams(
-		&abci.ConsensusParams{
-			Validator: &abci.ValidatorParams{
+		&tmproto.ConsensusParams{
+			Validator: &tmproto.ValidatorParams{
 				PubKeyTypes: []string{tmtypes.ABCIPubKeyTypeEd25519},
 			},
 		},
@@ -97,7 +96,7 @@ func getTestInput(t *testing.T, numGenAccs int, genState types2.GenesisState, ge
 	types2.RegisterCodec(cdc)
 	supply.RegisterCodec(cdc)
 	coin.RegisterCodec(cdc)
-	cdc.RegisterInterface((*authexported.Account)(nil), nil)
+	cdc.RegisterInterface((*client.Account)(nil), nil)
 	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/gov/base_account", nil)
 	codec.RegisterCrypto(cdc)
 
@@ -183,15 +182,15 @@ func getTestInput(t *testing.T, numGenAccs int, genState types2.GenesisState, ge
 
 // gov and staking endblocker
 func getEndBlocker(keeper Keeper) sdk.EndBlocker {
-	return func(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	return func(ctx sdk.Context, req tmproto.RequestEndBlock) tmproto.ResponseEndBlock {
 		EndBlocker(ctx, keeper)
-		return abci.ResponseEndBlock{}
+		return tmproto.ResponseEndBlock{}
 	}
 }
 
 // gov and staking initchainer
 func getInitChainer(mapp *mock.App, keeper Keeper, stakingKeeper validator.Keeper, supplyKeeper supply.Keeper, genState GenesisState, blacklistedAddrs []supplyexported.ModuleAccountI) sdk.InitChainer {
-	return func(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+	return func(ctx sdk.Context, req tmproto.RequestInitChain) tmproto.ResponseInitChain {
 		mapp.InitChainer(ctx, req)
 
 		stakingGenesis := validator.DefaultGenesisState()
@@ -210,7 +209,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, stakingKeeper validator.Keepe
 		} else {
 			InitGenesis(ctx, keeper, supplyKeeper, genState)
 		}
-		return abci.ResponseInitChain{
+		return tmproto.ResponseInitChain{
 			Validators: validators,
 		}
 	}

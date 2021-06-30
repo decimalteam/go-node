@@ -3,8 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	bankExported "github.com/cosmos/cosmos-sdk/x/bank/exported"
-
+	v040 "github.com/cosmos/cosmos-sdk/x/bank/legacy/v040"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -18,7 +17,7 @@ type ParamSubspace interface {
 
 // supplyKeeper defines the expected supply Keeper (noalias)
 type SupplyKeeper interface {
-	GetSupply(ctx sdk.Context) bankExported.SupplyI
+	GetSupply(ctx sdk.Context) v040.SupplyI
 
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, moduleName string) authTypes.ModuleAccountI

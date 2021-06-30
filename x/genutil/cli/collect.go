@@ -24,7 +24,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 
@@ -230,7 +229,7 @@ func CollectStdTxs(cdc *codec.LegacyAmino, moniker, genTxsDir string,
 		}
 
 		if !k.baseKeeper.GetAllBalances(ctx, account.GetAddress()).IsAllGTE(coins) {
-			return false, nil
+			return nil, nil
 		}
 		if delAcc.GetCoins().AmountOf(msg.Stake.Denom).LT(msg.Stake.Amount) {
 			return appGenTxs, fmt.Errorf(

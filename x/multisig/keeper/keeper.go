@@ -56,7 +56,7 @@ func (k Keeper) GetWallet(ctx sdk.Context, address string) types2.Wallet {
 	}
 	bz := store.Get([]byte(key))
 	var wallet types2.Wallet
-	k.cdc.MustUnmarshalBinaryBare(bz, &wallet)
+	k.cdc.MustUnmarshal(bz, &wallet)
 	return wallet
 }
 
@@ -64,7 +64,7 @@ func (k Keeper) GetWallet(ctx sdk.Context, address string) types2.Wallet {
 func (k Keeper) SetWallet(ctx sdk.Context, wallet types2.Wallet) {
 	key := fmt.Sprintf("wallet/%s", wallet.Address.String())
 	store := ctx.KVStore(k.storeKey)
-	store.Set([]byte(key), k.cdc.MustMarshalBinaryBare(wallet))
+	store.Set([]byte(key), k.cdc.MustMarshal(wallet))
 }
 
 // GetTransaction returns multisig wallet transaction metadata with specified address transaction ID.
@@ -76,7 +76,7 @@ func (k Keeper) GetTransaction(ctx sdk.Context, txID string) types2.Transaction 
 	}
 	bz := store.Get([]byte(key))
 	var transaction types2.Transaction
-	k.cdc.MustUnmarshalBinaryBare(bz, &transaction)
+	k.cdc.MustUnmarshal(bz, &transaction)
 	return transaction
 }
 
@@ -84,5 +84,5 @@ func (k Keeper) GetTransaction(ctx sdk.Context, txID string) types2.Transaction 
 func (k Keeper) SetTransaction(ctx sdk.Context, transaction types2.Transaction) {
 	key := fmt.Sprintf("tx/%s", transaction.ID)
 	store := ctx.KVStore(k.storeKey)
-	store.Set([]byte(key), k.cdc.MustMarshalBinaryBare(transaction))
+	store.Set([]byte(key), k.cdc.MustMarshal(transaction))
 }

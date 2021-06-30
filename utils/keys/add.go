@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"io"
 	"sort"
 
@@ -12,7 +13,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/spf13/cobra"
@@ -81,7 +81,7 @@ the flag --nosort is set.
 	return cmd
 }
 
-func getKeybase(transient bool, buf io.Reader) (keys.Keybase, error) {
+func getKeybase(transient bool, buf io.Reader) (keyring.LegacyKeybase, error) {
 	if transient {
 		return keys.NewInMemory(), nil
 	}

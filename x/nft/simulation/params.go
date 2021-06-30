@@ -24,16 +24,16 @@ func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("\"%d\"", GenMaxMemoChars(r))
 			},
-		),
+		).(simulation.ParamChange),
 		simulation.NewSimParamChange(types.ModuleName, keyTxSigLimit,
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("\"%d\"", GenTxSigLimit(r))
 			},
-		),
+		).(simulation.ParamChange),
 		simulation.NewSimParamChange(types.ModuleName, keyTxSizeCostPerByte,
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("\"%d\"", GenTxSizeCostPerByte(r))
 			},
-		),
+		).(simulation.ParamChange),
 	}
 }

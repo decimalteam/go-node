@@ -18,8 +18,8 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
@@ -29,7 +29,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"bitbucket.org/decimalteam/go-node/x/validator"
 )
@@ -117,10 +116,10 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	ms.MountStoreWithDB(keyCoin, sdk.StoreTypeIAVL, db)
 	require.Nil(t, ms.LoadLatestVersion())
 
-	ctx := sdk.NewContext(ms, abci.Header{ChainID: "gov-chain"}, isCheckTx, log.NewNopLogger())
+	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: "gov-chain"}, isCheckTx, log.NewNopLogger())
 	ctx = ctx.WithConsensusParams(
-		&abci.ConsensusParams{
-			Validator: &abci.ValidatorParams{
+		&tmproto.ConsensusParams{
+			Validator: &tmproto.ValidatorParams{
 				PubKeyTypes: []string{tmtypes.ABCIPubKeyTypeEd25519},
 			},
 		},
@@ -194,8 +193,8 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 // ProposalEqual checks if two proposals are equal (note: slow, for tests only)
 func ProposalEqual(proposalA types2.Proposal, proposalB types2.Proposal) bool {
-	return bytes.Equal(types2.ModuleCdc.MustMarshalBinaryBare(proposalA),
-		types2.ModuleCdc.MustMarshalBinaryBare(proposalB))
+	return bytes.Equal(types2.ModuleCdc.MustMarshal(proposalA),
+		types2.ModuleCdc.MustMarshal(proposalB))
 }
 
 func createValidators(ctx sdk.Context, vk validator.Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, powers []int64) {

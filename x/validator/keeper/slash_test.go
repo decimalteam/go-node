@@ -4,7 +4,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"log"
 	"testing"
 	"time"
@@ -85,14 +85,14 @@ func TestSlashUnbondingDelegation(t *testing.T) {
 	require.Equal(t, int64(0), slashAmount.AmountOf(keeper.BondDenom(ctx)).Int64())
 
 	// after the expiration time, no longer eligible for slashing
-	ctx = ctx.WithBlockHeader(abci.Header{Time: time.Unix(10, 0)})
+	ctx = ctx.WithBlockHeader(tmproto.Header{Time: time.Unix(10, 0)})
 	keeper.SetUnbondingDelegation(ctx, ubd)
 	slashAmount = keeper.slashUnbondingDelegation(ctx, ubd, 0, fraction)
 	require.Equal(t, int64(0), slashAmount.AmountOf(keeper.BondDenom(ctx)).Int64())
 
 	// test valid slash, before expiration timestamp and to which stake contributed
 	oldUnbondedPool := keeper.GetNotBondedPool(ctx)
-	ctx = ctx.WithBlockHeader(abci.Header{Time: time.Unix(0, 0)})
+	ctx = ctx.WithBlockHeader(tmproto.Header{Time: time.Unix(0, 0)})
 	keeper.SetUnbondingDelegation(ctx, ubd)
 	slashAmount = keeper.slashUnbondingDelegation(ctx, ubd, 0, fraction)
 	require.Equal(t, int64(5), slashAmount.AmountOf(keeper.BondDenom(ctx)).Int64())

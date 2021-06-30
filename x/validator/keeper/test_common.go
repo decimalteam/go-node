@@ -4,8 +4,8 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"encoding/hex"
-	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
 	types2 "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -13,14 +13,13 @@ import (
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/libs/log"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
@@ -32,7 +31,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
 // dummy addresses used for testing
@@ -93,7 +91,7 @@ func MakeTestCodec() *codec.LegacyAmino {
 // Hogpodge of all sorts of input required for testing.
 // `initPower` is converted to an amount of tokens.
 // If `initPower` is 0, no addrs get created.
-func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context, auth.AccountKeeper, Keeper, supply.Keeper, coin.Keeper, nft.Keeper) {
+func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context, keeper.AccountKeeper, Keeper, supply.Keeper, coin.Keeper, nft.Keeper) {
 	keyStaking := sdk.NewKVStoreKey(types.StoreKey)
 	tkeyStaking := sdk.NewTransientStoreKey(types.TStoreKey)
 	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
@@ -123,10 +121,10 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
 	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
 
-	ctx := sdk.NewContext(ms, abci.Header{ChainID: "foochainid"}, isCheckTx, log.NewNopLogger())
+	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: "foochainid"}, isCheckTx, log.NewNopLogger())
 	ctx = ctx.WithConsensusParams(
-		&abci.ConsensusParams{
-			Validator: &abci.ValidatorParams{
+		&tmproto.ConsensusParams{
+			Validator: &tmproto.ValidatorParams{
 				PubKeyTypes: []string{tmtypes.ABCIPubKeyTypeEd25519},
 			},
 		},
