@@ -22,18 +22,18 @@ func NewMsgSellAllCoin(sender sdk.AccAddress, coinToSell sdk.Coin, minCoinToBuy 
 
 const SellAllCoinConst = "sell_all_coin"
 
-func (msg MsgSellAllCoin) Route() string { return RouterKey }
-func (msg MsgSellAllCoin) Type() string  { return SellAllCoinConst }
-func (msg MsgSellAllCoin) GetSigners() []sdk.AccAddress {
+func (msg *MsgSellAllCoin) Route() string { return RouterKey }
+func (msg *MsgSellAllCoin) Type() string  { return SellAllCoinConst }
+func (msg *MsgSellAllCoin) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
-func (msg MsgSellAllCoin) GetSignBytes() []byte {
+func (msg *MsgSellAllCoin) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgSellAllCoin) ValidateBasic() error {
+func (msg *MsgSellAllCoin) ValidateBasic() error {
 	if msg.CoinToSell.Denom == msg.MinCoinToBuy.Denom {
 		return ErrSameCoin()
 	}

@@ -25,18 +25,18 @@ func NewMsgUpdateCoin(sender sdk.AccAddress, symbol string, limitVolume sdk.Int,
 
 const UpdateCoinConst = "update_coin"
 
-func (msg MsgUpdateCoin) Route() string { return RouterKey }
-func (msg MsgUpdateCoin) Type() string  { return UpdateCoinConst }
-func (msg MsgUpdateCoin) GetSigners() []sdk.AccAddress {
+func (msg *MsgUpdateCoin) Route() string { return RouterKey }
+func (msg *MsgUpdateCoin) Type() string  { return UpdateCoinConst }
+func (msg *MsgUpdateCoin) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
-func (msg MsgUpdateCoin) GetSignBytes() []byte {
+func (msg *MsgUpdateCoin) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgUpdateCoin) ValidateBasic() error {
+func (msg *MsgUpdateCoin) ValidateBasic() error {
 	// Validate coin symbol
 	if match, _ := regexp.MatchString(allowedCoinSymbols, msg.Symbol); !match {
 		return ErrInvalidCoinSymbol(msg.Symbol)

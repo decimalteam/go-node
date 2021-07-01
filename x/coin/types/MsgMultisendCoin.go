@@ -25,18 +25,18 @@ func NewMsgMultiSendCoin(sender sdk.AccAddress, sends []Send) MsgMultiSendCoin {
 
 const MultiSendCoinConst = "multi_send_coin"
 
-func (msg MsgMultiSendCoin) Route() string { return RouterKey }
-func (msg MsgMultiSendCoin) Type() string  { return MultiSendCoinConst }
-func (msg MsgMultiSendCoin) GetSigners() []sdk.AccAddress {
+func (msg *MsgMultiSendCoin) Route() string { return RouterKey }
+func (msg *MsgMultiSendCoin) Type() string  { return MultiSendCoinConst }
+func (msg *MsgMultiSendCoin) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
-func (msg MsgMultiSendCoin) GetSignBytes() []byte {
+func (msg *MsgMultiSendCoin) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgMultiSendCoin) ValidateBasic() error {
+func (msg *MsgMultiSendCoin) ValidateBasic() error {
 	for i := range msg.Sends {
 		err := ValidateSend(MsgSendCoin{
 			Sender:   msg.Sender,

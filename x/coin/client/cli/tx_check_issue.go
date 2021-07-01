@@ -70,8 +70,8 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 
 			// Retrieve private key from the keybase account
 			// todo with the upgrade
-			privKeyArmored, err := txBldr.Keybase().ExportPrivKey(cliCtx.FromName, "", "")
-			keyring.Exporter().ExportPrivKeyArmor()
+			kb, _ := keyring.NewLegacy("", "")
+			privKeyArmored, err := kb.ExportPrivKey("from", "", "")
 			if err != nil {
 				msgError := fmt.Sprintf("unable to retrieve armored private key for account %s: %s", clientCtx.FromName, err.Error())
 				return sdkerrors.New(types2.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)

@@ -180,8 +180,6 @@ func (am AppModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
-	if err := k.ClaimCa
-
 	return nil
 }
 

@@ -47,18 +47,18 @@ func MinCoinReserve(ctx sdk.Context) sdk.Int {
 	return helpers.BipToPip(sdk.NewInt(1000))
 }
 
-func (msg MsgCreateCoin) Route() string { return RouterKey }
-func (msg MsgCreateCoin) Type() string  { return CreateCoinConst }
-func (msg MsgCreateCoin) GetSigners() []sdk.AccAddress {
+func (msg *MsgCreateCoin) Route() string { return RouterKey }
+func (msg *MsgCreateCoin) Type() string  { return CreateCoinConst }
+func (msg *MsgCreateCoin) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
-func (msg MsgCreateCoin) GetSignBytes() []byte {
+func (msg *MsgCreateCoin) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgCreateCoin) ValidateBasic() error {
+func (msg *MsgCreateCoin) ValidateBasic() error {
 	// Validate coin title
 	if len(msg.Title) > maxCoinNameBytes {
 		return ErrInvalidCoinTitle()

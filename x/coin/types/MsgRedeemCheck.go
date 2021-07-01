@@ -22,19 +22,19 @@ func NewMsgRedeemCheck(sender sdk.AccAddress, check string, proof string) MsgRed
 
 const RedeemCheckConst = "redeem_check"
 
-func (msg MsgRedeemCheck) Route() string { return RouterKey }
-func (msg MsgRedeemCheck) Type() string  { return RedeemCheckConst }
-func (msg MsgRedeemCheck) GetSigners() []sdk.AccAddress {
+func (msg *MsgRedeemCheck) Route() string { return RouterKey }
+func (msg *MsgRedeemCheck) Type() string  { return RedeemCheckConst }
+func (msg *MsgRedeemCheck) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
-func (msg MsgRedeemCheck) GetSignBytes() []byte {
+func (msg *MsgRedeemCheck) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgRedeemCheck) ValidateBasic() error {
-	return ValidateRedeemCheck(msg)
+func (msg *MsgRedeemCheck) ValidateBasic() error {
+	return ValidateRedeemCheck(*msg)
 }
 
 func ValidateRedeemCheck(msg MsgRedeemCheck) error {

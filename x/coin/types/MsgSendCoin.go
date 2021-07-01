@@ -22,19 +22,19 @@ func NewMsgSendCoin(sender sdk.AccAddress, coin sdk.Coin, receiver sdk.AccAddres
 
 const SendCoinConst = "send_coin"
 
-func (msg MsgSendCoin) Route() string { return RouterKey }
-func (msg MsgSendCoin) Type() string  { return SendCoinConst }
-func (msg MsgSendCoin) GetSigners() []sdk.AccAddress {
+func (msg *MsgSendCoin) Route() string { return RouterKey }
+func (msg *MsgSendCoin) Type() string  { return SendCoinConst }
+func (msg *MsgSendCoin) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
-func (msg MsgSendCoin) GetSignBytes() []byte {
+func (msg *MsgSendCoin) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgSendCoin) ValidateBasic() error {
-	return ValidateSend(msg)
+func (msg *MsgSendCoin) ValidateBasic() error {
+	return ValidateSend(*msg)
 }
 
 func ValidateSend(msg MsgSendCoin) error {
