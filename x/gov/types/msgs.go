@@ -34,13 +34,13 @@ func NewMsgSubmitProposal(content Content, proposer sdk.AccAddress, votingStartB
 }
 
 // Route implements Msg
-func (msg MsgSubmitProposal) Route() string { return RouterKey }
+func (msg *MsgSubmitProposal) Route() string { return RouterKey }
 
 // Type implements Msg
-func (msg MsgSubmitProposal) Type() string { return TypeMsgSubmitProposal }
+func (msg *MsgSubmitProposal) Type() string { return TypeMsgSubmitProposal }
 
 // ValidateBasic implements Msg
-func (msg MsgSubmitProposal) ValidateBasic() error {
+func (msg *MsgSubmitProposal) ValidateBasic() error {
 	if msg.Content.Title == "" || msg.Content.Description == "" {
 		return sdkerrors.Wrap(ErrInvalidProposalContent, "missing content")
 	}
@@ -60,7 +60,7 @@ func (msg MsgSubmitProposal) ValidateBasic() error {
 }
 
 // String implements the Stringer interface
-func (msg MsgSubmitProposal) String() string {
+func (msg *MsgSubmitProposal) String() string {
 	return fmt.Sprintf(`Submit Proposal Message:
   Title:          %s
   Description:    %s
@@ -68,13 +68,13 @@ func (msg MsgSubmitProposal) String() string {
 }
 
 // GetSignBytes implements Msg
-func (msg MsgSubmitProposal) GetSignBytes() []byte {
+func (msg *MsgSubmitProposal) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners implements Msg
-func (msg MsgSubmitProposal) GetSigners() []sdk.AccAddress {
+func (msg *MsgSubmitProposal) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Proposer}
 }
 
@@ -91,13 +91,13 @@ func NewMsgVote(voter sdk.ValAddress, proposalID uint64, option VoteOption) MsgV
 }
 
 // Route implements Msg
-func (msg MsgVote) Route() string { return RouterKey }
+func (msg *MsgVote) Route() string { return RouterKey }
 
 // Type implements Msg
-func (msg MsgVote) Type() string { return TypeMsgVote }
+func (msg *MsgVote) Type() string { return TypeMsgVote }
 
 // ValidateBasic implements Msg
-func (msg MsgVote) ValidateBasic() error {
+func (msg *MsgVote) ValidateBasic() error {
 	if msg.Voter.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Voter.String())
 	}
@@ -109,7 +109,7 @@ func (msg MsgVote) ValidateBasic() error {
 }
 
 // String implements the Stringer interface
-func (msg MsgVote) String() string {
+func (msg *MsgVote) String() string {
 	return fmt.Sprintf(`Vote Message:
   Proposal ID: %d
   Option:      %s
@@ -117,12 +117,12 @@ func (msg MsgVote) String() string {
 }
 
 // GetSignBytes implements Msg
-func (msg MsgVote) GetSignBytes() []byte {
+func (msg *MsgVote) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners implements Msg
-func (msg MsgVote) GetSigners() []sdk.AccAddress {
+func (msg *MsgVote) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.Voter)}
 }

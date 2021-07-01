@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	auth "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 )
 
@@ -50,9 +49,12 @@ func QueryVotesByTxQuery(cliCtx client.Context, params types2.QueryProposalVotes
 			return nil, err
 		}
 		nextTxPage++
+
+
+
 		for _, info := range searchResult.Txs {
 			for _, msg := range info.Tx.GetMsgs() {
-				if msg.Type() == types2.TypeMsgVote {
+				if msg.String() == types2.TypeMsgVote {
 					voteMsg := msg.(types2.MsgVote)
 
 					votes = append(votes, types2.Vote{
