@@ -58,11 +58,11 @@ func NewMsgHTLT(transferType TransferType, from sdk.AccAddress, recipient string
 	return MsgHTLT{TransferType: transferType, From: from, Recipient: recipient, HashedSecret: hashedSecret, Amount: amount}
 }
 
-func (msg MsgHTLT) Route() string { return RouterKey }
+func (msg *MsgHTLT) Route() string { return RouterKey }
 
-func (msg MsgHTLT) Type() string { return TypeMsgHTLT }
+func (msg *MsgHTLT) Type() string { return TypeMsgHTLT }
 
-func (msg MsgHTLT) ValidateBasic() error {
+func (msg *MsgHTLT) ValidateBasic() error {
 	if msg.From.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
 	}
@@ -74,12 +74,12 @@ func (msg MsgHTLT) ValidateBasic() error {
 	return nil
 }
 
-func (msg MsgHTLT) GetSignBytes() []byte {
+func (msg *MsgHTLT) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgHTLT) GetSigners() []sdk.AccAddress {
+func (msg *MsgHTLT) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }
 
@@ -92,23 +92,23 @@ func NewMsgRedeem(from sdk.AccAddress, secret Secret) MsgRedeem {
 	return MsgRedeem{From: from, Secret: secret}
 }
 
-func (msg MsgRedeem) Route() string { return RouterKey }
+func (msg *MsgRedeem) Route() string { return RouterKey }
 
-func (msg MsgRedeem) Type() string { return TypeMsgRedeem }
+func (msg *MsgRedeem) Type() string { return TypeMsgRedeem }
 
-func (msg MsgRedeem) ValidateBasic() error {
+func (msg *MsgRedeem) ValidateBasic() error {
 	if msg.From.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
 	}
 	return nil
 }
 
-func (msg MsgRedeem) GetSignBytes() []byte {
+func (msg *MsgRedeem) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgRedeem) GetSigners() []sdk.AccAddress {
+func (msg *MsgRedeem) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }
 
@@ -121,22 +121,22 @@ func NewMsgRefund(from sdk.AccAddress, hash [32]byte) MsgRefund {
 	return MsgRefund{From: from, HashedSecret: hash}
 }
 
-func (msg MsgRefund) Route() string { return RouterKey }
+func (msg *MsgRefund) Route() string { return RouterKey }
 
-func (msg MsgRefund) Type() string { return TypeMsgRefund }
+func (msg *MsgRefund) Type() string { return TypeMsgRefund }
 
-func (msg MsgRefund) ValidateBasic() error {
+func (msg *MsgRefund) ValidateBasic() error {
 	if msg.From.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
 	}
 	return nil
 }
 
-func (msg MsgRefund) GetSignBytes() []byte {
+func (msg *MsgRefund) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgRefund) GetSigners() []sdk.AccAddress {
+func (msg *MsgRefund) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }

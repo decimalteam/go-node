@@ -59,7 +59,7 @@ func GetCmdQuerySwap(storeName string, cdc *codec.LegacyAmino) *cobra.Command {
 			var swap types2.Swap
 			cdc.MustUnmarshalJSON(res, &swap)
 
-			return clientCtx.PrintProto(swap)
+			return clientCtx.PrintObjectLegacy(swap)
 		},
 	}
 
@@ -86,7 +86,7 @@ func GetCmdQueryActiveSwap(storeName string, cdc *codec.LegacyAmino) *cobra.Comm
 				return err
 			}
 
-			return clientCtx.PrintProto(swaps)
+			return clientCtx.PrintObjectLegacy(swaps)
 		},
 	}
 
@@ -124,7 +124,7 @@ $ %s query swap pool
 				return err
 			}
 
-			return clientCtx.PrintProto(pool)
+			return clientCtx.PrintObjectLegacy(pool)
 		},
 	}
 
