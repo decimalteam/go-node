@@ -42,6 +42,7 @@ const (
 	UnbondingDelegationNFTKey           = 0x15
 	UnbondingDelegationNFTByValIndexKey = 0x16
 	UnbondingNFTQueueKey                = 0x17
+	DelegatedCoinKey                    = 0x18
 )
 
 func GetValidatorKey(addr sdk.ValAddress) []byte {
@@ -274,4 +275,8 @@ func ParseValidatorPowerRankKey(key []byte) (operAddr []byte) {
 // GetHistoricalInfoKey gets the key for the historical info
 func GetHistoricalInfoKey(height int64) []byte {
 	return append([]byte{HistoricalInfoKey}, []byte(strconv.FormatInt(height, 10))...)
+}
+
+func GetDelegateCoinKey(symbol string) []byte {
+	return append([]byte{DelegatedCoinKey}, []byte(symbol)...)
 }

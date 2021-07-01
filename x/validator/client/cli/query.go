@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"strings"
 
@@ -37,7 +36,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdQueryValidatorDelegations(queryRoute, cdc),
 		GetCmdQueryValidatorUnbondingDelegations(queryRoute, cdc),
 		GetCmdQueryParams(queryRoute, cdc),
-		GetCmdQueryPool(queryRoute, cdc))...)
+		GetCmdQueryPool(queryRoute, cdc),
+		GetCmdQueryDelegatedCoins(queryRoute, cdc))...)
 
 	return validatorQueryCmd
 
@@ -203,7 +203,7 @@ $ %s query validator delegation cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p co
 				return err
 			}
 
-			var resp exported.DelegationI
+			var resp types.DelegationResponse
 			if err := cdc.UnmarshalJSON(res, &resp); err != nil {
 				return err
 			}
@@ -248,7 +248,7 @@ $ %s query validator delegations cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 				return err
 			}
 
-			var resp []exported.DelegationI
+			var resp []types.DelegationResponse
 			if err := cdc.UnmarshalJSON(res, &resp); err != nil {
 				return err
 			}
@@ -458,6 +458,37 @@ $ %s query validator params
 			var params types.Params
 			cdc.MustUnmarshalJSON(bz, &params)
 			return cliCtx.PrintOutput(params)
+		},
+	}
+}
+
+// GetCmdQueryDelegatedCoins implements the delegated coins query command.
+func GetCmdQueryDelegatedCoins(storeName string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "delegated_coins",
+		Args:  cobra.NoArgs,
+		Short: "Query the delegated coins",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query delegated coins.
+
+Example:
+$ %s query validator delegated_coins
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			route := fmt.Sprintf("custom/%s/%s", storeName, types.QueryDelegatedCoins)
+			bz, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			var coins sdk.Coins
+			cdc.MustUnmarshalJSON(bz, &coins)
+			return cliCtx.PrintOutput(coins)
 		},
 	}
 }
