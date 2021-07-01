@@ -1,15 +1,14 @@
 package utils
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/swap"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -43,7 +42,7 @@ func NewAnteHandler(ak keeper.AccountKeeper, bankKeeper bankKeeper.Keeper, vk va
 }
 
 var (
-	_ GasTx = (*types.StdTx)(nil) // assert StdTx implements GasTx
+	_ GasTx = (*legacytx.StdTx)(nil) // assert StdTx implements GasTx
 )
 
 // GasTx defines a Tx with a GetGas() method which is needed to use SetUpContextDecorator
@@ -74,7 +73,7 @@ func (cad PreCreateAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 
 	msgs := tx.GetMsgs()
 	if len(msgs) > 0 {
-		switch msgs[0].Type() {
+		switch msgs[0].String() {
 		case coin.RedeemCheckConst:
 			signers := msgs[0].GetSigners()
 			if len(signers) == 1 {
@@ -262,7 +261,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 
 	msgs := tx.GetMsgs()
 	for _, msg := range msgs {
-		switch msg.Type() {
+		switch msg.String() {
 		case validator.DeclareCandidateConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(declareCandidateFee)
 		case validator.DelegateConst:
@@ -323,7 +322,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 			return ctx, err
 		}
 		if len(msgs) == 1 {
-			if msgs[0].Type() == validator.DelegateConst {
+			if msgs[0].String() == validator.DelegateConst {
 				stdTx.Fee.Gas = helpers.PipToUnit(commissionInBaseCoin).Uint64() * 10
 				ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
 				ctx.GasMeter().ConsumeGas(helpers.PipToUnit(commissionInBaseCoin).Uint64()*10, "commission")
@@ -368,7 +367,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	if err != nil {
 		return ctx, err
 	}
-	if msgs[0].Type() == validator.DelegateConst {
+	if msgs[0].String() == validator.DelegateConst {
 		stdTx.Fee.Gas = helpers.PipToUnit(feeInBaseCoin).Uint64() * 10
 		ctx = SetGasMeter(simulate, ctx, stdTx.GetGas())
 		ctx.GasMeter().ConsumeGas(helpers.PipToUnit(feeInBaseCoin).Uint64()*10, "commission")
@@ -386,8 +385,14 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 // NOTE: We could use the BankKeeper (in addition to the AccountKeeper, because
 // the BankKeeper doesn't give us accounts), but it seems easier to do this.
 func DeductFees(bankKeeper bankKeeper.Keeper, accKeeper keeper.AccountKeeper, ctx sdk.Context, acc client.Account, coinKeeper coin.Keeper, fee sdk.Coin, feeInBaseCoin sdk.Int) error {
-	blockTime := ctx.BlockHeader().Time
-	coins := acc.GetCoins()
+	//blockTime := ctx.BlockHeader().Time
+	var coins sdk.Coins
+
+	bankKeeper.IterateTotalSupply(ctx, func (c sdk.Coin) bool {
+		coins = coins.Add(c)
+
+		return true
+	})
 
 	feeCoin, err := coinKeeper.GetCoin(ctx, strings.ToLower(fee.Denom))
 	if err != nil {
@@ -413,7 +418,13 @@ func DeductFees(bankKeeper bankKeeper.Keeper, accKeeper keeper.AccountKeeper, ct
 
 	// Validate the account has enough "spendable" coins as this will cover cases
 	// such as vesting accounts.
-	spendableCoins := acc.SpendableCoins(blockTime)
+	var spendableCoins sdk.Coins
+	bankKeeper.IterateAccountBalances(ctx, acc.GetAddress(), func (c sdk.Coin) bool {
+		spendableCoins = spendableCoins.Add(c)
+
+		return false
+	})
+
 	if _, hasNeg := spendableCoins.SafeSub(sdk.NewCoins(fee)); hasNeg {
 		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds,
 			"insufficient funds to pay for fee; %s < %s", spendableCoins, fee)
@@ -424,9 +435,11 @@ func DeductFees(bankKeeper bankKeeper.Keeper, accKeeper keeper.AccountKeeper, ct
 		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, err.Error())
 	}
 
-	s := bankKeeper.GetSupply(ctx, "")
-	s = s.Inflate(sdk.NewCoins(fee))
-	bankKeeper.SetSupply(ctx, s)
+	s := bankKeeper.GetSupply(ctx, "del").Add(fee)
+	newcoins := sdk.NewCoins(s)
+	bankKeeper.MintCoins(ctx, minttypes.ModuleName, newcoins)
+
+	bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, acc.GetAddress(), newcoins)
 
 	// update coin: decrease reserve and volume
 	if !coinKeeper.IsCoinBase(fee.Denom) {
