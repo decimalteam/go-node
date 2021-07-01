@@ -40,7 +40,7 @@ func NewGenesisStateFromStdTx(codec *codec.LegacyAmino, genTxs []legacytx.StdTx)
 }
 
 // GetGenesisStateFromAppState gets the genutil genesis state from the expected app state
-func GetGenesisStateFromAppState(cdc *codec.LegacyAmino, appState map[string]json.RawMessage) GenesisState {
+func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.RawMessage) GenesisState {
 	var genesisState GenesisState
 	if appState[ModuleName] != nil {
 		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
@@ -49,7 +49,7 @@ func GetGenesisStateFromAppState(cdc *codec.LegacyAmino, appState map[string]jso
 }
 
 // SetGenesisStateInAppState sets the genutil genesis state within the expected app state
-func SetGenesisStateInAppState(cdc *codec.LegacyAmino,
+func SetGenesisStateInAppState(cdc codec.JSONCodec,
 	appState map[string]json.RawMessage, genesisState GenesisState) map[string]json.RawMessage {
 
 	genesisStateBz := cdc.MustMarshalJSON(genesisState)
@@ -61,7 +61,7 @@ func SetGenesisStateInAppState(cdc *codec.LegacyAmino,
 // for the application.
 //
 // NOTE: The pubkey input is this machines pubkey.
-func GenesisStateFromGenDoc(cdc *codec.LegacyAmino, genDoc tmtypes.GenesisDoc,
+func GenesisStateFromGenDoc(cdc codec.JSONCodec, genDoc tmtypes.GenesisDoc,
 ) (genesisState map[string]json.RawMessage, err error) {
 
 	if err = cdc.UnmarshalJSON(genDoc.AppState, &genesisState); err != nil {
@@ -74,7 +74,7 @@ func GenesisStateFromGenDoc(cdc *codec.LegacyAmino, genDoc tmtypes.GenesisDoc,
 // for the application.
 //
 // NOTE: The pubkey input is this machines pubkey.
-func GenesisStateFromGenFile(cdc *codec.LegacyAmino, genFile string,
+func GenesisStateFromGenFile(cdc codec.JSONCodec, genFile string,
 ) (genesisState map[string]json.RawMessage, genDoc *tmtypes.GenesisDoc, err error) {
 
 	if !tos.FileExists(genFile) {
@@ -91,7 +91,7 @@ func GenesisStateFromGenFile(cdc *codec.LegacyAmino, genFile string,
 }
 
 // ValidateGenesis validates GenTx transactions
-func ValidateGenesis(cdc *codec.LegacyAmino, genesisState GenesisState) error {
+func ValidateGenesis(cdc codec.JSONCodec, genesisState GenesisState) error {
 	for i, genTx := range genesisState.GenTxs {
 		var tx legacytx.StdTx
 		if err := cdc.UnmarshalJSON(genTx, &tx); err != nil {
@@ -113,7 +113,7 @@ func ValidateGenesis(cdc *codec.LegacyAmino, genesisState GenesisState) error {
 }
 
 // InitGenesis - initialize accounts and deliver genesis transactions
-func InitGenesis(ctx sdk.Context, cdc *codec.LegacyAmino, validatorKeeper validator.Keeper,
+func InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, validatorKeeper validator.Keeper,
 	deliverTx deliverTxfn, genesisState GenesisState) []abci.ValidatorUpdate {
 
 	var validators []abci.ValidatorUpdate

@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"testing"
 )
 
@@ -31,7 +32,7 @@ func TestNewQuerier(t *testing.T) {
 		keeper.SetValidatorByPowerIndex(ctx, validators[i])
 	}
 
-	header := abci.Header{
+	header := tmproto.Header{
 		ChainID: "HelloChain",
 		Height:  5,
 	}
@@ -153,7 +154,7 @@ func TestQueryValidators(t *testing.T) {
 		bz, err := cdc.MarshalJSON(queryValsParams)
 		require.NoError(t, err)
 
-		req := abci.RequestQuery{
+		req := tmproto.RequestQuery{
 			Path: fmt.Sprintf("/custom/%s/%s", types.QuerierRoute, types.QueryValidators),
 			Data: bz,
 		}
@@ -175,7 +176,7 @@ func TestQueryValidators(t *testing.T) {
 	bz, err := cdc.MarshalJSON(queryParams)
 	require.NoError(t, err)
 
-	query := abci.RequestQuery{
+	query := tmproto.RequestQuery{
 		Path: "/custom/validator/validator",
 		Data: bz,
 	}
@@ -219,7 +220,7 @@ func TestQueryDelegation(t *testing.T) {
 	bz, errRes := cdc.MarshalJSON(queryParams)
 	require.NoError(t, errRes)
 
-	query := abci.RequestQuery{
+	query := tmproto.RequestQuery{
 		Path: "/custom/validator/delegatorValidators",
 		Data: bz,
 	}
@@ -247,7 +248,7 @@ func TestQueryDelegation(t *testing.T) {
 	bz, errRes = cdc.MarshalJSON(queryBondParams)
 	require.NoError(t, errRes)
 
-	query = abci.RequestQuery{
+	query = tmproto.RequestQuery{
 		Path: "/custom/validator/delegatorValidator",
 		Data: bz,
 	}
@@ -269,7 +270,7 @@ func TestQueryDelegation(t *testing.T) {
 
 	// Query delegation
 
-	query = abci.RequestQuery{
+	query = tmproto.RequestQuery{
 		Path: "/custom/validator/delegation",
 		Data: bz,
 	}
@@ -289,7 +290,7 @@ func TestQueryDelegation(t *testing.T) {
 	require.Equal(t, delegation.Coin, delegationRes.GetCoin())
 
 	// Query Delegator Delegations
-	query = abci.RequestQuery{
+	query = tmproto.RequestQuery{
 		Path: "/custom/validator/delegatorDelegations",
 		Data: bz,
 	}
@@ -316,7 +317,7 @@ func TestQueryDelegation(t *testing.T) {
 	bz, errRes = cdc.MarshalJSON(types.NewQueryValidatorParams(addrVal1))
 	require.NoError(t, errRes)
 
-	query = abci.RequestQuery{
+	query = tmproto.RequestQuery{
 		Path: "custom/validator/validatorDelegations",
 		Data: bz,
 	}
@@ -341,7 +342,7 @@ func TestQueryDelegation(t *testing.T) {
 	bz, errRes = cdc.MarshalJSON(queryBondParams)
 	require.NoError(t, errRes)
 
-	query = abci.RequestQuery{
+	query = tmproto.RequestQuery{
 		Path: "/custom/validator/unbondingDelegation",
 		Data: bz,
 	}
@@ -366,7 +367,7 @@ func TestQueryDelegation(t *testing.T) {
 
 	// Query Delegator Delegations
 
-	query = abci.RequestQuery{
+	query = tmproto.RequestQuery{
 		Path: "/custom/validator/delegatorUnbondingDelegations",
 		Data: bz,
 	}
@@ -418,7 +419,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	queryValidatorParams := types.NewQueryBondsParams(addrAcc1, val1.GetOperator(), keeper.BondDenom(ctx))
 	bz, errRes := cdc.MarshalJSON(queryValidatorParams)
 	require.NoError(t, errRes)
-	query := abci.RequestQuery{
+	query := tmproto.RequestQuery{
 		Path: "/custom/validator/unbondingDelegation",
 		Data: bz,
 	}
@@ -437,7 +438,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	queryValidatorParams = types.NewQueryBondsParams(addrAcc2, val1.GetOperator(), keeper.BondDenom(ctx))
 	bz, errRes = cdc.MarshalJSON(queryValidatorParams)
 	require.NoError(t, errRes)
-	query = abci.RequestQuery{
+	query = tmproto.RequestQuery{
 		Path: "/custom/validator/unbondingDelegation",
 		Data: bz,
 	}
@@ -450,7 +451,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	queryDelegatorParams := types.NewQueryDelegatorParams(addrAcc1)
 	bz, errRes = cdc.MarshalJSON(queryDelegatorParams)
 	require.NoError(t, errRes)
-	query = abci.RequestQuery{
+	query = tmproto.RequestQuery{
 		Path: "/custom/validator/delegatorUnbondingDelegations",
 		Data: bz,
 	}
@@ -469,7 +470,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	queryDelegatorParams = types.NewQueryDelegatorParams(addrAcc2)
 	bz, errRes = cdc.MarshalJSON(queryDelegatorParams)
 	require.NoError(t, errRes)
-	query = abci.RequestQuery{
+	query = tmproto.RequestQuery{
 		Path: "/custom/validator/delegatorUnbondingDelegations",
 		Data: bz,
 	}
@@ -493,7 +494,7 @@ func TestQueryHistoricalInfo(t *testing.T) {
 	err = keeper.SetValidator(ctx, val2)
 	require.NoError(t, err)
 
-	header := abci.Header{
+	header := tmproto.Header{
 		ChainID: "HelloChain",
 		Height:  5,
 	}
@@ -503,7 +504,7 @@ func TestQueryHistoricalInfo(t *testing.T) {
 	queryHistoricalParams := types.NewQueryHistoricalInfoParams(4)
 	bz, errRes := cdc.MarshalJSON(queryHistoricalParams)
 	require.NoError(t, errRes)
-	query := abci.RequestQuery{
+	query := tmproto.RequestQuery{
 		Path: "/custom/validator/historicalInfo",
 		Data: bz,
 	}

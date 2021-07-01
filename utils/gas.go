@@ -11,6 +11,10 @@ type gasMeter struct {
 	consumed sdk.Gas
 }
 
+func (g *gasMeter) String() string {
+	return ""
+}
+
 // NewGasMeter returns a reference to a new gasMeter.
 func NewGasMeter(limit sdk.Gas) sdk.GasMeter {
 	return &gasMeter{

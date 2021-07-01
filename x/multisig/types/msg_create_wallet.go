@@ -38,13 +38,13 @@ func NewMsgCreateWallet(sender sdk.AccAddress, owners []sdk.AccAddress, weights 
 const CreateWalletConst = "create_wallet"
 
 // Route returns name of the route for the message.
-func (msg MsgCreateWallet) Route() string { return RouterKey }
+func (msg *MsgCreateWallet) Route() string { return RouterKey }
 
 // Type returns the name of the type for the message.
-func (msg MsgCreateWallet) Type() string { return CreateWalletConst }
+func (msg *MsgCreateWallet) Type() string { return CreateWalletConst }
 
 // ValidateBasic performs basic validation of the message.
-func (msg MsgCreateWallet) ValidateBasic() error {
+func (msg *MsgCreateWallet) ValidateBasic() error {
 	// Validate sender
 	if msg.Sender.Empty() {
 		return sdkerrors.New(
@@ -116,11 +116,11 @@ func (msg MsgCreateWallet) ValidateBasic() error {
 }
 
 // GetSignBytes returns the canonical byte representation of the message used to generate a signature.
-func (msg MsgCreateWallet) GetSignBytes() []byte {
+func (msg *MsgCreateWallet) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
 // GetSigners returns the list of signers required to sign the message.
-func (msg MsgCreateWallet) GetSigners() []sdk.AccAddress {
+func (msg *MsgCreateWallet) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }

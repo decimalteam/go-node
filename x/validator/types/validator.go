@@ -69,7 +69,7 @@ func (v Validator) String() string {
 		v.UnbondingHeight, v.UnbondingCompletionTime, v.Commission, v.AccumRewards)
 }
 
-// this is a helper struct used for JSON de- and encoding only
+//this is a helper struct used for JSON de- and encoding only
 type bechValidator struct {
 	ValAddress              sdk.ValAddress `json:"val_address" yaml:"val_address"`
 	PubKey                  string         `json:"pub_key" yaml:"pub_key"`
@@ -92,7 +92,7 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	return codec.JSONCodec.MarshalJSON(bechValidator{
+	return ModuleCdc.MarshalJSON(bechValidator{
 		ValAddress:              v.ValAddress,
 		PubKey:                  bechConsPubKey,
 		Jailed:                  v.Jailed,
@@ -111,7 +111,7 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals the validator from JSON using Bech32
 func (v *Validator) UnmarshalJSON(data []byte) error {
 	bv := &bechValidator{}
-	if err := codec.AminoCodec.UnmarshalJSON(data, bv); err != nil {
+	if err := codec.AminoCodec.Unmarshal(data, bv); err != nil {
 		return err
 	}
 	consPubKey, err := sdk.GetFromBech32(sdk.Bech32PrefixConsPub, bv.PubKey)

@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"os"
 	"path"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -62,9 +62,9 @@ func main() {
 		flags.LineBreak,
 		lcd.ServeCommand(cdc, registerRoutes),
 		flags.LineBreak,
-		keys.Commands(),
+		keys.Commands(app.DefaultNodeHome),
 		flags.LineBreak,
-		version.Cmd,
+		version.NewVersionCommand(),
 		cli.NewCompletionCmd(rootCmd, true),
 	)
 
@@ -82,7 +82,7 @@ func registerRoutes(rs *lcd.RestServer) {
 	authrest.RegisterTxRoutes(rs.CliCtx, rs.Mux)
 }
 
-func queryCmd(cdc *amino.LegacyAmino) *cobra.Command {
+func queryCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:     "query",
 		Aliases: []string{"q"},
@@ -90,43 +90,43 @@ func queryCmd(cdc *amino.LegacyAmino) *cobra.Command {
 	}
 
 	queryCmd.AddCommand(
-		authcmd.GetAccountCmd(cdc),
+		authcmd.GetAccountCmd(),
 		flags.LineBreak,
-		rpc.ValidatorCommand(cdc),
+		rpc.ValidatorCommand(),
 		rpc.BlockCommand(),
-		authcmd.QueryTxsByEventsCmd(cdc),
-		authcmd.QueryTxCmd(cdc),
+		authcmd.QueryTxsByEventsCmd(),
+		authcmd.QueryTxCmd(),
 		flags.LineBreak,
 	)
 
 	// add modules' query commands
-	app.ModuleBasics.AddQueryCommands(coinCmd.GetQueryCmd("coin", cdc), cdc)
-	app.ModuleBasics.AddQueryCommands(multisigCmd.GetQueryCmd("multisig", cdc), cdc)
-	app.ModuleBasics.AddQueryCommands(queryCmd, cdc)
+	app.ModuleBasics.AddQueryCommands(coinCmd.GetQueryCmd("coin", cdc))
+	app.ModuleBasics.AddQueryCommands(multisigCmd.GetQueryCmd("multisig", cdc))
+	app.ModuleBasics.AddQueryCommands(queryCmd)
 
 	return queryCmd
 }
 
-func txCmd(cdc *amino.LegacyAmino) *cobra.Command {
+func txCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:   "tx",
 		Short: "Transactions subcommands",
 	}
 
 	txCmd.AddCommand(
-		bankcmd.SendTxCmd(cdc),
+		bankcmd.NewSendTxCmd(),
 		flags.LineBreak,
-		authcmd.GetSignCommand(cdc),
-		authcmd.GetMultiSignCommand(cdc),
+		authcmd.GetSignCommand(),
+		authcmd.GetMultiSignCommand(),
 		flags.LineBreak,
-		authcmd.GetBroadcastCommand(cdc),
-		authcmd.GetEncodeCommand(cdc),
+		authcmd.GetBroadcastCommand(),
+		authcmd.GetEncodeCommand(),
 		flags.LineBreak,
 	)
 
 	// add modules' tx commands
-	app.ModuleBasics.AddTxCommands(coinCmd.GetTxCmd(cdc), cdc)
-	app.ModuleBasics.AddTxCommands(txCmd, cdc)
+	app.ModuleBasics.AddTxCommands(coinCmd.GetTxCmd(cdc))
+	app.ModuleBasics.AddTxCommands(txCmd)
 
 	return txCmd
 }

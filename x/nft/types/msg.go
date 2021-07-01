@@ -41,13 +41,13 @@ const regName = "^[a-zA-Z0-9_]{1,255}$"
 var minReserve = sdk.NewInt(100)
 
 // Route Implements Msg
-func (msg MsgMintNFT) Route() string { return RouterKey }
+func (msg *MsgMintNFT) Route() string { return RouterKey }
 
 // Type Implements Msg
-func (msg MsgMintNFT) Type() string { return "mint_nft" }
+func (msg *MsgMintNFT) Type() string { return "mint_nft" }
 
 // ValidateBasic Implements Msg.
-func (msg MsgMintNFT) ValidateBasic() error {
+func (msg *MsgMintNFT) ValidateBasic() error {
 	if strings.TrimSpace(msg.Denom) == "" {
 		return ErrInvalidNFT
 	}
@@ -77,13 +77,13 @@ func (msg MsgMintNFT) ValidateBasic() error {
 }
 
 // GetSignBytes Implements Msg.
-func (msg MsgMintNFT) GetSignBytes() []byte {
+func (msg *MsgMintNFT) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners Implements Msg.
-func (msg MsgMintNFT) GetSigners() []sdk.AccAddress {
+func (msg *MsgMintNFT) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
@@ -109,13 +109,13 @@ func NewMsgBurnNFT(sender sdk.AccAddress, id string, denom string, quantity sdk.
 }
 
 // Route Implements Msg
-func (msg MsgBurnNFT) Route() string { return RouterKey }
+func (msg *MsgBurnNFT) Route() string { return RouterKey }
 
 // Type Implements Msg
-func (msg MsgBurnNFT) Type() string { return "burn_nft" }
+func (msg *MsgBurnNFT) Type() string { return "burn_nft" }
 
 // ValidateBasic Implements Msg.
-func (msg MsgBurnNFT) ValidateBasic() error {
+func (msg *MsgBurnNFT) ValidateBasic() error {
 	if strings.TrimSpace(msg.ID) == "" {
 		return ErrInvalidNFT
 	}
@@ -133,13 +133,13 @@ func (msg MsgBurnNFT) ValidateBasic() error {
 }
 
 // GetSignBytes Implements Msg.
-func (msg MsgBurnNFT) GetSignBytes() []byte {
+func (msg *MsgBurnNFT) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners Implements Msg.
-func (msg MsgBurnNFT) GetSigners() []sdk.AccAddress {
+func (msg *MsgBurnNFT) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
@@ -167,13 +167,13 @@ func NewMsgTransferNFT(sender, recipient sdk.AccAddress, denom, id string, quant
 }
 
 // Route Implements Msg
-func (msg MsgTransferNFT) Route() string { return RouterKey }
+func (msg *MsgTransferNFT) Route() string { return RouterKey }
 
 // Type Implements Msg
-func (msg MsgTransferNFT) Type() string { return "transfer_nft" }
+func (msg *MsgTransferNFT) Type() string { return "transfer_nft" }
 
 // ValidateBasic Implements Msg.
-func (msg MsgTransferNFT) ValidateBasic() error {
+func (msg *MsgTransferNFT) ValidateBasic() error {
 	if strings.TrimSpace(msg.Denom) == "" {
 		return ErrInvalidCollection
 	}
@@ -194,13 +194,13 @@ func (msg MsgTransferNFT) ValidateBasic() error {
 }
 
 // GetSignBytes Implements Msg.
-func (msg MsgTransferNFT) GetSignBytes() []byte {
+func (msg *MsgTransferNFT) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners Implements Msg.
-func (msg MsgTransferNFT) GetSigners() []sdk.AccAddress {
+func (msg *MsgTransferNFT) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
@@ -228,13 +228,13 @@ func NewMsgEditNFTMetadata(sender sdk.AccAddress, id,
 }
 
 // Route Implements Msg
-func (msg MsgEditNFTMetadata) Route() string { return RouterKey }
+func (msg *MsgEditNFTMetadata) Route() string { return RouterKey }
 
 // Type Implements Msg
-func (msg MsgEditNFTMetadata) Type() string { return "edit_nft_metadata" }
+func (msg *MsgEditNFTMetadata) Type() string { return "edit_nft_metadata" }
 
 // ValidateBasic Implements Msg.
-func (msg MsgEditNFTMetadata) ValidateBasic() error {
+func (msg *MsgEditNFTMetadata) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
 	}

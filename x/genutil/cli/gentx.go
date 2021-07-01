@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/keys"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -103,7 +104,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManag
 			}
 
 			name := viper.GetString(flags.FlagName)
-			key, err := kb.Get(name)
+			key, err := kb.Key(name)
 			if err != nil {
 				return err
 			}
@@ -124,7 +125,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManag
 				return err
 			}
 
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := client.Context{}.WithLegacyAmino(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			viper.Set(flags.FlagGenerateOnly, true)
@@ -136,6 +137,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManag
 			}
 			log.Println(msg)
 
+			keys.NewInMemoryKeyBase()
 			info, err := txBldr.Keybase().Get(name)
 			if err != nil {
 				return err

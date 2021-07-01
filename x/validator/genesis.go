@@ -3,9 +3,10 @@ package validator
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"fmt"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -110,9 +111,15 @@ func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Kee
 	addr := bondedPool.GetAddress()
 
 	if bankKeeper.GetAllBalances(ctx, addr).IsZero() {
-		if err := bankKeeper.SetBalances(ctx, addr, bondedTokens); err != nil {
+		//if err := bankKeeper.SetBalances(ctx, addr, bondedTokens); err != nil {
+		//	panic(err)
+		//}
+		if err := bankKeeper.MintCoins(ctx, minttypes.ModuleName, bondedTokens); err != nil {
 			panic(err)
 		}
+
+		bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, bondedTokens)
+
 		accKeeper.SetModuleAccount(ctx, bondedPool)
 	}
 
@@ -122,10 +129,13 @@ func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Kee
 	}
 
 	if bankKeeper.GetAllBalances(ctx, addr).IsZero() {
-		bankKeeper.
-		if err := bankKeeper.SetBalances(ctx, addr, notBondedTokens); err != nil {
+		//if err := bankKeeper.SetBalances(ctx, addr, notBondedTokens); err != nil {
+		if err := bankKeeper.MintCoins(ctx, minttypes.ModuleName, notBondedTokens); err != nil {
 			panic(err)
 		}
+
+		bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, notBondedTokens)
+		panic(err)
 
 		accKeeper.SetModuleAccount(ctx, notBondedPool)
 	}

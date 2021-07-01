@@ -112,7 +112,7 @@ $ %s query validator validators
 
 			var validators types.Validators
 			for _, kv := range resKVs {
-				validator, err := types.UnmarshalValidator(cdc, kv)
+				validator, err := types.UnmarshalValidator(cdc, []byte{kv})
 				if err != nil {
 					return err
 				}

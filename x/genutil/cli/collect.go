@@ -3,9 +3,8 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
+	"github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -24,7 +23,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	"bitbucket.org/decimalteam/go-node/x/genutil"
@@ -35,7 +33,7 @@ const flagGenTxDir = "gentx-dir"
 
 // CollectGenTxsCmd - return the cobra command to collect genesis transactions
 func CollectGenTxsCmd(ctx *server.Context, cdc *codec.LegacyAmino,
-	genAccIterator types.GenesisAccountsIterator, defaultNodeHome string) *cobra.Command {
+	genBalancesIterator types.GenesisBalancesIterator, defaultNodeHome string) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "collect-gentxs",
@@ -73,7 +71,7 @@ func CollectGenTxsCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 			toPrint := newPrintInfo(config.Moniker, genDoc.ChainID, nodeID, genTxsDir, json.RawMessage(""))
 			initCfg := genutil.NewInitConfig(genDoc.ChainID, genTxsDir, name, nodeID, valPubKey)
 
-			appMessage, err := GenAppStateFromConfig(cdc, config, initCfg, *genDoc, genAccIterator)
+			appMessage, err := GenAppStateFromConfig(cdc, config, initCfg, *genDoc, genBalancesIterator)
 			if err != nil {
 				return err
 			}
@@ -123,14 +121,14 @@ func displayInfo(cdc *codec.LegacyAmino, info printInfo) error {
 }
 
 // GenAppStateFromConfig gets the genesis app state from the config
-func GenAppStateFromConfig(cdc *codec.LegacyAmino, config *cfg.Config,
+func GenAppStateFromConfig(cdc codec.JSONCodec, config *cfg.Config,
 	initCfg genutil.InitConfig, genDoc tmtypes.GenesisDoc,
-	genAccIterator types.GenesisAccountsIterator,
+	genBalancesIterator types.GenesisBalancesIterator,
 ) (appState json.RawMessage, err error) {
 
 	// process genesis transactions, else create default genesis.json
 	appGenTxs, err := CollectStdTxs(
-		cdc, config.Moniker, initCfg.GenTxsDir, genDoc, genAccIterator)
+		cdc, config.Moniker, initCfg.GenTxsDir, genDoc, genBalancesIterator)
 	if err != nil {
 		return appState, err
 	}
@@ -162,8 +160,8 @@ func GenAppStateFromConfig(cdc *codec.LegacyAmino, config *cfg.Config,
 
 // CollectStdTxs processes and validates application's genesis StdTxs and returns
 // the list of appGenTxs, and persistent peers required to generate genesis.json.
-func CollectStdTxs(cdc *codec.LegacyAmino, moniker, genTxsDir string,
-	genDoc tmtypes.GenesisDoc, genAccIterator types.GenesisAccountsIterator,
+func CollectStdTxs(cdc codec.JSONCodec, moniker, genTxsDir string,
+	genDoc tmtypes.GenesisDoc, genAccIterator types.GenesisBalancesIterator,
 ) (appGenTxs []legacytx.StdTx, err error) {
 
 	var fos []os.FileInfo
@@ -175,14 +173,14 @@ func CollectStdTxs(cdc *codec.LegacyAmino, moniker, genTxsDir string,
 	// prepare a map of all accounts in genesis state to then validate
 	// against the validators addresses
 	var appState map[string]json.RawMessage
-	if err := cdc.UnmarshalJSON(genDoc.AppState, &appState); err != nil {
+	if err := cdc.UnmarshalInterfaceJSON(genDoc.AppState, &appState); err != nil {
 		return appGenTxs, err
 	}
 
-	addrMap := make(map[string]client.Account)
-	genAccIterator.IterateGenesisAccounts(cdc, appState,
-		func(acc authtypes.AccountI) (stop bool) {
-			addrMap[acc.GetAddress().String()] = acc
+	genBalances := make(map[string]exported.GenesisBalance)
+	genAccIterator.IterateGenesisBalances(cdc, appState,
+		func(balance exported.GenesisBalance) (stop bool) {
+			genBalances[balance.GetAddress().String()] = balance
 			return false
 		},
 	)
@@ -216,21 +214,18 @@ func CollectStdTxs(cdc *codec.LegacyAmino, moniker, genTxsDir string,
 		delAddr := sdk.AccAddress(msg.ValidatorAddr).String()
 		valAddr := sdk.AccAddress(msg.ValidatorAddr).String()
 
-		delAcc, delOk := addrMap[delAddr]
+		delAcc, delOk := genBalances[delAddr]
 		if !delOk {
 			return appGenTxs, fmt.Errorf(
-				"account %v not in genesis.json: %+v", delAddr, addrMap)
+				"account %v not in genesis.json: %+v", delAddr, genBalances)
 		}
 
-		_, valOk := addrMap[valAddr]
+		_, valOk := genBalances[valAddr]
 		if !valOk {
 			return appGenTxs, fmt.Errorf(
-				"account %v not in genesis.json: %+v", valAddr, addrMap)
+				"account %v not in genesis.json: %+v", valAddr, genBalances)
 		}
 
-		if !k.baseKeeper.GetAllBalances(ctx, account.GetAddress()).IsAllGTE(coins) {
-			return nil, nil
-		}
 		if delAcc.GetCoins().AmountOf(msg.Stake.Denom).LT(msg.Stake.Amount) {
 			return appGenTxs, fmt.Errorf(
 				"insufficient fund for delegation %v: %v < %v",

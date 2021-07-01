@@ -44,11 +44,11 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 				return err
 			}
 
-			st := state.LoadState(stateDB)
+			st := store.LoadBlockStoreState(stateDB)
 
-			height := st.LastBlockHeight
+			height := st.GetHeight()
 
-			if countBlocks > (st.LastBlockHeight - st.LastBlockHeight/100*100) {
+			if countBlocks > (st.GetHeight() - st.LastBlockHeight/100*100) {
 				countBlocks = st.LastBlockHeight - st.LastBlockHeight/100*100
 			}
 

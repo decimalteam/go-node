@@ -162,11 +162,11 @@ func validateMultisigThreshold(k, nKeys int) error {
 func getBechKeyOut(bechPrefix string) (bechKeyOutFn, error) {
 	switch bechPrefix {
 	case sdk.PrefixAccount:
-		return keys.Bech32KeyOutput, nil
+		return keyring.MkAccKeyOutput, nil
 	case sdk.PrefixValidator:
-		return keys.Bech32ValKeyOutput, nil
+		return keyring.MkValKeyOutput, nil
 	case sdk.PrefixConsensus:
-		return keys.Bech32ConsKeyOutput, nil
+		return keyring.MkConsKeyOutput, nil
 	}
 
 	return nil, fmt.Errorf("invalid Bech32 prefix encoding provided: %s", bechPrefix)

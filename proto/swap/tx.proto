@@ -4,6 +4,8 @@ package swap;
 option go_package = "bitbucket.org/decimalteam/go-node/x/swap/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos/coin.proto";
+//import "google/api/annotations.proto";
 
 service Msg {
   rpc HTLT(MsgHTLT) returns (MsgHTLTResponse);
@@ -20,7 +22,6 @@ enum TransferType {
 
 message MsgHTLT {
   option (gogoproto.equal) = false;
-  option (gogoproto.goproto_getters) = false;
 
   TransferType TransferType = 1 [
     (gogoproto.jsontag) = "transfer_type",
@@ -46,7 +47,7 @@ message MsgHTLT {
     (gogoproto.jsontag) = "secret",
     (gogoproto.moretags) = "yaml:\"secret\""
   ];
-  repeated bytes Amount = 6 [
+  repeated cosmos.Coin Amount = 6 [
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
     (gogoproto.jsontag) = "amount",
     (gogoproto.moretags) = "yaml:\"amount\""

@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/keys"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/store/types"
+	types3 "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"io"
 
 	"github.com/pkg/errors"
@@ -17,14 +21,10 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 
 	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/config"
@@ -58,7 +58,7 @@ func main() {
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(ctx, cdc, authtypes.GenesisAccountIterator{}, app.DefaultNodeHome),
+		genutilcli.CollectGenTxsCmd(ctx, cdc, bankTypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.GenTxCmd(
 			ctx, cdc, app.ModuleBasics, validator.AppModuleBasic{},
 			authtypes.GenesisAccountIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
@@ -73,7 +73,8 @@ func main() {
 		fixAppHashError(ctx, app.DefaultNodeHome),
 	)
 
-	server.AddCommands(ctx, cdc, rootCmd, newApp, exportAppStateAndTMValidators)
+	//AddCommands(rootCmd *cobra.Command, defaultNodeHome string, appCreator types.AppCreator, appExport types.AppExporter, addStartFlags types.ModuleInitFlags) {
+	server.AddCommands(rootCmd, "", newApp, exportAppStateAndTMValidators, )
 
 	// prepare and add flags
 	executor := cli.PrepareBaseCmd(rootCmd, "AU", app.DefaultNodeHome)
@@ -88,7 +89,7 @@ func main() {
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
 	return app.NewInitApp(
 		logger, db, traceStore, true, invCheckPeriod,
-		baseapp.SetPruning(store.NewPruningOptionsFromString(viper.GetString("pruning"))),
+		baseapp.SetPruning(types.NewPruningOptionsFromString(viper.GetString("pruning"))),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(uint64(viper.GetInt(server.FlagHaltHeight))),
 	)
@@ -141,7 +142,7 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 					return err
 				}
 
-				info, err := kb.Get(args[0])
+				info, err := kb.Export(args[0])
 				if err != nil {
 					return err
 				}
@@ -149,14 +150,14 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 				addr = info.GetAddress()
 			}
 
-			coins, err := sdk.ParseCoins(args[1])
+			_, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
 
 			vestingStart := viper.GetInt64(flagVestingStart)
 			vestingEnd := viper.GetInt64(flagVestingEnd)
-			vestingAmt, err := sdk.ParseCoins(viper.GetString(flagVestingAmt))
+			vestingAmt, err := sdk.ParseCoinsNormalized(viper.GetString(flagVestingAmt))
 			if err != nil {
 				return err
 			}
@@ -164,9 +165,9 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 			// create concrete account type based on input parameters
 			var genAccount authtypes.GenesisAccount
 
-			baseAccount := auth.NewBaseAccount(addr, coins.Sort(), nil, 0, 0)
+			baseAccount := authtypes.NewBaseAccount(addr, addr, nil, 0, 0)
 			if !vestingAmt.IsZero() {
-				baseVestingAccount, err := authvesting.NewBaseVestingAccount(
+				baseVestingAccount := types3.NewBaseVestingAccount(
 					baseAccount, vestingAmt.Sort(), vestingEnd,
 				)
 				if err != nil {
@@ -175,10 +176,10 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 
 				switch {
 				case vestingStart != 0 && vestingEnd != 0:
-					genAccount = authvesting.NewContinuousVestingAccountRaw(baseVestingAccount, vestingStart)
+					genAccount = types3.NewContinuousVestingAccountRaw(baseVestingAccount, vestingStart)
 
 				case vestingEnd != 0:
-					genAccount = authvesting.NewDelayedVestingAccountRaw(baseVestingAccount)
+					genAccount = types3.NewDelayedVestingAccountRaw(baseVestingAccount)
 
 				default:
 					return errors.New("invalid vesting parameters; must supply start and end time or end time")
@@ -198,7 +199,7 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 				return err
 			}
 
-			authGenState := auth.GetGenesisStateFromAppState(cdc, appState)
+			authGenState := authtypes.GetGenesisStateFromAppState(cdc, appState)
 
 			if authGenState.Accounts.Contains(addr) {
 				return fmt.Errorf("cannot add account at existing address %s", addr)
@@ -207,13 +208,13 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 			// Add the new account to the set of genesis accounts and sanitize the
 			// accounts afterwards.
 			authGenState.Accounts = append(authGenState.Accounts, genAccount)
-			authGenState.Accounts = auth.SanitizeGenesisAccounts(authGenState.Accounts)
+			authGenState.Accounts = authtypes.SanitizeGenesisAccounts(authGenState.Accounts)
 
 			authGenStateBz, err := cdc.MarshalJSON(authGenState)
 			if err != nil {
 				return fmt.Errorf("failed to marshal auth genesis state: %w", err)
 			}
-			appState[auth.ModuleName] = authGenStateBz
+			appState[authtypes.ModuleName] = authGenStateBz
 
 			appStateJSON, err := cdc.MarshalJSON(appState)
 			if err != nil {

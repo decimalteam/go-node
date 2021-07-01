@@ -3,6 +3,7 @@ package simulation
 // DONTCOVER
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
 	"fmt"
 	"math/rand"
 
@@ -90,7 +91,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	authGenesis := types.NewGenesisState(params, genesisAccs)
 
-	fmt.Printf("Selected randomly generated auth parameters:\n%s\n", codec.MustMarshalJSONIndent(simState.Cdc, authGenesis.Params))
+	fmt.Printf("Selected randomly generated auth parameters:\n%s\n", codec.MustMarshalJSONIndent(types2.ModuleCdc, authGenesis.Params))
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(authGenesis)
 }
 

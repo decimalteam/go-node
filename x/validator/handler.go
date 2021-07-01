@@ -3,11 +3,11 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/codec"
 	"runtime/debug"
 	"time"
 
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -59,11 +59,16 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 	}
 
 	if ctx.ConsensusParams() != nil {
-		tmPubKey := tmtypes.TM2PB.PubKey(msg.PubKey)
-		if !tmstrings.StringInSlice(tmPubKey.Type, ctx.ConsensusParams().Validator.PubKeyTypes) {
+		tmPubKey, err := codec.ToTmProtoPublicKey(msg.PubKey)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if !tmstrings.StringInSlice(tmPubKey.String(), ctx.ConsensusParams().Validator.PubKeyTypes) {
 			return nil, sdkerrors.Wrapf(
 				types.ErrValidatorPubKeyTypeNotSupported(),
-				"got: %s, valid: %s", tmPubKey.Type, ctx.ConsensusParams().Validator.PubKeyTypes,
+				"got: %s, valid: %s", tmPubKey.String(), ctx.ConsensusParams().Validator.PubKeyTypes,
 			)
 		}
 	}
@@ -178,7 +183,7 @@ func handleMsgUnbondNFT(ctx sdk.Context, k Keeper, msg types.MsgUnbondNFT) (*sdk
 		}
 	}
 
-	completionTimeBz := types.ModuleCdc.MustMarshalLengthPrefixed(completionTime)
+	completionTimeBz := types.ModuleCdc.MustMarshal(completionTime)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,

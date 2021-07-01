@@ -89,7 +89,7 @@ func (k Keeper) Get(ctx sdk.Context, key []byte, value interface{}) error {
 
 func (k Keeper) set(ctx sdk.Context, key []byte, value interface{}) error {
 	store := ctx.KVStore(k.storeKey)
-	bz, err := k.cdc.MarshalBinaryLengthPrefixed(value)
+	bz, err := k.cdc.MarshalLengthPrefixed(value)
 	if err != nil {
 		return err
 	}
