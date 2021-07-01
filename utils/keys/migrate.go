@@ -3,12 +3,12 @@ package keys
 import (
 	"bufio"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"io/ioutil"
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/pkg/errors"
@@ -59,7 +59,7 @@ func runMigrateCmd(cmd *cobra.Command, args []string) error {
 
 	var (
 		tmpDir  string
-		keybase keys.Keybase
+		keybase keyring.Keyring
 	)
 
 	if viper.GetBool(flags.FlagDryRun) {
@@ -70,9 +70,9 @@ func runMigrateCmd(cmd *cobra.Command, args []string) error {
 
 		defer os.RemoveAll(tmpDir)
 
-		keybase, err = keys.NewKeyring(keyringServiceName, "test", tmpDir, buf)
+		keybase, err = keyring.New(keyringServiceName, "test", tmpDir, buf)
 	} else {
-		keybase, err = keys.NewKeyring(keyringServiceName, viper.GetString(flags.FlagKeyringBackend), rootDir, buf)
+		keybase, err = keyring.New(keyringServiceName, viper.GetString(flags.FlagKeyringBackend), rootDir, buf)
 	}
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf(
@@ -91,7 +91,7 @@ func runMigrateCmd(cmd *cobra.Command, args []string) error {
 		keyType := key.GetType()
 
 		// skip key if already migrated
-		if _, err := keybase.Get(keyName); err == nil {
+		if _, err := keybase.Key(keyName); err == nil {
 			cmd.PrintErrf("Key '%s (%s)' already exists; skipping ...\n", key.GetName(), keyType)
 			continue
 		}
@@ -99,16 +99,20 @@ func runMigrateCmd(cmd *cobra.Command, args []string) error {
 		cmd.PrintErrf("Migrating key: '%s (%s)' ...\n", key.GetName(), keyType)
 
 		// allow user to skip migrating specific keys
-		ok, err := input.GetConfirmation("Skip key migration?", buf)
+		var w bufio.Writer
+
+		skip, err := input.GetConfirmation("Skip key migration?", buf, &w)
+
 		if err != nil {
 			return err
 		}
-		if ok {
+
+		if skip {
 			continue
 		}
 
-		if keyType != keys.TypeLocal {
-			if err := keybase.Import(keyName, legKeyInfo); err != nil {
+		if keyType != keyring.TypeLocal {
+			if err := keybase.ImportPubKey(keyName, legKeyInfo); err != nil {
 				return err
 			}
 

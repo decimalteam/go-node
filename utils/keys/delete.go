@@ -3,10 +3,10 @@ package keys
 import (
 	"bufio"
 	"errors"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/spf13/cobra"
@@ -43,18 +43,18 @@ private keys stored in a ledger device cannot be deleted with the CLI.
 func runDeleteCmd(cmd *cobra.Command, args []string) error {
 	buf := bufio.NewReader(cmd.InOrStdin())
 
-	kb, err := keys.NewKeyring(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flags.FlagHome), buf)
+	kb, err := keyring.New(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flags.FlagHome), buf)
 	if err != nil {
 		return err
 	}
 
 	for _, name := range args {
-		info, err := kb.Get(name)
+		info, err := kb.Key(name)
 		if err != nil {
 			return err
 		}
 
-		if info.GetType() == keys.TypeLedger || info.GetType() == keys.TypeOffline {
+		if info.GetType() == keyring.TypeLedger || keyring.GetType() == keyring.TypeOffline {
 			// confirm deletion, unless -y is passed
 			if !viper.GetBool(flagYes) {
 				if err := confirmDeletion(buf); err != nil {
@@ -62,7 +62,7 @@ func runDeleteCmd(cmd *cobra.Command, args []string) error {
 				}
 			}
 
-			if err := kb.Delete(name, "", true); err != nil {
+			if err := kb.Delete(name/*, "", true*/); err != nil {
 				return err
 			}
 			cmd.PrintErrln("Public key reference deleted")
@@ -70,7 +70,7 @@ func runDeleteCmd(cmd *cobra.Command, args []string) error {
 		}
 
 		// old password and skip flag arguments are ignored
-		if err := kb.Delete(name, "", true); err != nil {
+		if err := kb.Delete(name/*, "", true*/); err != nil {
 			return err
 		}
 		cmd.PrintErrln("Key deleted forever (uh oh!)")
@@ -80,11 +80,14 @@ func runDeleteCmd(cmd *cobra.Command, args []string) error {
 }
 
 func confirmDeletion(buf *bufio.Reader) error {
-	answer, err := input.GetConfirmation("Key reference will be deleted. Continue?", buf)
-	if err != nil {
+	var answer bufio.Writer
+
+	ok, err := input.GetConfirmation("Key reference will be deleted. Continue?", buf, &answer)
+
+	if err != nil || !ok {
 		return err
 	}
-	if !answer {
+	if answer.Size() == 0 {
 		return errors.New("aborted")
 	}
 	return nil

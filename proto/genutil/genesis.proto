@@ -1,0 +1,14 @@
+syntax = "proto3";
+package genutil;
+
+option go_package = "bitbucket.org/decimalteam/go-node/x/genutil/types";
+
+import "gogoproto/gogo.proto";
+
+message GenesisState {
+  bytes GenTxs = 1 [
+    (gogoproto.customtype) = "encoding/json.RawMessage",
+    (gogoproto.jsontag) = "gentxs",
+    (gogoproto.moretags) = "yaml:\"gentxs\""
+  ];
+}

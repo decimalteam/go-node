@@ -2,13 +2,13 @@ package keys
 
 import (
 	"bufio"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -25,7 +25,7 @@ func ExportKeyCommand() *cobra.Command {
 
 func runExportCmd(cmd *cobra.Command, args []string) error {
 	buf := bufio.NewReader(cmd.InOrStdin())
-	kb, err := keys.NewKeyring(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flags.FlagHome), buf)
+	kb, err := keyring.NewLegacy(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), /* viper.GetString(flags.FlagHome), buf */)
 	if err != nil {
 		return err
 	}

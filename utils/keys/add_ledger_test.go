@@ -61,7 +61,7 @@ func Test_runAddCmdLedgerWithCustomCoinType(t *testing.T) {
 	if runningUnattended {
 		mockIn.Reset("test1234\ntest1234\n")
 	}
-	key1, err := kb.Get("keyname1")
+	key1, err := kb.Key("keyname1")
 	require.NoError(t, err)
 	require.NotNil(t, key1)
 
@@ -108,7 +108,7 @@ func Test_runAddCmdLedger(t *testing.T) {
 	if runningUnattended {
 		mockIn.Reset("test1234\ntest1234\n")
 	}
-	key1, err := kb.Get("keyname1")
+	key1, err := kb.Key("keyname1")
 	require.NoError(t, err)
 	require.NotNil(t, key1)
 

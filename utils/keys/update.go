@@ -42,9 +42,9 @@ func runUpdateCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	getNewpass := func() (string, error) {
-		return input.GetCheckPassword(
+		return input.GetPassword(
 			"Enter the new passphrase:",
-			"Repeat the new passphrase:", buf)
+			buf)
 	}
 	if err := kb.Update(name, oldpass, getNewpass); err != nil {
 		return err

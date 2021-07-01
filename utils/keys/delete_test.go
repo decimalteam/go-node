@@ -75,7 +75,7 @@ func Test_runDeleteCmd(t *testing.T) {
 		if runningUnattended {
 			mockIn.Reset("testpass1\n")
 		}
-		_, err = kb.Get(fakeKeyName1)
+		_, err = kb.Key(fakeKeyName1)
 		require.NoError(t, err)
 
 		// Now there is a confirmation
@@ -85,7 +85,7 @@ func Test_runDeleteCmd(t *testing.T) {
 		}
 		require.NoError(t, runDeleteCmd(deleteKeyCommand, []string{fakeKeyName1}))
 
-		_, err = kb.Get(fakeKeyName1)
+		_, err = kb.Key(fakeKeyName1)
 		require.Error(t, err) // Key1 is gone
 	}
 
@@ -93,14 +93,14 @@ func Test_runDeleteCmd(t *testing.T) {
 	if runningUnattended {
 		mockIn.Reset("testpass1\n")
 	}
-	_, err = kb.Get(fakeKeyName2)
+	_, err = kb.Key(fakeKeyName2)
 	require.NoError(t, err)
 	if runningUnattended {
 		mockIn.Reset("testpass1\ny\ntestpass1\n")
 	}
 	err = runDeleteCmd(deleteKeyCommand, []string{fakeKeyName2})
 	require.NoError(t, err)
-	_, err = kb.Get(fakeKeyName2)
+	_, err = kb.Key(fakeKeyName2)
 	require.Error(t, err) // Key2 is gone
 }
 

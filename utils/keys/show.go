@@ -3,18 +3,18 @@ package keys
 import (
 	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/crypto/ledger"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	tmcrypto "github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/multisig"
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/crypto"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
+sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -49,27 +49,27 @@ consisting of all the keys provided by name and multisig threshold.`,
 	cmd.Flags().BoolP(FlagPublicKey, "p", false, "Output the public key only (overrides --output)")
 	cmd.Flags().BoolP(FlagDevice, "d", false, "Output the address in a ledger device")
 	cmd.Flags().Uint(flagMultiSigThreshold, 1, "K out of N required signatures")
-	cmd.Flags().Bool(flags.FlagIndentResponse, false, "Add indent to JSON response")
+	//cmd.Flags().Bool(flags.FlagIndentResponse, false, "Add indent to JSON response")
 
 	return cmd
 }
 
 func runShowCmd(cmd *cobra.Command, args []string) (err error) {
-	var info keys.Info
+	var info keyring.Info
 
-	kb, err := keys.NewKeyring(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flags.FlagHome), cmd.InOrStdin())
+	kb, err := keyring.New(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flags.FlagHome), cmd.InOrStdin())
 	if err != nil {
 		return err
 	}
 	if len(args) == 1 {
-		info, err = kb.Get(args[0])
+		info, err = kb.Key(args[0])
 		if err != nil {
 			return err
 		}
 	} else {
-		pks := make([]tmcrypto.PubKey, len(args))
+		pks := make([]cryptotypes.PubKey, len(args))
 		for i, keyName := range args {
-			info, err := kb.Get(keyName)
+			info, err := kb.Key(keyName)
 			if err != nil {
 				return err
 			}
@@ -83,8 +83,12 @@ func runShowCmd(cmd *cobra.Command, args []string) (err error) {
 			return err
 		}
 
-		multikey := multisig.NewPubKeyMultisigThreshold(multisigThreshold, pks)
-		info = keys.NewMultiInfo(defaultMultiSigKeyName, multikey)
+		multikey := multisig.NewLegacyAminoPubKey(multisigThreshold, pks)
+		info, err = keyring.NewMultiInfo(defaultMultiSigKeyName, multikey)
+
+		if err != nil {
+			return err
+		}
 	}
 
 	isShowAddr := viper.GetBool(FlagAddress)
@@ -127,7 +131,7 @@ func runShowCmd(cmd *cobra.Command, args []string) (err error) {
 			return fmt.Errorf("the device flag (-d) can only be used for accounts")
 		}
 		// Override and show in the device
-		if info.GetType() != keys.TypeLedger {
+		if info.GetType() != keyring.TypeLedger {
 			return fmt.Errorf("the device flag (-d) can only be used for accounts stored in devices")
 		}
 
@@ -136,7 +140,9 @@ func runShowCmd(cmd *cobra.Command, args []string) (err error) {
 			return nil
 		}
 
-		return crypto.LedgerShowAddress(*hdpath, info.GetPubKey())
+		//func ShowAddress(path hd.BIP44Params, expectedPubKey types.PubKey,
+		//	accountAddressPrefix string) error {
+		return ledger.ShowAddress(*hdpath, info.GetPubKey(), sdk.Bech32PrefixAccAddr)
 	}
 
 	return nil
