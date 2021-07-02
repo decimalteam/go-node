@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"os"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
@@ -54,11 +55,16 @@ func runDeleteCmd(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		if info.GetType() == keyring.TypeLedger || keyring.GetType() == keyring.TypeOffline {
+		if info.GetType() == keyring.TypeLedger || info.GetType() == keyring.TypeOffline {
 			// confirm deletion, unless -y is passed
 			if !viper.GetBool(flagYes) {
-				if err := confirmDeletion(buf); err != nil {
+				yes, err := input.GetConfirmation("Key reference will be deleted. Continue?", buf, cmd.ErrOrStderr())
+
+				if err != nil {
 					return err
+				}
+				if !yes {
+					return errors.New("aborted")
 				}
 			}
 
@@ -80,14 +86,12 @@ func runDeleteCmd(cmd *cobra.Command, args []string) error {
 }
 
 func confirmDeletion(buf *bufio.Reader) error {
-	var answer bufio.Writer
+	ok, err := input.GetConfirmation("Key reference will be deleted. Continue?", buf, os.Stdout)
 
-	ok, err := input.GetConfirmation("Key reference will be deleted. Continue?", buf, &answer)
-
-	if err != nil || !ok {
+	if err != nil {
 		return err
 	}
-	if answer.Size() == 0 {
+	if !ok {
 		return errors.New("aborted")
 	}
 	return nil
