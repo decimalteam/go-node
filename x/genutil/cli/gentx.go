@@ -1,11 +1,15 @@
 package cli
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/keys"
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/types/errors"
+	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
+	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 	"io"
 	"io/ioutil"
 	"log"
@@ -23,12 +27,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
-	kbkeys "github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	"bitbucket.org/decimalteam/go-node/x/genutil"
@@ -42,14 +43,14 @@ const (
 // StakingMsgBuildingHelpers helpers for message building gen-tx command
 type StakingMsgBuildingHelpers interface {
 	CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string)
-	PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey)
-	BuildCreateValidatorMsg(cliCtx client.Context, txBldr client.TxBuilder) (client.TxBuilder, sdk.Msg, error)
+	PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey) (cli.TxCreateValidatorConfig, error)
+	BuildCreateValidatorMsg(cliCtx client.Context, config cli.TxCreateValidatorConfig, txBldr tx.Factory, generateOnly bool) (tx.Factory, sdk.Msg, error)
 }
 
 // GenTxCmd builds the application's gentx command.
 // nolint: errcheck
-func GenTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
-	genAccIterator types.GenesisAccountsIterator, defaultNodeHome, defaultCLIHome string) *cobra.Command {
+func GenTxCmd(ctx *server.Context,  txEncodingConfig client.TxEncodingConfig, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
+	genBalIterator types.GenesisBalancesIterator, defaultNodeHome, defaultCLIHome string) *cobra.Command {
 
 	ipDefault, _ := server.ExternalIP()
 	fsCreateValidator, flagNodeID, flagPubKey, flagAmount, defaultsDesc := smbh.CreateValidatorMsgHelpers(ipDefault)
@@ -67,6 +68,12 @@ func GenTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManag
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config := ctx.Config
 			config.SetRoot(viper.GetString(flags.FlagHome))
+			clientCtx, err := client.GetClientTxContext(cmd)
+			cdc := clientCtx.JSONCodec
+			if err != nil {
+				return err
+			}
+
 			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(ctx.Config)
 			if err != nil {
 				return err
@@ -78,7 +85,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManag
 			}
 			// Read --pubkey, if empty take it from priv_validator.json
 			if valPubKeyString := viper.GetString(flagPubKey); valPubKeyString != "" {
-				valPubKey, err = sdk.GetFromBech32(sdk.Bech32PrefixConsPub, valPubKeyString)
+				_, err := sdk.GetFromBech32(sdk.Bech32PrefixConsPub, valPubKeyString)
 				if err != nil {
 					return err
 				}
@@ -90,15 +97,17 @@ func GenTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManag
 			}
 
 			var genesisState map[string]json.RawMessage
-			if err = cdc.UnmarshalJSON(genDoc.AppState, &genesisState); err != nil {
+			if err = json.Unmarshal(genDoc.AppState, &genesisState); err != nil {
 				return err
 			}
 
-			if err = mbm.ValidateGenesis(cdc, genesisState); err != nil {
+			if err = mbm.ValidateGenesis(cdc, txEncodingConfig, genesisState); err != nil {
 				return err
 			}
 
-			kb, err := kbkeys.NewKeyring(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flagClientHome), cmd.InOrStdin())
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+
+			kb, err := keyring.New(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flagClientHome), cmd.InOrStdin())
 			if err != nil {
 				return err
 			}
@@ -111,61 +120,70 @@ func GenTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManag
 
 			// Set flags for creating gentx
 			viper.Set(flags.FlagHome, viper.GetString(flagClientHome))
-			smbh.PrepareFlagsForTxCreateValidator(config, nodeID, genDoc.ChainID, valPubKey)
+
+			createValCfg, err := smbh.PrepareFlagsForTxCreateValidator(config, nodeID, genDoc.ChainID, valPubKey)
+			if err != nil {
+				return err
+			}
 
 			// Fetch the amount of coins staked
 			amount := viper.GetString(flagAmount)
-			coin, err := sdk.ParseCoinNormalized(amount)
+			coins, err := sdk.ParseCoinsNormalized(amount)
 			if err != nil {
 				return err
 			}
 
-			err = genutil.ValidateAccountInGenesis(genesisState, genAccIterator, key.GetAddress(), coin, cdc)
+			err = genutil.ValidateAccountInGenesis(genesisState, genBalIterator, key.GetAddress(), coins, cdc)
 			if err != nil {
 				return err
 			}
 
-			cliCtx := client.Context{}.WithLegacyAmino(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+			txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+
+			clientCtx = clientCtx.WithInput(inBuf).WithFromAddress(key.GetAddress())
 
 			viper.Set(flags.FlagGenerateOnly, true)
-
 			// create a 'create-validator' message
-			txBldr, msg, err := smbh.BuildCreateValidatorMsg(cliCtx, txBldr)
+			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, true)
 			if err != nil {
 				return err
 			}
 			log.Println(msg)
 
-			keys.NewInMemoryKeyBase()
-			info, err := txBldr.Keybase().Get(name)
-			if err != nil {
-				return err
-			}
+			//keys.NewInMemoryKeyBase()
+			//info, err := txBldr.Keybase().Get(name)
+			//if err != nil {
+			//	return err
+			//}
 
-			if info.GetType() == kbkeys.TypeOffline || info.GetType() == kbkeys.TypeMulti {
+			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
 				fmt.Println("Offline key passed in. Use `tx sign` command to sign:")
-				return utils.PrintUnsignedStdTx(txBldr, cliCtx, []sdk.Msg{msg})
+				return client2.PrintUnsignedStdTx(txBldr, clientCtx, []sdk.Msg{msg})
 			}
 
 			// write the unsigned transaction to the buffer
 			w := bytes.NewBuffer([]byte{})
-			cliCtx = cliCtx.WithOutput(w)
+			clientCtx = clientCtx.WithOutput(w)
 
-			if err = utils.PrintUnsignedStdTx(txBldr, cliCtx, []sdk.Msg{msg}); err != nil {
+			if err = client2.PrintUnsignedStdTx(txBldr, clientCtx, []sdk.Msg{msg}); err != nil {
 				return err
 			}
 
 			// read the transaction
-			stdTx, err := readUnsignedGenTxFile(cdc, w)
+			stdTx, err := readUnsignedGenTxFile(clientCtx, w)
 			if err != nil {
 				return err
 			}
 
 			// sign the transaction and write it to the output file
-			signedTx, err := utils.SignStdTx(txBldr, cliCtx, name, stdTx, false, true)
+			txBuilder, err := clientCtx.TxConfig.WrapTxBuilder(stdTx)
 			if err != nil {
 				return err
+			}
+
+			err = client2.SignTx(txFactory, clientCtx, name, txBuilder, true, true)
+			if err != nil {
+				return errors.Wrap(err, "failed to sign std tx")
 			}
 
 			// Fetch output file name
@@ -177,7 +195,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManag
 				}
 			}
 
-			if err := writeSignedGenTx(cdc, outputDocument, signedTx); err != nil {
+			if err := writeSignedGenTx(clientCtx, outputDocument, stdTx); err != nil {
 				return err
 			}
 
@@ -206,26 +224,31 @@ func makeOutputFilepath(rootDir, nodeID string) (string, error) {
 	return filepath.Join(writePath, fmt.Sprintf("gentx-%v.json", nodeID)), nil
 }
 
-func readUnsignedGenTxFile(cdc *codec.LegacyAmino, r io.Reader) (legacytx.StdTx, error) {
-	var stdTx legacytx.StdTx
+func readUnsignedGenTxFile(clientCtx client.Context, r io.Reader) (sdk.Tx, error) {
 	bytes, err := ioutil.ReadAll(r)
 	if err != nil {
-		return stdTx, err
+		return nil, err
 	}
-	err = cdc.UnmarshalJSON(bytes, &stdTx)
-	return stdTx, err
+	aTx, err := clientCtx.TxConfig.TxJSONDecoder()(bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return aTx, err
 }
 
-func writeSignedGenTx(cdc *codec.LegacyAmino, outputDocument string, tx legacytx.StdTx) error {
+func writeSignedGenTx(clientCtx client.Context, outputDocument string, tx sdk.Tx) error {
 	outputFile, err := os.OpenFile(outputDocument, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 	defer outputFile.Close()
-	json, err := cdc.MarshalJSON(tx)
+	json, err := clientCtx.TxConfig.TxJSONEncoder()(tx)
 	if err != nil {
 		return err
 	}
+
 	_, err = fmt.Fprintf(outputFile, "%s\n", json)
+
 	return err
 }
