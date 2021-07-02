@@ -3,7 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"io/ioutil"
 	"os"
@@ -32,13 +32,16 @@ import (
 const flagGenTxDir = "gentx-dir"
 
 // CollectGenTxsCmd - return the cobra command to collect genesis transactions
-func CollectGenTxsCmd(ctx *server.Context, cdc *codec.LegacyAmino,
+func CollectGenTxsCmd(ctx *server.Context,
 	genBalancesIterator types.GenesisBalancesIterator, defaultNodeHome string) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "collect-gentxs",
 		Short: "Collect genesis txs and output a genesis.json file",
-		RunE: func(_ *cobra.Command, _ []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			cdc := clientCtx.JSONCodec
+
 			config := ctx.Config
 			config.SetRoot(viper.GetString(cli.HomeFlag))
 
@@ -71,7 +74,7 @@ func CollectGenTxsCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 			toPrint := newPrintInfo(config.Moniker, genDoc.ChainID, nodeID, genTxsDir, json.RawMessage(""))
 			initCfg := genutil.NewInitConfig(genDoc.ChainID, genTxsDir, name, nodeID, valPubKey)
 
-			appMessage, err := GenAppStateFromConfig(cdc, config, initCfg, *genDoc, genBalancesIterator)
+			appMessage, err := GenAppStateFromConfig(cdc, clientCtx.TxConfig, config, initCfg, *genDoc, genBalancesIterator)
 			if err != nil {
 				return err
 			}
@@ -79,7 +82,7 @@ func CollectGenTxsCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 			toPrint.AppMessage = appMessage
 
 			// print out some key information
-			return displayInfo(cdc, toPrint)
+			return displayInfo(toPrint)
 		},
 	}
 
@@ -110,8 +113,8 @@ func newPrintInfo(moniker, chainID, nodeID, genTxsDir string,
 	}
 }
 
-func displayInfo(cdc *codec.LegacyAmino, info printInfo) error {
-	out, err := codec.MarshalJSONIndent(cdc, info)
+func displayInfo(info printInfo) error {
+	out, err := json.MarshalIndent(info, "", " ")
 	if err != nil {
 		return err
 	}
@@ -121,14 +124,14 @@ func displayInfo(cdc *codec.LegacyAmino, info printInfo) error {
 }
 
 // GenAppStateFromConfig gets the genesis app state from the config
-func GenAppStateFromConfig(cdc codec.JSONCodec, config *cfg.Config,
+func GenAppStateFromConfig(cdc codec.JSONCodec, txEncodingConfig client.TxEncodingConfig, config *cfg.Config,
 	initCfg genutil.InitConfig, genDoc tmtypes.GenesisDoc,
 	genBalancesIterator types.GenesisBalancesIterator,
 ) (appState json.RawMessage, err error) {
 
 	// process genesis transactions, else create default genesis.json
 	appGenTxs, err := CollectStdTxs(
-		cdc, config.Moniker, initCfg.GenTxsDir, genDoc, genBalancesIterator)
+		cdc, txEncodingConfig.TxJSONDecoder(), config.Moniker, initCfg.GenTxsDir, genDoc, genBalancesIterator)
 	if err != nil {
 		return appState, err
 	}
@@ -144,11 +147,11 @@ func GenAppStateFromConfig(cdc codec.JSONCodec, config *cfg.Config,
 		return appState, err
 	}
 
-	appGenesisState, err = genutil.SetGenTxsInAppGenesisState(cdc, appGenesisState, appGenTxs)
+	appGenesisState, err = genutil.SetGenTxsInAppGenesisState(cdc, txEncodingConfig.TxJSONEncoder(), appGenesisState, appGenTxs)
 	if err != nil {
 		return appState, err
 	}
-	appState, err = codec.MarshalJSONIndent(cdc, appGenesisState)
+	appState, err = json.MarshalIndent(appGenesisState, "", " ")
 	if err != nil {
 		return appState, err
 	}
@@ -160,9 +163,9 @@ func GenAppStateFromConfig(cdc codec.JSONCodec, config *cfg.Config,
 
 // CollectStdTxs processes and validates application's genesis StdTxs and returns
 // the list of appGenTxs, and persistent peers required to generate genesis.json.
-func CollectStdTxs(cdc codec.JSONCodec, moniker, genTxsDir string,
+func CollectStdTxs(cdc codec.JSONCodec, txJSONDecoder sdk.TxDecoder, moniker, genTxsDir string,
 	genDoc tmtypes.GenesisDoc, genAccIterator types.GenesisBalancesIterator,
-) (appGenTxs []legacytx.StdTx, err error) {
+) (appGenTxs []sdk.Tx, err error) {
 
 	var fos []os.FileInfo
 	fos, err = ioutil.ReadDir(genTxsDir)
@@ -196,14 +199,18 @@ func CollectStdTxs(cdc codec.JSONCodec, moniker, genTxsDir string,
 		if jsonRawTx, err = ioutil.ReadFile(filename); err != nil {
 			return appGenTxs, err
 		}
-		var genStdTx legacytx.StdTx
-		if err = cdc.UnmarshalJSON(jsonRawTx, &genStdTx); err != nil {
+		//var genStdTx legacytx.StdTx
+		//if err = cdc.UnmarshalJSON(jsonRawTx, &genStdTx); err != nil {
+		//	return appGenTxs, err
+		//}
+		var genTx sdk.Tx
+		if genTx, err = txJSONDecoder(jsonRawTx); err != nil {
 			return appGenTxs, err
 		}
-		appGenTxs = append(appGenTxs, genStdTx)
+		appGenTxs = append(appGenTxs, genTx)
 
 		// genesis transactions must be single-message
-		msgs := genStdTx.GetMsgs()
+		msgs := genTx.GetMsgs()
 		if len(msgs) != 1 {
 			return appGenTxs, errors.New(
 				"each genesis transaction must provide a single genesis message")
