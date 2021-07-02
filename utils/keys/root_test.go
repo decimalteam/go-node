@@ -1,6 +1,7 @@
 package keys
 
 import (
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"os"
 	"testing"
 
@@ -8,11 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
 )
 
 func TestCommands(t *testing.T) {
-	rootCommands := Commands()
+	rootCommands := Commands("home")
 	assert.NotNil(t, rootCommands)
 
 	// Commands are registered
@@ -20,6 +20,6 @@ func TestCommands(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	viper.Set(flags.FlagKeyringBackend, keys.BackendTest)
+	viper.Set(flags.FlagKeyringBackend, keyring.BackendTest)
 	os.Exit(m.Run())
 }

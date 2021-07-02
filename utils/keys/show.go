@@ -3,6 +3,7 @@ package keys
 import (
 	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/ledger"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -12,9 +13,8 @@ import (
 
 	"github.com/tendermint/tendermint/libs/cli"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
-sdk "github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -49,18 +49,19 @@ consisting of all the keys provided by name and multisig threshold.`,
 	cmd.Flags().BoolP(FlagPublicKey, "p", false, "Output the public key only (overrides --output)")
 	cmd.Flags().BoolP(FlagDevice, "d", false, "Output the address in a ledger device")
 	cmd.Flags().Uint(flagMultiSigThreshold, 1, "K out of N required signatures")
-	//cmd.Flags().Bool(flags.FlagIndentResponse, false, "Add indent to JSON response")
 
 	return cmd
 }
 
 func runShowCmd(cmd *cobra.Command, args []string) (err error) {
 	var info keyring.Info
-
-	kb, err := keyring.New(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flags.FlagHome), cmd.InOrStdin())
+	clientCtx, err := client.GetClientQueryContext(cmd)
 	if err != nil {
 		return err
 	}
+
+	kb := clientCtx.Keyring
+
 	if len(args) == 1 {
 		info, err = kb.Key(args[0])
 		if err != nil {
@@ -77,7 +78,7 @@ func runShowCmd(cmd *cobra.Command, args []string) (err error) {
 			pks[i] = info.GetPubKey()
 		}
 
-		multisigThreshold := viper.GetInt(flagMultiSigThreshold)
+		multisigThreshold, _ := cmd.Flags().GetInt(flagMultiSigThreshold)
 		err = validateMultisigThreshold(multisigThreshold, len(args))
 		if err != nil {
 			return err
@@ -91,9 +92,9 @@ func runShowCmd(cmd *cobra.Command, args []string) (err error) {
 		}
 	}
 
-	isShowAddr := viper.GetBool(FlagAddress)
-	isShowPubKey := viper.GetBool(FlagPublicKey)
-	isShowDevice := viper.GetBool(FlagDevice)
+	isShowAddr, _ := cmd.Flags().GetBool(FlagAddress)
+	isShowPubKey, _ := cmd.Flags().GetBool(FlagPublicKey)
+	isShowDevice, _ := cmd.Flags().GetBool(FlagDevice)
 
 	isOutputSet := false
 	tmp := cmd.Flag(cli.OutputFlag)
@@ -109,7 +110,8 @@ func runShowCmd(cmd *cobra.Command, args []string) (err error) {
 		return errors.New("cannot use --output with --address or --pubkey")
 	}
 
-	bechKeyOut, err := getBechKeyOut(viper.GetString(FlagBechPrefix))
+	backKey, _ := cmd.Flags().GetString(FlagBechPrefix)
+	bechKeyOut, err := getBechKeyOut(backKey)
 	if err != nil {
 		return err
 	}

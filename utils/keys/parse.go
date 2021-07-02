@@ -77,7 +77,6 @@ hexadecimal into bech32 cosmos prefixed format and vice versa.
 		Args: cobra.ExactArgs(1),
 		RunE: parseKey,
 	}
-	//cmd.Flags().Bool(flags.FlagIndentResponse, false, "Indent JSON output")
 
 	return cmd
 }
@@ -122,13 +121,7 @@ func displayParseKeyInfo(stringer fmt.Stringer) {
 		out, err = yaml.Marshal(&stringer)
 
 	case OutputFormatJSON:
-
-		//if viper.GetBool(flags.FlagIndentResponse) {
-		//	out, err = KeysCdc.MarshalJSONIndent(stringer, "", "  ")
-		//} else {
 		out = KeysCdc.MustMarshalJSON(stringer)
-		//}
-
 	}
 
 	if err != nil {
