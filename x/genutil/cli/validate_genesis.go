@@ -3,6 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -18,6 +19,9 @@ func ValidateGenesisCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.
 		Args:  cobra.RangeArgs(0, 1),
 		Short: "validates the genesis file at the default location or at the location passed as an arg",
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			cdc := clientCtx.JSONCodec
 
 			// Load default if passed no args, otherwise load passed file
 			var genesis string
@@ -35,11 +39,11 @@ func ValidateGenesisCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.
 			}
 
 			var genState map[string]json.RawMessage
-			if err = cdc.UnmarshalJSON(genDoc.AppState, &genState); err != nil {
+			if err = json.Unmarshal(genDoc.AppState, &genState); err != nil {
 				return fmt.Errorf("error unmarshaling genesis doc %s: %s", genesis, err.Error())
 			}
 
-			if err = mbm.ValidateGenesis(genState); err != nil {
+			if err = mbm.ValidateGenesis(cdc, clientCtx.TxConfig, genState); err != nil {
 				return fmt.Errorf("error validating genesis file %s: %s", genesis, err.Error())
 			}
 

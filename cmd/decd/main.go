@@ -4,10 +4,12 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/keys"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/store/types"
 	types3 "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"io"
+	"os"
 
 	"github.com/pkg/errors"
 
@@ -21,6 +23,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdkCfg "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,7 +41,15 @@ const flagInvCheckPeriod = "inv-check-period"
 var invCheckPeriod uint
 
 func main() {
-	cdc := app.MakeAminoCodec()
+	encodingConfig := app.MakeEncodingConfig()
+	initClientCtx := client.Context{}.
+		WithJSONCodec(encodingConfig.Codec).
+		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
+		WithTxConfig(encodingConfig.TxConfig).
+		WithLegacyAmino(encodingConfig.Amino).
+		WithInput(os.Stdin).
+		WithAccountRetriever(authtypes.AccountRetriever{}).
+		WithHomeDir(app.DefaultNodeHome)
 
 	_config := sdk.GetConfig()
 	_config.SetCoinType(60)
@@ -51,20 +62,37 @@ func main() {
 	ctx := server.NewDefaultContext()
 	cobra.EnableCommandSorting = false
 	rootCmd := &cobra.Command{
-		Use:               "decd",
-		Short:             "Decimal Go Node",
-		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
+		Use:   "decd",
+		Short: "Decimal Go Node",
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			// set the default command outputs
+			cmd.SetOut(cmd.OutOrStdout())
+			cmd.SetErr(cmd.ErrOrStderr())
+
+			initClientCtx = client.ReadHomeFlag(initClientCtx, cmd)
+
+			initClientCtx, err := sdkCfg.ReadFromClientConfig(initClientCtx)
+			if err != nil {
+				return err
+			}
+
+			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
+				return err
+			}
+
+			return server.InterceptConfigsPreRunHandler(cmd)
+		},
 	}
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(ctx, cdc, bankTypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.InitCmd(ctx, app.ModuleBasics, app.DefaultNodeHome),
+		genutilcli.CollectGenTxsCmd(ctx, bankTypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.GenTxCmd(
-			ctx, cdc, app.ModuleBasics, validator.AppModuleBasic{},
+			ctx, encodingConfig.TxConfig, app.ModuleBasics, validator.AppModuleBasic{},
 			authtypes.GenesisAccountIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
 		genutilcli.GenDeclareCandidateTxCmd(
-			ctx, cdc, app.ModuleBasics, validator.AppModuleBasic{},
+			ctx, app.ModuleBasics, validator.AppModuleBasic{},
 			authtypes.GenesisAccountIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
@@ -74,7 +102,7 @@ func main() {
 	)
 
 	//AddCommands(rootCmd *cobra.Command, defaultNodeHome string, appCreator types.AppCreator, appExport types.AppExporter, addStartFlags types.ModuleInitFlags) {
-	server.AddCommands(rootCmd, "", newApp, exportAppStateAndTMValidators, )
+	server.AddCommands(rootCmd, "", newApp, exportAppStateAndTMValidators)
 
 	// prepare and add flags
 	executor := cli.PrepareBaseCmd(rootCmd, "AU", app.DefaultNodeHome)
@@ -150,7 +178,7 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 				addr = info.GetAddress()
 			}
 
-			_, err := sdk.ParseCoinsNormalized(args[1])
+			coins, err := sdk.ParseCoinsNormalized(args[1])
 			if err != nil {
 				return err
 			}
@@ -165,7 +193,12 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 			// create concrete account type based on input parameters
 			var genAccount authtypes.GenesisAccount
 
-			baseAccount := authtypes.NewBaseAccount(addr, addr, nil, 0, 0)
+			balances := bankTypes.Balance{
+				Address: addr.String(),
+				Coins:   coins.Sort(),
+			}
+			baseAccount := authtypes.NewBaseAccount(addr, nil, 0, 0)
+
 			if !vestingAmt.IsZero() {
 				baseVestingAccount := types3.NewBaseVestingAccount(
 					baseAccount, vestingAmt.Sort(), vestingEnd,
@@ -208,6 +241,11 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 			// Add the new account to the set of genesis accounts and sanitize the
 			// accounts afterwards.
 			authGenState.Accounts = append(authGenState.Accounts, genAccount)
+
+			var accounts authtypes.GenesisAccounts
+
+			cdc.Um
+
 			authGenState.Accounts = authtypes.SanitizeGenesisAccounts(authGenState.Accounts)
 
 			authGenStateBz, err := cdc.MarshalJSON(authGenState)

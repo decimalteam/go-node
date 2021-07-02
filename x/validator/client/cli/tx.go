@@ -3,7 +3,8 @@ package cli
 import (
 	"fmt"
 	tx "github.com/cosmos/cosmos-sdk/client/tx"
-	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	cli2 "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -63,7 +64,10 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			pubKey, err := sdk.GetFromBech32(sdk.Bech32PrefixConsAddr, args[0])
+			var pk cryptotypes.PubKey
+			if err := clientCtx.JSONCodec.UnmarshalInterfaceJSON([]byte(args[0]), &pk); err != nil {
+				return err
+			}
 			if err != nil {
 				return err
 			}
@@ -79,7 +83,7 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 				rewardAddress = valAddress
 			}
 
-			msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddress), pubKey, commission, stake, types.Description{}, rewardAddress)
+			msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddress), pk, commission, stake, types.Description{}, rewardAddress)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -166,7 +170,7 @@ func PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string
 }
 
 // BuildCreateValidatorMsg makes a new MsgCreateValidator.
-func BuildCreateValidatorMsg(clientCtx client.Context, txBldr client.TxBuilder) (client.TxBuilder, sdk.Msg, error) {
+func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValidatorConfig, txBldr tx.Factory) (tx.Factory, sdk.Msg, error) {
 	amounstStr := viper.GetString(FlagAmount)
 	amount, err := sdk.ParseCoinNormalized(amounstStr)
 	if err != nil {
@@ -184,8 +188,8 @@ func BuildCreateValidatorMsg(clientCtx client.Context, txBldr client.TxBuilder) 
 	}
 	pkStr := viper.GetString(FlagPubKey)
 
-	pk, err := sdk.GetFromBech32(sdk.Bech32PrefixConsPub, pkStr)
-	if err != nil {
+	var pk cryptotypes.PubKey
+	if err := clientCtx.JSONCodec.UnmarshalInterfaceJSON([]byte(pkStr), &pk); err != nil {
 		return txBldr, nil, err
 	}
 
@@ -203,7 +207,6 @@ func BuildCreateValidatorMsg(clientCtx client.Context, txBldr client.TxBuilder) 
 	if err != nil {
 		return txBldr, nil, err
 	}
-
 
 	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, description, rewardAddr)
 

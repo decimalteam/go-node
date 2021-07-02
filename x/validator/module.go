@@ -3,11 +3,13 @@ package validator
 import (
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	cli2 "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -105,9 +107,10 @@ func (AppModuleBasic) PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeI
 // BuildCreateValidatorMsg - used for gen-tx
 func (AppModuleBasic) BuildCreateValidatorMsg(
 	cliCtx client.Context,
-	txBldr client.TxBuilder,
-) (client.TxBuilder, sdk.Msg, error) {
-	return cli.BuildCreateValidatorMsg(cliCtx, txBldr)
+	config cli2.TxCreateValidatorConfig,
+	txBldr tx.Factory,
+) (tx.Factory, sdk.Msg, error) {
+	return cli.BuildCreateValidatorMsg(cliCtx, config, txBldr)
 }
 
 // AppModule implements an application module for the validator module.

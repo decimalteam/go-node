@@ -11,6 +11,7 @@ import "validator/delegation_nft.proto";
 message GenesisState {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = true;
 
   Params Params = 1 [
     (gogoproto.nullable) = false,

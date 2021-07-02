@@ -49,7 +49,7 @@ type StakingMsgBuildingHelpers interface {
 
 // GenTxCmd builds the application's gentx command.
 // nolint: errcheck
-func GenTxCmd(ctx *server.Context,  txEncodingConfig client.TxEncodingConfig, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
+func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxEncodingConfig, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
 	genBalIterator types.GenesisBalancesIterator, defaultNodeHome, defaultCLIHome string) *cobra.Command {
 
 	ipDefault, _ := server.ExternalIP()
@@ -66,10 +66,12 @@ func GenTxCmd(ctx *server.Context,  txEncodingConfig client.TxEncodingConfig, mb
 		    %s`, defaultsDesc),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+
+			cdc := clientCtx.JSONCodec
+
 			config := ctx.Config
 			config.SetRoot(viper.GetString(flags.FlagHome))
-			clientCtx, err := client.GetClientTxContext(cmd)
-			cdc := clientCtx.JSONCodec
 			if err != nil {
 				return err
 			}
@@ -107,13 +109,13 @@ func GenTxCmd(ctx *server.Context,  txEncodingConfig client.TxEncodingConfig, mb
 
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 
-			kb, err := keyring.New(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flagClientHome), cmd.InOrStdin())
-			if err != nil {
-				return err
-			}
+			//kb, err := keyring.New(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flagClientHome), cmd.InOrStdin())
+			//if err != nil {
+			//	return err
+			//}
 
 			name := viper.GetString(flags.FlagName)
-			key, err := kb.Key(name)
+			key, err := clientCtx.Keyring.Key(name)
 			if err != nil {
 				return err
 			}

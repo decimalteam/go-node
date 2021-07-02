@@ -29,7 +29,7 @@ func Commands(defaultNodeHome string) *cobra.Command {
 		ShowKeysCmd(),
 		flags.LineBreak,
 		DeleteKeyCommand(),
-		UpdateKeyCommand(),
+		//UpdateKeyCommand(),
 		ParseKeyStringCommand(),
 		MigrateCommand(),
 	)

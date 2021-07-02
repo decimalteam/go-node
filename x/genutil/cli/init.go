@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"os"
 	"path/filepath"
 
@@ -11,7 +13,6 @@ import (
 	"github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -19,19 +20,24 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 	tos "github.com/tendermint/tendermint/libs/os"
 	trand "github.com/tendermint/tendermint/libs/rand"
+	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 // InitCmd returns a command that initializes all files needed for Tendermint
 // and the respective application
-func InitCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManager,
+func InitCmd(ctx *server.Context, mbm module.BasicManager,
 	defaultNodeHome string) *cobra.Command { // nolint: golint
+
 	cmd := &cobra.Command{
 		Use:   "init [moniker] --network mainnet|testnet|devnet",
 		Short: "Initialize private validator, p2p, genesis, and application configuration files",
 		Long:  `Initialize validators's and node's configuration files.`,
 		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			cdc := clientCtx.JSONCodec
 			config := ctx.Config
+
 			config.SetRoot(viper.GetString(cli.HomeFlag))
 
 			chainID := viper.GetString(flags.FlagChainID)
@@ -73,7 +79,7 @@ func InitCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManage
 				}
 
 			} else {
-				appState, err = codec.MarshalJSONIndent(cdc, mbm.DefaultGenesis())
+				appState, err = json.MarshalIndent(mbm.DefaultGenesis(cdc), "", " ")
 				if err != nil {
 					return err
 				}
@@ -93,13 +99,13 @@ func InitCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManage
 				genDoc.ChainID = chainID
 				genDoc.Validators = nil
 				genDoc.AppState = appState
-				genDoc.ConsensusParams = &types.ConsensusParams{
-					Block: types.BlockParams{
+				genDoc.ConsensusParams = &tmprototypes.ConsensusParams{
+					Block: tmprototypes.BlockParams{
 						MaxBytes:   10000000,
 						MaxGas:     100000,
 						TimeIotaMs: 1000,
 					},
-					Evidence: types.EvidenceParams{
+					Evidence: tmprototypes.EvidenceParams{
 						MaxAgeNumBlocks: 100000,
 						MaxAgeDuration:  86400000000000,
 					},
@@ -113,7 +119,7 @@ func InitCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManage
 			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
 
 			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
-			return displayInfo(cdc, toPrint)
+			return displayInfo(toPrint)
 		},
 	}
 

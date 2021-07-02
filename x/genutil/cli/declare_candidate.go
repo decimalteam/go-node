@@ -1,18 +1,20 @@
 package cli
 
 import (
+	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
+	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
-	kbkeys "github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -23,7 +25,7 @@ import (
 
 // GenDeclareCandidateTxCmd builds and prints transaction to declare validator candidate.
 // nolint: errcheck
-func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
+func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
 	genAccIterator types.GenesisAccountsIterator, defaultNodeHome, defaultCLIHome string) *cobra.Command {
 
 	ipDefault, _ := server.ExternalIP()
@@ -40,6 +42,10 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm m
 		    %s`, defaultsDesc),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			cdc := clientCtx.JSONCodec
+
 			config := ctx.Config
 			config.SetRoot(viper.GetString(flags.FlagHome))
 			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(ctx.Config)
@@ -53,7 +59,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm m
 			}
 			// Read --pubkey, if empty take it from priv_validator.json
 			if valPubKeyString := viper.GetString(flagPubKey); valPubKeyString != "" {
-				valPubKey, err = sdk.GetFromBech32(sdk.Bech32PrefixConsPub, valPubKeyString)
+				_, err := sdk.GetFromBech32(sdk.Bech32PrefixConsPub, valPubKeyString)
 				if err != nil {
 					return err
 				}
@@ -65,12 +71,16 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm m
 				return fmt.Errorf("chain ID must be specified")
 			}
 
-			_, err = kbkeys.NewKeyring(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flagClientHome), cmd.InOrStdin())
+			_, err = keyring.New(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flagClientHome), cmd.InOrStdin())
 			if err != nil {
 				return err
 			}
 
 			name := viper.GetString(flags.FlagName)
+			key, err := clientCtx.Keyring.Key(name)
+			if err != nil {
+				return err
+			}
 
 			// Set flags for creating declare validator candidate tx
 			viper.Set(flags.FlagHome, viper.GetString(flagClientHome))
@@ -82,55 +92,67 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, cdc *codec.LegacyAmino, mbm m
 			if err != nil {
 				return err
 			}
+			inBuf := bufio.NewReader(cmd.InOrStdin())
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			createValCfg, err := smbh.PrepareFlagsForTxCreateValidator(config, nodeID, chainID, valPubKey)
+			if err != nil {
+				return err
+			}
+
+			txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+			clientCtx = clientCtx.WithInput(inBuf).WithFromAddress(key.GetAddress())
 
 			viper.Set(flags.FlagGenerateOnly, true)
 
 			// create a 'create-validator' message
-			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, txBldr)
+			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, true)
 			if err != nil {
 				return err
 			}
 
-			info, err := txBldr.Keybase().Get(name)
-			if err != nil {
-				return err
-			}
-
-			if info.GetType() == kbkeys.TypeOffline || info.GetType() == kbkeys.TypeMulti {
+			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
 				fmt.Println("Offline key passed in. Use `tx sign` command to sign:")
-				return utils.PrintUnsignedStdTx(txBldr, clientCtx, []sdk.Msg{msg})
+				return client2.PrintUnsignedStdTx(txBldr, clientCtx, []sdk.Msg{msg})
 			}
 
 			// write the unsigned transaction to the buffer
 			w := bytes.NewBuffer([]byte{})
 			clientCtx = clientCtx.WithOutput(w)
-			txFactory := tx.Factory{}
 
 			if err = client2.PrintUnsignedStdTx(txFactory, clientCtx, []sdk.Msg{msg}); err != nil {
 				return err
 			}
 
 			// read the transaction
-			stdTx, err := readUnsignedGenTxFile(cdc, w)
+			stdTx, err := readUnsignedGenTxFile(clientCtx, w)
 			if err != nil {
 				return err
 			}
 
 			// sign the transaction and write it to the output file
-			signedTx, err := utils.SignStdTx(txBldr, clientCtx, name, stdTx, false, true)
+			// fixme (tx.Sign)
+			txBuilder, err := clientCtx.TxConfig.WrapTxBuilder(stdTx)
 			if err != nil {
 				return err
 			}
 
-			txJSON, err := cdc.MarshalJSONIndent(signedTx, "", "  ")
+			err = client2.SignTx(txFactory, clientCtx, name, txBuilder, true, true)
+			if err != nil {
+				return errors.Wrap(err, "failed to sign std tx")
+			}
+
+			//signedTx, err := utils.SignStdTx(txBldr, clientCtx, name, stdTx, false, true)
+			//if err != nil {
+			//	return err
+			//}
+
+			txJSON, err := json.MarshalIndent(stdTx, "", "  ")
 			if err != nil {
 				return err
 			}
 			fmt.Println(string(txJSON))
-			return nil
 
+			return nil
 		},
 	}
 

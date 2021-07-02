@@ -3,6 +3,7 @@ package genutil
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"github.com/pkg/errors"
 
@@ -10,6 +11,7 @@ import (
 	tos "github.com/tendermint/tendermint/libs/os"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	"bitbucket.org/decimalteam/go-node/x/genutil/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,20 +20,20 @@ import (
 const ModuleName = "genutil"
 
 // GenesisState defines the raw genesis transaction in JSON
-type GenesisState struct {
-	GenTxs []json.RawMessage `json:"gentxs" yaml:"gentxs"`
-}
+//type GenesisState struct {
+//	GenTxs []json.RawMessage `json:"gentxs" yaml:"gentxs"`
+//}
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(genTxs []json.RawMessage) GenesisState {
-	return GenesisState{
+func NewGenesisState(genTxs []json.RawMessage) types.GenesisState {
+	return types.GenesisState{
 		GenTxs: genTxs,
 	}
 }
 
 // NewGenesisStateFromStdTx creates a new GenesisState object
 // from auth transactions
-func NewGenesisStateFromStdTx(codec *codec.LegacyAmino, genTxs []legacytx.StdTx) GenesisState {
+func NewGenesisStateFromStdTx(codec *codec.LegacyAmino, genTxs []legacytx.StdTx) types.GenesisState {
 	genTxsBz := make([]json.RawMessage, len(genTxs))
 	for i, genTx := range genTxs {
 		genTxsBz[i] = codec.MustMarshalJSON(genTx)
@@ -40,8 +42,8 @@ func NewGenesisStateFromStdTx(codec *codec.LegacyAmino, genTxs []legacytx.StdTx)
 }
 
 // GetGenesisStateFromAppState gets the genutil genesis state from the expected app state
-func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.RawMessage) GenesisState {
-	var genesisState GenesisState
+func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.RawMessage) types.GenesisState {
+	var genesisState types.GenesisState
 	if appState[ModuleName] != nil {
 		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
 	}
@@ -50,9 +52,9 @@ func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.R
 
 // SetGenesisStateInAppState sets the genutil genesis state within the expected app state
 func SetGenesisStateInAppState(cdc codec.JSONCodec,
-	appState map[string]json.RawMessage, genesisState GenesisState) map[string]json.RawMessage {
+	appState map[string]json.RawMessage, genesisState types.GenesisState) map[string]json.RawMessage {
 
-	genesisStateBz := cdc.MustMarshalJSON(genesisState)
+	genesisStateBz := cdc.MustMarshalJSON(&genesisState)
 	appState[ModuleName] = genesisStateBz
 	return appState
 }
@@ -91,9 +93,9 @@ func GenesisStateFromGenFile(cdc codec.JSONCodec, genFile string,
 }
 
 // ValidateGenesis validates GenTx transactions
-func ValidateGenesis(cdc codec.JSONCodec, genesisState GenesisState) error {
+func ValidateGenesis(cdc codec.JSONCodec, genesisState types.GenesisState) error {
 	for i, genTx := range genesisState.GenTxs {
-		var tx legacytx.StdTx
+		var tx tx.Tx
 		if err := cdc.UnmarshalJSON(genTx, &tx); err != nil {
 			return err
 		}
@@ -114,7 +116,7 @@ func ValidateGenesis(cdc codec.JSONCodec, genesisState GenesisState) error {
 
 // InitGenesis - initialize accounts and deliver genesis transactions
 func InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, validatorKeeper validator.Keeper,
-	deliverTx deliverTxfn, genesisState GenesisState) []abci.ValidatorUpdate {
+	deliverTx deliverTxfn, genesisState types.GenesisState) []abci.ValidatorUpdate {
 
 	var validators []abci.ValidatorUpdate
 	var err error

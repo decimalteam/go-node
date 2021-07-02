@@ -169,7 +169,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	var app = &newApp{
 		BaseApp:           bApp,
 		cdc:               encodingConfig.Amino,
-		appCodec:          encodingConfig.Marshaler,
+		appCodec:          encodingConfig.Codec,
 		interfaceRegistry: encodingConfig.InterfaceRegistry,
 		keys:              keys,
 		tkeys:             tkeys,
@@ -201,7 +201,10 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	upgradesMap := map[int64]bool{}
 
-	app.upgradeKeeper = upgradeKeeper.NewKeeper(upgradesMap, keys[upgradeTypes.StoreKey], , "/upgrades", versionSetter{})
+	binaryCdc := codec.NewProtoCodec(encodingConfig.InterfaceRegistry)
+
+	// func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc codec.BinaryCodec, homePath string, vs xp.ProtocolVersionSetter) Keeper {
+	app.upgradeKeeper = upgradeKeeper.NewKeeper(upgradesMap, keys[upgradeTypes.StoreKey], binaryCdc , "/upgrades", versionSetter{})
 
 	app.capabilityKeeper = capabilityKeeper.NewKeeper(app.appCodec, keys[capabilityTypes.StoreKey], memKeys[capabilityTypes.MemStoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.StoreKey)
