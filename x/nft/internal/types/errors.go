@@ -30,6 +30,7 @@ const (
 	CodeInvalidSenderAddress          CodeType = 116
 	CodeInvalidRecipientAddress       CodeType = 117
 	CodeForbiddenToTransferToYourself CodeType = 118
+	CodeNotUniqueTokenID              CodeType = 119
 )
 
 func ErrInvalidCollection(denom string) *sdkerrors.Error {
@@ -151,6 +152,14 @@ func ErrNotUniqueTokenURI() *sdkerrors.Error {
 		DefaultCodespace,
 		CodeNotUniqueTokenURI,
 		"not unique tokenURI",
+	)
+}
+
+func ErrNotUniqueTokenID() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeNotUniqueTokenID,
+		"not unique token id",
 	)
 }
 

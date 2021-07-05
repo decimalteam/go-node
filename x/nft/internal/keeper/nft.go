@@ -117,17 +117,6 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 		reserve = nft.GetReserve()
 	}
 
-	err = k.ReserveTokens(ctx,
-		sdk.NewCoins(
-			sdk.NewCoin(
-				k.baseDenom,
-				reserve.Mul(quantity), // reserve * quantity
-			)),
-		creator)
-	if err != nil {
-		return 0, err
-	}
-
 	lastSubTokenID := k.GetLastSubTokenID(ctx, denom, id)
 
 	if lastSubTokenID == 0 {
@@ -150,6 +139,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 		}
 	} else {
 		collection = types.NewCollection(denom, types.NewNFTs(nft))
+		k.SetTokenIDIndex(ctx, id)
 	}
 	k.SetCollection(ctx, denom, collection)
 
@@ -160,6 +150,17 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 	}
 
 	k.SetLastSubTokenID(ctx, denom, nft.GetID(), newLastSubTokenID)
+
+	err = k.ReserveTokens(ctx,
+		sdk.NewCoins(
+			sdk.NewCoin(
+				k.baseDenom,
+				reserve.Mul(quantity), // reserve * quantity
+			)),
+		creator)
+	if err != nil {
+		return 0, err
+	}
 
 	ownerIDCollection, _ := k.GetOwnerByDenom(ctx, nft.GetCreator(), denom)
 	ownerIDCollection = ownerIDCollection.AddID(nft.GetID())
