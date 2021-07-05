@@ -1,6 +1,7 @@
 package genutil
 
 import (
+	types2 "bitbucket.org/decimalteam/go-node/x/genutil/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -44,17 +45,17 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 // DefaultGenesis returns default genesis state as raw bytes for the genutil
 // module.
 func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
-	return ModuleCdc.MustMarshalJSON(GenesisState{})
+	return ModuleCdc.MustMarshalJSON(types.GenesisState{})
 }
 
 // ValidateGenesis performs genesis state validation for the genutil module.
-func (AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var data GenesisState
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
+	var data types.GenesisState
 	err := ModuleCdc.UnmarshalJSON(bz, &data)
 	if err != nil {
 		return err
 	}
-	return ValidateGenesis(ModuleCdc, data)
+	return ValidateGenesis(cdc, types2.GenesisState(data))
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
@@ -84,17 +85,19 @@ type AppModule struct {
 	accountKeeper   types.AccountKeeper
 	validatorKeeper validator.Keeper
 	deliverTx       deliverTxfn
+	txConfig        client.TxConfig
 }
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(accountKeeper types.AccountKeeper,
-	validatorKeeper validator.Keeper, deliverTx deliverTxfn) module.AppModule {
+	validatorKeeper validator.Keeper, deliverTx deliverTxfn, txConfig client.TxConfig) module.AppModule {
 
 	return module.NewGenesisOnlyAppModule(AppModule{
 		AppModuleBasic:  AppModuleBasic{},
 		accountKeeper:   accountKeeper,
 		validatorKeeper: validatorKeeper,
 		deliverTx:       deliverTx,
+		txConfig: txConfig,
 	})
 }
 
@@ -138,10 +141,10 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 
 // InitGenesis performs genesis initialization for the genutil module. It returns
 // no genutil updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState GenesisState
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState types.GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	return InitGenesis(ctx, ModuleCdc, am.validatorKeeper, am.deliverTx, genesisState)
+	return InitGenesis(ctx, cdc, am.validatorKeeper, am.deliverTx, types2.GenesisState(genesisState), am.txConfig)
 }
 
 // module export genesis

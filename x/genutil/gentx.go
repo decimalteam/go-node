@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"path/filepath"
 
@@ -16,9 +15,7 @@ import (
 	"github.com/tendermint/tendermint/privval"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	"bitbucket.org/decimalteam/go-node/x/validator"
@@ -129,7 +126,8 @@ func InitializeNodeValidatorFiles(config *cfg.Config,
 	}
 
 	nodeID = string(nodeKey.ID())
-	server.UpgradeOldPrivValFile(config)
+	// todo
+	//server.UpgradeOldPrivValFile(config)
 
 	pvKeyFile := config.PrivValidatorKeyFile()
 	if err := tos.EnsureDir(filepath.Dir(pvKeyFile), 0777); err != nil {

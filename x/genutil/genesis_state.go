@@ -3,8 +3,8 @@ package genutil
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types/tx"
-	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"github.com/pkg/errors"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -33,7 +33,7 @@ func NewGenesisState(genTxs []json.RawMessage) types.GenesisState {
 
 // NewGenesisStateFromStdTx creates a new GenesisState object
 // from auth transactions
-func NewGenesisStateFromStdTx(codec *codec.LegacyAmino, genTxs []legacytx.StdTx) types.GenesisState {
+func NewGenesisStateFromStdTx(codec *codec.LegacyAmino, genTxs []tx.Tx) types.GenesisState {
 	genTxsBz := make([]json.RawMessage, len(genTxs))
 	for i, genTx := range genTxs {
 		genTxsBz[i] = codec.MustMarshalJSON(genTx)
@@ -66,7 +66,7 @@ func SetGenesisStateInAppState(cdc codec.JSONCodec,
 func GenesisStateFromGenDoc(cdc codec.JSONCodec, genDoc tmtypes.GenesisDoc,
 ) (genesisState map[string]json.RawMessage, err error) {
 
-	if err = cdc.UnmarshalJSON(genDoc.AppState, &genesisState); err != nil {
+	if err = json.Unmarshal(genDoc.AppState, genesisState); err != nil {
 		return genesisState, err
 	}
 	return genesisState, nil
@@ -116,12 +116,12 @@ func ValidateGenesis(cdc codec.JSONCodec, genesisState types.GenesisState) error
 
 // InitGenesis - initialize accounts and deliver genesis transactions
 func InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, validatorKeeper validator.Keeper,
-	deliverTx deliverTxfn, genesisState types.GenesisState) []abci.ValidatorUpdate {
+	deliverTx deliverTxfn, genesisState types.GenesisState, txConfig client.TxConfig) []abci.ValidatorUpdate {
 
 	var validators []abci.ValidatorUpdate
 	var err error
 	if len(genesisState.GenTxs) > 0 {
-		validators, err = DeliverGenTxs(ctx, cdc, genesisState.GenTxs, validatorKeeper, deliverTx)
+		validators, err = DeliverGenTxs(ctx, cdc, genesisState.GenTxs, validatorKeeper, deliverTx, txConfig)
 		if err != nil {
 			panic(err)
 		}
