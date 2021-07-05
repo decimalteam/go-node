@@ -94,6 +94,20 @@ func (k Keeper) ExistTokenURI(ctx sdk.Context, tokenURI string) bool {
 	return store.Has(tokenURIKey)
 }
 
+func (k Keeper) SetTokenIDIndex(ctx sdk.Context, id string) {
+	store := ctx.KVStore(k.storeKey)
+	tokenIDKey := types.GetTokenIDKey(id)
+
+	store.Set(tokenIDKey, []byte{})
+}
+
+func (k Keeper) ExistTokenID(ctx sdk.Context, id string) bool {
+	store := ctx.KVStore(k.storeKey)
+	tokenIDKey := types.GetTokenIDKey(id)
+
+	return store.Has(tokenIDKey)
+}
+
 // MintNFT mints an NFT and manages that NFTs existence within Collections and Owners
 func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk.Int,
 	creator, owner sdk.AccAddress, tokenURI string, allowMint bool) (int64, error) {
