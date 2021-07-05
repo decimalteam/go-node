@@ -28,7 +28,7 @@ func (k Keeper) GetNFT(ctx sdk.Context, denom, id string) (exported.NFT, error) 
 	if err != nil {
 		return nil, err
 	}
-	return nft, err
+	return nft, nil
 }
 
 func (k Keeper) GetSubToken(ctx sdk.Context, denom, id string, subTokenID int64) (sdk.Int, bool) {
@@ -204,13 +204,6 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 	nft = nft.SetOwners(nft.
 		GetOwners().
 		SetOwner(owner))
-
-	nftOwner, err := k.GetOwner(ctx, nft.GetCreator()).DeleteID(denom, nft.GetID())
-	if err != nil {
-		return err
-	}
-
-	k.SetOwner(ctx, nftOwner)
 
 	collection, err = collection.UpdateNFT(nft)
 	if err != nil {
