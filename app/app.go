@@ -102,7 +102,7 @@ func MakeAminoCodec() *codec.LegacyAmino {
 
 type versionSetter struct {}
 
-func (vs *versionSetter) SetProtocolVersion(version int64) {}
+func (vs *versionSetter) SetProtocolVersion(version uint64) {}
 
 type newApp struct {
 	*bam.BaseApp
@@ -204,7 +204,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	binaryCdc := codec.NewProtoCodec(encodingConfig.InterfaceRegistry)
 
 	// func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc codec.BinaryCodec, homePath string, vs xp.ProtocolVersionSetter) Keeper {
-	app.upgradeKeeper = upgradeKeeper.NewKeeper(upgradesMap, keys[upgradeTypes.StoreKey], binaryCdc , "/upgrades", versionSetter{})
+	app.upgradeKeeper = upgradeKeeper.NewKeeper(upgradesMap, keys[upgradeTypes.StoreKey], binaryCdc , "/upgrades", &versionSetter{})
 
 	app.capabilityKeeper = capabilityKeeper.NewKeeper(app.appCodec, keys[capabilityTypes.StoreKey], memKeys[capabilityTypes.MemStoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.StoreKey)
@@ -379,10 +379,10 @@ func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 }
 
 func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	return app.mm.BeginBlock(ctx, req)
+	return app.BeginBlock(req)
 }
 func (app *newApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+	return app.EndBlock(req)
 }
 func (app *newApp) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
