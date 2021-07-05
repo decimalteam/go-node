@@ -25,6 +25,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	stakingCli "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/client/cli"
@@ -99,9 +100,10 @@ func (AppModuleBasic) CreateValidatorMsgHelpers(ipDefault string) (
 }
 
 // PrepareFlagsForTxCreateValidator - used for gen-tx
-func (AppModuleBasic) PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID,
-	chainID string, valPubKey crypto.PubKey) {
+func (AppModuleBasic) PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey) (stakingCli.TxCreateValidatorConfig, error){
 	cli.PrepareFlagsForTxCreateValidator(config, nodeID, chainID, valPubKey)
+
+	return stakingCli.TxCreateValidatorConfig{}, nil
 }
 
 // BuildCreateValidatorMsg - used for gen-tx
