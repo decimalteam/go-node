@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	types3 "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	types2 "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"io"
 	"os"
 
@@ -51,6 +53,8 @@ func main() {
 		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome)
 
+	cdc := initClientCtx.JSONCodec
+
 	_config := sdk.GetConfig()
 	_config.SetCoinType(60)
 	_config.SetFullFundraiserPath("44'/60'/0'/0/0")
@@ -87,15 +91,15 @@ func main() {
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(ctx, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, bankTypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		//func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxEncodingConfig, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
 		genutilcli.GenTxCmd(
 			ctx, encodingConfig.TxConfig, app.ModuleBasics, validator.AppModuleBasic{},
-			authtypes.GenesisAccountIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
+			bankTypes.GenesisBalancesIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
 		genutilcli.GenDeclareCandidateTxCmd(
-			ctx, app.ModuleBasics, validator.AppModuleBasic{},
-			authtypes.GenesisAccountIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
+			ctx, app.ModuleBasics, validator.AppModuleBasic{},  app.DefaultNodeHome, app.DefaultCLIHome,
 		),
-		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
+		genutilcli.ValidateGenesisCmd(ctx, app.ModuleBasics),
 		// AddGenesisAccountCmd allows users to add accounts to the genesis file
 		addGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome),
 		fixAppHashError(ctx, app.DefaultNodeHome),
@@ -153,7 +157,7 @@ const (
 )
 
 // addGenesisAccountCmd returns add-genesis-account cobra Command.
-func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
+func addGenesisAccountCmd(ctx *server.Context, cdc codec.JSONCodec,
 	defaultNodeHome, defaultClientHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-genesis-account [address_or_key_name] [coin][,[coin]]",
@@ -170,12 +174,13 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 					return err
 				}
 
-				info, err := kb.Export(args[0])
+				// todo
+				_, err = kb.Export(args[0])
 				if err != nil {
 					return err
 				}
 
-				addr = info.GetAddress()
+				//addr = info.GetAddress()
 			}
 
 			coins, err := sdk.ParseCoinsNormalized(args[1])
@@ -193,7 +198,7 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 			// create concrete account type based on input parameters
 			var genAccount authtypes.GenesisAccount
 
-			balances := bankTypes.Balance{
+			_ = bankTypes.Balance{
 				Address: addr.String(),
 				Coins:   coins.Sort(),
 			}
@@ -242,19 +247,15 @@ func addGenesisAccountCmd(ctx *server.Context, cdc *codec.LegacyAmino,
 			// accounts afterwards.
 			authGenState.Accounts = append(authGenState.Accounts, genAccount)
 
-			var accounts authtypes.GenesisAccounts
-
-			cdc.Um
-
 			authGenState.Accounts = authtypes.SanitizeGenesisAccounts(authGenState.Accounts)
 
-			authGenStateBz, err := cdc.MarshalJSON(authGenState)
+			authGenStateBz, err := json.Marshal(authGenState)
 			if err != nil {
 				return fmt.Errorf("failed to marshal auth genesis state: %w", err)
 			}
 			appState[authtypes.ModuleName] = authGenStateBz
 
-			appStateJSON, err := cdc.MarshalJSON(appState)
+			appStateJSON, err := json.Marshal(appState)
 			if err != nil {
 				return err
 			}

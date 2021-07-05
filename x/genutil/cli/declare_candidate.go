@@ -14,19 +14,16 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/genutil/types"
-
-	"bitbucket.org/decimalteam/go-node/x/genutil"
 )
 
 // GenDeclareCandidateTxCmd builds and prints transaction to declare validator candidate.
 // nolint: errcheck
-func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
-	genAccIterator types.GenesisAccountsIterator, defaultNodeHome, defaultCLIHome string) *cobra.Command {
+func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh StakingMsgBuildingHelpers, defaultNodeHome, defaultCLIHome string) *cobra.Command {
 
 	ipDefault, _ := server.ExternalIP()
 	fsCreateValidator, flagNodeID, flagPubKey, flagAmount, defaultsDesc := smbh.CreateValidatorMsgHelpers(ipDefault)
@@ -43,8 +40,6 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-
-			cdc := clientCtx.JSONCodec
 
 			config := ctx.Config
 			config.SetRoot(viper.GetString(flags.FlagHome))
