@@ -94,6 +94,20 @@ func (k Keeper) ExistTokenURI(ctx sdk.Context, tokenURI string) bool {
 	return store.Has(tokenURIKey)
 }
 
+func (k Keeper) SetTokenIDIndex(ctx sdk.Context, id string) {
+	store := ctx.KVStore(k.storeKey)
+	tokenIDKey := types.GetTokenIDKey(id)
+
+	store.Set(tokenIDKey, []byte{})
+}
+
+func (k Keeper) ExistTokenID(ctx sdk.Context, id string) bool {
+	store := ctx.KVStore(k.storeKey)
+	tokenIDKey := types.GetTokenIDKey(id)
+
+	return store.Has(tokenIDKey)
+}
+
 // MintNFT mints an NFT and manages that NFTs existence within Collections and Owners
 func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk.Int,
 	creator, owner sdk.AccAddress, tokenURI string, allowMint bool) (int64, error) {
@@ -101,17 +115,6 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 	nft, err := k.GetNFT(ctx, denom, id)
 	if err == nil {
 		reserve = nft.GetReserve()
-	}
-
-	err = k.ReserveTokens(ctx,
-		sdk.NewCoins(
-			sdk.NewCoin(
-				k.baseDenom,
-				reserve.Mul(quantity), // reserve * quantity
-			)),
-		creator)
-	if err != nil {
-		return 0, err
 	}
 
 	lastSubTokenID := k.GetLastSubTokenID(ctx, denom, id)
@@ -136,6 +139,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 		}
 	} else {
 		collection = types.NewCollection(denom, types.NewNFTs(nft))
+		k.SetTokenIDIndex(ctx, id)
 	}
 	k.SetCollection(ctx, denom, collection)
 
@@ -146,6 +150,17 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 	}
 
 	k.SetLastSubTokenID(ctx, denom, nft.GetID(), newLastSubTokenID)
+
+	err = k.ReserveTokens(ctx,
+		sdk.NewCoins(
+			sdk.NewCoin(
+				k.baseDenom,
+				reserve.Mul(quantity), // reserve * quantity
+			)),
+		creator)
+	if err != nil {
+		return 0, err
+	}
 
 	ownerIDCollection, _ := k.GetOwnerByDenom(ctx, nft.GetCreator(), denom)
 	ownerIDCollection = ownerIDCollection.AddID(nft.GetID())

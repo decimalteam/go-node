@@ -121,6 +121,9 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 		if k.ExistTokenURI(ctx, msg.TokenURI) {
 			return nil, ErrNotUniqueTokenURI()
 		}
+		if k.ExistTokenID(ctx, msg.ID) {
+			return nil, ErrNotUniqueTokenID()
+		}
 	}
 
 	lastSubTokenID, err := k.MintNFT(ctx, msg.Denom, msg.ID, msg.Reserve, msg.Quantity, msg.Sender, msg.Recipient, msg.TokenURI, msg.AllowMint)
