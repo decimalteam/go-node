@@ -2,8 +2,8 @@ package types
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -48,7 +48,7 @@ type Stake struct {
 }
 
 // String returns a human readable string representation of a validator.
-func (v Validator) String() string {
+func (v *Validator) String() string {
 	bechConsPubKey, err := sdk.Bech32ifyAddressBytes(sdk.Bech32PrefixConsPub, v.PubKey.Bytes())
 	if err != nil {
 		panic(err)
@@ -71,31 +71,31 @@ func (v Validator) String() string {
 }
 
 //this is a helper struct used for JSON de- and encoding only
-type bechValidator struct {
-	ValAddress              sdk.ValAddress `json:"val_address" yaml:"val_address"`
-	PubKey                  string         `json:"pub_key" yaml:"pub_key"`
-	Tokens                  sdk.Int        `json:"stake_coins" yaml:"stake_coins"`
-	Status                  BondStatus     `json:"status" yaml:"status"`
-	Commission              sdk.Dec        `json:"commission" yaml:"commission"`
-	Jailed                  bool           `json:"jailed" yaml:"jailed"`
-	UnbondingCompletionTime time.Time      `json:"unbonding_completion_time" yaml:"unbonding_completion_time"`
-	UnbondingHeight         int64          `json:"unbonding_height" yaml:"unbonding_height"`
-	Description             Description    `json:"description" yaml:"description"`
-	AccumRewards            sdk.Int        `json:"accum_rewards" yaml:"accum_rewards"`
-	RewardAddress           sdk.AccAddress `json:"reward_address" yaml:"reward_address"`
-	Online                  bool           `json:"online" yaml:"online"`
-}
+//type bechValidator struct {
+//	ValAddress              sdk.ValAddress `json:"val_address" yaml:"val_address"`
+//	PubKey                  string         `json:"pub_key" yaml:"pub_key"`
+//	Tokens                  sdk.Int        `json:"stake_coins" yaml:"stake_coins"`
+//	Status                  BondStatus     `json:"status" yaml:"status"`
+//	Commission              sdk.Dec        `json:"commission" yaml:"commission"`
+//	Jailed                  bool           `json:"jailed" yaml:"jailed"`
+//	UnbondingCompletionTime time.Time      `json:"unbonding_completion_time" yaml:"unbonding_completion_time"`
+//	UnbondingHeight         int64          `json:"unbonding_height" yaml:"unbonding_height"`
+//	Description             Description    `json:"description" yaml:"description"`
+//	AccumRewards            sdk.Int        `json:"accum_rewards" yaml:"accum_rewards"`
+//	RewardAddress           sdk.AccAddress `json:"reward_address" yaml:"reward_address"`
+//	Online                  bool           `json:"online" yaml:"online"`
+//}
 
 // MarshalJSON marshals the validator to JSON using Bech32
 func (v Validator) MarshalJSON() ([]byte, error) {
-	bechConsPubKey, err := sdk.Bech32ifyAddressBytes(sdk.Bech32PrefixConsPub, v.PubKey.Bytes())
-	if err != nil {
-		return nil, err
-	}
+	//bechConsPubKey, err := sdk.Bech32ifyAddressBytes(sdk.Bech32PrefixConsPub, v.PubKey.Bytes())
+	//if err != nil {
+	//	return nil, err
+	//}
 
-	return ModuleCdc.MarshalJSON(bechValidator{
+	return ModuleCdc.MarshalJSON(&BechValidator{
 		ValAddress:              v.ValAddress,
-		PubKey:                  bechConsPubKey,
+		PubKey:                  v.PubKey, // todo
 		Jailed:                  v.Jailed,
 		Status:                  v.Status,
 		Tokens:                  v.Tokens,
@@ -106,23 +106,23 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 		RewardAddress:           v.RewardAddress,
 		Online:                  v.Online,
 		AccumRewards:            v.AccumRewards,
-	}), nil
+	})
 }
 
 // UnmarshalJSON unmarshals the validator from JSON using Bech32
 func (v *Validator) UnmarshalJSON(data []byte) error {
-	bv := &bechValidator{}
-	if err := codec.AminoCodec.Unmarshal(data, bv); err != nil {
+	bv := &BechValidator{}
+	if err := json.Unmarshal(data, bv); err != nil {
 		return err
 	}
-	consPubKey, err := sdk.GetFromBech32(sdk.Bech32PrefixConsPub, bv.PubKey)
+	//consPubKey, err := sdk.GetFromBech32(sdk.Bech32PrefixConsPub, bv.PubKey.String())
+	//if err != nil {
+	//	return err
+	//}
 
-	if err != nil {
-		return err
-	}
 	*v = Validator{
 		ValAddress:              bv.ValAddress,
-		PubKey:                  consPubKey,
+		PubKey:                  bv.PubKey, // todo
 		Jailed:                  bv.Jailed,
 		Tokens:                  bv.Tokens,
 		Status:                  bv.Status,
@@ -140,18 +140,18 @@ func (v *Validator) UnmarshalJSON(data []byte) error {
 // custom marshal yaml function due to consensus pubkey
 func (v Validator) MarshalYAML() (interface{}, error) {
 	bs, err := yaml.Marshal(struct {
-		ValAddress              sdk.ValAddress
-		RewardAddress           sdk.AccAddress
-		PubKey                  string
-		Jailed                  bool
-		Status                  BondStatus
-		Tokens                  sdk.Int
-		Description             Description
-		UnbondingHeight         int64
-		UnbondingCompletionTime time.Time
-		Commission              sdk.Dec
-		AccumRewards            sdk.Int
-		Online                  bool
+		ValAddress /*sdk.ValAddress*/    string
+		RewardAddress /*sdk.AccAddress*/ string
+		PubKey                           string
+		Jailed                           bool
+		Status                           BondStatus
+		Tokens                           sdk.Int
+		Description                      Description
+		UnbondingHeight                  int64
+		UnbondingCompletionTime          time.Time
+		Commission                       sdk.Dec
+		AccumRewards                     sdk.Int
+		Online                           bool
 	}{
 		ValAddress:              v.ValAddress,
 		RewardAddress:           v.RewardAddress,
@@ -181,10 +181,17 @@ func (v Validator) SharesFromTokens(tokens sdk.Int, valTokens sdk.Int, delTokens
 	return delTokens.MulInt(tokens).QuoInt(valTokens), nil
 }
 
-func (v Validator) IsJailed() bool               { return v.Jailed }
-func (v Validator) GetMoniker() string           { return v.Description.Moniker }
-func (v Validator) GetStatus() BondStatus        { return v.Status }
-func (v Validator) GetOperator() sdk.ValAddress  { return v.ValAddress }
+func (v Validator) IsJailed() bool        { return v.Jailed }
+func (v Validator) GetMoniker() string    { return v.Description.Moniker }
+func (v Validator) GetStatus() BondStatus { return v.Status }
+func (v Validator) GetOperator() sdk.ValAddress {
+	valAddr, err := sdk.ValAddressFromBech32(v.ValAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return valAddr
+}
 func (v Validator) GetConsPubKey() types.PubKey  { return v.PubKey }
 func (v Validator) GetConsAddr() sdk.ConsAddress { return sdk.ConsAddress(v.PubKey.Address()) }
 func (v Validator) GetTokens() sdk.Int           { return v.Tokens }
@@ -213,7 +220,7 @@ func (v Validators) Len() int {
 
 // Implements sort interface
 func (v Validators) Less(i, j int) bool {
-	return bytes.Compare(v[i].ValAddress, v[j].ValAddress) == -1
+	return bytes.Compare([]byte(v[i].ValAddress), []byte(v[j].ValAddress)) == -1
 }
 
 // Implements sort interface
@@ -328,7 +335,7 @@ func (b BondStatus) String() string {
 	}
 }
 
-func NewValidator(valAddress sdk.ValAddress, pubKey types.PubKey, commission sdk.Dec, rewardAddress sdk.AccAddress, description Description) Validator {
+func NewValidator(valAddress string, pubKey types.PubKey, commission sdk.Dec, rewardAddress string, description Description) Validator {
 	return Validator{
 		ValAddress:              valAddress,
 		PubKey:                  pubKey,
@@ -420,8 +427,18 @@ func (v Validator) ABCIValidatorUpdate() abci.ValidatorUpdate {
 // ABCIValidatorUpdateZero returns an abci.ValidatorUpdate from a staking validator type
 // with zero power used for validator updates.
 func (v Validator) ABCIValidatorUpdateZero() abci.ValidatorUpdate {
+	pk, err := cryptocodec.ToTmPubKeyInterface(v.PubKey)
+	if err != nil {
+		panic(err)
+	}
+
+	validator := &tmtypes.Validator{
+		Address: tmtypes.Address(v.ValAddress),
+		PubKey:  pk,
+	}
+
 	return abci.ValidatorUpdate{
-		PubKey: tmtypes.TM2PB.ValidatorUpdate(v).PubKey,
+		PubKey: tmtypes.TM2PB.ValidatorUpdate(validator).PubKey,
 		Power:  0,
 	}
 }
@@ -460,7 +477,7 @@ func (v Validator) AddAccumReward(reward sdk.Int) Validator {
 
 func (v Validator) TestEquivalent(v2 Validator) bool {
 	return v.PubKey.Equals(v2.PubKey) &&
-		bytes.Equal(v.ValAddress, v2.ValAddress) &&
+		bytes.Equal([]byte(v.ValAddress), []byte(v2.ValAddress)) &&
 		v.Status.Equal(v2.Status) &&
 		v.Tokens.Equal(v2.Tokens) &&
 		v.Description == v2.Description &&

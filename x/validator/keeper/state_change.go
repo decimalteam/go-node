@@ -29,8 +29,6 @@ import (
 // are returned to Tendermint.
 func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.ValidatorUpdate, error) {
 	var updates []abci.ValidatorUpdate
-	var err error
-
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Printf("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
@@ -64,6 +62,11 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		validator := validators[i]
 
+		valAddr, err := sdk.ValAddressFromBech32(validator.ValAddress)
+		if err != nil {
+			return nil, err
+		}
+
 		if validator.Jailed {
 			return nil, errors.New("ApplyAndReturnValidatorSetUpdates: should never retrieve a jailed validator from the power store")
 		}
@@ -78,11 +81,11 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		switch {
 		case validator.IsUnbonded():
 			if validator.Online {
-				validator, err = k.unbondedToBonded(ctx, validator)
+				validator, err = k.unbondedToBonded(ctx, valAddr, validator)
 				if err != nil {
 					return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 				}
-				delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+				delegations := k.GetValidatorDelegations(ctx, valAddr)
 				for _, delegation := range delegations {
 					if _, ok := delegation.(types.Delegation); ok {
 						amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(delegation.GetCoin())
@@ -121,7 +124,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			)
 
 			// set validator power on lookup index
-			err = k.SetLastValidatorPower(ctx, validator.ValAddress, newPower)
+			err = k.SetLastValidatorPower(ctx, valAddr, newPower)
 			if err != nil {
 				return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 			}
@@ -142,6 +145,11 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		validator, err := k.GetValidator(ctx, valAddrBytes)
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
+		}
+
+		valAddr, err := sdk.ValAddressFromBech32(validator.ValAddress)
+		if err != nil {
+			return nil, err
 		}
 
 		if validator.Jailed {
@@ -166,7 +174,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			)
 		}
 
-		delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+		delegations := k.GetValidatorDelegations(ctx, valAddr)
 		for _, delegation := range delegations {
 			if _, ok := delegation.(types.Delegation); ok {
 				amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(delegation.GetCoin())
@@ -187,7 +195,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
 		// delete from the bonded validator index
-		k.DeleteLastValidatorPower(ctx, validator.ValAddress)
+		k.DeleteLastValidatorPower(ctx, valAddr)
 
 		// update the validator set
 		updates = append(updates, validator.ABCIValidatorUpdateZero())
@@ -253,22 +261,22 @@ func (k Keeper) getLastValidatorsByAddr(ctx sdk.Context) validatorsByAddr {
 	return last
 }
 
-func (k Keeper) unbondedToBonded(ctx sdk.Context, validator types.Validator) (types.Validator, error) {
+func (k Keeper) unbondedToBonded(ctx sdk.Context, valAddr sdk.ValAddress, validator types.Validator) (types.Validator, error) {
 	if !validator.IsUnbonded() {
 		return types.Validator{}, fmt.Errorf("bad state transition unbondedToBonded, validator: %v\n", validator)
 	}
-	return k.bondValidator(ctx, validator)
+	return k.bondValidator(ctx, valAddr, validator)
 }
 
-func (k Keeper) unbondingToBonded(ctx sdk.Context, validator types.Validator) (types.Validator, error) {
+func (k Keeper) unbondingToBonded(ctx sdk.Context, valAddr sdk.ValAddress, validator types.Validator) (types.Validator, error) {
 	if !validator.IsUnbonding() {
 		return types.Validator{}, fmt.Errorf("bad state transition unbondingToBonded, validator: %v\n", validator)
 	}
-	return k.bondValidator(ctx, validator)
+	return k.bondValidator(ctx, valAddr, validator)
 }
 
 // perform all the store operations for when a validator status becomes bonded
-func (k Keeper) bondValidator(ctx sdk.Context, validator types.Validator) (types.Validator, error) {
+func (k Keeper) bondValidator(ctx sdk.Context, valAddr sdk.ValAddress, validator types.Validator) (types.Validator, error) {
 
 	// delete the validator by power index, as the key will change
 	k.DeleteValidatorByPowerIndex(ctx, validator)
@@ -289,7 +297,7 @@ func (k Keeper) bondValidator(ctx sdk.Context, validator types.Validator) (types
 		return types.Validator{}, err
 	}
 
-	k.AfterValidatorBonded(ctx, validator.GetConsAddr(), validator.ValAddress)
+	k.AfterValidatorBonded(ctx, validator.GetConsAddr(), valAddr)
 
 	return validator, nil
 }
@@ -302,7 +310,12 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, validator types.Validator) (t
 }
 
 func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator) {
-	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+	valAddr, err := sdk.ValAddressFromBech32(validator.ValAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	delegations := k.GetValidatorDelegations(ctx, valAddr)
 	if len(delegations) <= int(k.MaxDelegations(ctx)) {
 		return
 
@@ -370,8 +383,13 @@ func (k Keeper) beginUnbondingValidator(ctx sdk.Context, validator types.Validat
 	}
 	k.SetValidatorByPowerIndex(ctx, validator)
 
+	valAddr, err := sdk.ValAddressFromBech32(validator.ValAddress)
+	if err != nil {
+		return types.Validator{}, err
+	}
+
 	// Adds to unbonding validator queue
-	err = k.InsertValidatorQueue(ctx, validator)
+	err = k.InsertValidatorQueue(ctx, valAddr, validator)
 	if err != nil {
 		return types.Validator{}, err
 	}

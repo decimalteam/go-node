@@ -95,7 +95,7 @@ func GetValidatorsByPowerIndexKey(validator Validator, power sdk.Int) []byte {
 
 	key[0] = ValidatorsByPowerIndexKey
 	copy(key[1:powerBytesLen+1], powerBytes)
-	operAddrInvr := sdk.CopyBytes(validator.ValAddress)
+	operAddrInvr := sdk.CopyBytes([]byte(validator.ValAddress))
 	for i, b := range operAddrInvr {
 		operAddrInvr[i] = ^b
 	}

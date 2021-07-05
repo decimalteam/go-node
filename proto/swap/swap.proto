@@ -11,13 +11,10 @@ message Swap {
     (gogoproto.jsontag) = "transfer_type"
   ];
   bytes HashedSecret = 2 [
-    (gogoproto.customtype) = "Hash",
-    (gogoproto.nullable) = false,
+    (gogoproto.casttype) = "Hash",
     (gogoproto.jsontag) = "hashed_secret"
   ];
-  bytes From = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string From = 3 [
     (gogoproto.jsontag) = "from"
   ];
   string Recipient = 4 [
@@ -39,14 +36,12 @@ message Swap {
 }
 
 message Params {
-  bytes LockedTimeOut = 1 [
-    (gogoproto.customtype) = "time.Duration",
-    (gogoproto.nullable) = false,
+  int64 LockedTimeOut = 1 [
+    (gogoproto.casttype) = "time.Duration",
     (gogoproto.jsontag) = "locked_time_out"
   ];
-  bytes LockedTimeIn = 2 [
-    (gogoproto.customtype) = "time.Duration",
-    (gogoproto.nullable) = false,
+  int64 LockedTimeIn = 2 [
+    (gogoproto.casttype) = "time.Duration",
     (gogoproto.jsontag) = "locked_time_in"
   ];
 }

@@ -210,6 +210,16 @@ func (collections *Collections) UnmarshalJSON(b []byte) error {
 
 	return nil
 }
+func (collections Collections) Size() int {
+	return len(collections)
+}
+func (collections Collections) MarshalTo(b []byte) ([]byte, error) {
+	return b, nil
+}
+
+func (collections Collections) Unmarshal(bytes []byte) error {
+	return collections.UnmarshalJSON(bytes[:])
+}
 
 //-----------------------------------------------------------------------------
 // Sort & Findable interfaces
@@ -230,3 +240,4 @@ func (collections Collections) Sort() Collections {
 	sort.Sort(collections)
 	return collections
 }
+

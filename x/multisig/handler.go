@@ -45,14 +45,25 @@ func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) 
 	}
 
 	// Ensure multisig wallet with the address does not exist
-	existingWallet := keeper.GetWallet(ctx, wallet.Address.String())
-	if !existingWallet.Address.Empty() {
+	existingWallet := keeper.GetWallet(ctx, wallet.Address)
+
+	walladdr, err := sdk.AccAddressFromBech32(existingWallet.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	if !walladdr.Empty() {
 		msgError := fmt.Sprintf("Multi-signature wallet with address %s already exists", existingWallet.Address)
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 	}
 
+	accAddr, err := sdk.AccAddressFromBech32(wallet.Address)
+	if err != nil {
+		return nil, err
+	}
+
 	// Ensure account with multisig address does not exist
-	existingAccount := keeper.AccountKeeper.GetAccount(ctx, wallet.Address)
+	existingAccount := keeper.AccountKeeper.GetAccount(ctx, accAddr)
 	if existingAccount != nil && !existingAccount.GetAddress().Empty() {
 		msgError := fmt.Sprintf("Account with address %s already exists", existingAccount.GetAddress())
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
@@ -65,11 +76,11 @@ func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 		sdk.NewAttribute(types2.AttributeKeyOwners, helpers.JoinAccAddresses(msg.Owners)),
 		sdk.NewAttribute(types2.AttributeKeyWeights, helpers.JoinUints(msg.Weights)),
 		sdk.NewAttribute(types2.AttributeKeyThreshold, strconv.FormatUint(uint64(msg.Threshold), 10)),
-		sdk.NewAttribute(types2.AttributeKeyWallet, wallet.Address.String()),
+		sdk.NewAttribute(types2.AttributeKeyWallet, walladdr.String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
@@ -77,15 +88,20 @@ func handleMsgCreateWallet(ctx sdk.Context, keeper Keeper, msg MsgCreateWallet) 
 
 func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTransaction) (*sdk.Result, error) {
 	// Retrieve multisig wallet from the KVStore
-	wallet := keeper.GetWallet(ctx, msg.Wallet.String())
-	if wallet.Address.Empty() {
+	wallet := keeper.GetWallet(ctx, msg.Wallet)
+	if len(wallet.Address) == 0 {
 		msgError := fmt.Sprintf("No registered multi-signature wallet with address %s", msg.Wallet)
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 	}
 
+	accAddr, err := sdk.AccAddressFromBech32(wallet.Address)
+	if err != nil {
+		return nil, err
+	}
+
 	// Retrieve coins hold on the multisig wallet
 	var walletCoins sdk.Coins
-	if walletAccount := keeper.AccountKeeper.GetAccount(ctx, wallet.Address); walletAccount != nil {
+	if walletAccount := keeper.AccountKeeper.GetAccount(ctx, accAddr); walletAccount != nil {
 		walletCoins = keeper.BankKeeper.GetAllBalances(ctx, walletAccount.GetAddress())
 	} else {
 		walletCoins = sdk.NewCoins()
@@ -103,7 +119,7 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 		msg.Wallet,
 		msg.Receiver,
 		msg.Coins,
-		make([]sdk.AccAddress, len(wallet.Owners)),
+		wallet.Owners,
 		ctx.BlockHeight(),
 		ctx.TxBytes(),
 	)
@@ -129,9 +145,9 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-		sdk.NewAttribute(types2.AttributeKeyWallet, msg.Wallet.String()),
-		sdk.NewAttribute(types2.AttributeKeyReceiver, msg.Receiver.String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+		sdk.NewAttribute(types2.AttributeKeyWallet, msg.Wallet),
+		sdk.NewAttribute(types2.AttributeKeyReceiver, msg.Receiver),
 		sdk.NewAttribute(types2.AttributeKeyCoins, msg.Coins.String()),
 		sdk.NewAttribute(types2.AttributeKeyTransaction, transaction.ID),
 	))
@@ -141,24 +157,41 @@ func handleMsgCreateTransaction(ctx sdk.Context, keeper Keeper, msg MsgCreateTra
 }
 
 func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransaction, emitEvents bool) (*sdk.Result, error) {
+	senderacc, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+
 	// Retrieve multisig transaction from the KVStore
 	transaction := keeper.GetTransaction(ctx, msg.TxID)
-	if transaction.Wallet.Empty() {
+
+	txwalletaddr, err := sdk.AccAddressFromBech32(transaction.Wallet)
+	if err != nil {
+		return nil, err
+	}
+
+	if txwalletaddr.Empty() {
 		msgError := fmt.Sprintf("No registered multi-signature transaction with ID %s", msg.TxID)
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 	}
 
 	// Retrieve multisig wallet from the KVStore
-	wallet := keeper.GetWallet(ctx, transaction.Wallet.String())
-	if wallet.Address.Empty() {
+	wallet := keeper.GetWallet(ctx, transaction.Wallet)
+
+	walladrr, err := sdk.AccAddressFromBech32(wallet.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	if walladrr.Empty() {
 		msgError := fmt.Sprintf("No registered multi-signature wallet with address %s", transaction.Wallet)
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 	}
 
 	// Calculate current weight of signatures
-	confirmations := uint64(0) // ?uint64?
+	confirmations := uint64(0)
 	for i, c := 0, len(wallet.Owners); i < c; i++ {
-		if !transaction.Signers[i].Empty() {
+		if len(transaction.Signers[i]) != 0 {
 			confirmations += wallet.Weights[i]
 		}
 	}
@@ -172,8 +205,19 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 	// Append the signature to the multisig transaction
 	weight := uint64(0)
 	for i, c := 0, len(wallet.Owners); i < c; i++ {
-		if wallet.Owners[i].Equals(msg.Sender) {
-			if !transaction.Signers[i].Empty() {
+		owneraddr, err := sdk.AccAddressFromBech32(wallet.Owners[i])
+		if err != nil {
+			return nil, err
+		}
+
+		if owneraddr.Equals(senderacc) {
+			txsigneraddr, err := sdk.AccAddressFromBech32(transaction.Signers[i])
+
+			if err != nil {
+				return nil, err
+			}
+
+			if !txsigneraddr.Empty() {
 				msgError := fmt.Sprintf("Unable to sign multi-signature transaction since signer with address %s is already signed it", msg.Sender)
 				return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
 			}
@@ -191,11 +235,16 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 	// Save updated multisig transaction to the KVStore
 	keeper.SetTransaction(ctx, transaction)
 
+	txreceiveraddr, err := sdk.AccAddressFromBech32(transaction.Receiver)
+	if err != nil {
+		return nil, err
+	}
+
 	// Check if new weight of signatures is enough to perform multisig transaction
 	confirmed := confirmations >= wallet.Threshold
 	if confirmed {
 		// Perform transaction
-		err := keeper.BankKeeper.SendCoins(ctx, wallet.Address, transaction.Receiver, transaction.Coins)
+		err = keeper.BankKeeper.SendCoins(ctx, walladrr, txreceiveraddr, transaction.Coins)
 		if err != nil {
 			msgError := fmt.Sprintf("Unable to perform multi-signature transaction %s: %s", transaction.ID, err.Error())
 			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, msgError)
@@ -207,8 +256,8 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-			sdk.NewAttribute(types2.AttributeKeyWallet, wallet.Address.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, senderacc.String()),
+			sdk.NewAttribute(types2.AttributeKeyWallet, walladrr.String()),
 			sdk.NewAttribute(types2.AttributeKeyTransaction, msg.TxID),
 			sdk.NewAttribute(types2.AttributeKeySignerWeight, strconv.FormatUint(weight, 10)),
 			sdk.NewAttribute(types2.AttributeKeyConfirmations, strconv.FormatUint(confirmations, 10)),

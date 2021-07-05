@@ -16,7 +16,7 @@ import (
 //	Refunded     bool           `json:"refunded"`
 //}
 
-func NewSwap(transferType TransferType, hash Hash, from sdk.AccAddress, recipient string, amount sdk.Coins, timestamp uint64) Swap {
+func NewSwap(transferType TransferType, hash Hash, from string, recipient string, amount sdk.Coins, timestamp uint64) Swap {
 	return Swap{TransferType: transferType, HashedSecret: hash, From: from, Recipient: recipient, Amount: amount, Timestamp: timestamp, Redeemed: false, Refunded: false}
 }
 
@@ -37,6 +37,21 @@ func (h *Hash) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (h *Hash) Size() int {
+	s, _ := h.MarshalJSON()
+	return len(s)
+}
+
+func (h Hash) MarshalTo(bytes []byte) ([]byte, error) {
+	bytes, err := h.MarshalJSON()
+
+	return bytes, err
+}
+
+func (h Hash) Unmarshal(bytes []byte) error {
+	return h.UnmarshalJSON(bytes)
+}
+
 type Secret []byte
 
 func (s Secret) MarshalJSON() ([]byte, error) {
@@ -50,4 +65,19 @@ func (s *Secret) UnmarshalJSON(b []byte) error {
 	}
 	*s = decoded
 	return nil
+}
+
+func (s Secret) Size() int {
+	raw, _ := s.MarshalJSON()
+
+	return len(raw)
+}
+
+func (s Secret) MarshalTo(bytes []byte) ([]byte, error) {
+	// todo
+	return bytes, nil
+}
+
+func (s Secret) Unmarshal(bytes []byte) error {
+	return s.UnmarshalJSON(bytes)
 }

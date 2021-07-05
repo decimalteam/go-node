@@ -4,6 +4,18 @@ package nft;
 option go_package = "bitbucket.org/decimalteam/go-node/x/nft/types";
 
 import "gogoproto/gogo.proto";
+import "nft/nft.proto";
 
 message GenesisState {
+  repeated Owner Owners = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "collections",
+    (gogoproto.moretags) = "yaml:\"collections\""
+  ];
+  bytes Collections = 2 [
+    (gogoproto.customtype) = "Collections",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "id_collections",
+    (gogoproto.moretags) = "yaml:\"id_collections\""
+  ];
 }

@@ -47,7 +47,7 @@ func NewQueryDelegatorParams(delegatorAddr sdk.AccAddress) QueryDelegatorParams 
 
 func NewQueryValidatorParams(validatorAddr sdk.ValAddress) QueryValidatorParams {
 	return QueryValidatorParams{
-		ValidatorAddr: validatorAddr,
+		ValidatorAddr: validatorAddr.String(),
 	}
 }
 

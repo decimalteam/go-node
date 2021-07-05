@@ -6,7 +6,7 @@ option go_package = "bitbucket.org/decimalteam/go-node/x/coin/types";
 import "gogoproto/gogo.proto";
 
 message Coin {
-  option (gogoproto.equal) = false;
+  option (gogoproto.equal) = true;
   option (gogoproto.goproto_getters) = false;
   option (gogoproto.goproto_stringer) = false;
 
@@ -31,9 +31,9 @@ message Coin {
     (gogoproto.jsontag) = "volume",
     (gogoproto.moretags) = "yaml:\"volume\""
   ];
-  bytes Creator = 7 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Creator = 7 [
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "creator",
     (gogoproto.moretags) = "yaml:\"creator\""
   ];

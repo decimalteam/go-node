@@ -13,8 +13,8 @@ func (k Keeper) GetOwners(ctx sdk.Context) (owners []types2.Owner) {
 	var foundOwners = make(map[string]bool)
 	k.IterateOwners(ctx,
 		func(owner types2.Owner) (stop bool) {
-			if _, ok := foundOwners[owner.Address.String()]; !ok {
-				foundOwners[owner.Address.String()] = true
+			if _, ok := foundOwners[owner.Address]; !ok {
+				foundOwners[owner.Address] = true
 				owners = append(owners, owner)
 			}
 			return false
@@ -59,16 +59,21 @@ func (k Keeper) SetOwnerByDenom(ctx sdk.Context, owner sdk.AccAddress, denom str
 }
 
 // SetOwner sets an entire Owner
-func (k Keeper) SetOwner(ctx sdk.Context, owner types2.Owner) {
+func (k Keeper) SetOwner(ctx sdk.Context, addr sdk.AccAddress, owner types2.Owner) {
 	for _, idCollection := range owner.IDCollections {
-		k.SetOwnerByDenom(ctx, owner.Address, idCollection.Denom, idCollection.IDs)
+		k.SetOwnerByDenom(ctx, addr, idCollection.Denom, idCollection.IDs)
 	}
 }
 
 // SetOwners sets all Owners
 func (k Keeper) SetOwners(ctx sdk.Context, owners []types2.Owner) {
 	for _, owner := range owners {
-		k.SetOwner(ctx, owner)
+		ownerAddr, err := sdk.AccAddressFromBech32(owner.Address)
+		if err != nil {
+			continue
+		}
+
+		k.SetOwner(ctx, ownerAddr, owner)
 	}
 }
 

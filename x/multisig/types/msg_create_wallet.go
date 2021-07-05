@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -28,8 +27,8 @@ const (
 // NewMsgCreateWallet creates a new MsgCreateWallet instance.
 func NewMsgCreateWallet(sender sdk.AccAddress, owners []sdk.AccAddress, weights []uint64, threshold uint64) MsgCreateWallet {
 	return MsgCreateWallet{
-		Sender:    sender,
-		Owners:    owners,
+		Sender:    sender.String(),
+		Owners:    toStrAddrs(owners),
 		Weights:   weights,
 		Threshold: threshold,
 	}
@@ -46,7 +45,7 @@ func (msg *MsgCreateWallet) Type() string { return CreateWalletConst }
 // ValidateBasic performs basic validation of the message.
 func (msg *MsgCreateWallet) ValidateBasic() error {
 	// Validate sender
-	if msg.Sender.Empty() {
+	if len(msg.Sender) == 0 {
 		return sdkerrors.New(
 			DefaultCodespace,
 			InvalidSender,
@@ -79,21 +78,21 @@ func (msg *MsgCreateWallet) ValidateBasic() error {
 	// Validate owners (ensure there are no duplicates)
 	owners := make(map[string]bool, len(msg.Owners))
 	for i, c := 0, len(msg.Owners); i < c; i++ {
-		if msg.Owners[i].Empty() {
+		if len(msg.Owners[i]) == 0 {
 			return sdkerrors.New(
 				DefaultCodespace,
 				InvalidOwner,
 				"Invalid owner address: owner address cannot be empty",
 			)
 		}
-		if owners[msg.Owners[i].String()] {
+		if owners[msg.Owners[i]] {
 			return sdkerrors.New(
 				DefaultCodespace,
 				InvalidOwner,
 				fmt.Sprintf("Invalid owners: owner with address %s is duplicated", msg.Owners[i]),
 			)
 		}
-		owners[msg.Owners[i].String()] = true
+		owners[msg.Owners[i]] = true
 	}
 	// Validate weights
 	for i, c := 0, len(msg.Weights); i < c; i++ {
@@ -122,5 +121,7 @@ func (msg *MsgCreateWallet) GetSignBytes() []byte {
 
 // GetSigners returns the list of signers required to sign the message.
 func (msg *MsgCreateWallet) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	accAddr, _ := sdk.AccAddressFromBech32(msg.Sender)
+
+	return []sdk.AccAddress{accAddr}
 }

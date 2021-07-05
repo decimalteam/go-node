@@ -5,6 +5,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
 // DAO     {"address":"dx1pk2rurh73er88p032qrd6kq5xmu53thjylflsr","owners":["dx18tay9ayumxjun9sexlq4t3nvt7zts5typnyjdr","dx1w54s4wq8atjmmu4snv0tt72qpvtg38megw5ngn","dx19ws36j00axpk0ytumc20l9wyv0ae26zygk2z0f"],"weights":["1","1","1"],"threshold":"3"}
@@ -19,6 +20,11 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		if val.AccumRewards.IsZero() {
 			continue
 		}
+		validatorAddr, err := sdk.ValAddressFromBech32(val.ValAddress)
+		if err != nil {
+			return err
+		}
+
 		rewards := val.AccumRewards
 		accumRewards := rewards
 
@@ -26,7 +32,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 			sdk.NewEvent(
 				types.EventTypeProposerReward,
 				sdk.NewAttribute("accum_rewards", accumRewards.String()),
-				sdk.NewAttribute("accum_rewards_validator", val.ValAddress.String()),
+				sdk.NewAttribute("accum_rewards_validator", validatorAddr.String()),
 			),
 		)
 
@@ -40,7 +46,17 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		}
 
 		daoVal := rewards.ToDec().Mul(DAOCommission).TruncateInt()
-		err = k.CoinKeeper.BankKeeper.AddCoins(ctx, daoWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), daoVal)))
+
+		//err = k.CoinKeeper.BankKeeper.AddCoins(ctx, daoWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), daoVal)))
+		coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), daoVal))
+		if err := k.CoinKeeper.BankKeeper.MintCoins(ctx, minttypes.ModuleName, coins); err != nil {
+			panic(err)
+		}
+		if err != nil {
+			return err
+		}
+
+		err = k.CoinKeeper.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, daoWallet, coins)
 		if err != nil {
 			return err
 		}
@@ -50,12 +66,22 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 				types.EventTypeDAOReward,
 				sdk.NewAttribute(sdk.AttributeKeyAmount, daoVal.String()),
 				sdk.NewAttribute(types.AttributeKeyDAOAddress, daoWallet.String()),
-				sdk.NewAttribute(types.AttributeKeyValidator, val.ValAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
 			),
 		)
 
 		developVal := rewards.ToDec().Mul(DevelopCommission).TruncateInt()
-		err = k.CoinKeeper.BankKeeper.AddCoins(ctx, developWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), developVal)))
+		newCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), developVal))
+		//err = k.CoinKeeper.BankKeeper.AddCoins(ctx, developWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), developVal)))
+
+		if err := k.CoinKeeper.BankKeeper.MintCoins(ctx, minttypes.ModuleName, newCoins); err != nil {
+			panic(err)
+		}
+		if err != nil {
+			return err
+		}
+
+		err = k.CoinKeeper.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, developWallet, newCoins)
 		if err != nil {
 			return err
 		}
@@ -65,7 +91,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 				types.EventTypeDevelopReward,
 				sdk.NewAttribute(sdk.AttributeKeyAmount, developVal.String()),
 				sdk.NewAttribute(types.AttributeKeyDevelopAddress, developWallet.String()),
-				sdk.NewAttribute(types.AttributeKeyValidator, val.ValAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
 			),
 		)
 
@@ -73,7 +99,13 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		rewards = rewards.Sub(developVal)
 
 		rewardsVal := rewards.ToDec().Mul(val.Commission).TruncateInt()
-		err = k.CoinKeeper.UpdateBalance(ctx, k.BondDenom(ctx), rewardsVal, val.RewardAddress)
+
+		rewardAddr, err := sdk.AccAddressFromBech32(val.RewardAddress)
+		if err != nil {
+			return err
+		}
+
+		err = k.CoinKeeper.UpdateBalance(ctx, k.BondDenom(ctx), rewardsVal, rewardAddr)
 		if err != nil {
 			return err
 		}
@@ -81,15 +113,15 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 			sdk.NewEvent(
 				types.EventTypeCommissionReward,
 				sdk.NewAttribute(sdk.AttributeKeyAmount, rewardsVal.String()),
-				sdk.NewAttribute(types.AttributeKeyValidator, val.ValAddress.String()),
-				sdk.NewAttribute(types.AttributeKeyRewardAddress, val.RewardAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
+				sdk.NewAttribute(types.AttributeKeyRewardAddress, rewardAddr.String()),
 			),
 		)
 
 		rewards = rewards.Sub(rewardsVal)
 		remainder := rewards
 		totalStake := val.Tokens
-		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
+		delegations := k.GetValidatorDelegations(ctx, validatorAddr)
 		for _, del := range delegations {
 			reward := sdk.NewIntFromBigInt(rewards.BigInt())
 			if del.GetCoin().Denom != k.BondDenom(ctx) {
@@ -120,7 +152,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 				sdk.NewEvent(
 					types.EventTypeProposerReward,
 					sdk.NewAttribute(sdk.AttributeKeyAmount, reward.String()),
-					sdk.NewAttribute(types.AttributeKeyValidator, val.ValAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
 					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
 				),
 			)
@@ -145,29 +177,16 @@ func (k Keeper) getDAO(ctx sdk.Context) (sdk.AccAddress, error) {
 	}
 
 	wallet := k.multisigKeeper.GetWallet(ctx, address.String())
-	if wallet.Address != nil {
-		return address, nil
-	}
+	//if wallet.Address != nil {
+	//	return address, nil
+	//}
 
-	owner1, err := sdk.AccAddressFromBech32(DAOAddress1)
-	if err != nil {
-		return nil, err
-	}
-	owner2, err := sdk.AccAddressFromBech32(DAOAddress2)
-	if err != nil {
-		return nil, err
-	}
-	owner3, err := sdk.AccAddressFromBech32(DAOAddress3)
-	if err != nil {
-		return nil, err
-	}
-
-	owners := []sdk.AccAddress{
-		owner1, owner2, owner3,
+	owners := []string{
+		DAOAddress1, DAOAddress2, DAOAddress3,
 	}
 
 	wallet = multisig.Wallet{
-		Address:   address,
+		Address:   address.String(),
 		Owners:    owners,
 		Weights:   []uint64{1, 1, 1},
 		Threshold: 3}
@@ -187,29 +206,16 @@ func (k Keeper) getDevelop(ctx sdk.Context) (sdk.AccAddress, error) {
 	}
 
 	wallet := k.multisigKeeper.GetWallet(ctx, address.String())
-	if wallet.Address != nil {
-		return address, nil
-	}
+	//if wallet.Address != nil {
+	//	return address, nil
+	//}
 
-	owner1, err := sdk.AccAddressFromBech32(DevelopAddress1)
-	if err != nil {
-		return nil, err
-	}
-	owner2, err := sdk.AccAddressFromBech32(DevelopAddress2)
-	if err != nil {
-		return nil, err
-	}
-	owner3, err := sdk.AccAddressFromBech32(DevelopAddress3)
-	if err != nil {
-		return nil, err
-	}
-
-	owners := []sdk.AccAddress{
-		owner1, owner2, owner3,
+	owners := []string{
+		DevelopAddress1, DevelopAddress2, DevelopAddress3,
 	}
 
 	wallet = multisig.Wallet{
-		Address:   address,
+		Address:   address.String(),
 		Owners:    owners,
 		Weights:   []uint64{1, 1, 1},
 		Threshold: 3}

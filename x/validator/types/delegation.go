@@ -41,8 +41,8 @@ import (
 // NewDelegation creates a new delegation object
 func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, coin sdk.Coin) Delegation {
 	return Delegation{
-		DelegatorAddress: delegatorAddr,
-		ValidatorAddress: validatorAddr,
+		DelegatorAddress: delegatorAddr.String(),
+		ValidatorAddress: validatorAddr.String(),
 		Coin:             coin,
 	}
 }
@@ -69,13 +69,27 @@ func UnmarshalDelegation(cdc *codec.LegacyAmino, value []byte) (delegation Deleg
 
 // nolint
 func (d Delegation) Equal(d2 Delegation) bool {
-	return bytes.Equal(d.DelegatorAddress, d2.DelegatorAddress) &&
-		bytes.Equal(d.ValidatorAddress, d2.ValidatorAddress)
+	return bytes.Equal([]byte(d.DelegatorAddress), []byte(d2.DelegatorAddress)) &&
+		bytes.Equal([]byte(d.ValidatorAddress), []byte(d2.ValidatorAddress))
 }
 
 // nolint - for Delegation
-func (d Delegation) GetDelegatorAddr() sdk.AccAddress { return d.DelegatorAddress }
-func (d Delegation) GetValidatorAddr() sdk.ValAddress { return d.ValidatorAddress }
+func (d Delegation) GetDelegatorAddr() sdk.AccAddress {
+	delAddr, err := sdk.AccAddressFromBech32(d.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return delAddr
+}
+func (d Delegation) GetValidatorAddr() sdk.ValAddress {
+	valAddr, err := sdk.ValAddressFromBech32(d.ValidatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return valAddr
+}
 func (d Delegation) GetCoin() sdk.Coin                { return d.Coin }
 func (d Delegation) GetTokensBase() sdk.Int           { return d.TokensBase }
 func (d Delegation) SetTokensBase(tokensBase sdk.Int) exported.DelegationI {
@@ -160,8 +174,8 @@ func NewUnbondingDelegation(delegatorAddr sdk.AccAddress,
 	entry exported.UnbondingDelegationEntryI) UnbondingDelegation {
 
 	return UnbondingDelegation{
-		DelegatorAddress: delegatorAddr,
-		ValidatorAddress: validatorAddr,
+		DelegatorAddress: delegatorAddr.String(),
+		ValidatorAddress: validatorAddr.String(),
 		Entries:          []exported.UnbondingDelegationEntryI{entry},
 	}
 }
@@ -199,8 +213,8 @@ func (d UnbondingDelegation) GetEvents(ctxTime time.Time) sdk.Events {
 	for _, entry := range d.Entries {
 		if entry.IsMature(ctxTime) {
 			events = events.AppendEvent(entry.GetEvent().AppendAttributes(
-				sdk.NewAttribute(AttributeKeyValidator, d.ValidatorAddress.String()),
-				sdk.NewAttribute(AttributeKeyDelegator, d.DelegatorAddress.String()),
+				sdk.NewAttribute(AttributeKeyValidator, d.ValidatorAddress),
+				sdk.NewAttribute(AttributeKeyDelegator, d.DelegatorAddress),
 				sdk.NewAttribute(AttributeKeyCoin, entry.GetBalance().String()),
 			))
 		}

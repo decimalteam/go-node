@@ -52,14 +52,19 @@ func (k Keeper) HasValidator(ctx sdk.Context, addr sdk.ValAddress) bool {
 }
 
 func (k Keeper) SetValidator(ctx sdk.Context, validator types.Validator) error {
-	return k.set(ctx, types.GetValidatorKey(validator.ValAddress), validator)
+	validatorAddr, err := sdk.ValAddressFromBech32(validator.ValAddress)
+	if err != nil {
+		return err
+	}
+
+	return k.set(ctx, types.GetValidatorKey(validatorAddr), validator)
 }
 
 // validator index
 func (k Keeper) SetValidatorByConsAddr(ctx sdk.Context, validator types.Validator) {
 	store := ctx.KVStore(k.storeKey)
 	consAddr := sdk.GetConsAddress(validator.PubKey)
-	store.Set(types.GetValidatorByConsAddrKey(consAddr), validator.ValAddress)
+	store.Set(types.GetValidatorByConsAddrKey(consAddr), []byte(validator.ValAddress))
 }
 
 // get a single validator by consensus address
@@ -74,31 +79,36 @@ func (k Keeper) GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress
 
 // validator index
 func (k Keeper) SetValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) {
+	valAddr, err := sdk.ValAddressFromBech32(validator.ValAddress)
+	if err != nil {
+		panic(err)
+	}
+
 	// jailed validators are not kept in the power index
 	if validator.Jailed {
 		return
 	}
 	power := k.TotalStake(ctx, validator)
 	validator.Tokens = power
-	err := k.SetValidator(ctx, validator)
+	err = k.SetValidator(ctx, validator)
 	if err != nil {
 		panic(err)
 	}
-	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, power), validator.ValAddress)
+	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, power), valAddr)
 }
 
 // validator index
-func (k Keeper) SetValidatorByPowerIndexWithoutCalc(ctx sdk.Context, validator types.Validator) {
+func (k Keeper) SetValidatorByPowerIndexWithoutCalc(ctx sdk.Context, valAddr sdk.ValAddress, validator types.Validator) {
 	// jailed validators are not kept in the power index
 	if validator.Jailed {
 		return
 	}
-	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), validator.ValAddress)
+	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), valAddr)
 }
 
 // validator index
-func (k Keeper) SetNewValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) {
-	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, k.TotalStake(ctx, validator)), validator.ValAddress)
+func (k Keeper) SetNewValidatorByPowerIndex(ctx sdk.Context, validatorAddr sdk.ValAddress, validator types.Validator) {
+	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, k.TotalStake(ctx, validator)), validatorAddr)
 }
 
 func (k Keeper) GetAllValidatorsByPowerIndex(ctx sdk.Context) []types.Validator {
@@ -134,8 +144,13 @@ func (k Keeper) GetAllValidatorsByPowerIndexReversed(ctx sdk.Context) []types.Va
 }
 
 func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
+	validatorAddr, err := sdk.ValAddressFromBech32(validator.ValAddress)
+	if err != nil {
+		panic(err)
+	}
+
 	total := sdk.ZeroInt()
-	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+	delegations := k.GetValidatorDelegations(ctx, validatorAddr)
 	mutex := sync.Mutex{}
 	eventMutex := sync.Mutex{}
 	wg := sync.WaitGroup{}
@@ -152,7 +167,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 				eventMutex.Lock()
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
 					types.EventTypeCalcStake,
-					sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
 					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
 					sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
 					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
@@ -200,13 +215,13 @@ func (k Keeper) DeleteValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Ti
 }
 
 // Insert an validator address to the appropriate timeslice in the validator queue
-func (k Keeper) InsertValidatorQueue(ctx sdk.Context, val types.Validator) error {
+func (k Keeper) InsertValidatorQueue(ctx sdk.Context, valAddr sdk.ValAddress, val types.Validator) error {
 	timeSlice := k.GetValidatorQueueTimeSlice(ctx, val.UnbondingCompletionTime)
 	var keys []sdk.ValAddress
 	if len(timeSlice) == 0 {
-		keys = []sdk.ValAddress{val.ValAddress}
+		keys = []sdk.ValAddress{valAddr}
 	} else {
-		keys = append(timeSlice, val.ValAddress)
+		keys = append(timeSlice, valAddr)
 	}
 	return k.SetValidatorQueueTimeSlice(ctx, val.UnbondingCompletionTime, keys)
 }
@@ -216,7 +231,7 @@ func (k Keeper) DeleteValidatorQueue(ctx sdk.Context, val types.Validator) error
 	timeSlice := k.GetValidatorQueueTimeSlice(ctx, val.UnbondingCompletionTime)
 	var newTimeSlice []sdk.ValAddress
 	for _, addr := range timeSlice {
-		if !bytes.Equal(addr, val.ValAddress) {
+		if !bytes.Equal(addr, []byte(val.ValAddress)) {
 			newTimeSlice = append(newTimeSlice, addr)
 		}
 	}
@@ -264,12 +279,17 @@ func (k Keeper) UnbondAllMatureValidatorQueue(ctx sdk.Context) {
 				continue
 			}
 
+			valAddr, err := sdk.ValAddressFromBech32(val.ValAddress)
+			if err != nil {
+				continue
+			}
+
 			val, err = k.unbondingToUnbonded(ctx, val)
 			if err != nil {
 				continue
 			}
 			if val.Tokens.IsZero() {
-				err = k.RemoveValidator(ctx, val.ValAddress)
+				err = k.RemoveValidator(ctx, valAddr)
 			}
 		}
 
@@ -458,8 +478,8 @@ func (k Keeper) GetValidators(ctx sdk.Context, maxRetrieve uint16) (validators [
 	return validators[:i] // trim if the array length < maxRetrieve
 }
 
-func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Validator, delAddr sdk.AccAddress, stake sdk.Coin) (bool, error) {
-	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validatorAddr sdk.ValAddress, delAddr sdk.AccAddress, stake sdk.Coin) (bool, error) {
+	delegations := k.GetValidatorDelegations(ctx, validatorAddr)
 	if uint16(len(delegations)) < k.MaxDelegations(ctx) {
 		return true, nil
 	}
@@ -491,7 +511,12 @@ func (k Keeper) CalculateBipValue(ctx sdk.Context, value sdk.Coin, includeSelf b
 
 	validators := k.GetAllValidators(ctx)
 	for _, validator := range validators {
-		stakes := k.GetValidatorDelegations(ctx, validator.ValAddress)
+		valAddr, err := sdk.ValAddressFromBech32(validator.ValAddress)
+		if err != nil {
+			continue
+		}
+
+		stakes := k.GetValidatorDelegations(ctx, valAddr)
 		for _, stake := range stakes {
 			if stake.GetCoin().Denom == value.Denom {
 				totalAmount = totalAmount.Add(stake.GetCoin().Amount)
@@ -509,14 +534,14 @@ func (k Keeper) CalculateBipValue(ctx sdk.Context, value sdk.Coin, includeSelf b
 	return totalPower.Mul(value.Amount).Quo(totalAmount), nil
 }
 
-func (k Keeper) DecreaseValidatorTokens(ctx sdk.Context, validator types.Validator, amount sdk.Int) sdk.Int {
+func (k Keeper) DecreaseValidatorTokens(ctx sdk.Context, valAddr sdk.ValAddress, validator types.Validator, amount sdk.Int) sdk.Int {
 	validator.Tokens = validator.Tokens.Sub(amount)
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
 		panic(err)
 	}
 	if !validator.Jailed {
-		ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), validator.ValAddress)
+		ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), valAddr)
 	}
 	return validator.Tokens
 }

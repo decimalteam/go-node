@@ -51,7 +51,12 @@ func listWallets(ctx sdk.Context, path []string, req abci.RequestQuery, keeper K
 		address := strings.TrimPrefix(string(iterator.Key()), "wallet/")
 		wallet := keeper.GetWallet(ctx, address)
 		for _, o := range wallet.Owners {
-			if o.Equals(owner) {
+			currowneraddr, err := sdk.AccAddressFromBech32(o)
+			if err != nil {
+				return nil, err
+			}
+
+			if currowneraddr.Equals(owner) {
 				wallets = append(wallets, wallet)
 				break
 			}
@@ -87,10 +92,17 @@ func listTransactions(ctx sdk.Context, path []string, req abci.RequestQuery, kee
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msgError)
 	}
 
+
 	for iterator := keeper.GetIterator(ctx, "transaction/"); iterator.Valid(); iterator.Next() {
 		txID := strings.TrimPrefix(string(iterator.Key()), "transaction/")
 		transaction := keeper.GetTransaction(ctx, txID)
-		if transaction.Wallet.Equals(wallet) {
+
+		txwalletaddr, err := sdk.AccAddressFromBech32(transaction.Wallet)
+		if err != nil {
+			return nil, err
+		}
+
+		if txwalletaddr.Equals(wallet) {
 			transactionList = append(transactionList, transaction)
 		}
 	}

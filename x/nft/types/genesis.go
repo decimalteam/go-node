@@ -27,7 +27,7 @@ func DefaultGenesisState() GenesisState {
 // error for any failed validation criteria.
 func ValidateGenesis(data GenesisState) error {
 	for _, Owner := range data.Owners {
-		if Owner.Address.Empty() {
+		if len(Owner.Address) == 0 {
 			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "address cannot be empty")
 		}
 	}

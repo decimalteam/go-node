@@ -9,15 +9,11 @@ message DelegationNFT {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  bytes DelegatorAddress = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string DelegatorAddress = 1 [
     (gogoproto.jsontag) = "delegator_address",
     (gogoproto.moretags) = "yaml:\"delegator_address\""
   ];
-  bytes ValidatorAddress = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
-    (gogoproto.nullable) = false,
+  string ValidatorAddress = 2 [
     (gogoproto.jsontag) = "validator_address",
     (gogoproto.moretags) = "yaml:\"validator_address\""
   ];
@@ -29,13 +25,13 @@ message DelegationNFT {
     (gogoproto.jsontag) = "token_id",
     (gogoproto.moretags) = "yaml:\"token_id\""
   ];
-  bytes Quantity = 5 [
+  string Quantity = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "quantity",
     (gogoproto.moretags) = "yaml:\"quantity\""
   ];
-  bytes Coin = 6 [
+  string Coin = 6 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "coin",
@@ -51,7 +47,7 @@ message UnbondingDelegationNFTEntry {
     (gogoproto.jsontag) = "creation_height",
     (gogoproto.moretags) = "yaml:\"creation_height\""
   ];
-  bytes CompletionTime = 2 [
+  string CompletionTime = 2 [
     (gogoproto.customtype) = "time.Time",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "completion_time",
@@ -65,13 +61,13 @@ message UnbondingDelegationNFTEntry {
     (gogoproto.jsontag) = "token_id",
     (gogoproto.moretags) = "yaml:\"token_id\""
   ];
-  bytes Quantity = 5 [
+  string Quantity = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "quantity",
     (gogoproto.moretags) = "yaml:\"quantity\""
   ];
-  bytes Balance = 6 [
+  string Balance = 6 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "balance",

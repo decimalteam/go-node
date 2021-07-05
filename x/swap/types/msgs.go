@@ -55,7 +55,7 @@ func (t TransferType) String() string {
 //}
 
 func NewMsgHTLT(transferType TransferType, from sdk.AccAddress, recipient string, hashedSecret Hash, amount sdk.Coins) MsgHTLT {
-	return MsgHTLT{TransferType: transferType, From: from, Recipient: recipient, HashedSecret: hashedSecret, Amount: amount}
+	return MsgHTLT{TransferType: transferType, From: from.String(), Recipient: recipient, HashedSecret: hashedSecret, Amount: amount}
 }
 
 func (msg *MsgHTLT) Route() string { return RouterKey }
@@ -63,8 +63,8 @@ func (msg *MsgHTLT) Route() string { return RouterKey }
 func (msg *MsgHTLT) Type() string { return TypeMsgHTLT }
 
 func (msg *MsgHTLT) ValidateBasic() error {
-	if msg.From.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
+	if len(msg.From) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From)
 	}
 
 	if msg.Amount.Empty() {
@@ -80,7 +80,8 @@ func (msg *MsgHTLT) GetSignBytes() []byte {
 }
 
 func (msg *MsgHTLT) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.From}
+	accAddr, _ := sdk.AccAddressFromBech32(msg.From)
+	return []sdk.AccAddress{accAddr}
 }
 
 //type MsgRedeem struct {
@@ -89,7 +90,7 @@ func (msg *MsgHTLT) GetSigners() []sdk.AccAddress {
 //}
 
 func NewMsgRedeem(from sdk.AccAddress, secret Secret) MsgRedeem {
-	return MsgRedeem{From: from, Secret: secret}
+	return MsgRedeem{From: from.String(), Secret: secret}
 }
 
 func (msg *MsgRedeem) Route() string { return RouterKey }
@@ -97,8 +98,8 @@ func (msg *MsgRedeem) Route() string { return RouterKey }
 func (msg *MsgRedeem) Type() string { return TypeMsgRedeem }
 
 func (msg *MsgRedeem) ValidateBasic() error {
-	if msg.From.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
+	if len(msg.From) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From)
 	}
 	return nil
 }
@@ -109,7 +110,8 @@ func (msg *MsgRedeem) GetSignBytes() []byte {
 }
 
 func (msg *MsgRedeem) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.From}
+	accAddr, _ := sdk.AccAddressFromBech32(msg.From)
+	return []sdk.AccAddress{accAddr}
 }
 
 //type MsgRefund struct {
@@ -118,7 +120,7 @@ func (msg *MsgRedeem) GetSigners() []sdk.AccAddress {
 //}
 
 func NewMsgRefund(from sdk.AccAddress, hash [32]byte) MsgRefund {
-	return MsgRefund{From: from, HashedSecret: hash}
+	return MsgRefund{From: from.String(), HashedSecret: hash}
 }
 
 func (msg *MsgRefund) Route() string { return RouterKey }
@@ -126,8 +128,8 @@ func (msg *MsgRefund) Route() string { return RouterKey }
 func (msg *MsgRefund) Type() string { return TypeMsgRefund }
 
 func (msg *MsgRefund) ValidateBasic() error {
-	if msg.From.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
+	if len(msg.From) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From)
 	}
 	return nil
 }
@@ -138,5 +140,6 @@ func (msg *MsgRefund) GetSignBytes() []byte {
 }
 
 func (msg *MsgRefund) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.From}
+	accAddr, _ := sdk.AccAddressFromBech32(msg.From)
+	return []sdk.AccAddress{accAddr}
 }

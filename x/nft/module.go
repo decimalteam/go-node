@@ -6,12 +6,12 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/nft/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/nft/client/rest"
 	"bitbucket.org/decimalteam/go-node/x/nft/simulation"
+	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
 
 	//"bitbucket.org/decimalteam/go-node/x/nft/simulation"
-	types2 "bitbucket.org/decimalteam/go-node/x/nft/types"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -26,7 +26,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	sim "github.com/cosmos/cosmos-sdk/x/simulation"
+	simulationtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 )
 
 var (
@@ -97,11 +97,11 @@ type AppModule struct {
 	keeper Keeper
 
 	// Account keeper is used for testing purposes only
-	accountKeeper types2.AccountKeeper
+	accountKeeper authKeeper.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, accountKeeper types2.AccountKeeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper authKeeper.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 
@@ -178,7 +178,7 @@ func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent { return nil }
+func (AppModule) ProposalContents(_ module.SimulationState) []simulationtypes.WeightedProposalContent { return nil }
 
 // GenerateGenesisState creates a randomized GenState of the nft module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
@@ -186,10 +186,10 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // RandomizedParams doesn't create randomized nft param changes for the simulator.
-func (AppModule) RandomizedParams(_ *rand.Rand) []sim.ParamChange { return nil }
+func (AppModule) RandomizedParams(_ *rand.Rand) []simulationtypes.ParamChange { return nil }
 
 // WeightedOperations doesn't return any operation for the nft module.
-func (am AppModule) WeightedOperations(_ module.SimulationState) []sim.WeightedOperation {
+func (am AppModule) WeightedOperations(_ module.SimulationState) []simulationtypes.WeightedOperation {
 	return nil
 	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
 }

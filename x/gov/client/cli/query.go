@@ -35,7 +35,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 		GetCmdQueryParams(queryRoute, cdc),
 		GetCmdQueryProposer(queryRoute, cdc),
 		GetCmdQueryTally(queryRoute, cdc),
-		)
+	)
 
 	return govQueryCmd
 }

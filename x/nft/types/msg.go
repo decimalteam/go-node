@@ -25,8 +25,8 @@ import (
 // NewMsgMintNFT is a constructor function for MsgMintNFT
 func NewMsgMintNFT(sender, recipient sdk.AccAddress, id, denom, tokenURI string, quantity, reserve sdk.Int, allowMint bool) MsgMintNFT {
 	return MsgMintNFT{
-		Sender:    sender,
-		Recipient: recipient,
+		Sender:    sender.String(),
+		Recipient: recipient.String(),
 		ID:        strings.TrimSpace(id),
 		Denom:     strings.TrimSpace(denom),
 		TokenURI:  strings.TrimSpace(tokenURI),
@@ -54,10 +54,10 @@ func (msg *MsgMintNFT) ValidateBasic() error {
 	if strings.TrimSpace(msg.ID) == "" {
 		return ErrInvalidNFT
 	}
-	if msg.Sender.Empty() {
+	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
 	}
-	if msg.Recipient.Empty() {
+	if len(msg.Recipient) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid recipient address")
 	}
 	if !msg.Quantity.IsPositive() {
@@ -84,7 +84,12 @@ func (msg *MsgMintNFT) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg *MsgMintNFT) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{senderAddr}
 }
 
 /* --------------------------------------------------------------------------- */
@@ -122,7 +127,7 @@ func (msg *MsgBurnNFT) ValidateBasic() error {
 	if strings.TrimSpace(msg.Denom) == "" {
 		return ErrInvalidNFT
 	}
-	if msg.Sender.Empty() {
+	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
 	}
 	if !msg.Quantity.IsPositive() {
@@ -158,8 +163,8 @@ func (msg *MsgBurnNFT) GetSigners() []sdk.AccAddress {
 // NewMsgTransferNFT is a constructor function for MsgSetName
 func NewMsgTransferNFT(sender, recipient sdk.AccAddress, denom, id string, quantity sdk.Int) MsgTransferNFT {
 	return MsgTransferNFT{
-		Sender:    sender,
-		Recipient: recipient,
+		Sender:    sender.String(),
+		Recipient: recipient.String(),
 		Denom:     strings.TrimSpace(denom),
 		ID:        strings.TrimSpace(id),
 		Quantity:  quantity,
@@ -177,10 +182,9 @@ func (msg *MsgTransferNFT) ValidateBasic() error {
 	if strings.TrimSpace(msg.Denom) == "" {
 		return ErrInvalidCollection
 	}
-	if msg.Sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
+	if len(msg.Sender) == 0 { return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
 	}
-	if msg.Recipient.Empty() {
+	if len(msg.Recipient) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid recipient address")
 	}
 	if strings.TrimSpace(msg.ID) == "" {
@@ -201,7 +205,12 @@ func (msg *MsgTransferNFT) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg *MsgTransferNFT) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{senderAddr}
 }
 
 /* --------------------------------------------------------------------------- */
@@ -220,7 +229,7 @@ func NewMsgEditNFTMetadata(sender sdk.AccAddress, id,
 	denom, tokenURI string,
 ) MsgEditNFTMetadata {
 	return MsgEditNFTMetadata{
-		Sender:   sender,
+		Sender:   sender.String(),
 		ID:       strings.TrimSpace(id),
 		Denom:    strings.TrimSpace(denom),
 		TokenURI: strings.TrimSpace(tokenURI),
@@ -235,7 +244,7 @@ func (msg *MsgEditNFTMetadata) Type() string { return "edit_nft_metadata" }
 
 // ValidateBasic Implements Msg.
 func (msg *MsgEditNFTMetadata) ValidateBasic() error {
-	if msg.Sender.Empty() {
+	if len(msg.Sender) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
 	}
 	if strings.TrimSpace(msg.ID) == "" {
@@ -255,7 +264,12 @@ func (msg MsgEditNFTMetadata) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg MsgEditNFTMetadata) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{senderAddr}
 }
 
 /* --------------------------------------------------------------------------- */

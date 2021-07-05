@@ -8,8 +8,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -25,20 +23,20 @@ func GetQueryCmd(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 		RunE:  client.ValidateCmd,
 	}
 
-	nftQueryCmd.AddCommand(flags.GetCommands(
+	nftQueryCmd.AddCommand(
 		GetCmdQueryCollectionSupply(queryRoute, cdc),
 		GetCmdQueryOwner(queryRoute, cdc),
 		GetCmdQueryCollection(queryRoute, cdc),
 		GetCmdQueryDenoms(queryRoute, cdc),
 		GetCmdQueryNFT(queryRoute, cdc),
-	)...)
+	)
 
 	return nftQueryCmd
 }
 
 // GetCmdQueryCollectionSupply queries the supply of a nft collection
 func GetCmdQueryCollectionSupply(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "supply [denom]",
 		Short: "total supply of a collection of NFTs",
 		Long: strings.TrimSpace(
@@ -46,12 +44,12 @@ func GetCmdQueryCollectionSupply(queryRoute string, cdc *codec.LegacyAmino) *cob
 
 Example:
 $ %s query %s supply crypto-kitties
-`, version.ClientName, types2.ModuleName,
+`, version.AppName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 			denom := args[0]
 
 			params := types2.NewQueryCollectionParams(denom)
@@ -60,7 +58,7 @@ $ %s query %s supply crypto-kitties
 				return err
 			}
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/supply/%s", queryRoute, denom), bz)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/supply/%s", queryRoute, denom), bz)
 			if err != nil {
 				return err
 			}
@@ -71,9 +69,11 @@ $ %s query %s supply crypto-kitties
 				return err
 			}
 
-			return cliCtx.PrintOutput(out)
+			return clientCtx.PrintObjectLegacy(out)
 		},
 	}
+
+	return cmd
 }
 
 // GetCmdQueryOwner queries all the NFTs owned by an account
@@ -87,12 +87,12 @@ func GetCmdQueryOwner(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command 
 Example:
 $ %s query %s owner cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 $ %s query %s owner cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p crypto-kitties
-`, version.ClientName, types2.ModuleName, version.ClientName, types2.ModuleName,
+`, version.AppName, types2.ModuleName, version.AppName, types2.ModuleName,
 			),
 		),
 		Args: cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 			address, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
@@ -111,9 +111,9 @@ $ %s query %s owner cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p crypto-kitties
 
 			var res []byte
 			if denom == "" {
-				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/owner", queryRoute), bz)
+				res, _, err = clientCtx.QueryWithData(fmt.Sprintf("custom/%s/owner", queryRoute), bz)
 			} else {
-				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/ownerByDenom", queryRoute), bz)
+				res, _, err = clientCtx.QueryWithData(fmt.Sprintf("custom/%s/ownerByDenom", queryRoute), bz)
 			}
 
 			if err != nil {
@@ -126,7 +126,7 @@ $ %s query %s owner cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p crypto-kitties
 				return err
 			}
 
-			return cliCtx.PrintOutput(out)
+			return clientCtx.PrintObjectLegacy(out)
 		},
 	}
 }
@@ -141,12 +141,12 @@ func GetCmdQueryCollection(queryRoute string, cdc *codec.LegacyAmino) *cobra.Com
 
 Example:
 $ %s query %s collection crypto-kitties
-`, version.ClientName, types2.ModuleName,
+`, version.AppName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 			denom := args[0]
 
 			params := types2.NewQueryCollectionParams(denom)
@@ -155,7 +155,7 @@ $ %s query %s collection crypto-kitties
 				return err
 			}
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/collection", queryRoute), bz)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/collection", queryRoute), bz)
 			if err != nil {
 				return err
 			}
@@ -168,7 +168,7 @@ $ %s query %s collection crypto-kitties
 
 			fmt.Printf("%T", out[0].NFTs[0])
 
-			return cliCtx.PrintOutput(out)
+			return clientCtx.PrintObjectLegacy(out)
 		},
 	}
 }
@@ -184,14 +184,14 @@ func GetCmdQueryDenoms(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command
 
 			Example:
 			$ %s query %s denoms
-			`, version.ClientName, types2.ModuleName,
+			`, version.AppName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/denoms", queryRoute), nil)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/denoms", queryRoute), nil)
 			if err != nil {
 				return err
 			}
@@ -202,7 +202,7 @@ func GetCmdQueryDenoms(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command
 				return err
 			}
 
-			return cliCtx.PrintOutput(out)
+			return clientCtx.PrintObjectLegacy(out)
 		},
 	}
 }
@@ -217,12 +217,12 @@ func GetCmdQueryNFT(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 
 Example:
 $ %s query %s token crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa
-`, version.ClientName, types2.ModuleName,
+`, version.AppName, types2.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 			denom := args[0]
 			id := args[1]
 
@@ -232,7 +232,7 @@ $ %s query %s token crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f
 				return err
 			}
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/nft", queryRoute), bz)
+			res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/nft", queryRoute), bz)
 			if err != nil {
 				return err
 			}
@@ -243,7 +243,7 @@ $ %s query %s token crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f
 				return err
 			}
 
-			return cliCtx.PrintOutput(out)
+			return clientCtx.PrintObjectLegacy(out)
 		},
 	}
 }

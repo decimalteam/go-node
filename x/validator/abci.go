@@ -57,13 +57,22 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, accKeeper kee
 	//Remove all mature unbonding delegations from the ubd queue.
 	matureUnbonds := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
 	for _, dvPair := range matureUnbonds {
-		delegation, found := k.GetUnbondingDelegation(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
+		delAddr, err := sdk.AccAddressFromBech32(dvPair.DelegatorAddress)
+		if err != nil {
+			panic(err)
+		}
+		valAddr, err := sdk.ValAddressFromBech32(dvPair.ValidatorAddress)
+		if err != nil {
+			panic(err)
+		}
+
+		delegation, found := k.GetUnbondingDelegation(ctx, delAddr, valAddr)
 		if !found {
 			continue
 		}
-		err := k.CompleteUnbonding(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
+		err = k.CompleteUnbonding(ctx, delAddr, valAddr)
 		if err != nil {
-			panic(fmt.Sprintf("error = %s. Delegator = %s, validator = %s", err.Error(), dvPair.DelegatorAddress, dvPair.ValidatorAddress))
+			panic(fmt.Sprintf("error = %s. Delegator = %s, validator = %s", err.Error(), delAddr, valAddr))
 		}
 
 		ctxTime := ctx.BlockHeader().Time

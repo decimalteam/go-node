@@ -40,7 +40,12 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types2.MsgHTLT) (*sdk.Result, 
 	}
 
 	if msg.TransferType == types2.TransferTypeOut {
-		ok, err := k.CheckBalance(ctx, msg.From, msg.Amount)
+		fromaddr, err := sdk.AccAddressFromBech32(msg.From)
+		if err != nil {
+			return nil, err
+		}
+
+		ok, err := k.CheckBalance(ctx, fromaddr, msg.Amount)
 		if err != nil {
 			return nil, err
 		}
@@ -75,8 +80,13 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types2.MsgHTLT) (*sdk.Result, 
 
 	k.SetSwap(ctx, swap)
 
+	fromaddr, err := sdk.AccAddressFromBech32(swap.From)
+	if err != nil {
+		return nil, err
+	}
+
 	if msg.TransferType == types2.TransferTypeOut {
-		err := k.LockFunds(ctx, swap.From, swap.Amount)
+		err = k.LockFunds(ctx, fromaddr, swap.Amount)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +103,7 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types2.MsgHTLT) (*sdk.Result, 
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, fromaddr.String()),
 			sdk.NewAttribute(types2.AttributeKeyTimeLocked, time.Unix(0, int64(swap.Timestamp)).String()),
 			sdk.NewAttribute(types2.AttributeKeyHashedSecret, hex.EncodeToString(swap.HashedSecret[:])),
 			sdk.NewAttribute(types2.AttributeKeyRecipient, swap.Recipient),
@@ -125,11 +135,15 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types2.MsgRedeem) (*sdk.Resu
 		return nil, types2.ErrWrongSecret()
 	}
 
-	var err error
+	fromaddr, err := sdk.AccAddressFromBech32(swap.From)
+	if err != nil {
+		return nil, err
+	}
+
 	if swap.TransferType == types2.TransferTypeIn {
 		var recipientAddr sdk.AccAddress
 		if swap.Recipient == "" {
-			recipientAddr = msg.From
+			recipientAddr = fromaddr
 		} else {
 			recipientAddr, err = sdk.AccAddressFromBech32(swap.Recipient)
 			if err != nil {
@@ -149,7 +163,7 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types2.MsgRedeem) (*sdk.Resu
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, fromaddr.String()),
 			sdk.NewAttribute(types2.AttributeKeySecret, hex.EncodeToString(msg.Secret)),
 			sdk.NewAttribute(types2.AttributeKeyHashedSecret, hex.EncodeToString(swap.HashedSecret[:])),
 		),
@@ -172,7 +186,12 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types2.MsgRefund) (*sdk.Resu
 		return nil, types2.ErrAlreadyRefunded()
 	}
 
-	err := k.UnlockFunds(ctx, swap.From, swap.Amount)
+	fromaddr, err := sdk.AccAddressFromBech32(swap.From)
+	if err != nil {
+		return nil, err
+	}
+
+	err = k.UnlockFunds(ctx, fromaddr, swap.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +200,7 @@ func handleMsgRefund(ctx sdk.Context, k Keeper, msg types2.MsgRefund) (*sdk.Resu
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, fromaddr.String()),
 			sdk.NewAttribute(types2.AttributeKeyHashedSecret, hex.EncodeToString(msg.HashedSecret[:])),
 		),
 	)

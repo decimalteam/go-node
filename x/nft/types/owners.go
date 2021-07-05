@@ -25,6 +25,20 @@ type SortedStringArray []string
 // String is the string representation
 func (sa SortedStringArray) String() string { return strings.Join(sa[:], ",") }
 
+// Size is for used by protobuf
+func (sa SortedStringArray) Size() int {
+	return len(sa)
+}
+
+func (sa SortedStringArray) MarshalTo(bytes []byte) ([]byte, error) {
+	// todo
+	return bytes, nil
+}
+
+func (sa SortedStringArray) Unmarshal(bytes []byte) error {
+	return json.Unmarshal(bytes, sa)
+}
+
 // NewIDCollection creates a new IDCollection instance
 func NewIDCollection(denom string, ids []string) IDCollection {
 	return IDCollection{
@@ -92,6 +106,19 @@ func (idCollections IDCollections) String() string {
 	return out[:len(out)-1]
 }
 
+func (idCollections IDCollections) Size() int {
+	return len(idCollections)
+}
+
+func (idCollections IDCollections) MarshalTo(bytes []byte) ([]byte, error) {
+	// todo
+	return bytes, nil
+}
+
+func (idCollections IDCollections) Unmarshal(bytes []byte) error {
+	return json.Unmarshal(bytes, idCollections)
+}
+
 // Append appends IDCollections to IDCollections
 func (idCollections IDCollections) Append(idCollections2 ...IDCollection) IDCollections {
 	return append(idCollections, idCollections2...).Sort()
@@ -109,7 +136,7 @@ func (idCollections IDCollections) find(denom string) int {
 // NewOwner creates a new Owner
 func NewOwner(owner sdk.AccAddress, idCollections ...IDCollection) Owner {
 	return Owner{
-		Address:       owner,
+		Address:       owner.String(),
 		IDCollections: idCollections,
 	}
 }
@@ -296,6 +323,7 @@ func (sa SortedStringArray) Sort() SortedStringArray {
 	return sa
 }
 
+
 // Sort and Findable interface for IDCollections
 
 func (idCollections IDCollections) ElAtIndex(index int) string { return idCollections[index].Denom }
@@ -314,3 +342,4 @@ func (idCollections IDCollections) Sort() IDCollections {
 	sort.Sort(idCollections)
 	return idCollections
 }
+

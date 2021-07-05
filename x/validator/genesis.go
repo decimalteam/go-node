@@ -38,7 +38,12 @@ func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Kee
 	}
 
 	for _, validator := range data.Validators {
-		err := keeper.SetValidator(ctx, validator)
+		valAddr, err := sdk.ValAddressFromBech32(validator.ValAddress)
+		if err != nil {
+			panic(err)
+		}
+
+		err = keeper.SetValidator(ctx, validator)
 		if err != nil {
 			log.Println("Init genesis error: ", err)
 			continue
@@ -49,7 +54,7 @@ func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Kee
 		keeper.SetValidatorByPowerIndex(ctx, validator)
 		// update timeslice if necessary
 		if validator.IsUnbonding() {
-			err = keeper.InsertValidatorQueue(ctx, validator)
+			err = keeper.InsertValidatorQueue(ctx, valAddr, validator)
 			if err != nil {
 				log.Println("Init genesis error: ", err)
 				continue
@@ -58,22 +63,35 @@ func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Kee
 	}
 
 	for _, delegation := range data.Delegations {
+		delegatorAddr, err := sdk.AccAddressFromBech32(delegation.DelegatorAddress)
+		if err != nil {
+			continue
+		}
+		delegationValAddr, err := sdk.ValAddressFromBech32(delegation.DelegatorAddress)
+		if err != nil {
+			continue
+		}
 
 		// Call the before-creation hook if not exported
 		if !data.Exported {
-			keeper.BeforeDelegationCreated(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+			keeper.BeforeDelegationCreated(ctx, delegatorAddr, delegationValAddr)
 		}
 		keeper.SetDelegation(ctx, delegation)
 
 		// Call the after-modification hook if not exported
 		if !data.Exported {
-			keeper.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+			keeper.AfterDelegationModified(ctx, delegatorAddr, delegationValAddr)
 		}
 
 		validator := types.Validator{}
 
 		for _, v := range data.Validators {
-			if v.ValAddress.Equals(delegation.ValidatorAddress) {
+			validatorAddr, err := sdk.ValAddressFromBech32(v.ValAddress)
+			if err != nil {
+				continue
+			}
+
+			if validatorAddr.Equals(delegationValAddr) {
 				validator = v
 				break
 			}
@@ -143,11 +161,16 @@ func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Kee
 	// don't need to run Tendermint updates if we exported
 	if data.Exported {
 		for _, lv := range data.LastValidatorPowers {
-			err = keeper.SetLastValidatorPower(ctx, lv.Address, lv.Power)
+			addr, err := sdk.ValAddressFromBech32(lv.Address)
+			if err != nil {
+				panic(err)
+			}
+
+			err = keeper.SetLastValidatorPower(ctx, addr, lv.Power)
 			if err != nil {
 				panic(fmt.Sprintln("Init genesis error: ", err))
 			}
-			validator, err := keeper.GetValidator(ctx, lv.Address)
+			validator, err := keeper.GetValidator(ctx, addr)
 			if err != nil {
 				panic(fmt.Sprintf("validator %s not found", lv.Address))
 			}
@@ -192,7 +215,7 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 	})
 	var lastValidatorPowers []types.LastValidatorPower
 	keeper.IterateLastValidatorPowers(ctx, func(addr sdk.ValAddress, power int64) (stop bool) {
-		lastValidatorPowers = append(lastValidatorPowers, types.LastValidatorPower{Address: addr, Power: power})
+		lastValidatorPowers = append(lastValidatorPowers, types.LastValidatorPower{Address: addr.String(), Power: power})
 		return false
 	})
 

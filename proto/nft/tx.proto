@@ -12,14 +12,10 @@ service Msg {
 }
 
 message MsgMintNFT {
-  bytes Sender = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Sender = 1 [
     (gogoproto.jsontag) = "sender"
   ];
-  bytes Recipient = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Recipient = 2 [
     (gogoproto.jsontag) = "recipient"
   ];
   string ID = 3 [
@@ -47,14 +43,10 @@ message MsgMintNFT {
 }
 
 message MsgTransferNFT {
-  bytes Sender = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Sender = 1 [
     (gogoproto.jsontag) = "sender"
   ];
-  bytes Recipient = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Recipient = 2 [
     (gogoproto.jsontag) = "recipient"
   ];
   string ID = 3 [
@@ -73,9 +65,7 @@ message MsgTransferNFT {
 message MsgTransferNFTResponse {}
 
 message MsgEditNFTMetadata {
-  bytes Sender = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Sender = 1 [
     (gogoproto.jsontag) = "sender"
   ];
   string ID = 2 [
@@ -92,14 +82,10 @@ message MsgEditNFTMetadata {
 message MsgEditNFTMetadataResponse {}
 
 message MsgDelegateNFT {
-  bytes DelegatorAddress = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string DelegatorAddress = 1 [
     (gogoproto.jsontag) = "delegator_address"
   ];
-  bytes ValidatorAddress = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
-    (gogoproto.nullable) = false,
+  string ValidatorAddress = 2 [
     (gogoproto.jsontag) = "validator_address"
   ];
   string ID = 3 [
@@ -118,9 +104,7 @@ message MsgDelegateNFT {
 message MsgDelegateNFTResponse {}
 
 message MsgBurnNFT {
-  bytes Sender = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Sender = 1 [
     (gogoproto.jsontag) = "sender"
   ];
   string ID = 2 [

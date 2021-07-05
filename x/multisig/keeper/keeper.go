@@ -62,7 +62,7 @@ func (k Keeper) GetWallet(ctx sdk.Context, address string) types2.Wallet {
 
 // SetWallet sets the entire wallet metadata struct for a multisig wallet.
 func (k Keeper) SetWallet(ctx sdk.Context, wallet types2.Wallet) {
-	key := fmt.Sprintf("wallet/%s", wallet.Address.String())
+	key := fmt.Sprintf("wallet/%s", wallet.Address)
 	store := ctx.KVStore(k.storeKey)
 	store.Set([]byte(key), k.cdc.MustMarshal(wallet))
 }

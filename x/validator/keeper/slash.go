@@ -3,6 +3,7 @@ package keeper
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"log"
 	"time"
 
@@ -513,12 +514,12 @@ func (k Keeper) getPubkey(ctx sdk.Context, address crypto.Address) (crypto.PubKe
 	return pubkey, nil
 }
 
-func (k Keeper) addPubkey(ctx sdk.Context, pubkey crypto.PubKey) {
+func (k Keeper) addPubkey(ctx sdk.Context, pubkey cryptotypes.PubKey) {
 	addr := pubkey.Address()
 	k.setAddrPubkeyRelation(ctx, addr, pubkey)
 }
 
-func (k Keeper) setAddrPubkeyRelation(ctx sdk.Context, addr crypto.Address, pubkey crypto.PubKey) {
+func (k Keeper) setAddrPubkeyRelation(ctx sdk.Context, addr crypto.Address, pubkey cryptotypes.PubKey) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(pubkey)
 	store.Set(types.GetAddrPubkeyRelationKey(addr), bz)

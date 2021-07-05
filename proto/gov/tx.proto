@@ -16,9 +16,7 @@ message MsgSubmitProposal {
   option (gogoproto.goproto_getters) = false;
   option (gogoproto.goproto_stringer) = false;
 
-  bytes Proposer = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Proposer = 1 [
     (gogoproto.jsontag) = "proposer",
     (gogoproto.moretags) = "yaml:\"proposer\""
   ];
@@ -48,9 +46,7 @@ message MsgVote {
     (gogoproto.jsontag) = "proposal_id",
     (gogoproto.moretags) = "yaml:\"proposal_id\""
   ];
-  bytes Voter = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
-    (gogoproto.nullable) = false,
+  string Voter = 2 [
     (gogoproto.jsontag) = "voter",
     (gogoproto.moretags) = "yaml:\"voter\""
   ];

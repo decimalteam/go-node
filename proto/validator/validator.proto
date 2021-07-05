@@ -12,9 +12,7 @@ message Validator {
   option (gogoproto.goproto_stringer) = false;
   option (cosmos_proto.implements_interface) = "ValidatorI";
 
-  bytes ValAddress = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
-    (gogoproto.nullable) = false,
+  string ValAddress = 1 [
     (gogoproto.jsontag) = "val_address",
     (gogoproto.moretags) = "yaml:\"val_address\""
   ];
@@ -24,7 +22,7 @@ message Validator {
     (gogoproto.jsontag) = "pub_key",
     (gogoproto.moretags) = "yaml:\"pub_key\""
   ];
-  bytes Tokens = 3 [
+  string Tokens = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "val_address",
@@ -36,7 +34,7 @@ message Validator {
     (gogoproto.jsontag) = "status",
     (gogoproto.moretags) = "yaml:\"status\""
   ];
-  bytes Commission = 5 [
+  string Commission = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "comission",
@@ -46,7 +44,7 @@ message Validator {
     (gogoproto.jsontag) = "jailed",
     (gogoproto.moretags) = "yaml:\"jailed\""
   ];
-  bytes UnbondingCompletionTime = 7 [
+  string UnbondingCompletionTime = 7 [
     (gogoproto.customtype) = "time.Time",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "unbonding_completion_time",
@@ -61,15 +59,13 @@ message Validator {
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"description\""
   ];
-  bytes AccumRewards = 10 [
+  string AccumRewards = 10 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "accum_rewards",
     (gogoproto.moretags) = "yaml:\"accum_rewards\""
   ];
-  bytes RewardAddress = 11 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string RewardAddress = 11 [
     (gogoproto.jsontag) = "reward_address",
     (gogoproto.moretags) = "yaml:\"reward_address\""
   ];
@@ -82,7 +78,6 @@ message Validator {
 message Description {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
-  option (gogoproto.goproto_stringer) = false;
 
   string Moniker = 1 [
     (gogoproto.jsontag) = "moniker",
@@ -110,22 +105,19 @@ message Params {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
   option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.sizer) = true;
+  option (gogoproto.marshaler) = true;
 
-  bytes UnbondingTime = 1 [
-    (gogoproto.customtype) = "time.Duration",
-    (gogoproto.nullable) = false,
+   uint64 UnbondingTime = 1 [
+    (gogoproto.casttype) = "time.Duration",
     (gogoproto.jsontag) = "unbonding_time",
     (gogoproto.moretags) = "yaml:\"unbonding_time\""
   ];
-  bytes MaxValidators = 2 [
-    (gogoproto.customtype) = "uint16",
-    (gogoproto.nullable) = false,
+  uint32 MaxValidators = 2 [
     (gogoproto.jsontag) = "max_validators",
     (gogoproto.moretags) = "yaml:\"max_validators\""
   ];
-  bytes MaxEntries = 3 [
-    (gogoproto.customtype) = "uint16",
-    (gogoproto.nullable) = false,
+  uint32 MaxEntries = 3 [
     (gogoproto.jsontag) = "max_entries",
     (gogoproto.moretags) = "yaml:\"max_entries\""
   ];
@@ -133,52 +125,48 @@ message Params {
     (gogoproto.jsontag) = "bond_denom",
     (gogoproto.moretags) = "yaml:\"bond_denom\""
   ];
-  bytes HistoricalEntries = 5 [
-    (gogoproto.customtype) = "uint16",
-    (gogoproto.nullable) = false,
+  uint32 HistoricalEntries = 5 [
     (gogoproto.jsontag) = "historical_entries",
     (gogoproto.moretags) = "yaml:\"historical_entries\""
   ];
-  bytes MaxDelegations = 6 [
-    (gogoproto.customtype) = "uint16",
-    (gogoproto.nullable) = false,
+  uint32 MaxDelegations = 6 [
+//    (gogoproto.customtype) = "uint16",
+//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "max_delegations",
     (gogoproto.moretags) = "yaml:\"max_delegations\""
   ];
 }
 
 message bechValidator {
-
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
-  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.goproto_stringer) = true;
   option (cosmos_proto.implements_interface) = "ValidatorI";
 
-  bytes ValAddress = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.ValAddress",
-    (gogoproto.nullable) = false,
+  string ValAddress = 1 [
     (gogoproto.jsontag) = "val_address",
     (gogoproto.moretags) = "yaml:\"val_address\""
   ];
+  // todo
   bytes PubKey = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/crypto/types.PubKey",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "pub_key",
     (gogoproto.moretags) = "yaml:\"pub_key\""
   ];
-  bytes Tokens = 3 [
+  string Tokens = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "val_address",
     (gogoproto.moretags) = "yaml:\"val_address\""
   ];
-  bytes Status = 4 [
+  string Status = 4 [
     (gogoproto.customtype) = "BondStatus",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "status",
     (gogoproto.moretags) = "yaml:\"status\""
   ];
-  bytes Commission = 5 [
+  string Commission = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "comission",
@@ -188,7 +176,7 @@ message bechValidator {
     (gogoproto.jsontag) = "jailed",
     (gogoproto.moretags) = "yaml:\"jailed\""
   ];
-  bytes UnbondingCompletionTime = 7 [
+  string UnbondingCompletionTime = 7 [
     (gogoproto.customtype) = "time.Time",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "unbonding_completion_time",
@@ -203,15 +191,13 @@ message bechValidator {
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"description\""
   ];
-  bytes AccumRewards = 10 [
+  string AccumRewards = 10 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "accum_rewards",
     (gogoproto.moretags) = "yaml:\"accum_rewards\""
   ];
-  bytes RewardAddress = 11 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string RewardAddress = 11 [
     (gogoproto.jsontag) = "reward_address",
     (gogoproto.moretags) = "yaml:\"reward_address\""
   ];

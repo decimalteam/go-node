@@ -63,11 +63,11 @@ func NewParams(unbondingTime time.Duration, maxValidators, maxEntries, historica
 
 	return Params{
 		UnbondingTime:     unbondingTime,
-		MaxValidators:     maxValidators,
-		MaxEntries:        maxEntries,
+		MaxValidators:     uint32(maxValidators),
+		MaxEntries:        uint32(maxEntries),
 		BondDenom:         bondDenom,
-		HistoricalEntries: historicalEntries,
-		MaxDelegations:    maxDelegations,
+		HistoricalEntries: uint32(historicalEntries),
+		MaxDelegations:    uint32(maxDelegations),
 	}
 }
 

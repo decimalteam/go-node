@@ -26,9 +26,9 @@ message MsgHTLT {
     (gogoproto.jsontag) = "transfer_type",
     (gogoproto.moretags) = "yaml:\"transfer_type\""
   ];
-  bytes From = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string From = 2 [
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "from",
     (gogoproto.moretags) = "yaml:\"from\""
   ];
@@ -59,9 +59,9 @@ message MsgRedeem {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  bytes From = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string From = 1 [
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "from",
     (gogoproto.moretags) = "yaml:\"from\""
   ];
@@ -78,9 +78,9 @@ message MsgRefund {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  bytes From = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string From = 1 [
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "from",
     (gogoproto.moretags) = "yaml:\"from\""
   ];

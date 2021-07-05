@@ -10,9 +10,7 @@ import "google/protobuf/any.proto";
 message Owner {
   option (gogoproto.goproto_stringer) = false;
 
-  bytes Address = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Address = 1 [
     (gogoproto.jsontag) = "address",
     (gogoproto.moretags) = "yaml:\"address\""
   ];
@@ -49,15 +47,13 @@ message BaseNFT {
     (gogoproto.jsontag) = "id",
     (gogoproto.moretags) = "yaml:\"id\""
   ];
-  google.protobuf.Any Owners = 2 [
-    (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "owners",
+  // fixme, should use google.protobuf.any
+  string Owners = 2 [
+    (gogoproto.casttype) = "bitbucket.org/decimalteam/go-node/x/nft/exported.TokenOwners",
     (gogoproto.moretags) = "yaml:\"owners\"",
     (cosmos_proto.accepts_interface) = "TokenOwners"
   ];
-  bytes Creator = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Creator = 3 [
     (gogoproto.jsontag) = "creator",
     (gogoproto.moretags) = "yaml:\"creator\""
   ];

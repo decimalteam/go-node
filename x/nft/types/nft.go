@@ -27,12 +27,12 @@ var _ exported.NFT = (*BaseNFT)(nil)
 func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity, reserve sdk.Int, allowMint bool) *BaseNFT {
 	return &BaseNFT{
 		ID: id,
-		Owners: &TokenOwners{Owners: []exported.TokenOwner{&TokenOwner{
+		Owners: TokenOwners{Owners: []exported.TokenOwner{&TokenOwner{
 			Address:  owner,
 			Quantity: quantity,
 		}}},
 		TokenURI:  strings.TrimSpace(tokenURI),
-		Creator:   creator,
+		Creator:   creator.String(),
 		Reserve:   reserve,
 		AllowMint: allowMint,
 	}
@@ -47,7 +47,14 @@ func (bnft BaseNFT) GetOwners() exported.TokenOwners { return bnft.Owners }
 // GetTokenURI returns the path to optional extra properties
 func (bnft BaseNFT) GetTokenURI() string { return bnft.TokenURI }
 
-func (bnft BaseNFT) GetCreator() sdk.AccAddress { return bnft.Creator }
+func (bnft BaseNFT) GetCreator() sdk.AccAddress {
+	accaddr, err := sdk.AccAddressFromBech32(bnft.Creator)
+	if err != nil {
+		panic(err)
+	}
+
+	return accaddr
+}
 
 // EditMetadata edits metadata of an nft
 func (bnft BaseNFT) EditMetadata(tokenURI string) exported.NFT {
@@ -92,10 +99,12 @@ type BaseNFTJSON struct {
 }
 
 func (bnft BaseNFT) MarshalJSON() ([]byte, error) {
+	creatorAddr, _ := sdk.AccAddressFromBech32(bnft.Creator)
+
 	b := BaseNFTJSON{
 		ID:        bnft.ID,
 		Owners:    *bnft.Owners.(*TokenOwners),
-		Creator:   bnft.Creator,
+		Creator:   creatorAddr,
 		TokenURI:  bnft.TokenURI,
 		Reserve:   bnft.Reserve,
 		AllowMint: bnft.AllowMint,
@@ -112,7 +121,7 @@ func (bnft *BaseNFT) UnmarshalJSON(b []byte) error {
 
 	bnft.ID = nft.ID
 	bnft.TokenURI = nft.TokenURI
-	bnft.Creator = nft.Creator
+	bnft.Creator = nft.Creator.String()
 	bnft.Reserve = nft.Reserve
 	bnft.Owners = &nft.Owners
 	bnft.AllowMint = nft.AllowMint

@@ -41,7 +41,16 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types2.MsgTransferNFT, k keeper2.
 		return nil, err
 	}
 
-	nft, err = types2.TransferNFT(nft, msg.Sender, msg.Recipient, msg.Quantity)
+	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+	recipientAddr, err := sdk.AccAddressFromBech32(msg.Recipient)
+	if err != nil {
+		return nil, err
+	}
+
+	nft, err = types2.TransferNFT(nft, senderAddr, recipientAddr, msg.Quantity)
 	if err != nil {
 		return nil, err
 	}
@@ -57,14 +66,14 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types2.MsgTransferNFT, k keeper2.
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types2.EventTypeTransfer,
-			sdk.NewAttribute(types2.AttributeKeyRecipient, msg.Recipient.String()),
+			sdk.NewAttribute(types2.AttributeKeyRecipient, recipientAddr.String()),
 			sdk.NewAttribute(types2.AttributeKeyDenom, msg.Denom),
 			sdk.NewAttribute(types2.AttributeKeyNFTID, msg.ID),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, senderAddr.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
@@ -91,7 +100,7 @@ func HandleMsgEditNFTMetadata(ctx sdk.Context, msg types2.MsgEditNFTMetadata, k 
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
@@ -101,15 +110,25 @@ func HandleMsgEditNFTMetadata(ctx sdk.Context, msg types2.MsgEditNFTMetadata, k 
 func HandleMsgMintNFT(ctx sdk.Context, msg types2.MsgMintNFT, k keeper2.Keeper,
 ) (*sdk.Result, error) {
 	nft, err := k.GetNFT(ctx, msg.Denom, msg.ID)
+
+	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+	recipientAddr, err := sdk.AccAddressFromBech32(msg.Recipient)
+	if err != nil {
+		return nil, err
+	}
+
 	if err == nil {
-		if !nft.GetCreator().Equals(msg.Sender) {
+		if !nft.GetCreator().Equals(senderAddr) {
 			return nil, ErrNotAllowedMint
 		}
 		if !nft.GetAllowMint() {
 			return nil, ErrNotAllowedMint
 		}
 	}
-	nft = types2.NewBaseNFT(msg.ID, msg.Sender, msg.Recipient, msg.TokenURI, msg.Quantity, msg.Reserve, msg.AllowMint)
+	nft = types2.NewBaseNFT(msg.ID, senderAddr, recipientAddr, msg.TokenURI, msg.Quantity, msg.Reserve, msg.AllowMint)
 	err = k.MintNFT(ctx, msg.Denom, nft)
 	if err != nil {
 		return nil, err
@@ -118,7 +137,7 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types2.MsgMintNFT, k keeper2.Keeper,
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types2.EventTypeMintNFT,
-			sdk.NewAttribute(types2.AttributeKeyRecipient, msg.Recipient.String()),
+			sdk.NewAttribute(types2.AttributeKeyRecipient, recipientAddr.String()),
 			sdk.NewAttribute(types2.AttributeKeyDenom, msg.Denom),
 			sdk.NewAttribute(types2.AttributeKeyNFTID, msg.ID),
 			sdk.NewAttribute(types2.AttributeKeyNFTTokenURI, msg.TokenURI),
@@ -126,7 +145,7 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types2.MsgMintNFT, k keeper2.Keeper,
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, senderAddr.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
@@ -140,7 +159,12 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types2.MsgBurnNFT, k keeper2.Keeper,
 		return nil, err
 	}
 
-	if !nft.GetCreator().Equals(msg.Sender) {
+	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	if !nft.GetCreator().Equals(senderAddr) {
 		return nil, ErrNotAllowedBurn
 	}
 
@@ -159,7 +183,7 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types2.MsgBurnNFT, k keeper2.Keeper,
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil

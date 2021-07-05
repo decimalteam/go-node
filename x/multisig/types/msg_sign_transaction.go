@@ -15,7 +15,7 @@ var _ sdk.Msg = &MsgSignTransaction{}
 // NewMsgSignTransaction is a constructor function for MsgCreateTransaction
 func NewMsgSignTransaction(sender sdk.AccAddress, txID string) MsgSignTransaction {
 	return MsgSignTransaction{
-		Sender: sender,
+		Sender: sender.String(),
 		TxID:   txID,
 	}
 }
@@ -41,5 +41,7 @@ func (msg *MsgSignTransaction) GetSignBytes() []byte {
 
 // GetSigners returns the list of signers required to sign the message.
 func (msg *MsgSignTransaction) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	accAddr, _ := sdk.AccAddressFromBech32(msg.Sender)
+
+	return []sdk.AccAddress{accAddr}
 }

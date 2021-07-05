@@ -91,7 +91,7 @@ func queryOwnerByDenom(ctx sdk.Context, path []string, req abci.RequestQuery, k 
 	var owner types2.Owner
 
 	idCollection, _ := k.GetOwnerByDenom(ctx, params.Owner, params.Denom)
-	owner.Address = params.Owner
+	owner.Address = params.Owner.String()
 	owner.IDCollections = append(owner.IDCollections, idCollection).Sort()
 
 	bz, err := types2.ModuleCdc.MarshalJSON(owner)

@@ -15,25 +15,25 @@ message MsgCreateTransaction {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  bytes Sender = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Sender = 1 [
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
-  bytes Wallet = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Wallet = 2 [
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "wallet",
     (gogoproto.moretags) = "yaml:\"wallet\""
   ];
-  bytes Receiver = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Receiver = 3 [
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "receiver",
     (gogoproto.moretags) = "yaml:\"receiver\""
   ];
-  repeated bytes Coins = 4 [
+  repeated string Coins = 4 [
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
     (gogoproto.jsontag) = "coins",
     (gogoproto.moretags) = "yaml:\"coins\""
@@ -46,15 +46,15 @@ message MsgCreateWallet {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  bytes Sender = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Sender = 1 [
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
-  repeated bytes Owners = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  repeated string Owners = 2 [
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "owners",
     (gogoproto.moretags) = "yaml:\"owners\""
   ];
@@ -74,9 +74,9 @@ message MsgSignTransaction {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  bytes Sender = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-    (gogoproto.nullable) = false,
+  string Sender = 1 [
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
+//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];

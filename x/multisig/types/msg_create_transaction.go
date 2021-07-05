@@ -17,9 +17,9 @@ var _ sdk.Msg = &MsgCreateTransaction{}
 // NewMsgCreateTransaction creates a new MsgCreateTransaction instance.
 func NewMsgCreateTransaction(sender sdk.AccAddress, wallet sdk.AccAddress, receiver sdk.AccAddress, coins sdk.Coins) MsgCreateTransaction {
 	return MsgCreateTransaction{
-		Sender:   sender,
-		Wallet:   wallet,
-		Receiver: receiver,
+		Sender:   sender.String(),
+		Wallet:   wallet.String(),
+		Receiver: receiver.String(),
 		Coins:    coins,
 	}
 }
@@ -45,5 +45,7 @@ func (msg *MsgCreateTransaction) GetSignBytes() []byte {
 
 // GetSigners returns the list of signers required to sign the message.
 func (msg *MsgCreateTransaction) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	accAddr, _ := sdk.AccAddressFromBech32(msg.Sender)
+	
+	return []sdk.AccAddress{accAddr}
 }

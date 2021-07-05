@@ -21,13 +21,13 @@ func PipToUnit(pip sdk.Int) sdk.Int {
 }
 
 // JoinAccAddresses returns string containing all provided address joined with ",".
-func JoinAccAddresses(values []sdk.AccAddress) string {
+func JoinAccAddresses(values []string) string {
 	var sb strings.Builder
 	for i, v := range values {
 		if i > 0 {
 			sb.WriteString(",")
 		}
-		sb.WriteString(v.String())
+		sb.WriteString(v)
 	}
 	return sb.String()
 }

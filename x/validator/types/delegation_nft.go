@@ -18,8 +18,8 @@ import (
 
 func NewDelegationNFT(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, tokenID, denom string, quantity sdk.Int, coin sdk.Coin) DelegationNFT {
 	return DelegationNFT{
-		DelegatorAddress: delegatorAddr,
-		ValidatorAddress: validatorAddr,
+		DelegatorAddress: delegatorAddr.String(),
+		ValidatorAddress: validatorAddr.String(),
 		Denom:            denom,
 		TokenID:          tokenID,
 		Quantity:         quantity,
@@ -46,8 +46,22 @@ func UnmarshalDelegationNFT(cdc *codec.LegacyAmino, value []byte) (delegation De
 	return delegation, err
 }
 
-func (d DelegationNFT) GetDelegatorAddr() sdk.AccAddress             { return d.DelegatorAddress }
-func (d DelegationNFT) GetValidatorAddr() sdk.ValAddress             { return d.ValidatorAddress }
+func (d DelegationNFT) GetDelegatorAddr() sdk.AccAddress             {
+	delAddr, err := sdk.AccAddressFromBech32(d.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return delAddr
+}
+func (d DelegationNFT) GetValidatorAddr() sdk.ValAddress             {
+	valAddr, err := sdk.ValAddressFromBech32(d.ValidatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return valAddr
+}
 func (d DelegationNFT) GetCoin() sdk.Coin                            { return d.Coin }
 func (d DelegationNFT) GetTokensBase() sdk.Int                       { return d.Coin.Amount }
 func (d DelegationNFT) SetTokensBase(_ sdk.Int) exported.DelegationI { return d }

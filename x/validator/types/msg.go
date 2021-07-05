@@ -19,8 +19,8 @@ var _ sdk.Msg = &MsgDeclareCandidate{}
 func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey types.PubKey, commission sdk.Dec, stake sdk.Coin, description Description, rewardAddress sdk.AccAddress) MsgDeclareCandidate {
 	return MsgDeclareCandidate{
 		Commission:    commission,
-		ValidatorAddr: validatorAddr,
-		RewardAddr:    rewardAddress,
+		ValidatorAddr: validatorAddr.String(),
+		RewardAddr:    rewardAddress.String(),
 		PubKey:        pubKey,
 		Stake:         stake,
 		Description:   description,
@@ -43,7 +43,7 @@ func (msg MsgDeclareCandidate) GetSignBytes() []byte {
 // quick validity check
 func (msg MsgDeclareCandidate) ValidateBasic() error {
 	// note that unmarshaling from bech32 ensures either empty or valid
-	if msg.ValidatorAddr.Empty() {
+	if len(msg.ValidatorAddr) == 0 {
 		return ErrEmptyValidatorAddr()
 	}
 	if msg.Stake.Amount.LTE(sdk.ZeroInt()) {
@@ -69,8 +69,8 @@ func (msg MsgDeclareCandidate) ValidateBasic() error {
 
 func NewMsgDelegate(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, coin sdk.Coin) MsgDelegate {
 	return MsgDelegate{
-		DelegatorAddress: delegatorAddr,
-		ValidatorAddress: validatorAddr,
+		DelegatorAddress: delegatorAddr.String(),
+		ValidatorAddress: validatorAddr.String(),
 		Coin:             coin,
 	}
 }
@@ -80,7 +80,12 @@ const DelegateConst = "delegate"
 func (msg MsgDelegate) Route() string { return RouterKey }
 func (msg MsgDelegate) Type() string  { return DelegateConst }
 func (msg MsgDelegate) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.DelegatorAddress}
+	delAddr, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{delAddr}
 }
 
 func (msg MsgDelegate) GetSignBytes() []byte {
@@ -89,10 +94,10 @@ func (msg MsgDelegate) GetSignBytes() []byte {
 }
 
 func (msg MsgDelegate) ValidateBasic() error {
-	if msg.ValidatorAddress.Empty() {
+	if len(msg.ValidatorAddress) == 0 {
 		return ErrEmptyValidatorAddr()
 	}
-	if msg.DelegatorAddress.Empty() {
+	if len(msg.DelegatorAddress) == 0 {
 		return ErrEmptyDelegatorAddr()
 	}
 	return nil
@@ -110,8 +115,8 @@ func (msg MsgDelegate) ValidateBasic() error {
 
 func NewMsgDelegateNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, quantity sdk.Int) MsgDelegateNFT {
 	return MsgDelegateNFT{
-		DelegatorAddress: delegatorAddr,
-		ValidatorAddress: validatorAddr,
+		DelegatorAddress: delegatorAddr.String(),
+		ValidatorAddress: validatorAddr.String(),
 		TokenID:          tokenID,
 		Denom:            denom,
 		Quantity:         quantity,
@@ -123,7 +128,12 @@ const DelegateNFTConst = "delegate_nft"
 func (msg MsgDelegateNFT) Route() string { return RouterKey }
 func (msg MsgDelegateNFT) Type() string  { return DelegateNFTConst }
 func (msg MsgDelegateNFT) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.DelegatorAddress}
+	delAddr, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{delAddr}
 }
 
 func (msg MsgDelegateNFT) GetSignBytes() []byte {
@@ -132,10 +142,10 @@ func (msg MsgDelegateNFT) GetSignBytes() []byte {
 }
 
 func (msg MsgDelegateNFT) ValidateBasic() error {
-	if msg.ValidatorAddress.Empty() {
+	if len(msg.ValidatorAddress) == 0 {
 		return ErrEmptyValidatorAddr()
 	}
-	if msg.DelegatorAddress.Empty() {
+	if len(msg.DelegatorAddress) == 0 {
 		return ErrEmptyDelegatorAddr()
 	}
 	return nil
@@ -148,7 +158,7 @@ func (msg MsgDelegateNFT) ValidateBasic() error {
 //}
 
 func NewMsgSetOnline(validatorAddr sdk.ValAddress) MsgSetOnline {
-	return MsgSetOnline{ValidatorAddress: validatorAddr}
+	return MsgSetOnline{ValidatorAddress: validatorAddr.String()}
 }
 
 const SetOnlineConst = "set_online"
@@ -165,7 +175,7 @@ func (msg MsgSetOnline) GetSignBytes() []byte {
 }
 
 func (msg MsgSetOnline) ValidateBasic() error {
-	if msg.ValidatorAddress.Empty() {
+	if len(msg.ValidatorAddress) == 0 {
 		return ErrEmptyValidatorAddr()
 	}
 	return nil
@@ -178,7 +188,7 @@ func (msg MsgSetOnline) ValidateBasic() error {
 //}
 
 func NewMsgSetOffline(validatorAddr sdk.ValAddress) MsgSetOffline {
-	return MsgSetOffline{ValidatorAddress: validatorAddr}
+	return MsgSetOffline{ValidatorAddress: validatorAddr.String()}
 }
 
 const SetOfflineConst = "set_offline"
@@ -195,7 +205,7 @@ func (msg MsgSetOffline) GetSignBytes() []byte {
 }
 
 func (msg MsgSetOffline) ValidateBasic() error {
-	if msg.ValidatorAddress.Empty() {
+	if len(msg.ValidatorAddress) == 0 {
 		return ErrEmptyValidatorAddr()
 	}
 	return nil
@@ -211,8 +221,8 @@ func (msg MsgSetOffline) ValidateBasic() error {
 
 func NewMsgUnbond(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, coin sdk.Coin) MsgUnbond {
 	return MsgUnbond{
-		ValidatorAddress: validatorAddr,
-		DelegatorAddress: delegatorAddr,
+		ValidatorAddress: validatorAddr.String(),
+		DelegatorAddress: delegatorAddr.String(),
 		Coin:             coin,
 	}
 }
@@ -222,7 +232,12 @@ const UnbondConst = "unbond"
 func (msg MsgUnbond) Route() string { return RouterKey }
 func (msg MsgUnbond) Type() string  { return UnbondConst }
 func (msg MsgUnbond) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.DelegatorAddress}
+	delAddr, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{delAddr}
 }
 
 func (msg MsgUnbond) GetSignBytes() []byte {
@@ -231,10 +246,10 @@ func (msg MsgUnbond) GetSignBytes() []byte {
 }
 
 func (msg MsgUnbond) ValidateBasic() error {
-	if msg.ValidatorAddress.Empty() {
+	if len(msg.ValidatorAddress) == 0 {
 		return ErrEmptyValidatorAddr()
 	}
-	if msg.DelegatorAddress.Empty() {
+	if len(msg.DelegatorAddress) == 0 {
 		return ErrEmptyDelegatorAddr()
 	}
 	return nil
@@ -252,8 +267,8 @@ func (msg MsgUnbond) ValidateBasic() error {
 
 func NewMsgUnbondNFT(validatorAddr sdk.ValAddress, delegatorAddr sdk.AccAddress, tokenID, denom string, quantity sdk.Int) MsgUnbondNFT {
 	return MsgUnbondNFT{
-		ValidatorAddress: validatorAddr,
-		DelegatorAddress: delegatorAddr,
+		ValidatorAddress: validatorAddr.String(),
+		DelegatorAddress: delegatorAddr.String(),
 		TokenID:          tokenID,
 		Denom:            denom,
 		Quantity:         quantity,
@@ -265,7 +280,12 @@ const UnbondNFTConst = "unbond_nft"
 func (msg MsgUnbondNFT) Route() string { return RouterKey }
 func (msg MsgUnbondNFT) Type() string  { return UnbondNFTConst }
 func (msg MsgUnbondNFT) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.DelegatorAddress}
+	delAddr, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{delAddr}
 }
 
 func (msg MsgUnbondNFT) GetSignBytes() []byte {
@@ -274,10 +294,10 @@ func (msg MsgUnbondNFT) GetSignBytes() []byte {
 }
 
 func (msg MsgUnbondNFT) ValidateBasic() error {
-	if msg.ValidatorAddress.Empty() {
+	if len(msg.ValidatorAddress) == 0 {
 		return ErrEmptyValidatorAddr()
 	}
-	if msg.DelegatorAddress.Empty() {
+	if len(msg.DelegatorAddress) == 0 {
 		return ErrEmptyDelegatorAddr()
 	}
 	return nil
@@ -293,8 +313,8 @@ func (msg MsgUnbondNFT) ValidateBasic() error {
 
 func NewMsgEditCandidate(validatorAddress sdk.ValAddress, rewardAddress sdk.AccAddress, description Description) MsgEditCandidate {
 	return MsgEditCandidate{
-		ValidatorAddress: validatorAddress,
-		RewardAddress:    rewardAddress,
+		ValidatorAddress: validatorAddress.String(),
+		RewardAddress:    rewardAddress.String(),
 		Description:      description,
 	}
 }
@@ -313,7 +333,7 @@ func (msg MsgEditCandidate) GetSignBytes() []byte {
 }
 
 func (msg MsgEditCandidate) ValidateBasic() error {
-	if msg.ValidatorAddress.Empty() {
+	if len(msg.ValidatorAddress) == 0 {
 		return ErrEmptyValidatorAddr()
 	}
 	return nil

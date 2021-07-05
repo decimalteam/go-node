@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -49,8 +50,13 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCandidate) (*sdk.Result, error) {
+	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddr)
+	if err != nil {
+		return nil, err
+	}
+
 	// check to see if the pubkey or sender has been registered before
-	if _, err := k.GetValidator(ctx, msg.ValidatorAddr); err == nil {
+	if _, err := k.GetValidator(ctx, validatorAddr); err == nil {
 		return nil, types.ErrValidatorOwnerExists()
 	}
 
@@ -73,15 +79,15 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		}
 	}
 
-	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Commission, msg.RewardAddr, msg.Description)
-	err := k.SetValidator(ctx, val)
+	val := types.NewValidator(validatorAddr.String(), msg.PubKey, msg.Commission, msg.RewardAddr, msg.Description)
+	err = k.SetValidator(ctx, val)
 	if err != nil {
 		return nil, types.ErrInvalidStruct()
 	}
 	k.SetValidatorByConsAddr(ctx, val)
-	k.SetNewValidatorByPowerIndex(ctx, val)
+	k.SetNewValidatorByPowerIndex(ctx, validatorAddr, val)
 
-	k.AfterValidatorCreated(ctx, val.ValAddress)
+	k.AfterValidatorCreated(ctx, validatorAddr)
 
 	err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
 	if err != nil {
@@ -97,7 +103,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(msg.ValidatorAddr).String()),
-		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
 		sdk.NewAttribute(types.AttributeKeyCoin, msg.Stake.String()),
 		sdk.NewAttribute(types.AttributeKeyPubKey, msg.PubKey.Address().String()),
 		sdk.NewAttribute(types.AttributeKeyCommission, msg.Commission.String()),
@@ -112,12 +118,21 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 }
 
 func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.Result, error) {
-	val, err := k.GetValidator(ctx, msg.ValidatorAddress)
+	validatoraddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return nil, err
+	}
+	delegatoraddr, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	val, err := k.GetValidator(ctx, validatoraddr)
 	if err != nil {
 		return nil, types.ErrNoValidatorFound()
 	}
 
-	ok, err := k.IsDelegatorStakeSufficient(ctx, val, msg.DelegatorAddress, msg.Coin)
+	ok, err := k.IsDelegatorStakeSufficient(ctx, validatoraddr, delegatoraddr, msg.Coin)
 	if err != nil {
 		return nil, types.ErrCoinDoesNotExist(msg.Coin.Denom)
 	}
@@ -125,7 +140,7 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, types.ErrDelegatorStakeIsTooLow()
 	}
 
-	err = k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)
+	err = k.Delegate(ctx, delegatoraddr, msg.Coin, types.Unbonded, val, true)
 	if err != nil {
 		e := sdkerrors.Error{}
 		if errors.As(err, &e) {
@@ -138,8 +153,8 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
-		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, delegatoraddr.String()),
+		sdk.NewAttribute(types.AttributeKeyValidator, validatoraddr.String()),
 		sdk.NewAttribute(types.AttributeKeyCoin, msg.Coin.String()),
 	))
 
@@ -147,12 +162,21 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 }
 
 func handleMsgDelegateNFT(ctx sdk.Context, k Keeper, msg types.MsgDelegateNFT) (*sdk.Result, error) {
-	val, err := k.GetValidator(ctx, msg.ValidatorAddress)
+	delegatorAddr, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil ,err
+	}
+	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return nil ,err
+	}
+
+	val, err := k.GetValidator(ctx, validatorAddr)
 	if err != nil {
 		return nil, types.ErrNoValidatorFound()
 	}
 
-	err = k.DelegateNFT(ctx, msg.DelegatorAddress, msg.TokenID, msg.Denom, msg.Quantity, val)
+	err = k.DelegateNFT(ctx, delegatorAddr, msg.TokenID, msg.Denom, msg.Quantity, val)
 	if err != nil {
 		e := sdkerrors.Error{}
 		if errors.As(err, &e) {
@@ -165,15 +189,24 @@ func handleMsgDelegateNFT(ctx sdk.Context, k Keeper, msg types.MsgDelegateNFT) (
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
-		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, delegatorAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgUnbondNFT(ctx sdk.Context, k Keeper, msg types.MsgUnbondNFT) (*sdk.Result, error) {
-	completionTime, err := k.UndelegateNFT(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.TokenID, msg.Denom, msg.Quantity)
+	delegatorAddr, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil ,err
+	}
+	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return nil ,err
+	}
+
+	completionTime, err := k.UndelegateNFT(ctx, delegatorAddr, validatorAddr, msg.TokenID, msg.Denom, msg.Quantity)
 	if err != nil {
 		e := sdkerrors.Error{}
 		if errors.As(err, &e) {
@@ -183,13 +216,16 @@ func handleMsgUnbondNFT(ctx sdk.Context, k Keeper, msg types.MsgUnbondNFT) (*sdk
 		}
 	}
 
-	completionTimeBz := types.ModuleCdc.MustMarshal(completionTime)
+	completionTimeBz, err := json.Marshal(completionTime)
+	if err != nil {
+		panic(err)
+	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
-		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, delegatorAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
 		sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 	))
 
@@ -197,7 +233,16 @@ func handleMsgUnbondNFT(ctx sdk.Context, k Keeper, msg types.MsgUnbondNFT) (*sdk
 }
 
 func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Result, error) {
-	completionTime, err := k.Undelegate(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.Coin)
+	delegatorAddr, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil ,err
+	}
+	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return nil ,err
+	}
+
+	completionTime, err := k.Undelegate(ctx, delegatorAddr, validatorAddr, msg.Coin)
 	if err != nil {
 		e := sdkerrors.Error{}
 		if errors.As(err, &e) {
@@ -207,13 +252,17 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 		}
 	}
 
-	completionTimeBz := types.ModuleCdc.MustMarshalLengthPrefixed(completionTime)
+	//completionTimeBz := types.ModuleCdc.MustMarshalLengthPrefixed(completionTime)
+	completionTimeBz, err := json.Marshal(completionTime)
+	if err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
-		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, delegatorAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
 		sdk.NewAttribute(types.AttributeKeyCoin, msg.Coin.String()),
 		sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
 	))
@@ -224,7 +273,12 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidate) (*sdk.Result, error) {
 	var validator types.Validator
 
-	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
+	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return nil ,err
+	}
+
+	validator, err = k.GetValidator(ctx, validatorAddr)
 	if err != nil {
 		return nil, types.ErrNoValidatorFound()
 	}
@@ -241,7 +295,7 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(validator.ValAddress).String()),
-		sdk.NewAttribute(types.AttributeKeyRewardAddress, msg.RewardAddress.String()),
+		sdk.NewAttribute(types.AttributeKeyRewardAddress, msg.RewardAddress),
 		sdk.NewAttribute(types.AttributeKeyDescriptionMoniker, msg.Description.Moniker),
 		sdk.NewAttribute(types.AttributeKeyDescriptionDetails, msg.Description.Details),
 		sdk.NewAttribute(types.AttributeKeyDescriptionIdentity, msg.Description.Identity),
@@ -253,7 +307,11 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 }
 
 func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk.Result, error) {
-	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
+	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return nil ,err
+	}
+	validator, err := k.GetValidator(ctx, validatorAddr)
 	if err != nil {
 		return nil, types.ErrNoValidatorFound()
 	}
@@ -276,14 +334,19 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(msg.ValidatorAddress).String()),
-		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+		sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*sdk.Result, error) {
-	validator, err := k.GetValidator(ctx, msg.ValidatorAddress)
+	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	if err != nil {
+		return nil ,err
+	}
+
+	validator, err := k.GetValidator(ctx, validatorAddr)
 	if err != nil {
 		return nil, types.ErrNoValidatorFound()
 	}
@@ -304,7 +367,7 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*s
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(msg.ValidatorAddress).String()),
-		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+		sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil

@@ -26,10 +26,9 @@ const MultisigTransactionIDPrefix = "dxmstx"
 //}
 
 // NewWallet returns a new Wallet.
-func NewWallet(owners []sdk.AccAddress, weights []uint64, threshold uint64, salt []byte) (*Wallet, error) {
-
+func NewWallet(owners []string, weights []uint64, threshold uint64, salt []byte) (*Wallet, error) {
 	walletMetadata := struct {
-		Owners    []sdk.AccAddress `json:"owners" yaml:"owners"`
+		Owners    []string `json:"owners" yaml:"owners"`
 		Weights   []uint64         `json:"weights" yaml:"weights"`
 		Threshold uint64           `json:"threshold" yaml:"threshold"`
 		Salt      []byte           `json:"salt" yaml:"salt"`
@@ -43,7 +42,7 @@ func NewWallet(owners []sdk.AccAddress, weights []uint64, threshold uint64, salt
 	address := sdk.AccAddress(bz[12:])
 
 	return &Wallet{
-		Address:   address,
+		Address:   address.String(),
 		Owners:    owners,
 		Weights:   weights,
 		Threshold: threshold,
@@ -74,13 +73,13 @@ func (w *Wallet) String() string {
 //}
 
 // NewTransaction returns a new Transaction.
-func NewTransaction(wallet, receiver sdk.AccAddress, coins sdk.Coins, signers []sdk.AccAddress, height int64, salt []byte) (*Transaction, error) {
+func NewTransaction(wallet, receiver string, coins sdk.Coins, signers []string, height int64, salt []byte) (*Transaction, error) {
 
 	transactionMetadata := struct {
-		Wallet    sdk.AccAddress   `json:"wallet" yaml:"wallet"`
-		Receiver  sdk.AccAddress   `json:"receiver" yaml:"receiver"`
+		Wallet    string   `json:"wallet" yaml:"wallet"`
+		Receiver  string   `json:"receiver" yaml:"receiver"`
 		Coins     sdk.Coins        `json:"coins" yaml:"coins"`
-		Signers   []sdk.AccAddress `json:"signers" yaml:"signers"`
+		Signers   []string `json:"signers" yaml:"signers"`
 		CreatedAt int64            `json:"created_at" yaml:"created_at"` // block height
 		Salt      []byte           `json:"salt" yaml:"salt"`
 	}{
@@ -110,4 +109,13 @@ func NewTransaction(wallet, receiver sdk.AccAddress, coins sdk.Coins, signers []
 // String implements fmt.Stringer interface.
 func (t *Transaction) String() string {
 	return fmt.Sprintf("Transaction %s: %s --> %s %+v", t.ID, t.Wallet, t.Receiver, t.Coins)
+}
+
+func toStrAddrs(owners []sdk.AccAddress) []string {
+	strowners := make([]string, len(owners))
+	for _, o := range owners {
+		strowners = append(strowners, o.String())
+	}
+
+	return strowners
 }

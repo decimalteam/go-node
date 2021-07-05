@@ -21,14 +21,31 @@ func (k Keeper) GetDelegationNFT(ctx sdk.Context, valAddr sdk.ValAddress, delAdd
 
 // set a delegation
 func (k Keeper) SetDelegationNFT(ctx sdk.Context, delegation types.DelegationNFT) {
-	err := k.set(ctx, types.GetDelegationNFTKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.TokenID, delegation.Denom), delegation)
+	delegatorAddr, err := sdk.AccAddressFromBech32(delegation.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	validatorAddr, err := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	err = k.set(ctx, types.GetDelegationNFTKey(delegatorAddr, validatorAddr, delegation.TokenID, delegation.Denom), delegation)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (k Keeper) RemoveDelegationNFT(ctx sdk.Context, delegation types.DelegationNFT) {
-	k.delete(ctx, types.GetDelegationNFTKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.TokenID, delegation.Denom))
+	delegatorAddr, err := sdk.AccAddressFromBech32(delegation.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	validatorAddr, err := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	k.delete(ctx, types.GetDelegationNFTKey(delegatorAddr, validatorAddr, delegation.TokenID, delegation.Denom))
 }
 
 func (k Keeper) SetUnbondingDelegationNFTEntry(ctx sdk.Context,
@@ -82,12 +99,18 @@ func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, de
 
 	k.nftKeeper.SetCollection(ctx, denom, collection)
 
-	delegation, found := k.GetDelegationNFT(ctx, validator.ValAddress, delAddr, tokenID, denom)
+
+	valAddr, err := sdk.ValAddressFromBech32(validator.ValAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	delegation, found := k.GetDelegationNFT(ctx, valAddr, delAddr, tokenID, denom)
 	if found {
 		delegation.Quantity = delegation.Quantity.Add(quantity)
 		delegation.Coin.Amount = delegation.Quantity.Mul(nft.GetReserve())
 	} else {
-		delegation = types.NewDelegationNFT(delAddr, validator.ValAddress, tokenID, denom, quantity,
+		delegation = types.NewDelegationNFT(delAddr, valAddr, tokenID, denom, quantity,
 			sdk.NewCoin(k.BondDenom(ctx), quantity.Mul(nft.GetReserve())))
 	}
 
@@ -99,7 +122,7 @@ func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, de
 	if err != nil {
 		return err
 	}
-	k.SetValidatorByPowerIndexWithoutCalc(ctx, validator)
+	k.SetValidatorByPowerIndexWithoutCalc(ctx, valAddr, validator)
 
 	return nil
 }
@@ -156,23 +179,28 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 	delegation.Quantity = delegation.Quantity.Sub(quantity)
 	delegation.Coin.Amount = delegation.Quantity.Mul(token.GetReserve())
 
+	delegatorAddr, err := sdk.AccAddressFromBech32(delegation.DelegatorAddress)
+	if err != nil {
+		panic(err)
+	}
+
 	// remove the delegation
 	if delegation.Quantity.IsZero() {
 		k.RemoveDelegationNFT(ctx, delegation)
 	} else {
 		k.SetDelegationNFT(ctx, delegation)
 		// call the after delegation modification hook
-		k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+		k.AfterDelegationModified(ctx, delegatorAddr, valAddr)
 	}
 
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 
 	amountBase := quantity.Mul(token.GetReserve())
-	decreasedTokens := k.DecreaseValidatorTokens(ctx, validator, amountBase)
+	decreasedTokens := k.DecreaseValidatorTokens(ctx, valAddr, validator, amountBase)
 
 	if decreasedTokens.IsZero() && validator.IsUnbonded() {
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
-		err = k.RemoveValidator(ctx, validator.ValAddress)
+		err = k.RemoveValidator(ctx, valAddr)
 		if err != nil {
 			return types.ErrInternal(err.Error())
 		}

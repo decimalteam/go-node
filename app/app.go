@@ -288,7 +288,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	//type RandomGenesisAccountsFn func(simState *module.SimulationState) GenesisAccounts
 	app.mm = module.NewManager(
-		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx),
+		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
 		auth.NewAppModule(app.appCodec, app.accountKeeper, func(state *module.SimulationState) authTypes.GenesisAccounts {
 			return authTypes.GenesisAccounts{}
 		}),
