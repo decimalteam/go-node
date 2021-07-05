@@ -14,7 +14,7 @@ var _ sdk.Msg = &MsgSellAllCoin{}
 
 func NewMsgSellAllCoin(sender sdk.AccAddress, coinToSell sdk.Coin, minCoinToBuy sdk.Coin) MsgSellAllCoin {
 	return MsgSellAllCoin{
-		Sender:       sender,
+		Sender:       sender.String(),
 		CoinToSell:   coinToSell,
 		MinCoinToBuy: minCoinToBuy,
 	}
@@ -25,7 +25,9 @@ const SellAllCoinConst = "sell_all_coin"
 func (msg *MsgSellAllCoin) Route() string { return RouterKey }
 func (msg *MsgSellAllCoin) Type() string  { return SellAllCoinConst }
 func (msg *MsgSellAllCoin) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	accAddr, _ := sdk.AccAddressFromBech32(msg.Sender)
+
+	return []sdk.AccAddress{accAddr}
 }
 
 func (msg *MsgSellAllCoin) GetSignBytes() []byte {

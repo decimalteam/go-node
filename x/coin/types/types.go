@@ -43,7 +43,7 @@ func (c Coin) String() string {
 		LimitVolume: %s
 		Volume: %s
 		Creator: %s
-	`, c.Title, c.CRR, c.Symbol, c.Reserve.String(), c.LimitVolume.String(), c.Volume.String(), c.Creator.String()))
+	`, c.Title, c.CRR, c.Symbol, c.Reserve.String(), c.LimitVolume.String(), c.Volume.String(), c.Creator))
 }
 
 func (c Coin) IsBase() bool {

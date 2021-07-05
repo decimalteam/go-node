@@ -18,7 +18,7 @@ var _ sdk.Msg = &MsgMultiSendCoin{}
 
 func NewMsgMultiSendCoin(sender sdk.AccAddress, sends []Send) MsgMultiSendCoin {
 	return MsgMultiSendCoin{
-		Sender: sender,
+		Sender: sender.String(),
 		Sends:  sends,
 	}
 }
@@ -28,7 +28,9 @@ const MultiSendCoinConst = "multi_send_coin"
 func (msg *MsgMultiSendCoin) Route() string { return RouterKey }
 func (msg *MsgMultiSendCoin) Type() string  { return MultiSendCoinConst }
 func (msg *MsgMultiSendCoin) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	accAddr, _ := sdk.AccAddressFromBech32(msg.Sender)
+
+	return []sdk.AccAddress{accAddr}
 }
 
 func (msg *MsgMultiSendCoin) GetSignBytes() []byte {

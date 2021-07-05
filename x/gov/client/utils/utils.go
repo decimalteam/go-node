@@ -32,7 +32,7 @@ func (p Proposer) String() string {
 // QueryVotesByTxQuery will query for votes via a direct txs tags query. It
 // will fetch and build votes directly from the returned txs and return a JSON
 // marshalled result or any error that occurred.
-func QueryVotesByTxQuery(cliCtx client.Context, params types2.QueryProposalVotesParams) ([]byte, error) {
+func QueryVotesByTxQuery(clientCtx client.Context, params types2.QueryProposalVotesParams) ([]byte, error) {
 	var (
 		events = []string{
 			fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeyAction, types2.TypeMsgVote),
@@ -44,19 +44,17 @@ func QueryVotesByTxQuery(cliCtx client.Context, params types2.QueryProposalVotes
 	)
 	// query interrupted either if we collected enough votes or tx indexer run out of relevant txs
 	for len(votes) < totalLimit {
-		searchResult, err := tx.QueryTxsByEvents(cliCtx, events, nextTxPage, defaultLimit, "")
+		searchResult, err := tx.QueryTxsByEvents(clientCtx, events, nextTxPage, defaultLimit, "")
 		if err != nil {
 			return nil, err
 		}
+		searchResult = sdk.NewSearchTxsResult(searchResult.TotalCount, uint64(len(searchResult.Txs)), uint64(nextTxPage), uint64(totalLimit), searchResult.Txs)
+
 		nextTxPage++
 
-
-
-		for _, info := range searchResult.Txs {
-			for _, msg := range info.Tx.GetMsgs() {
-				if msg.String() == types2.TypeMsgVote {
-					voteMsg := msg.(types2.MsgVote)
-
+		for _, info := range searchResult.GetTxs() {
+			for _, msg := range info.GetTx().GetMsgs() {
+				if voteMsg, ok := msg.(*types2.MsgVote); ok {
 					votes = append(votes, types2.Vote{
 						Voter:      voteMsg.Voter,
 						ProposalID: params.ProposalID,
@@ -75,10 +73,9 @@ func QueryVotesByTxQuery(cliCtx client.Context, params types2.QueryProposalVotes
 	} else {
 		votes = votes[start:end]
 	}
-	if cliCtx.Indent {
-		return cliCtx.LegacyAmino.MarshalJSONIndent(votes, "", "  ")
-	}
-	return cliCtx.LegacyAmino.MarshalJSON(votes)
+	//if clientCtx.Indent { return clientCtx.LegacyAmino.MarshalJSONIndent(votes, "", "  ")
+	//}
+	return clientCtx.LegacyAmino.MarshalJSON(votes)
 }
 
 // QueryVoteByTxQuery will query for a single vote via a direct txs tags query.
@@ -95,21 +92,22 @@ func QueryVoteByTxQuery(cliCtx client.Context, params types2.QueryVoteParams) ([
 	if err != nil {
 		return nil, err
 	}
-	for _, info := range searchResult.Txs {
-		for _, msg := range info.Tx.GetMsgs() {
-			// there should only be a single vote under the given conditions
-			if msg.Type() == types2.TypeMsgVote {
-				voteMsg := msg.(types2.MsgVote)
 
+	searchResult = sdk.NewSearchTxsResult(searchResult.TotalCount, uint64(len(searchResult.Txs)), uint64(defaultPage), uint64(defaultLimit), searchResult.Txs)
+
+	for _, info := range searchResult.Txs {
+		for _, msg := range info.GetTx().GetMsgs() {
+			// there should only be a single vote under the given conditions
+			if voteMsg, ok := msg.(*types2.MsgVote); ok {
 				vote := types2.Vote{
 					Voter:      voteMsg.Voter,
 					ProposalID: params.ProposalID,
 					Option:     voteMsg.Option,
 				}
 
-				if cliCtx.Indent {
-					return cliCtx.LegacyAmino.MarshalJSONIndent(vote, "", "  ")
-				}
+				//if cliCtx.Indent {
+				//	return cliCtx.LegacyAmino.MarshalJSONIndent(vote, "", "  ")
+				//}
 
 				return cliCtx.LegacyAmino.MarshalJSON(vote)
 			}
@@ -134,12 +132,13 @@ func QueryProposerByTxQuery(cliCtx client.Context, proposalID uint64) (Proposer,
 		return Proposer{}, err
 	}
 
+	searchResult = sdk.NewSearchTxsResult(searchResult.TotalCount, uint64(len(searchResult.Txs)), uint64(defaultPage), uint64(defaultLimit), searchResult.Txs)
+
 	for _, info := range searchResult.Txs {
-		for _, msg := range info.Tx {
+		for _, msg := range info.GetTx().GetMsgs() {
 			// there should only be a single proposal under the given conditions
-			if msg == types2.TypeMsgSubmitProposal {
-				subMsg := msg.(types2.MsgSubmitProposal)
-				return NewProposer(proposalID, subMsg.Proposer.String()), nil
+			if subMsg, ok := msg.(*types2.MsgSubmitProposal); ok {
+				return NewProposer(proposalID, subMsg.Proposer), nil
 			}
 		}
 	}

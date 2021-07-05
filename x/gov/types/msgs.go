@@ -27,7 +27,7 @@ var _, _ sdk.Msg = &MsgSubmitProposal{}, &MsgVote{}
 func NewMsgSubmitProposal(content Content, proposer sdk.AccAddress, votingStartBlock, votingEndBlock uint64) MsgSubmitProposal {
 	return MsgSubmitProposal{
 		Content:          content,
-		Proposer:         proposer,
+		Proposer:         proposer.String(),
 		VotingStartBlock: votingStartBlock,
 		VotingEndBlock:   votingEndBlock,
 	}
@@ -44,8 +44,8 @@ func (msg *MsgSubmitProposal) ValidateBasic() error {
 	if msg.Content.Title == "" || msg.Content.Description == "" {
 		return sdkerrors.Wrap(ErrInvalidProposalContent, "missing content")
 	}
-	if msg.Proposer.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Proposer.String())
+	if len(msg.Proposer) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Proposer)
 	}
 
 	if msg.VotingStartBlock >= msg.VotingEndBlock {
@@ -75,7 +75,12 @@ func (msg *MsgSubmitProposal) GetSignBytes() []byte {
 
 // GetSigners implements Msg
 func (msg *MsgSubmitProposal) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Proposer}
+	proposerAddr, err := sdk.AccAddressFromBech32(msg.Proposer)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{proposerAddr}
 }
 
 // MsgVote defines a message to cast a vote
@@ -87,7 +92,7 @@ func (msg *MsgSubmitProposal) GetSigners() []sdk.AccAddress {
 
 // NewMsgVote creates a message to cast a vote on an active proposal
 func NewMsgVote(voter sdk.ValAddress, proposalID uint64, option VoteOption) MsgVote {
-	return MsgVote{proposalID, voter, option}
+	return MsgVote{proposalID, voter.String(), option}
 }
 
 // Route implements Msg
@@ -98,8 +103,8 @@ func (msg *MsgVote) Type() string { return TypeMsgVote }
 
 // ValidateBasic implements Msg
 func (msg *MsgVote) ValidateBasic() error {
-	if msg.Voter.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Voter.String())
+	if len(msg.Voter) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Voter)
 	}
 	if !ValidVoteOption(msg.Option) {
 		return sdkerrors.Wrap(ErrInvalidVote, msg.Option.String())

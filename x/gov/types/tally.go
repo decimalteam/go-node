@@ -16,7 +16,7 @@ import (
 func NewValidatorGovInfo(address sdk.ValAddress, bondedTokens sdk.Int, vote VoteOption) ValidatorGovInfo {
 
 	return ValidatorGovInfo{
-		Address:      address,
+		Address:      address.String(),
 		BondedTokens: bondedTokens,
 		Vote:         vote,
 	}

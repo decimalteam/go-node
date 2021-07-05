@@ -30,11 +30,7 @@ func GetCmdMultiSendCoin(cdc *codec.LegacyAmino) *cobra.Command {
 					sends[i/2].Coin = coin
 					coins[i/2] = coin
 				} else {
-					receiver, err := sdk.AccAddressFromBech32(value)
-					if err != nil {
-						return err
-					}
-					sends[i/2].Receiver = receiver
+					sends[i/2].Receiver = value
 				}
 			}
 

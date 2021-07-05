@@ -15,7 +15,7 @@ import (
 
 // NewVote creates a new Vote instance
 func NewVote(proposalID uint64, voter sdk.ValAddress, option VoteOption) Vote {
-	return Vote{proposalID, voter, option}
+	return Vote{proposalID, voter.String(), option}
 }
 
 func (v Vote) String() string {
@@ -38,7 +38,7 @@ func (v Votes) String() string {
 
 // Equals returns whether two votes are equal.
 func (v Vote) Equals(comp Vote) bool {
-	return v.Voter.Equals(comp.Voter) &&
+	return v.Voter == comp.Voter &&
 		v.ProposalID == comp.ProposalID &&
 		v.Option == comp.Option
 }
@@ -90,6 +90,14 @@ func ValidVoteOption(option VoteOption) bool {
 // Marshal needed for protobuf compatibility.
 func (vo VoteOption) Marshal() ([]byte, error) {
 	return []byte{byte(vo)}, nil
+}
+
+func (vo VoteOption) Size() int {
+	return 1
+}
+
+func (vo VoteOption) MarshalTo(data []byte) ([]byte, error) {
+	return []byte{data[0]}, nil
 }
 
 // Unmarshal needed for protobuf compatibility.

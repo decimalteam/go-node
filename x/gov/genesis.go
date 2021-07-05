@@ -11,7 +11,12 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
 	k.SetTallyParams(ctx, data.TallyParams)
 
 	for _, vote := range data.Votes {
-		k.SetVote(ctx, vote)
+		voterAddr, err := sdk.ValAddressFromBech32(vote.Voter)
+		if err != nil {
+			panic(err)
+		}
+
+		k.SetVote(ctx, voterAddr, vote)
 	}
 
 	for _, proposal := range data.Proposals {

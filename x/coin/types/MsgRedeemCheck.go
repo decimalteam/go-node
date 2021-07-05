@@ -14,7 +14,7 @@ var _ sdk.Msg = &MsgRedeemCheck{}
 
 func NewMsgRedeemCheck(sender sdk.AccAddress, check string, proof string) MsgRedeemCheck {
 	return MsgRedeemCheck{
-		Sender: sender,
+		Sender: sender.String(),
 		Check:  check,
 		Proof:  proof,
 	}
@@ -25,7 +25,9 @@ const RedeemCheckConst = "redeem_check"
 func (msg *MsgRedeemCheck) Route() string { return RouterKey }
 func (msg *MsgRedeemCheck) Type() string  { return RedeemCheckConst }
 func (msg *MsgRedeemCheck) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	accAddr, _ := sdk.AccAddressFromBech32(msg.Sender)
+
+	return []sdk.AccAddress{accAddr}
 }
 
 func (msg *MsgRedeemCheck) GetSignBytes() []byte {

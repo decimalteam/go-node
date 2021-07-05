@@ -14,9 +14,9 @@ var _ sdk.Msg = &MsgSendCoin{}
 
 func NewMsgSendCoin(sender sdk.AccAddress, coin sdk.Coin, receiver sdk.AccAddress) MsgSendCoin {
 	return MsgSendCoin{
-		Sender:   sender,
+		Sender:   sender.String(),
 		Coin:     coin,
-		Receiver: receiver,
+		Receiver: receiver.String(),
 	}
 }
 
@@ -25,7 +25,9 @@ const SendCoinConst = "send_coin"
 func (msg *MsgSendCoin) Route() string { return RouterKey }
 func (msg *MsgSendCoin) Type() string  { return SendCoinConst }
 func (msg *MsgSendCoin) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	accAddr, _ := sdk.AccAddressFromBech32(msg.Sender)
+
+	return []sdk.AccAddress{accAddr}
 }
 
 func (msg *MsgSendCoin) GetSignBytes() []byte {

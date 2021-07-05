@@ -118,7 +118,13 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types2.MsgCreateCoin) (*
 		return nil, types2.ErrCalculateCommission(err)
 	}
 
-	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)
+	accAddr, err := sdk.AccAddressFromBech32(msg.Sender)
+
+	if err != nil {
+		return nil, err
+	}
+
+	acc := k.AccountKeeper.GetAccount(ctx, accAddr)
 	balance := k.BankKeeper.GetAllBalances(ctx, acc.GetAddress())
 	if balance.AmountOf(cliUtils.GetBaseCoin()).LT(msg.InitialReserve) {
 		return nil, types2.ErrInsufficientCoinReserve()
@@ -134,26 +140,26 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types2.MsgCreateCoin) (*
 		}
 	}
 
-	err = k.UpdateBalance(ctx, cliUtils.GetBaseCoin(), msg.InitialReserve.Neg(), msg.Sender)
+	err = k.UpdateBalance(ctx, cliUtils.GetBaseCoin(), msg.InitialReserve.Neg(), acc.GetAddress())
 	if err != nil {
-		return nil, types2.ErrUpdateBalance(msg.Sender.String(), err.Error())
+		return nil, types2.ErrUpdateBalance(msg.Sender, err.Error())
 	}
 
 	k.SetCoin(ctx, coin)
-	err = k.UpdateBalance(ctx, coin.Symbol, msg.InitialVolume, msg.Sender)
+	err = k.UpdateBalance(ctx, coin.Symbol, msg.InitialVolume, acc.GetAddress())
 	if err != nil {
-		return nil, types2.ErrUpdateBalance(msg.Sender.String(), err.Error())
+		return nil, types2.ErrUpdateBalance(msg.Sender, err.Error())
 	}
 
-	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), msg.Sender)
+	err = k.UpdateBalance(ctx, strings.ToLower(feeCoin), commission.Neg(), acc.GetAddress())
 	if err != nil {
-		return nil, types2.ErrUpdateBalance(msg.Sender.String(), err.Error())
+		return nil, types2.ErrUpdateBalance(msg.Sender, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 		sdk.NewAttribute(types2.AttributeSymbol, coin.Symbol),
 		sdk.NewAttribute(types2.AttributeTitle, coin.Title),
 		sdk.NewAttribute(types2.AttributeCRR, strconv.FormatUint(uint64(msg.ConstantReserveRatio), 10)),
@@ -176,7 +182,7 @@ func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types2.MsgUpdateCoin) (*
 		return nil, types2.ErrCoinAlreadyExist(msg.Symbol)
 	}
 
-	if !coin.Creator.Equals(msg.Sender) {
+	if coin.Creator != msg.Sender {
 		return nil, types2.ErrUpdateOnlyForCreator()
 	}
 
@@ -197,7 +203,10 @@ func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types2.MsgUpdateCoin) (*
 ////////////////////////////////////////////////////////////////
 
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgSendCoin) (*sdk.Result, error) {
-	err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
+	senderaddr, _ := sdk.AccAddressFromBech32(msg.Sender)
+	receiveraddr, _ := sdk.AccAddressFromBech32(msg.Receiver)
+
+	err := k.BankKeeper.SendCoins(ctx, senderaddr, receiveraddr, sdk.Coins{msg.Coin})
 	if err != nil {
 		return nil, sdkerrors.New(types2.DefaultCodespace, 6, err.Error())
 	}
@@ -205,17 +214,21 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgSendCoin) (*sdk.
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 		sdk.NewAttribute(types2.AttributeCoin, msg.Coin.String()),
-		sdk.NewAttribute(types2.AttributeReceiver, msg.Receiver.String()),
+		sdk.NewAttribute(types2.AttributeReceiver, msg.Receiver),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
 func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgMultiSendCoin) (*sdk.Result, error) {
+	senderaddr, _ := sdk.AccAddressFromBech32(msg.Sender)
+
 	for i := range msg.Sends {
-		err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Sends[i].Receiver, sdk.Coins{msg.Sends[i].Coin})
+		receiveraddr, _ := sdk.AccAddressFromBech32(msg.Sends[i].Receiver)
+
+		err := k.BankKeeper.SendCoins(ctx, senderaddr, receiveraddr, sdk.Coins{msg.Sends[i].Coin})
 		if err != nil {
 			return nil, sdkerrors.New(types2.DefaultCodespace, 6, err.Error())
 		}
@@ -223,9 +236,9 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgMultiSendCo
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 			sdk.NewAttribute(types2.AttributeCoin, msg.Sends[i].Coin.String()),
-			sdk.NewAttribute(types2.AttributeReceiver, msg.Sends[i].Receiver.String()),
+			sdk.NewAttribute(types2.AttributeReceiver, msg.Sends[i].Receiver),
 		))
 	}
 
@@ -238,7 +251,13 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgMultiSendCo
 
 func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types2.MsgBuyCoin) (*sdk.Result, error) {
 	// Retrieve buyer account and it's balance of selling coins
-	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
+	accAddr, err := sdk.AccAddressFromBech32(msg.Sender)
+
+	if err != nil {
+		return nil, err
+	}
+
+	account := k.AccountKeeper.GetAccount(ctx, accAddr)
 	balance := k.BankKeeper.GetAllBalances(ctx, account.GetAddress()).AmountOf(strings.ToLower(msg.MaxCoinToSell.Denom))
 
 	// Retrieve the coin requested to buy
@@ -309,12 +328,18 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types2.MsgBuyCoin) (*sdk.Re
 		return nil, types2.ErrInsufficientFunds(amountToSell.String(), balance.String())
 	}
 
+	senderaddr, err := sdk.AccAddressFromBech32(msg.Sender)
+
+	if err != nil {
+		return nil, err
+	}
+
 	// Update buyer account balances
-	err = k.UpdateBalance(ctx, msg.MaxCoinToSell.Denom, amountToSell.Neg(), msg.Sender)
+	err = k.UpdateBalance(ctx, msg.MaxCoinToSell.Denom, amountToSell.Neg(), senderaddr)
 	if err != nil {
 		return nil, types2.ErrUpdateBalance(account.GetAddress().String(), err.Error())
 	}
-	err = k.UpdateBalance(ctx, msg.CoinToBuy.Denom, amountToBuy, msg.Sender)
+	err = k.UpdateBalance(ctx, msg.CoinToBuy.Denom, amountToBuy, senderaddr)
 	if err != nil {
 		return nil, types2.ErrUpdateBalance(account.GetAddress().String(), err.Error())
 	}
@@ -331,7 +356,7 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types2.MsgBuyCoin) (*sdk.Re
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 		sdk.NewAttribute(types2.AttributeCoinToBuy, sdk.NewCoin(msg.CoinToBuy.Denom, amountToBuy).String()),
 		sdk.NewAttribute(types2.AttributeCoinToSell, sdk.NewCoin(msg.MaxCoinToSell.Denom, amountToSell).String()),
 		sdk.NewAttribute(types2.AttributeAmountInBaseCoin, amountInBaseCoin.String()),
@@ -342,7 +367,12 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types2.MsgBuyCoin) (*sdk.Re
 
 func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types2.MsgSellCoin, sellAll bool) (*sdk.Result, error) {
 	// Retrieve seller account and it's balance of selling coins
-	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
+	senderaddr, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	account := k.AccountKeeper.GetAccount(ctx, senderaddr)
 	balance := k.BankKeeper.GetAllBalances(ctx, account.GetAddress()).AmountOf(strings.ToLower(msg.CoinToSell.Denom))
 
 	// Fill amount to sell in case of MsgSellAll
@@ -410,13 +440,13 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types2.MsgSellCoin, sellAl
 	}
 
 	// Update seller account balances
-	err = k.UpdateBalance(ctx, msg.CoinToSell.Denom, amountToSell.Neg(), msg.Sender)
+	err = k.UpdateBalance(ctx, msg.CoinToSell.Denom, amountToSell.Neg(), senderaddr)
 	if err != nil {
-		return nil, types2.ErrUpdateBalance(msg.Sender.String(), err.Error())
+		return nil, types2.ErrUpdateBalance(msg.Sender, err.Error())
 	}
-	err = k.UpdateBalance(ctx, msg.MinCoinToBuy.Denom, amountToBuy, msg.Sender)
+	err = k.UpdateBalance(ctx, msg.MinCoinToBuy.Denom, amountToBuy, senderaddr)
 	if err != nil {
-		return nil, types2.ErrUpdateBalance(msg.Sender.String(), err.Error())
+		return nil, types2.ErrUpdateBalance(msg.Sender, err.Error())
 	}
 
 	// Update coins
@@ -435,7 +465,7 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types2.MsgSellCoin, sellAl
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 		sdk.NewAttribute(types2.AttributeCoinToSell, sdk.NewCoin(msg.CoinToSell.Denom, amountToSell).String()),
 		sdk.NewAttribute(types2.AttributeCoinToBuy, sdk.NewCoin(msg.MinCoinToBuy.Denom, amountToBuy).String()),
 		sdk.NewAttribute(types2.AttributeAmountInBaseCoin, amountInBaseCoin.String()),
@@ -559,12 +589,17 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types2.MsgRedeemCheck) 
 	// Set check redeemed
 	k.SetCheckRedeemed(ctx, check)
 
+	senderaddr, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+
 	// Update accounts balances
 	err = k.UpdateBalance(ctx, feeCoin, commission.Neg(), issuer)
 	if err != nil {
 		return nil, types2.ErrInsufficientFundsToPayCommission(commission.String())
 	}
-	err = k.BankKeeper.SendCoins(ctx, issuer, msg.Sender, sdk.Coins{sdk.NewCoin(coin.Symbol, amount)})
+	err = k.BankKeeper.SendCoins(ctx, issuer, senderaddr, sdk.Coins{sdk.NewCoin(coin.Symbol, amount)})
 	if err != nil {
 		return nil, sdkerrors.New(types2.DefaultCodespace, 6, err.Error())
 	}
@@ -573,7 +608,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types2.MsgRedeemCheck) 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
 		sdk.NewAttribute(sdk.AttributeKeyModule, types2.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
 		sdk.NewAttribute(types2.AttributeIssuer, issuer.String()),
 		sdk.NewAttribute(types2.AttributeCoin, sdk.NewCoin(check.Coin, sdk.NewIntFromBigInt(check.Amount)).String()),
 		sdk.NewAttribute(types2.AttributeNonce, new(big.Int).SetBytes(check.Nonce).String()),

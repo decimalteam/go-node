@@ -62,8 +62,8 @@ func (p Proposal) String() string {
   Voting Start Time:  %d
   Voting End Time:    %d
   Description:        %s`,
-		p.ProposalID, p.Title,
-		p.Status, p.VotingStartBlock, p.VotingEndBlock, p.Description,
+		p.ProposalID, /*p.Title,*/
+		p.Status, p.VotingStartBlock, p.VotingEndBlock, /*p.Description,*/
 	)
 }
 
@@ -75,7 +75,7 @@ func (p Proposals) String() string {
 	out := "ID - (Status) Title\n"
 	for _, prop := range p {
 		out += fmt.Sprintf("%d - (%s) %s\n",
-			prop.ProposalID, prop.Status, prop.Title)
+			prop.ProposalID, prop.Status, /*prop.Title*/)
 	}
 	return strings.TrimSpace(out)
 }
@@ -140,6 +140,14 @@ func ValidProposalStatus(status ProposalStatus) bool {
 // Marshal needed for protobuf compatibility
 func (status ProposalStatus) Marshal() ([]byte, error) {
 	return []byte{byte(status)}, nil
+}
+
+func (status ProposalStatus) Size() int {
+	return 1
+}
+
+func (status ProposalStatus) MarshalTo(data []byte) ([]byte, error) {
+	return []byte{data[0]}, nil
 }
 
 // Unmarshal needed for protobuf compatibility

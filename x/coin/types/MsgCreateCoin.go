@@ -25,7 +25,7 @@ var _ sdk.Msg = &MsgCreateCoin{}
 
 func NewMsgCreateCoin(sender sdk.AccAddress, title string, symbol string, crr uint, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int, identity string) MsgCreateCoin {
 	return MsgCreateCoin{
-		Sender:               sender,
+		Sender:               sender.String(),
 		Title:                title,
 		Symbol:               symbol,
 		ConstantReserveRatio: uint64(crr),
@@ -50,7 +50,9 @@ func MinCoinReserve(ctx sdk.Context) sdk.Int {
 func (msg *MsgCreateCoin) Route() string { return RouterKey }
 func (msg *MsgCreateCoin) Type() string  { return CreateCoinConst }
 func (msg *MsgCreateCoin) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	accAddr, _ := sdk.AccAddressFromBech32(msg.Sender)
+
+	return []sdk.AccAddress{accAddr}
 }
 
 func (msg *MsgCreateCoin) GetSignBytes() []byte {

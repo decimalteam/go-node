@@ -30,9 +30,9 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type MsgBuyCoin struct {
-	Sender        github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=Sender,proto3,customtype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"sender" yaml:"sender"`
-	CoinToBuy     github_com_cosmos_cosmos_sdk_types.Coin       `protobuf:"bytes,2,opt,name=CoinToBuy,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"coin_to_buy" yaml:"coin_to_buy"`
-	MaxCoinToSell github_com_cosmos_cosmos_sdk_types.Coin       `protobuf:"bytes,3,opt,name=MaxCoinToSell,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"max_coin_to_sell" yaml:"max_coin_to_sell"`
+	Sender        string                                  `protobuf:"bytes,1,opt,name=Sender,proto3" json:"sender" yaml:"sender"`
+	CoinToBuy     github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,2,opt,name=CoinToBuy,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"coin_to_buy" yaml:"coin_to_buy"`
+	MaxCoinToSell github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,3,opt,name=MaxCoinToSell,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"max_coin_to_sell" yaml:"max_coin_to_sell"`
 }
 
 func (m *MsgBuyCoin) Reset()         { *m = MsgBuyCoin{} }
@@ -105,14 +105,14 @@ func (m *MsgBuyCoinResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgBuyCoinResponse proto.InternalMessageInfo
 
 type MsgCreateCoin struct {
-	Sender               github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=Sender,proto3,customtype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"sender" yaml:"sender"`
-	Title                string                                        `protobuf:"bytes,2,opt,name=Title,proto3" json:"title" yaml:"title"`
-	Symbol               string                                        `protobuf:"bytes,3,opt,name=Symbol,proto3" json:"symbol" yaml:"symbol"`
-	ConstantReserveRatio uint64                                        `protobuf:"varint,4,opt,name=ConstantReserveRatio,proto3" json:"constant_reserve_ration" yaml:"constant_reserve_ration"`
-	InitialVolume        github_com_cosmos_cosmos_sdk_types.Int        `protobuf:"bytes,5,opt,name=InitialVolume,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"initial_volume" yaml:"initial_volume"`
-	InitialReserve       github_com_cosmos_cosmos_sdk_types.Int        `protobuf:"bytes,6,opt,name=InitialReserve,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"initial_reserve" yaml:"initial_reserve"`
-	LimitVolume          github_com_cosmos_cosmos_sdk_types.Int        `protobuf:"bytes,7,opt,name=LimitVolume,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"limit_volume" yaml:"limit_volume"`
-	Identity             string                                        `protobuf:"bytes,8,opt,name=Identity,proto3" json:"symbol" yaml:"symbol"`
+	Sender               string                                 `protobuf:"bytes,1,opt,name=Sender,proto3" json:"sender" yaml:"sender"`
+	Title                string                                 `protobuf:"bytes,2,opt,name=Title,proto3" json:"title" yaml:"title"`
+	Symbol               string                                 `protobuf:"bytes,3,opt,name=Symbol,proto3" json:"symbol" yaml:"symbol"`
+	ConstantReserveRatio uint64                                 `protobuf:"varint,4,opt,name=ConstantReserveRatio,proto3" json:"constant_reserve_ration" yaml:"constant_reserve_ration"`
+	InitialVolume        github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=InitialVolume,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"initial_volume" yaml:"initial_volume"`
+	InitialReserve       github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,6,opt,name=InitialReserve,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"initial_reserve" yaml:"initial_reserve"`
+	LimitVolume          github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,7,opt,name=LimitVolume,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"limit_volume" yaml:"limit_volume"`
+	Identity             string                                 `protobuf:"bytes,8,opt,name=Identity,proto3" json:"symbol" yaml:"symbol"`
 }
 
 func (m *MsgCreateCoin) Reset()         { *m = MsgCreateCoin{} }
@@ -185,8 +185,8 @@ func (m *MsgCreateCoinResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgCreateCoinResponse proto.InternalMessageInfo
 
 type Send struct {
-	Coin     github_com_cosmos_cosmos_sdk_types.Coin       `protobuf:"bytes,1,opt,name=Coin,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"coin" yaml:"coin"`
-	Receiver github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,2,opt,name=Receiver,proto3,customtype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"receiver" yaml:"receiver"`
+	Coin     github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,1,opt,name=Coin,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"coin" yaml:"coin"`
+	Receiver string                                  `protobuf:"bytes,2,opt,name=Receiver,proto3" json:"receiver" yaml:"receiver"`
 }
 
 func (m *Send) Reset()         { *m = Send{} }
@@ -223,8 +223,8 @@ func (m *Send) XXX_DiscardUnknown() {
 var xxx_messageInfo_Send proto.InternalMessageInfo
 
 type MsgMultiSendCoin struct {
-	Sender github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=Sender,proto3,customtype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"sender" yaml:"sender"`
-	Sends  []Send                                        `protobuf:"bytes,2,rep,name=Sends,proto3" json:"sends" yaml:"sends"`
+	Sender string `protobuf:"bytes,1,opt,name=Sender,proto3" json:"sender" yaml:"sender"`
+	Sends  []Send `protobuf:"bytes,2,rep,name=Sends,proto3" json:"sends" yaml:"sends"`
 }
 
 func (m *MsgMultiSendCoin) Reset()         { *m = MsgMultiSendCoin{} }
@@ -297,9 +297,9 @@ func (m *MsgMultisendCoinResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgMultisendCoinResponse proto.InternalMessageInfo
 
 type MsgRedeemCheck struct {
-	Sender github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=Sender,proto3,customtype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"sender" yaml:"sender"`
-	Check  string                                        `protobuf:"bytes,2,opt,name=Check,proto3" json:"check" yaml:"check"`
-	Proof  string                                        `protobuf:"bytes,3,opt,name=Proof,proto3" json:"proof" yaml:"proof"`
+	Sender string `protobuf:"bytes,1,opt,name=Sender,proto3" json:"sender" yaml:"sender"`
+	Check  string `protobuf:"bytes,2,opt,name=Check,proto3" json:"check" yaml:"check"`
+	Proof  string `protobuf:"bytes,3,opt,name=Proof,proto3" json:"proof" yaml:"proof"`
 }
 
 func (m *MsgRedeemCheck) Reset()         { *m = MsgRedeemCheck{} }
@@ -372,9 +372,9 @@ func (m *MsgRedeemCheckResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgRedeemCheckResponse proto.InternalMessageInfo
 
 type MsgSellAllCoin struct {
-	Sender       github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=Sender,proto3,customtype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"sender" yaml:"sender"`
-	CoinToSell   github_com_cosmos_cosmos_sdk_types.Coin       `protobuf:"bytes,2,opt,name=CoinToSell,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"coin_to_sell" yaml:"coin_to_sell"`
-	MinCoinToBuy github_com_cosmos_cosmos_sdk_types.Coin       `protobuf:"bytes,3,opt,name=MinCoinToBuy,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"min_coin_to_buy" yaml:"min_coin_to_buy"`
+	Sender       string                                  `protobuf:"bytes,1,opt,name=Sender,proto3" json:"sender" yaml:"sender"`
+	CoinToSell   github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,2,opt,name=CoinToSell,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"coin_to_sell" yaml:"coin_to_sell"`
+	MinCoinToBuy github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,3,opt,name=MinCoinToBuy,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"min_coin_to_buy" yaml:"min_coin_to_buy"`
 }
 
 func (m *MsgSellAllCoin) Reset()         { *m = MsgSellAllCoin{} }
@@ -447,9 +447,9 @@ func (m *MsgSellAllCoinResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgSellAllCoinResponse proto.InternalMessageInfo
 
 type MsgSellCoin struct {
-	Sender       github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=Sender,proto3,customtype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"sender" yaml:"sender"`
-	CoinToSell   github_com_cosmos_cosmos_sdk_types.Coin       `protobuf:"bytes,2,opt,name=CoinToSell,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"coin_to_sell" yaml:"coin_to_sell"`
-	MinCoinToBuy github_com_cosmos_cosmos_sdk_types.Coin       `protobuf:"bytes,3,opt,name=MinCoinToBuy,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"min_coin_to_buy" yaml:"min_coin_to_buy"`
+	Sender       string                                  `protobuf:"bytes,1,opt,name=Sender,proto3" json:"sender" yaml:"sender"`
+	CoinToSell   github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,2,opt,name=CoinToSell,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"coin_to_sell" yaml:"coin_to_sell"`
+	MinCoinToBuy github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,3,opt,name=MinCoinToBuy,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"min_coin_to_buy" yaml:"min_coin_to_buy"`
 }
 
 func (m *MsgSellCoin) Reset()         { *m = MsgSellCoin{} }
@@ -522,9 +522,9 @@ func (m *MsgSellCoinReponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgSellCoinReponse proto.InternalMessageInfo
 
 type MsgSendCoin struct {
-	Sender   github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=Sender,proto3,customtype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"sender" yaml:"sender"`
-	Receiver github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,2,opt,name=Receiver,proto3,customtype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"receiver" yaml:"receiver"`
-	Coin     github_com_cosmos_cosmos_sdk_types.Coin       `protobuf:"bytes,3,opt,name=Coin,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"coin" yaml:"coin"`
+	Sender   string                                  `protobuf:"bytes,1,opt,name=Sender,proto3" json:"sender" yaml:"sender"`
+	Receiver string                                  `protobuf:"bytes,2,opt,name=Receiver,proto3" json:"receiver" yaml:"receiver"`
+	Coin     github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,3,opt,name=Coin,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"coin" yaml:"coin"`
 }
 
 func (m *MsgSendCoin) Reset()         { *m = MsgSendCoin{} }
@@ -597,10 +597,10 @@ func (m *MsgSendCoinResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgSendCoinResponse proto.InternalMessageInfo
 
 type MsgUpdateCoin struct {
-	Sender      github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=Sender,proto3,customtype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"sender" yaml:"sender"`
-	Symbol      string                                        `protobuf:"bytes,2,opt,name=Symbol,proto3" json:"symbol" yaml:"symbol"`
-	LimitVolume github_com_cosmos_cosmos_sdk_types.Int        `protobuf:"bytes,3,opt,name=LimitVolume,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"limit_volume" yaml:"limit_volume"`
-	Identity    string                                        `protobuf:"bytes,4,opt,name=Identity,proto3" json:"symbol" yaml:"symbol"`
+	Sender      string                                 `protobuf:"bytes,1,opt,name=Sender,proto3" json:"sender" yaml:"sender"`
+	Symbol      string                                 `protobuf:"bytes,2,opt,name=Symbol,proto3" json:"symbol" yaml:"symbol"`
+	LimitVolume github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=LimitVolume,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"limit_volume" yaml:"limit_volume"`
+	Identity    string                                 `protobuf:"bytes,4,opt,name=Identity,proto3" json:"symbol" yaml:"symbol"`
 }
 
 func (m *MsgUpdateCoin) Reset()         { *m = MsgUpdateCoin{} }
@@ -695,75 +695,74 @@ func init() {
 func init() { proto.RegisterFile("coin/tx.proto", fileDescriptor_0d0ec2111ee10e03) }
 
 var fileDescriptor_0d0ec2111ee10e03 = []byte{
-	// 1075 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x58, 0xcd, 0x6f, 0xe3, 0x44,
-	0x14, 0x8f, 0x93, 0x34, 0xdb, 0x4e, 0x9a, 0xb6, 0x4c, 0xbf, 0xbc, 0x59, 0x88, 0x2b, 0x1f, 0xa0,
-	0x97, 0x26, 0xd2, 0xae, 0x10, 0x68, 0x25, 0x40, 0x4d, 0x25, 0xa0, 0x12, 0x91, 0x56, 0xd3, 0xee,
-	0x4a, 0x2c, 0x88, 0x28, 0x71, 0x06, 0xd7, 0xaa, 0xed, 0x09, 0x9e, 0x49, 0x69, 0x4e, 0x20, 0xc1,
-	0x81, 0x23, 0x17, 0xee, 0xfb, 0xdf, 0xb0, 0x37, 0xf6, 0x88, 0x38, 0x58, 0xa8, 0x95, 0x10, 0xca,
-	0x31, 0x57, 0x10, 0xa0, 0x99, 0xf1, 0xc7, 0xd8, 0x8d, 0x44, 0x23, 0x50, 0xb8, 0x70, 0x6a, 0xe6,
-	0x37, 0xef, 0xbd, 0xdf, 0xbc, 0xf7, 0x66, 0xde, 0x7b, 0x2e, 0xa8, 0x59, 0xc4, 0xf1, 0x5b, 0xec,
-	0xb2, 0x39, 0x0c, 0x08, 0x23, 0xb0, 0xcc, 0x97, 0xf5, 0x2d, 0x9b, 0xd8, 0x44, 0x00, 0x2d, 0xfe,
-	0x4b, 0xee, 0x99, 0xbf, 0x15, 0x01, 0xe8, 0x50, 0xbb, 0x3d, 0x1a, 0x1f, 0x11, 0xc7, 0x87, 0x67,
-	0xa0, 0x72, 0x82, 0xfd, 0x01, 0x0e, 0x74, 0x6d, 0x4f, 0xdb, 0x5f, 0x6d, 0x3f, 0x7a, 0x1e, 0x1a,
-	0x85, 0x9f, 0x42, 0xe3, 0xc0, 0x76, 0xd8, 0xd9, 0xa8, 0xdf, 0xb4, 0x88, 0xd7, 0xb2, 0x08, 0xf5,
-	0x08, 0x8d, 0xfe, 0x1c, 0xd0, 0xc1, 0x79, 0x8b, 0x8d, 0x87, 0x98, 0x36, 0x0f, 0x2d, 0xeb, 0x70,
-	0x30, 0x08, 0x30, 0xa5, 0x93, 0xd0, 0xa8, 0x50, 0x61, 0x66, 0x1a, 0x1a, 0xb5, 0x71, 0xcf, 0x73,
-	0x1f, 0x9a, 0x72, 0x6d, 0xa2, 0xc8, 0x3e, 0x0c, 0xc0, 0x0a, 0x67, 0x3c, 0x25, 0xed, 0xd1, 0x58,
-	0x2f, 0x0a, 0xb2, 0xd3, 0x88, 0xec, 0xb5, 0x5b, 0x90, 0x71, 0xdd, 0x49, 0x68, 0x54, 0xb9, 0x6b,
-	0x5d, 0x46, 0xba, 0xfd, 0xd1, 0x78, 0x1a, 0x1a, 0x50, 0x72, 0x29, 0xa0, 0x89, 0x52, 0x1a, 0xf8,
-	0xb5, 0x06, 0x6a, 0x9d, 0xde, 0xa5, 0x04, 0x4e, 0xb0, 0xeb, 0xea, 0x25, 0x41, 0xfc, 0xc9, 0xfc,
-	0xc4, 0x1b, 0x5e, 0xef, 0xb2, 0x1b, 0xf3, 0x50, 0xec, 0xba, 0xd3, 0xd0, 0xd8, 0x95, 0xec, 0xf9,
-	0x1d, 0x13, 0x65, 0x49, 0x1f, 0x2e, 0x7f, 0xf3, 0xcc, 0x28, 0xfc, 0xfa, 0xcc, 0x28, 0x98, 0x5b,
-	0x00, 0xa6, 0xc1, 0x47, 0x98, 0x0e, 0x89, 0x4f, 0xb1, 0xf9, 0x5d, 0x05, 0xd4, 0x3a, 0xd4, 0x3e,
-	0x0a, 0x70, 0x8f, 0xe1, 0x05, 0xa7, 0xa5, 0x05, 0x96, 0x4e, 0x1d, 0xe6, 0x62, 0x91, 0x92, 0x95,
-	0xf6, 0xdd, 0x49, 0x68, 0x2c, 0x31, 0x0e, 0x4c, 0x43, 0x63, 0x55, 0xaa, 0x88, 0xa5, 0x89, 0xa4,
-	0x1c, 0x7c, 0x00, 0x2a, 0x27, 0x63, 0xaf, 0x4f, 0x64, 0x2c, 0x57, 0xda, 0xf7, 0x04, 0x8b, 0x40,
-	0x14, 0x16, 0xb1, 0xe6, 0x2c, 0xe2, 0x07, 0xfc, 0x0c, 0x6c, 0x1d, 0x11, 0x9f, 0xb2, 0x9e, 0xcf,
-	0x10, 0xa6, 0x38, 0xb8, 0xc0, 0xa8, 0xc7, 0x1c, 0xa2, 0x97, 0xf7, 0xb4, 0xfd, 0x72, 0xfb, 0xad,
-	0x49, 0x68, 0xec, 0x5a, 0xd1, 0x7e, 0x37, 0x90, 0x02, 0xdd, 0x80, 0x4b, 0xf8, 0xd3, 0xd0, 0x68,
-	0xc4, 0x49, 0x9e, 0x29, 0x60, 0xa2, 0x99, 0xa6, 0xe1, 0x17, 0xa0, 0x76, 0xec, 0x3b, 0xcc, 0xe9,
-	0xb9, 0x4f, 0x88, 0x3b, 0xf2, 0xb0, 0xbe, 0x24, 0x8e, 0xfb, 0x61, 0x14, 0xc9, 0x57, 0x6f, 0x11,
-	0xc9, 0x63, 0x9f, 0x4d, 0x42, 0x63, 0xcd, 0x91, 0x66, 0xba, 0x17, 0xc2, 0xce, 0x34, 0x34, 0xb6,
-	0xe5, 0x81, 0xb2, 0xb8, 0x89, 0xb2, 0x7c, 0xf0, 0x2b, 0x0d, 0xac, 0x45, 0x48, 0x74, 0x30, 0xbd,
-	0x22, 0x8e, 0xf0, 0xd1, 0xdc, 0x47, 0x58, 0x8f, 0xa9, 0x22, 0xd7, 0xa7, 0xa1, 0xb1, 0x93, 0x3d,
-	0x43, 0xb4, 0x61, 0xa2, 0x1c, 0x25, 0xfc, 0x1c, 0x54, 0x3f, 0x70, 0x3c, 0x87, 0x45, 0x41, 0xb8,
-	0x23, 0x4e, 0xf0, 0x78, 0xee, 0x13, 0xac, 0xba, 0xdc, 0x48, 0x1a, 0x82, 0x4d, 0x49, 0xaf, 0xa2,
-	0x26, 0x52, 0x99, 0xe0, 0x1b, 0x60, 0xf9, 0x78, 0x80, 0x7d, 0xe6, 0xb0, 0xb1, 0xbe, 0xfc, 0xf7,
-	0x37, 0x25, 0x11, 0x56, 0x5e, 0xcb, 0x2e, 0xd8, 0xce, 0x3c, 0x8b, 0xe4, 0xc1, 0x84, 0x1a, 0x28,
-	0xf3, 0xfb, 0x0b, 0x9f, 0x82, 0x32, 0xdf, 0x88, 0x5e, 0xc9, 0xbb, 0xf3, 0x3f, 0x6b, 0x51, 0x2a,
-	0xa7, 0xa1, 0x51, 0x4d, 0x0b, 0x89, 0x89, 0x84, 0x4d, 0x38, 0x04, 0xcb, 0x08, 0x5b, 0xd8, 0xb9,
-	0xc0, 0x41, 0xae, 0x5e, 0xcd, 0xfd, 0x0a, 0x97, 0x83, 0xc8, 0xd0, 0x34, 0x34, 0xd6, 0x25, 0x53,
-	0x8c, 0x98, 0x28, 0x61, 0x51, 0x3c, 0xff, 0x5e, 0x03, 0x1b, 0x1d, 0x6a, 0x77, 0x46, 0x2e, 0x73,
-	0xb8, 0xa3, 0x0b, 0x2e, 0x0a, 0xef, 0x80, 0x25, 0xfe, 0x8b, 0xea, 0xc5, 0xbd, 0xd2, 0x7e, 0xf5,
-	0x3e, 0x68, 0xf2, 0xb8, 0x34, 0x39, 0xd4, 0x7e, 0x85, 0x93, 0xf2, 0x22, 0xc1, 0x75, 0x68, 0x5a,
-	0x24, 0xc4, 0xd2, 0x44, 0x52, 0x4f, 0xf1, 0xa4, 0x0e, 0xf4, 0xd8, 0x11, 0x1a, 0x39, 0x92, 0xa4,
-	0xf1, 0x17, 0x0d, 0xac, 0x75, 0xa8, 0x8d, 0xf0, 0x00, 0x63, 0xef, 0xe8, 0x0c, 0x5b, 0xe7, 0x8b,
-	0x2d, 0x7c, 0x82, 0x52, 0x2d, 0x7c, 0x16, 0x07, 0x52, 0x9f, 0xc4, 0xd2, 0x44, 0x52, 0x8e, 0x2b,
-	0x3c, 0x0a, 0x08, 0xf9, 0x34, 0xaa, 0x7b, 0x42, 0x61, 0xc8, 0x81, 0x54, 0x41, 0x2c, 0x4d, 0x24,
-	0xe5, 0x94, 0x20, 0xe8, 0x60, 0x27, 0xeb, 0x67, 0x12, 0x82, 0x3f, 0x8b, 0x22, 0x04, 0xbc, 0x4d,
-	0x1c, 0xba, 0xee, 0x82, 0xd3, 0x7c, 0x01, 0x80, 0xd2, 0x1a, 0xe5, 0x1d, 0x7f, 0x32, 0xff, 0x1b,
-	0x5a, 0xcd, 0xb5, 0xc5, 0xcd, 0x6c, 0x53, 0x96, 0x2d, 0x51, 0x61, 0x82, 0x5f, 0x6a, 0x60, 0xb5,
-	0xe3, 0xf8, 0xe9, 0x38, 0x20, 0xbb, 0xf2, 0xc7, 0xf3, 0x53, 0xaf, 0x7b, 0x8e, 0xdf, 0xcd, 0x8e,
-	0x04, 0x51, 0x61, 0xcc, 0x6d, 0x98, 0x28, 0xc3, 0x78, 0x23, 0x37, 0x4a, 0x02, 0x92, 0xdc, 0xfc,
-	0x5e, 0x04, 0xd5, 0x68, 0xeb, 0xff, 0xc4, 0x2c, 0x3e, 0x31, 0x72, 0x56, 0x8a, 0xa3, 0x8f, 0xb0,
-	0x4c, 0xca, 0x0f, 0x71, 0x52, 0x16, 0x5e, 0x14, 0x17, 0xde, 0x0f, 0x92, 0xee, 0x56, 0xfa, 0xf7,
-	0xbb, 0x9b, 0x12, 0xe7, 0x6d, 0xb0, 0xa9, 0x04, 0x34, 0xb9, 0xfd, 0x93, 0xa2, 0x18, 0x4a, 0x1f,
-	0x0f, 0x07, 0x8b, 0x1f, 0x4a, 0xd3, 0x19, 0xb3, 0x78, 0xfb, 0x19, 0x33, 0x37, 0xe9, 0x94, 0xfe,
-	0x93, 0x49, 0xa7, 0xfc, 0x4f, 0x26, 0x9d, 0x34, 0xd6, 0x71, 0x16, 0xee, 0xff, 0x51, 0x02, 0xa5,
-	0x0e, 0xb5, 0xe1, 0xeb, 0xe0, 0x4e, 0xfc, 0xc9, 0xb6, 0x21, 0xbb, 0x71, 0xfa, 0x1d, 0x51, 0xd7,
-	0xf3, 0x48, 0xac, 0x0e, 0xdf, 0x06, 0x40, 0xf9, 0xaa, 0xd8, 0x4c, 0xe4, 0x52, 0xb0, 0x7e, 0x6f,
-	0x06, 0x98, 0xe8, 0xbf, 0x07, 0x6a, 0xd9, 0x19, 0x64, 0x27, 0x91, 0xce, 0xe0, 0xf5, 0x46, 0x16,
-	0xcf, 0xb7, 0x7a, 0x78, 0x08, 0xaa, 0x6a, 0x9b, 0xdf, 0x4a, 0xc4, 0x15, 0xb4, 0xfe, 0xf2, 0x2c,
-	0x54, 0x35, 0xa1, 0xb6, 0xc9, 0xd4, 0x84, 0x82, 0x2a, 0x26, 0x66, 0x54, 0x74, 0x9e, 0xa9, 0xa4,
-	0x9a, 0xbf, 0x94, 0x91, 0xcc, 0xc5, 0x31, 0x57, 0x75, 0xe0, 0x9b, 0x5c, 0x31, 0x0a, 0x81, 0xaa,
-	0x18, 0x79, 0x7f, 0xf7, 0x06, 0xa4, 0x66, 0x40, 0x79, 0x42, 0x69, 0x06, 0x52, 0x50, 0xc9, 0xc0,
-	0xcd, 0x0b, 0xd0, 0x7e, 0xff, 0xf9, 0x55, 0x43, 0x7b, 0x71, 0xd5, 0xd0, 0x7e, 0xbe, 0x6a, 0x68,
-	0xdf, 0x5e, 0x37, 0x0a, 0x2f, 0xae, 0x1b, 0x85, 0x1f, 0xaf, 0x1b, 0x85, 0xa7, 0xcd, 0xbe, 0xc3,
-	0xfa, 0x23, 0xeb, 0x1c, 0xb3, 0x26, 0x09, 0xec, 0xd6, 0x00, 0x5b, 0x8e, 0xd7, 0x73, 0x19, 0xee,
-	0x79, 0x2d, 0x9b, 0x1c, 0xf8, 0x64, 0x80, 0x5b, 0x97, 0x2d, 0xf9, 0x8f, 0x01, 0x7e, 0xbd, 0xfb,
-	0x15, 0xf1, 0x0f, 0x80, 0x07, 0x7f, 0x05, 0x00, 0x00, 0xff, 0xff, 0x49, 0xd9, 0x6e, 0xae, 0x2d,
-	0x10, 0x00, 0x00,
+	// 1065 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x57, 0x4f, 0x6f, 0x1b, 0x45,
+	0x14, 0xf7, 0x3a, 0x76, 0xea, 0x3c, 0xdb, 0x49, 0xd8, 0xfc, 0xdb, 0xba, 0xe0, 0x89, 0xf6, 0x00,
+	0xb9, 0xd4, 0x96, 0xda, 0x43, 0x51, 0x11, 0x45, 0x75, 0x24, 0x20, 0x12, 0x96, 0xd0, 0x34, 0xad,
+	0x44, 0x41, 0x58, 0xfe, 0x33, 0x6c, 0x57, 0xd9, 0xdd, 0x31, 0xbb, 0xe3, 0x10, 0x9f, 0xa8, 0x04,
+	0x07, 0x8e, 0x88, 0x4f, 0xd0, 0x2b, 0x47, 0x0e, 0x7c, 0x05, 0xa8, 0x38, 0xf5, 0x88, 0x38, 0xac,
+	0xaa, 0x44, 0x48, 0xc8, 0x47, 0x7f, 0x02, 0x34, 0x33, 0xfb, 0x67, 0xd6, 0xb1, 0x44, 0x1d, 0x23,
+	0x71, 0xe1, 0xe4, 0x9d, 0xdf, 0xbc, 0x37, 0xbf, 0x37, 0xbf, 0x79, 0xf3, 0xde, 0x18, 0xaa, 0x7d,
+	0x6a, 0x7b, 0x4d, 0x76, 0xd6, 0x18, 0xfa, 0x94, 0x51, 0xbd, 0xc0, 0x87, 0xb5, 0x6d, 0x8b, 0x5a,
+	0x54, 0x00, 0x4d, 0xfe, 0x25, 0xe7, 0xcc, 0x5f, 0xf2, 0x00, 0xed, 0xc0, 0x6a, 0x8d, 0xc6, 0x87,
+	0xd4, 0xf6, 0xf4, 0xdb, 0xb0, 0xfa, 0x80, 0x78, 0x03, 0xe2, 0x1b, 0xda, 0xbe, 0x76, 0xb0, 0xd6,
+	0xba, 0x31, 0x09, 0xd1, 0x6a, 0x20, 0x90, 0x69, 0x88, 0xaa, 0xe3, 0xae, 0xeb, 0xdc, 0x35, 0xe5,
+	0xd8, 0xc4, 0x91, 0xa9, 0xee, 0xc3, 0x1a, 0x77, 0x3e, 0xa6, 0xad, 0xd1, 0xd8, 0xc8, 0xef, 0x6b,
+	0x07, 0x95, 0xd6, 0xf1, 0xf3, 0x10, 0xe5, 0xfe, 0x08, 0xd1, 0x5b, 0x96, 0xcd, 0x9e, 0x8c, 0x7a,
+	0x8d, 0x3e, 0x75, 0x9b, 0x7d, 0x1a, 0xb8, 0x34, 0x88, 0x7e, 0x6e, 0x06, 0x83, 0x93, 0x26, 0x1b,
+	0x0f, 0x49, 0xd0, 0xe0, 0xbe, 0x93, 0x10, 0x95, 0x79, 0x94, 0x1d, 0x46, 0x3b, 0xbd, 0xd1, 0x78,
+	0x1a, 0x22, 0x5d, 0x72, 0x29, 0xa0, 0x89, 0x53, 0x1a, 0xfd, 0x5b, 0x0d, 0xaa, 0xed, 0xee, 0x99,
+	0x04, 0x1e, 0x10, 0xc7, 0x31, 0x56, 0x04, 0xf1, 0xe7, 0x8b, 0x13, 0x6f, 0xba, 0xdd, 0xb3, 0x4e,
+	0xcc, 0x13, 0x10, 0xc7, 0x99, 0x86, 0x68, 0x4f, 0xb2, 0xcf, 0xce, 0x98, 0x38, 0x4b, 0x7a, 0xb7,
+	0xf4, 0xdd, 0x33, 0x94, 0xfb, 0xeb, 0x19, 0xca, 0x99, 0xdb, 0xa0, 0xa7, 0x3a, 0x62, 0x12, 0x0c,
+	0xa9, 0x17, 0x10, 0xf3, 0x65, 0x11, 0xaa, 0xed, 0xc0, 0x3a, 0xf4, 0x49, 0x97, 0x91, 0xab, 0x2b,
+	0xdc, 0x84, 0xe2, 0xb1, 0xcd, 0x1c, 0x22, 0xd4, 0x5d, 0x6b, 0x5d, 0x9f, 0x84, 0xa8, 0xc8, 0x38,
+	0x30, 0x0d, 0x51, 0x45, 0xba, 0x88, 0xa1, 0x89, 0xa5, 0x9d, 0x60, 0x19, 0xbb, 0x3d, 0x2a, 0x65,
+	0x89, 0x59, 0x04, 0xa2, 0xb0, 0x88, 0x31, 0x67, 0x11, 0x1f, 0xfa, 0x97, 0xb0, 0x7d, 0x48, 0xbd,
+	0x80, 0x75, 0x3d, 0x86, 0x49, 0x40, 0xfc, 0x53, 0x82, 0xbb, 0xcc, 0xa6, 0x46, 0x61, 0x5f, 0x3b,
+	0x28, 0xb4, 0xde, 0x9d, 0x84, 0x68, 0xaf, 0x1f, 0xcd, 0x77, 0x7c, 0x69, 0xd0, 0xf1, 0xb9, 0x85,
+	0x37, 0x0d, 0x51, 0x3d, 0x3e, 0xaf, 0xb9, 0x06, 0x26, 0x9e, 0xbb, 0xb4, 0xfe, 0x35, 0x54, 0x8f,
+	0x3c, 0x9b, 0xd9, 0x5d, 0xe7, 0x11, 0x75, 0x46, 0x2e, 0x31, 0x8a, 0x22, 0xdc, 0x4f, 0xa2, 0x53,
+	0x7c, 0xf3, 0x15, 0x4e, 0xf1, 0xc8, 0x63, 0x93, 0x10, 0xad, 0xdb, 0x72, 0x99, 0xce, 0xa9, 0x58,
+	0x67, 0x1a, 0xa2, 0x1d, 0x19, 0x50, 0x16, 0x37, 0x71, 0x96, 0x4f, 0xff, 0x46, 0x83, 0xf5, 0x08,
+	0x89, 0x02, 0x33, 0x56, 0x45, 0x08, 0x9f, 0x2e, 0x1c, 0xc2, 0x46, 0x4c, 0x15, 0x6d, 0x7d, 0x1a,
+	0xa2, 0xdd, 0x6c, 0x0c, 0xd1, 0x84, 0x89, 0x67, 0x28, 0xf5, 0xaf, 0xa0, 0xfc, 0x91, 0xed, 0xda,
+	0x2c, 0x12, 0xe1, 0x9a, 0x88, 0xe0, 0xe1, 0xc2, 0x11, 0x54, 0x1c, 0xbe, 0x48, 0x2a, 0xc1, 0x96,
+	0xa4, 0x57, 0x51, 0x13, 0xab, 0x4c, 0xfa, 0x1d, 0x28, 0x1d, 0x0d, 0x88, 0xc7, 0x6c, 0x36, 0x36,
+	0x4a, 0xff, 0x9c, 0x29, 0x89, 0xb1, 0x92, 0xf8, 0x7b, 0xb0, 0x93, 0xc9, 0xf0, 0x24, 0xf7, 0x7f,
+	0xd4, 0xa0, 0xc0, 0xf3, 0x57, 0x7f, 0x0c, 0x05, 0x3e, 0x21, 0x12, 0xbe, 0xd2, 0x7a, 0x7f, 0xf1,
+	0x1b, 0x2a, 0x0a, 0xd8, 0x34, 0x44, 0xe5, 0xb4, 0x26, 0x98, 0x58, 0xac, 0xa9, 0xbf, 0x03, 0x25,
+	0x4c, 0xfa, 0xc4, 0x3e, 0x25, 0x7e, 0x74, 0x39, 0xd0, 0x24, 0x44, 0x25, 0x3f, 0xc2, 0xa6, 0x21,
+	0xda, 0x90, 0x4e, 0x31, 0x62, 0xe2, 0xc4, 0x41, 0xd9, 0xc4, 0x0f, 0x1a, 0x6c, 0xb6, 0x03, 0xab,
+	0x3d, 0x72, 0x98, 0xcd, 0x63, 0xbe, 0xfa, 0x55, 0x7d, 0x0f, 0x8a, 0xfc, 0x2b, 0x30, 0xf2, 0xfb,
+	0x2b, 0x07, 0xe5, 0x5b, 0xd0, 0xe0, 0xd1, 0x36, 0x38, 0xd4, 0x7a, 0x83, 0xef, 0x9c, 0x5f, 0x5d,
+	0xee, 0x13, 0xa4, 0x57, 0x57, 0x0c, 0x4d, 0x2c, 0xfd, 0x94, 0xa0, 0x6a, 0x60, 0xc4, 0x31, 0x05,
+	0x51, 0x4c, 0x89, 0xb8, 0x3f, 0x69, 0xb0, 0xde, 0x0e, 0x2c, 0x4c, 0x06, 0x84, 0xb8, 0x87, 0x4f,
+	0x48, 0xff, 0xe4, 0xca, 0x95, 0x45, 0x78, 0xab, 0x95, 0xa5, 0xcf, 0x81, 0x34, 0x3c, 0x31, 0x34,
+	0xb1, 0xb4, 0xe3, 0x0e, 0x1f, 0xfb, 0x94, 0x7e, 0x11, 0x15, 0x16, 0xe1, 0x30, 0xe4, 0x40, 0xea,
+	0x20, 0x86, 0x26, 0x96, 0x76, 0xca, 0x7e, 0x0c, 0xd8, 0xcd, 0x86, 0x9c, 0xec, 0xe6, 0xb7, 0xbc,
+	0xd8, 0x0d, 0x2f, 0xa9, 0xf7, 0x1d, 0xe7, 0xea, 0xe2, 0x9f, 0x02, 0x28, 0x1d, 0x41, 0xb6, 0xa2,
+	0x47, 0x8b, 0xe7, 0x5b, 0x65, 0xa6, 0x1b, 0x6c, 0x65, 0x7b, 0x91, 0xec, 0x04, 0x0a, 0x93, 0xfe,
+	0x54, 0x83, 0x4a, 0xdb, 0xf6, 0xd2, 0x2e, 0x28, 0x9b, 0xd1, 0x67, 0x8b, 0x53, 0x6f, 0xb8, 0xb6,
+	0xd7, 0xc9, 0x76, 0xc2, 0xa8, 0x88, 0xcc, 0x4c, 0x98, 0x38, 0xc3, 0x78, 0x49, 0x66, 0x45, 0xcb,
+	0x44, 0xe6, 0x5f, 0xf3, 0x50, 0x8e, 0xa6, 0xfe, 0xd7, 0x78, 0x29, 0x8d, 0x65, 0xb7, 0x8f, 0x85,
+	0xc4, 0x44, 0xea, 0xfb, 0xa7, 0x16, 0xe9, 0xbb, 0x4c, 0x01, 0x59, 0xa6, 0xa2, 0x25, 0xa5, 0x76,
+	0xe5, 0xdf, 0x2f, 0xb5, 0xca, 0xee, 0x77, 0x60, 0x4b, 0xd9, 0x66, 0x92, 0x5e, 0x3f, 0xe7, 0xc5,
+	0x63, 0xe7, 0xe1, 0x70, 0xb0, 0xd4, 0x63, 0x27, 0x7d, 0xbb, 0xe4, 0x5f, 0xfd, 0xed, 0x32, 0xd3,
+	0x41, 0x57, 0xfe, 0x93, 0x0e, 0x5a, 0x58, 0xa6, 0x83, 0xa6, 0xb2, 0xc5, 0x82, 0xde, 0x7a, 0x5a,
+	0x80, 0x95, 0x76, 0x60, 0xe9, 0x77, 0xe0, 0x5a, 0xfc, 0x40, 0xdf, 0x94, 0xfd, 0x24, 0x7d, 0x6a,
+	0xd6, 0x8c, 0x59, 0x24, 0x39, 0x8f, 0x9c, 0x7e, 0x0f, 0x40, 0x79, 0x7a, 0x6e, 0x25, 0x96, 0x29,
+	0x58, 0xbb, 0x31, 0x07, 0x8c, 0x57, 0xd0, 0x3f, 0x80, 0x6a, 0xb6, 0x25, 0xee, 0x26, 0xd6, 0x19,
+	0xbc, 0x56, 0xcf, 0xe2, 0xb3, 0xed, 0x4a, 0xbf, 0x0f, 0x65, 0xb5, 0x55, 0x6d, 0x27, 0xe6, 0x0a,
+	0x5a, 0x7b, 0x7d, 0x1e, 0xaa, 0x2e, 0xa1, 0xf6, 0x87, 0x74, 0x09, 0x05, 0x55, 0x96, 0x98, 0x53,
+	0xff, 0xf8, 0x59, 0x25, 0xb5, 0xef, 0xb5, 0x8c, 0xe5, 0x8c, 0x92, 0x33, 0x17, 0x5b, 0x7f, 0x9b,
+	0x3b, 0x46, 0x12, 0xa8, 0x8e, 0xd1, 0xee, 0xaf, 0x5f, 0x82, 0x12, 0xca, 0x7b, 0x00, 0xca, 0x7d,
+	0x48, 0x4f, 0x20, 0x05, 0x95, 0x13, 0xb8, 0x9c, 0x02, 0xad, 0x0f, 0x9f, 0x9f, 0xd7, 0xb5, 0x17,
+	0xe7, 0x75, 0xed, 0xe5, 0x79, 0x5d, 0xfb, 0xfe, 0xa2, 0x9e, 0x7b, 0x71, 0x51, 0xcf, 0xfd, 0x7e,
+	0x51, 0xcf, 0x3d, 0x6e, 0xf4, 0x6c, 0xd6, 0x1b, 0xf5, 0x4f, 0x08, 0x6b, 0x50, 0xdf, 0x6a, 0x0e,
+	0x48, 0xdf, 0x76, 0xbb, 0x0e, 0x23, 0x5d, 0xb7, 0x69, 0xd1, 0x9b, 0x1e, 0x1d, 0x90, 0xe6, 0x59,
+	0x53, 0xfe, 0x11, 0xe4, 0x09, 0xde, 0x5b, 0x15, 0x7f, 0xf8, 0x6e, 0xff, 0x1d, 0x00, 0x00, 0xff,
+	0xff, 0x3b, 0x79, 0x98, 0x96, 0x1d, 0x0e, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1138,16 +1137,13 @@ func (m *MsgBuyCoin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x12
-	{
-		size := m.Sender.Size()
-		i -= size
-		if _, err := m.Sender.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintTx(dAtA, i, uint64(size))
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -1250,16 +1246,13 @@ func (m *MsgCreateCoin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	{
-		size := m.Sender.Size()
-		i -= size
-		if _, err := m.Sender.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintTx(dAtA, i, uint64(size))
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -1306,16 +1299,13 @@ func (m *Send) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	{
-		size := m.Receiver.Size()
-		i -= size
-		if _, err := m.Receiver.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintTx(dAtA, i, uint64(size))
+	if len(m.Receiver) > 0 {
+		i -= len(m.Receiver)
+		copy(dAtA[i:], m.Receiver)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Receiver)))
+		i--
+		dAtA[i] = 0x12
 	}
-	i--
-	dAtA[i] = 0x12
 	{
 		size := m.Coin.Size()
 		i -= size
@@ -1363,16 +1353,13 @@ func (m *MsgMultiSendCoin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0x12
 		}
 	}
-	{
-		size := m.Sender.Size()
-		i -= size
-		if _, err := m.Sender.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintTx(dAtA, i, uint64(size))
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -1433,16 +1420,13 @@ func (m *MsgRedeemCheck) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	{
-		size := m.Sender.Size()
-		i -= size
-		if _, err := m.Sender.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintTx(dAtA, i, uint64(size))
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -1509,16 +1493,13 @@ func (m *MsgSellAllCoin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x12
-	{
-		size := m.Sender.Size()
-		i -= size
-		if _, err := m.Sender.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintTx(dAtA, i, uint64(size))
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -1585,16 +1566,13 @@ func (m *MsgSellCoin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x12
-	{
-		size := m.Sender.Size()
-		i -= size
-		if _, err := m.Sender.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintTx(dAtA, i, uint64(size))
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -1651,26 +1629,20 @@ func (m *MsgSendCoin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x1a
-	{
-		size := m.Receiver.Size()
-		i -= size
-		if _, err := m.Receiver.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintTx(dAtA, i, uint64(size))
+	if len(m.Receiver) > 0 {
+		i -= len(m.Receiver)
+		copy(dAtA[i:], m.Receiver)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Receiver)))
+		i--
+		dAtA[i] = 0x12
 	}
-	i--
-	dAtA[i] = 0x12
-	{
-		size := m.Sender.Size()
-		i -= size
-		if _, err := m.Sender.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintTx(dAtA, i, uint64(size))
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -1741,16 +1713,13 @@ func (m *MsgUpdateCoin) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	{
-		size := m.Sender.Size()
-		i -= size
-		if _, err := m.Sender.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintTx(dAtA, i, uint64(size))
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -1794,8 +1763,10 @@ func (m *MsgBuyCoin) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Sender.Size()
-	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = m.CoinToBuy.Size()
 	n += 1 + l + sovTx(uint64(l))
 	l = m.MaxCoinToSell.Size()
@@ -1818,8 +1789,10 @@ func (m *MsgCreateCoin) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Sender.Size()
-	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = len(m.Title)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
@@ -1861,8 +1834,10 @@ func (m *Send) Size() (n int) {
 	_ = l
 	l = m.Coin.Size()
 	n += 1 + l + sovTx(uint64(l))
-	l = m.Receiver.Size()
-	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Receiver)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	return n
 }
 
@@ -1872,8 +1847,10 @@ func (m *MsgMultiSendCoin) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Sender.Size()
-	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	if len(m.Sends) > 0 {
 		for _, e := range m.Sends {
 			l = e.Size()
@@ -1898,8 +1875,10 @@ func (m *MsgRedeemCheck) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Sender.Size()
-	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = len(m.Check)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
@@ -1926,8 +1905,10 @@ func (m *MsgSellAllCoin) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Sender.Size()
-	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = m.CoinToSell.Size()
 	n += 1 + l + sovTx(uint64(l))
 	l = m.MinCoinToBuy.Size()
@@ -1950,8 +1931,10 @@ func (m *MsgSellCoin) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Sender.Size()
-	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = m.CoinToSell.Size()
 	n += 1 + l + sovTx(uint64(l))
 	l = m.MinCoinToBuy.Size()
@@ -1974,10 +1957,14 @@ func (m *MsgSendCoin) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Sender.Size()
-	n += 1 + l + sovTx(uint64(l))
-	l = m.Receiver.Size()
-	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Receiver)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = m.Coin.Size()
 	n += 1 + l + sovTx(uint64(l))
 	return n
@@ -1998,8 +1985,10 @@ func (m *MsgUpdateCoin) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Sender.Size()
-	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = len(m.Symbol)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
@@ -2061,7 +2050,7 @@ func (m *MsgBuyCoin) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -2071,24 +2060,23 @@ func (m *MsgBuyCoin) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -2260,7 +2248,7 @@ func (m *MsgCreateCoin) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -2270,24 +2258,23 @@ func (m *MsgCreateCoin) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -2643,7 +2630,7 @@ func (m *Send) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Receiver", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -2653,24 +2640,23 @@ func (m *Send) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Receiver.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Receiver = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2726,7 +2712,7 @@ func (m *MsgMultiSendCoin) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -2736,24 +2722,23 @@ func (m *MsgMultiSendCoin) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -2893,7 +2878,7 @@ func (m *MsgRedeemCheck) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -2903,24 +2888,23 @@ func (m *MsgRedeemCheck) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -3090,7 +3074,7 @@ func (m *MsgSellAllCoin) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -3100,24 +3084,23 @@ func (m *MsgSellAllCoin) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -3289,7 +3272,7 @@ func (m *MsgSellCoin) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -3299,24 +3282,23 @@ func (m *MsgSellCoin) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -3488,7 +3470,7 @@ func (m *MsgSendCoin) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -3498,30 +3480,29 @@ func (m *MsgSendCoin) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Receiver", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -3531,24 +3512,23 @@ func (m *MsgSendCoin) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Receiver.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Receiver = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -3687,7 +3667,7 @@ func (m *MsgUpdateCoin) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -3697,24 +3677,23 @@ func (m *MsgUpdateCoin) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {

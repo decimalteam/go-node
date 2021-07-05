@@ -22,7 +22,7 @@ func (keeper Keeper) AddVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.V
 	}
 
 	vote := types2.NewVote(proposalID, voterAddr, option)
-	keeper.SetVote(ctx, vote)
+	keeper.SetVote(ctx, voterAddr, vote)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -48,10 +48,10 @@ func (keeper Keeper) GetVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.V
 }
 
 // SetVote sets a Vote to the gov store
-func (keeper Keeper) SetVote(ctx sdk.Context, vote types2.Vote) {
+func (keeper Keeper) SetVote(ctx sdk.Context, voterAddr sdk.ValAddress, vote types2.Vote) {
 	store := ctx.KVStore(keeper.storeKey)
 	bz := keeper.cdc.MustMarshalLengthPrefixed(vote)
-	store.Set(types2.VoteKey(vote.ProposalID, vote.Voter), bz)
+	store.Set(types2.VoteKey(vote.ProposalID, voterAddr), bz)
 }
 
 // GetAllVotes returns all the votes from the store

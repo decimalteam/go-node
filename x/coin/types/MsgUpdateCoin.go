@@ -16,7 +16,7 @@ var _ sdk.Msg = &MsgUpdateCoin{}
 
 func NewMsgUpdateCoin(sender sdk.AccAddress, symbol string, limitVolume sdk.Int, identity string) MsgUpdateCoin {
 	return MsgUpdateCoin{
-		Sender:      sender,
+		Sender:      sender.String(),
 		Symbol:      symbol,
 		LimitVolume: limitVolume,
 		Identity:    identity,
@@ -28,7 +28,9 @@ const UpdateCoinConst = "update_coin"
 func (msg *MsgUpdateCoin) Route() string { return RouterKey }
 func (msg *MsgUpdateCoin) Type() string  { return UpdateCoinConst }
 func (msg *MsgUpdateCoin) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	accAddr, _ := sdk.AccAddressFromBech32(msg.Sender)
+
+	return []sdk.AccAddress{accAddr}
 }
 
 func (msg *MsgUpdateCoin) GetSignBytes() []byte {
