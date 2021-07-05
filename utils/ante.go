@@ -8,10 +8,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"strings"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -35,7 +35,7 @@ func NewAnteHandler(ak keeper.AccountKeeper, bankKeeper bankKeeper.Keeper, vk va
 		ante.NewValidateSigCountDecorator(ak),
 		NewFeeDecorator(ck, ak, bankKeeper, vk),
 		ante.NewSigGasConsumeDecorator(ak, consumer),
-		ante.NewSigVerificationDecorator(ak),
+		ante.NewSigVerificationDecorator(ak, nil),
 		NewPostCreateAccountDecorator(ak),      // should be after SigVerificationDecorator
 		ante.NewIncrementSequenceDecorator(ak), // innermost AnteDecorator
 	)
@@ -296,7 +296,9 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		case coin.CreateCoinConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(createCoinFee)
 		case swap.MsgHTLTConst:
-			if msg.(*swap.MsgHTLT).From.Equals(swap.SwapServiceAddress) {
+			fromAddr, _ := sdk.AccAddressFromBech32(msg.(*swap.MsgHTLT).From)
+
+			if fromAddr.Equals(swap.SwapServiceAddress) {
 				return next(ctx, tx, simulate)
 			}
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
