@@ -35,6 +35,7 @@ var (
 
 	ServiceAccAddress = types.ServiceAccAddress
 	ServiceAddress    = types.ServiceAddress
+	SwapServiceAddress = types.SwapServiceAddress
 
 	NewKeeper = keeper.NewKeeper
 

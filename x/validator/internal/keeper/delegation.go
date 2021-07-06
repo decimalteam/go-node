@@ -136,6 +136,59 @@ func (k Keeper) CalcTokensBase(ctx sdk.Context, delegation exported.DelegationI)
 	return tokensBase
 }
 
+func (k Keeper) AddDelegatedCoin(ctx sdk.Context, amount sdk.Coin) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetDelegateCoinKey(amount.Denom)
+	value := store.Get(key)
+	currentAmount := amount.Amount
+	if value != nil {
+		currentAmount = types.MustUnmarshalDelegateCoin(k.cdc, value)
+		currentAmount = currentAmount.Add(amount.Amount)
+	}
+
+	bz := types.MustMarshalDelegateCoin(k.cdc, currentAmount)
+	store.Set(key, bz)
+}
+
+func (k Keeper) SubtractDelegatedCoin(ctx sdk.Context, amount sdk.Coin) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetDelegateCoinKey(amount.Denom)
+	value := store.Get(key)
+	currentAmount := amount.Amount
+	if value != nil {
+		currentAmount = types.MustUnmarshalDelegateCoin(k.cdc, value)
+		currentAmount = currentAmount.Sub(amount.Amount)
+	}
+
+	bz := types.MustMarshalDelegateCoin(k.cdc, currentAmount)
+	store.Set(key, bz)
+}
+
+func (k Keeper) GetDelegatedCoin(ctx sdk.Context, symbol string) sdk.Int {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetDelegateCoinKey(symbol)
+	value := store.Get(key)
+	if value == nil {
+		panic(fmt.Sprintf("coin with symbol %s not exist", symbol))
+	}
+	return types.MustUnmarshalDelegateCoin(k.cdc, value)
+}
+
+func (k Keeper) GetAllDelegatedCoins(ctx sdk.Context) sdk.Coins {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{types.DelegatedCoinKey})
+	defer iterator.Close()
+
+	var coins sdk.Coins
+	for ; iterator.Valid(); iterator.Next() {
+		amount := types.MustUnmarshalDelegateCoin(k.cdc, iterator.Value())
+		denom := string(iterator.Key()[1:])
+		coins = coins.Add(sdk.NewCoin(denom, amount))
+	}
+
+	return coins
+}
+
 // return a given amount of all the delegator unbonding-delegations
 func (k Keeper) GetUnbondingDelegations(ctx sdk.Context, delegator sdk.AccAddress,
 	maxRetrieve uint16) (unbondingDelegations []types.UnbondingDelegation) {
@@ -227,18 +280,29 @@ func (k Keeper) GetUnbondingDelegationsFromValidator(ctx sdk.Context, valAddr sd
 			ubd.Entries = append(ubd.Entries, entry)
 		}
 
-		key = types.GetUnbondingDelegationNFTByValIndexKey(baseUBD.DelegatorAddress, baseUBD.ValidatorAddress)
-		value = store.Get(key)
-		if value != nil {
-			nftUBD := types.MustUnmarshalNFTUBD(k.cdc, value)
+		ubds = append(ubds, ubd)
+	}
 
-			for _, entry := range nftUBD.Entries {
-				ubd.Entries = append(ubd.Entries, entry)
-			}
+	iteratorNFT := sdk.KVStorePrefixIterator(store, types.GetUnbondingDelegationNFTsByValIndexKey(valAddr))
+	defer iteratorNFT.Close()
+
+	for ; iteratorNFT.Valid(); iteratorNFT.Next() {
+		key := types.GetUnbondingDelegationNFTKeyFromValIndexKey(iteratorNFT.Key())
+		value := store.Get(key)
+		nftUBD := types.MustUnmarshalNFTUBD(k.cdc, value)
+		ubd := types.UnbondingDelegation{
+			DelegatorAddress: nftUBD.DelegatorAddress,
+			ValidatorAddress: nftUBD.ValidatorAddress,
+			Entries:          []exported.UnbondingDelegationEntryI{},
+		}
+
+		for _, entry := range nftUBD.Entries {
+			ubd.Entries = append(ubd.Entries, entry)
 		}
 
 		ubds = append(ubds, ubd)
 	}
+
 	return ubds
 }
 
@@ -474,6 +538,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 			return err
 		}
 		validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
+		k.AddDelegatedCoin(ctx, bondCoin)
 	}
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
@@ -615,6 +680,7 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 					if err != nil {
 						return err
 					}
+					k.SubtractDelegatedCoin(ctx, entry.Balance)
 				case types.UnbondingDelegationNFTEntry:
 					collection, ok := k.nftKeeper.GetCollection(ctx, entry.Denom)
 					if !ok {

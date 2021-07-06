@@ -933,14 +933,12 @@ func TestUnbondNFT(t *testing.T) {
 	// create nft
 	const denom = "denom1"
 	const tokenID = "token1"
+	quantity := sdk.NewInt(100)
 	reserve := sdk.NewInt(100)
-	token := nft.NewBaseNFT(tokenID, delegatorAddr, delegatorAddr,
-		"", reserve, []int64{1, 2, 3, 4, 5}, true)
-	collection := nft.NewCollection(denom, nft.NewNFTs(token))
-	nftKeeper.SetCollection(ctx, denom, collection)
-	for _, i := range token.GetOwners().GetOwners()[0].GetSubTokenIDs() {
-		nftKeeper.SetSubToken(ctx, denom, tokenID, i, reserve)
-	}
+
+	nftHandler := nft.GenericHandler(nftKeeper)
+	_, err = nftHandler(ctx, nft.NewMsgMintNFT(delegatorAddr, delegatorAddr, tokenID, denom, "", quantity, reserve, true))
+	require.NoError(t, err)
 
 	// delegate nft
 	msgDelegateNft := types.NewMsgDelegateNFT(validatorAddr, delegatorAddr, tokenID, denom, []int64{1, 2, 3})
@@ -949,14 +947,19 @@ func TestUnbondNFT(t *testing.T) {
 	require.NotNil(t, res)
 
 	// unbond the half of delegations nft
-	msgUnbondNFT := types.NewMsgUnbondNFT(validatorAddr, delegatorAddr, tokenID, denom, []int64{2, 3})
+	unbondQuantity := sdk.NewInt(2)
+	msgUnbondNFT := types.NewMsgUnbondNFT(validatorAddr, delegatorAddr, tokenID, denom, []int64{1, 2})
 	res, err = handleMsgUnbondNFT(ctx, keeper, msgUnbondNFT)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
 	unbondingDelegation, ok := keeper.GetUnbondingDelegation(ctx, delegatorAddr, validatorAddr)
 	require.True(t, ok)
-	require.Equal(t, []int64{2, 3}, unbondingDelegation.Entries[0].(types.UnbondingDelegationNFTEntry).SubTokenIDs)
+	require.Equal(t, unbondQuantity.Mul(reserve), unbondingDelegation.Entries[0].GetBalance().Amount)
+
+	//validator, err := keeper.GetValidator(ctx, validatorAddr)
+	//require.NoError(t, err)
+	//require.Equal(t, validator.Tokens, valTokens.Add(quantity.Sub(unbondQuantity).Mul(reserve)))
 
 	var finishTime time.Time
 	types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &finishTime)
@@ -964,22 +967,22 @@ func TestUnbondNFT(t *testing.T) {
 	ctx = ctx.WithBlockTime(finishTime)
 	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, false)
 
-	//var reqEvent sdk.Event
-	//for _, event := range ctx.EventManager().Events() {
-	//	if event.Type == types.EventTypeCompleteUnbondingNFT {
-	//		reqEvent = event
-	//		break
-	//	}
-	//}
-	//require.Equal(t, sdk.NewEvent(
-	//	types.EventTypeCompleteUnbondingNFT,
-	//	sdk.NewAttribute(types.AttributeKeyDenom, denom),
-	//	sdk.NewAttribute(types.AttributeKeyID, tokenID),
-	//	sdk.NewAttribute(types.AttributeKey, unbondQuantity.String()),
-	//	sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
-	//	sdk.NewAttribute(types.AttributeKeyDelegator, delegatorAddr.String()),
-	//	sdk.NewAttribute(types.AttributeKeyCoin, sdk.NewCoin(keeper.BondDenom(ctx), reserve.Mul(unbondQuantity)).String()),
-	//), reqEvent)
+	var reqEvent sdk.Event
+	for _, event := range ctx.EventManager().Events() {
+		if event.Type == types.EventTypeCompleteUnbondingNFT {
+			reqEvent = event
+			break
+		}
+	}
+	require.Equal(t, sdk.NewEvent(
+		types.EventTypeCompleteUnbondingNFT,
+		sdk.NewAttribute(types.AttributeKeyDenom, denom),
+		sdk.NewAttribute(types.AttributeKeyID, tokenID),
+		sdk.NewAttribute(types.AttributeKeySubTokenIDs, "1,2"),
+		sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyDelegator, delegatorAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyCoin, sdk.NewCoin(keeper.BondDenom(ctx), unbondQuantity.Mul(reserve)).String()),
+	), reqEvent)
 }
 
 func TestConvertAddr(t *testing.T) {

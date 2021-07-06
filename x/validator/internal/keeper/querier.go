@@ -2,17 +2,16 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	abci "github.com/tendermint/tendermint/abci/types"
+	"strconv"
 	"strings"
 )
 
-/// creates a querier for staking REST endpoints
+// NewQuerier creates a querier for staking REST endpoints
 func NewQuerier(k Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
@@ -42,6 +41,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPool(ctx, k)
 		case types.QueryParameters:
 			return queryParameters(ctx, k)
+		case types.QueryDelegatedCoins:
+			return queryDelegatedCoins(ctx, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown validator query endpoint")
 		}
@@ -138,12 +139,43 @@ func queryValidatorUnbondingDelegations(ctx sdk.Context, req abci.RequestQuery, 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	unbonds := k.GetUnbondingDelegationsFromValidator(ctx, params.ValidatorAddr)
-	if unbonds == nil {
-		unbonds = types.UnbondingDelegations{}
+	unbondingDelegations := k.GetUnbondingDelegationsFromValidator(ctx, params.ValidatorAddr)
+	if unbondingDelegations == nil {
+		unbondingDelegations = types.UnbondingDelegations{}
 	}
 
-	res, err := codec.MarshalJSONIndent(types.ModuleCdc, unbonds)
+	baseUBDs := types.BaseUnbondingDelegations{}
+	nftUBDs := types.NFTUnbondingDelegations{}
+
+	for _, unbondingDelegation := range unbondingDelegations {
+		baseUBD := types.BaseUnbondingDelegation{
+			ValidatorAddress: unbondingDelegation.ValidatorAddress,
+			DelegatorAddress: unbondingDelegation.DelegatorAddress,
+			Entries:          []types.UnbondingDelegationEntry{},
+		}
+
+		nftUBD := types.NFTUnbondingDelegation{
+			ValidatorAddress: unbondingDelegation.ValidatorAddress,
+			DelegatorAddress: unbondingDelegation.DelegatorAddress,
+			Entries:          []types.UnbondingDelegationNFTEntry{},
+		}
+
+		for _, entry := range unbondingDelegation.Entries {
+			switch entry := entry.(type) {
+			case types.UnbondingDelegationEntry:
+				baseUBD.Entries = append(baseUBD.Entries, entry)
+			case types.UnbondingDelegationNFTEntry:
+				nftUBD.Entries = append(nftUBD.Entries, entry)
+			}
+		}
+
+		baseUBDs = append(baseUBDs, baseUBD)
+		nftUBDs = append(nftUBDs, nftUBD)
+	}
+
+	ubdResp := types.NewUnbondingDelegationResp(baseUBDs, nftUBDs)
+
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, ubdResp)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -194,6 +226,7 @@ func queryDelegatorUnbondingDelegations(ctx sdk.Context, req abci.RequestQuery, 
 	}
 
 	baseUBDs := types.BaseUnbondingDelegations{}
+	nftUBDs := types.NFTUnbondingDelegations{}
 
 	for _, unbondingDelegation := range unbondingDelegations {
 		baseUBD := types.BaseUnbondingDelegation{
@@ -202,17 +235,26 @@ func queryDelegatorUnbondingDelegations(ctx sdk.Context, req abci.RequestQuery, 
 			Entries:          []types.UnbondingDelegationEntry{},
 		}
 
+		nftUBD := types.NFTUnbondingDelegation{
+			ValidatorAddress: unbondingDelegation.ValidatorAddress,
+			DelegatorAddress: unbondingDelegation.DelegatorAddress,
+			Entries:          []types.UnbondingDelegationNFTEntry{},
+		}
+
 		for _, entry := range unbondingDelegation.Entries {
 			switch entry := entry.(type) {
 			case types.UnbondingDelegationEntry:
 				baseUBD.Entries = append(baseUBD.Entries, entry)
+			case types.UnbondingDelegationNFTEntry:
+				nftUBD.Entries = append(nftUBD.Entries, entry)
 			}
 		}
 
 		baseUBDs = append(baseUBDs, baseUBD)
+		nftUBDs = append(nftUBDs, nftUBD)
 	}
 
-	ubdResp := types.NewUnbondingDelegationResp(baseUBDs, types.NFTUnbondingDelegations{})
+	ubdResp := types.NewUnbondingDelegationResp(baseUBDs, nftUBDs)
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, ubdResp)
 	if err != nil {
@@ -335,7 +377,8 @@ func queryHistoricalInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 
 	hi, found := k.GetHistoricalInfo(ctx, params.Height)
 	if !found {
-		return nil, types.ErrNoHistoricalInfo()
+		return nil, types.ErrNoHistoricalInfo(
+			strconv.FormatInt(int64(params.Height), 10))
 	}
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, hi)
@@ -350,7 +393,7 @@ func queryPool(ctx sdk.Context, k Keeper) ([]byte, error) {
 	bondedPool := k.GetBondedPool(ctx)
 	notBondedPool := k.GetNotBondedPool(ctx)
 	if bondedPool == nil || notBondedPool == nil {
-		return nil, errors.New("pool accounts haven't been set")
+		return nil, types.ErrAccountNotSet()
 	}
 
 	pool := types.NewPool(
@@ -370,6 +413,17 @@ func queryParameters(ctx sdk.Context, k Keeper) ([]byte, error) {
 	params := k.GetParams(ctx)
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return res, nil
+}
+
+func queryDelegatedCoins(ctx sdk.Context, k Keeper) ([]byte, error) {
+	delegatedCoins := k.GetAllDelegatedCoins(ctx)
+
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, delegatedCoins)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

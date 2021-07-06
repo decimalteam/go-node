@@ -50,10 +50,10 @@ func (msg MsgMintNFT) Type() string { return "mint_nft" }
 // ValidateBasic Implements Msg.
 func (msg MsgMintNFT) ValidateBasic() error {
 	if strings.TrimSpace(msg.Denom) == "" {
-		return ErrInvalidNFT
+		return ErrInvalidDenom(msg.Denom)
 	}
 	if strings.TrimSpace(msg.ID) == "" {
-		return ErrInvalidNFT
+		return ErrInvalidNFT(msg.ID)
 	}
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
@@ -62,16 +62,16 @@ func (msg MsgMintNFT) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid recipient address")
 	}
 	if !msg.Quantity.IsPositive() {
-		return ErrInvalidQuantity
+		return ErrInvalidQuantity(msg.Quantity.String())
 	}
 	if !msg.Reserve.IsPositive() || msg.Reserve.LT(minReserve) {
-		return ErrInvalidReserve
+		return ErrInvalidReserve(msg.Reserve.String())
 	}
 	if match, _ := regexp.MatchString(regName, msg.Denom); !match {
-		return ErrInvalidDenom
+		return ErrInvalidDenom(msg.Denom)
 	}
 	if match, _ := regexp.MatchString(regName, msg.ID); !match {
-		return ErrInvalidTokenID
+		return ErrInvalidTokenID(msg.ID)
 	}
 
 	return nil
@@ -117,17 +117,17 @@ func (msg MsgBurnNFT) Type() string { return "burn_nft" }
 
 // ValidateBasic Implements Msg.
 func (msg MsgBurnNFT) ValidateBasic() error {
-	if strings.TrimSpace(msg.ID) == "" {
-		return ErrInvalidNFT
-	}
 	if strings.TrimSpace(msg.Denom) == "" {
-		return ErrInvalidNFT
+		return ErrInvalidDenom(msg.Denom)
+	}
+	if strings.TrimSpace(msg.ID) == "" {
+		return ErrInvalidNFT(msg.ID)
 	}
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
 	}
 	if !CheckUnique(msg.SubTokenIDs) {
-		return ErrNotUniqueSubTokenIDs
+		return ErrNotUniqueSubTokenIDs()
 	}
 
 	return nil
@@ -176,19 +176,22 @@ func (msg MsgTransferNFT) Type() string { return "transfer_nft" }
 // ValidateBasic Implements Msg.
 func (msg MsgTransferNFT) ValidateBasic() error {
 	if strings.TrimSpace(msg.Denom) == "" {
-		return ErrInvalidCollection
+		return ErrInvalidCollection(msg.Denom)
 	}
 	if msg.Sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
+		return ErrInvalidRecipientAddress(msg.Sender.String())
 	}
 	if msg.Recipient.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid recipient address")
+		return ErrInvalidRecipientAddress(msg.Recipient.String())
+	}
+	if msg.Sender.Equals(msg.Recipient) {
+		return ErrForbiddenToTransferToYourself()
 	}
 	if strings.TrimSpace(msg.ID) == "" {
-		return ErrInvalidCollection
+		return ErrInvalidCollection(msg.ID)
 	}
 	if !CheckUnique(msg.SubTokenIDs) {
-		return ErrNotUniqueSubTokenIDs
+		return ErrNotUniqueSubTokenIDs()
 	}
 
 	return nil
@@ -239,11 +242,11 @@ func (msg MsgEditNFTMetadata) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
 	}
-	if strings.TrimSpace(msg.ID) == "" {
-		return ErrInvalidNFT
-	}
 	if strings.TrimSpace(msg.Denom) == "" {
-		return ErrInvalidNFT
+		return ErrInvalidDenom(msg.Denom)
+	}
+	if strings.TrimSpace(msg.ID) == "" {
+		return ErrInvalidNFT(msg.ID)
 	}
 	return nil
 }

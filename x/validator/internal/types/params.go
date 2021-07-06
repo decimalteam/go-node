@@ -17,7 +17,7 @@ import (
 const (
 	// DefaultUnbondingTime reflects three weeks in seconds as the default
 	// unbonding time.
-	DefaultUnbondingTime = time.Hour * 24 * 30
+	DefaultUnbondingTime = time.Minute * 2
 
 	// Default maximum number of bonded validators
 	DefaultMaxValidators uint16 = 256

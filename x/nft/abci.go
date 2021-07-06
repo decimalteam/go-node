@@ -9,4 +9,12 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	if ctx.BlockHeight() >= updates.Update10Block {
 		k.SetBaseDenom()
 	}
+	if ctx.BlockHeight() == updates.Update3Block {
+		collections := k.GetCollections(ctx)
+		for _, collection := range collections {
+			for _, nft := range collection.NFTs {
+				k.SetTokenIDIndex(ctx, nft.GetID())
+			}
+		}
+	}
 }

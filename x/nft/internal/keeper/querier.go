@@ -57,7 +57,7 @@ func querySupply(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper
 
 	collection, found := k.GetCollection(ctx, params.Denom)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrUnknownCollection, fmt.Sprintf("unknown denom %s", params.Denom))
+		return nil, types.ErrUnknownCollection(params.Denom)
 	}
 
 	bz, err := types.ModuleCdc.MarshalJSON(strconv.Itoa(collection.Supply()))
@@ -116,7 +116,7 @@ func queryCollection(ctx sdk.Context, path []string, req abci.RequestQuery, k Ke
 
 	collection, found := k.GetCollection(ctx, params.Denom)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrUnknownCollection, fmt.Sprintf("unknown denom %s", params.Denom))
+		return nil, types.ErrUnknownCollection(params.Denom)
 	}
 
 	// use Collections custom JSON to make the denom the key of the object
@@ -150,7 +150,7 @@ func queryNFT(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper) (
 
 	nft, err := k.GetNFT(ctx, params.Denom, params.TokenID)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrUnknownNFT, fmt.Sprintf("invalid NFT #%s from collection %s", params.TokenID, params.Denom))
+		return nil, types.ErrUnknownNFT(params.Denom, params.TokenID)
 	}
 
 	bz, err := types.ModuleCdc.MarshalJSON(nft)

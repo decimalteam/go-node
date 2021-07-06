@@ -6,8 +6,6 @@ import (
 	"sort"
 	"strings"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 )
 
@@ -36,9 +34,7 @@ func (collection Collection) GetNFT(id string) (nft exported.NFT, err error) {
 	if found {
 		return nft, nil
 	}
-	return nil, sdkerrors.Wrap(ErrUnknownNFT,
-		fmt.Sprintf("NFT #%s doesn't exist in collection %s", id, collection.Denom),
-	)
+	return nil, ErrUnknownNFT(collection.Denom, id)
 }
 
 // ContainsNFT returns whether or not a Collection contains an NFT
@@ -54,8 +50,7 @@ func (collection Collection) AddNFT(nft exported.NFT) (Collection, error) {
 	if exists {
 		collNFT, err := collection.GetNFT(id)
 		if err != nil {
-			return collection, sdkerrors.Wrap(ErrUnknownNFT,
-				fmt.Sprintf("NFT #%s doesn't exist on collection %s", nft.GetID(), collection.Denom))
+			return collection, ErrUnknownNFT(collection.Denom, id)
 		}
 		ownerAddress := nft.GetOwners().GetOwners()[0].GetAddress()
 		subTokenIDs := nft.GetOwners().GetOwners()[0].GetSubTokenIDs()
@@ -74,7 +69,7 @@ func (collection Collection) AddNFT(nft exported.NFT) (Collection, error) {
 		updatedNFTs, found := collection.NFTs.Update(id, collNFT)
 
 		if !found {
-			return collection, sdkerrors.Wrap(ErrUnknownNFT, fmt.Sprintf("Could not update NFT #%s", collNFT.GetID()))
+			return collection, ErrUnknownNFT(collection.Denom, id)
 		}
 		collection.NFTs = updatedNFTs
 	} else {
@@ -89,9 +84,7 @@ func (collection Collection) UpdateNFT(nft exported.NFT) (Collection, error) {
 	nfts, ok := collection.NFTs.Update(nft.GetID(), nft)
 
 	if !ok {
-		return collection, sdkerrors.Wrap(ErrUnknownNFT,
-			fmt.Sprintf("NFT #%s doesn't exist on collection %s", nft.GetID(), collection.Denom),
-		)
+		return collection, ErrUnknownNFT(collection.Denom, nft.GetID())
 	}
 	collection.NFTs = nfts
 	return collection, nil
@@ -101,9 +94,7 @@ func (collection Collection) UpdateNFT(nft exported.NFT) (Collection, error) {
 func (collection Collection) DeleteNFT(nft exported.NFT) (Collection, error) {
 	nfts, ok := collection.NFTs.Remove(nft.GetID())
 	if !ok {
-		return collection, sdkerrors.Wrap(ErrUnknownNFT,
-			fmt.Sprintf("NFT #%s doesn't exist on collection %s", nft.GetID(), collection.Denom),
-		)
+		return collection, ErrUnknownNFT(collection.Denom, nft.GetID())
 	}
 	collection.NFTs = nfts
 	return collection, nil

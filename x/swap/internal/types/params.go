@@ -13,6 +13,7 @@ const (
 )
 
 const ServiceAddress = "dx1p844kydt9eljvuef4nk52dm6lcgj5c42q4zmvd"
+const CheckingAddress = "18fa71ffcf736d5ec0d06f2330a33b4f85a6d69f"
 
 var ServiceAccAddress, _ = sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
 

@@ -45,11 +45,18 @@ var (
 	ErrNotAllowedMint       = types.ErrNotAllowedMint
 	ErrNotUniqueSubTokenIDs = types.ErrNotUniqueSubTokenIDs
 	ErrNotUniqueTokenURI    = types.ErrNotUniqueTokenURI
+	ErrNotUniqueTokenID     = types.ErrNotUniqueTokenID
 	NewGenesisState         = types.NewGenesisState
 	DefaultGenesisState     = types.DefaultGenesisState
 	ValidateGenesis         = types.ValidateGenesis
 	NewBaseNFT              = types.NewBaseNFT
 	NewNFTs                 = types.NewNFTs
+	NewBaseNFT              = types.NewBaseNFT
+	NewNFTs                 = types.NewNFTs
+	NewMsgMintNFT           = types.NewMsgMintNFT
+	NewMsgBurnNFT           = types.NewMsgBurnNFT
+	NewMsgTranfserNFT       = types.NewMsgTransferNFT
+	NewMsgEditNFTMetadata   = types.NewMsgEditNFTMetadata
 
 	CheckUnique = types.CheckUnique
 
