@@ -4,6 +4,7 @@ package multisig;
 option go_package = "bitbucket.org/decimalteam/go-node/x/multisig/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/base/coin.proto";
 
 message Transaction {
   option (gogoproto.equal) = false;
@@ -22,8 +23,9 @@ message Transaction {
     (gogoproto.jsontag) = "receiver",
     (gogoproto.moretags) = "yaml:\"receiver\""
   ];
-  repeated string Coins = 4 [
-    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+  repeated cosmos_proto.Coin Coins = 4 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "coins",
     (gogoproto.moretags) = "yaml:\"coins\""
   ];

@@ -4,6 +4,7 @@ package multisig;
 option go_package = "bitbucket.org/decimalteam/go-node/x/multisig/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/base/coin.proto";
 
 service Msg {
   rpc CreateTransaction(MsgCreateTransaction) returns (MsgCreateTransactionResponse);
@@ -16,25 +17,20 @@ message MsgCreateTransaction {
   option (gogoproto.goproto_getters) = false;
 
   string Sender = 1 [
-//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
   string Wallet = 2 [
-//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "wallet",
     (gogoproto.moretags) = "yaml:\"wallet\""
   ];
   string Receiver = 3 [
-//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "receiver",
     (gogoproto.moretags) = "yaml:\"receiver\""
   ];
-  repeated string Coins = 4 [
+  repeated cosmos_proto.Coin Coins = 4 [
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "coins",
     (gogoproto.moretags) = "yaml:\"coins\""
   ];
@@ -47,14 +43,10 @@ message MsgCreateWallet {
   option (gogoproto.goproto_getters) = false;
 
   string Sender = 1 [
-//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
   repeated string Owners = 2 [
-//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "owners",
     (gogoproto.moretags) = "yaml:\"owners\""
   ];
@@ -75,8 +67,6 @@ message MsgSignTransaction {
   option (gogoproto.goproto_getters) = false;
 
   string Sender = 1 [
-//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];

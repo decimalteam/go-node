@@ -4,14 +4,16 @@ package swap;
 option go_package = "bitbucket.org/decimalteam/go-node/x/swap/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/base/coin.proto";
 import "swap/tx.proto";
 
 message Swap {
   TransferType TransferType = 1 [
     (gogoproto.jsontag) = "transfer_type"
   ];
-  bytes HashedSecret = 2 [
-    (gogoproto.casttype) = "Hash",
+  string HashedSecret = 2 [
+    (gogoproto.nullable) = true,
+    (gogoproto.customtype) = "Hash",
     (gogoproto.jsontag) = "hashed_secret"
   ];
   string From = 3 [
@@ -20,8 +22,9 @@ message Swap {
   string Recipient = 4 [
     (gogoproto.jsontag) = "recipient"
   ];
-  repeated bytes Amount = 5 [
+  repeated cosmos_proto.Coin Amount = 5 [
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "amount"
   ];
   uint64 Timestamp = 6 [

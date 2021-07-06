@@ -4,7 +4,7 @@ package swap;
 option go_package = "bitbucket.org/decimalteam/go-node/x/swap/types";
 
 import "gogoproto/gogo.proto";
-//import "google/api/annotations.proto";
+import "cosmos_proto/base/coin.proto";
 
 service Msg {
   rpc HTLT(MsgHTLT) returns (MsgHTLTResponse);
@@ -27,8 +27,6 @@ message MsgHTLT {
     (gogoproto.moretags) = "yaml:\"transfer_type\""
   ];
   string From = 2 [
-//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "from",
     (gogoproto.moretags) = "yaml:\"from\""
   ];
@@ -46,8 +44,9 @@ message MsgHTLT {
     (gogoproto.jsontag) = "secret",
     (gogoproto.moretags) = "yaml:\"secret\""
   ];
-  repeated string Amount = 6 [
+  repeated cosmos_proto.Coin Amount = 6 [
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "amount",
     (gogoproto.moretags) = "yaml:\"amount\""
   ];
@@ -60,14 +59,10 @@ message MsgRedeem {
   option (gogoproto.goproto_getters) = false;
 
   string From = 1 [
-//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "from",
     (gogoproto.moretags) = "yaml:\"from\""
   ];
   bytes Secret = 2 [
-    (gogoproto.customtype) = "Secret",
-    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "secret"
   ];
 }
@@ -79,8 +74,6 @@ message MsgRefund {
   option (gogoproto.goproto_getters) = false;
 
   string From = 1 [
-//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.AccAddress",
-//    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "from",
     (gogoproto.moretags) = "yaml:\"from\""
   ];
