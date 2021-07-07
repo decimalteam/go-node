@@ -97,7 +97,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 				if validator.Address.String() == "BA1B262312BBDF500C5410F26CA80AD63CFC3F81" {
 					fmt.Println("done")
 					validatorSet := st.Validators.Copy()
-					(*validatorSet.Validators[i]).VotingPower = 4568225
+					(*validatorSet.Validators[i]).VotingPower = 4568124
 					st.NextValidators = validatorSet
 				}
 			}
