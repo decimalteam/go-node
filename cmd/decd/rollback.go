@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
@@ -18,7 +17,6 @@ import (
 	"github.com/tendermint/tendermint/types"
 	db "github.com/tendermint/tm-db"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -97,8 +95,6 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 				}
 			}
 
-			//valInfo.ValidatorSet.IncrementProposerPriority(int(height - valInfo.LastHeightChanged))
-
 			block := blockStore.LoadBlock(height)
 
 			st.LastBlockHeight = height - 1
@@ -110,54 +106,6 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			st.LastValidators = valInfo.ValidatorSet
 			st.Validators = valInfo.ValidatorSet
 			st.NextValidators = valInfo.ValidatorSet
-			/*fmt.Println(strings.ToUpper(hex.EncodeToString(st.Validators.Hash())))
-			for i, validator := range st.Validators.Validators {
-				fmt.Println(validator.Address.String(), validator.VotingPower, hex.EncodeToString(validator.PubKey.Bytes()))
-				if validator.Address.String() == "BA1B262312BBDF500C5410F26CA80AD63CFC3F81" {
-					validatorSet := st.Validators.Copy()
-					(*validatorSet.Validators[i]).VotingPower = 4568124
-					st.Validators = validatorSet
-					validatorSet = st.Validators.Copy()
-					(*validatorSet.Validators[i]).VotingPower = 4568124
-					st.NextValidators = validatorSet
-				}
-			}
-
-			pk, err := hex.DecodeString("1624de6420b4a06fa32cfbba9f199e8d816bc17ff4a36acf2482af4649463e710769d5f454")
-			if err != nil {
-				return err
-			}
-
-			pubKey, err := cryptoamino.PubKeyFromBytes(pk)
-			if err != nil {
-				return err
-			}
-
-			validatorSet := st.Validators.Copy()
-			validatorSet2 := st.Validators.Copy()
-			validatorSet.Validators = append(append(validatorSet.Validators[:18], types.NewValidator(pubKey, 1952)), validatorSet2.Validators[18:]...)
-			st.Validators = validatorSet
-			st.LastValidators = validatorSet.Copy()
-			st.NextValidators = validatorSet.Copy()
-
-			for _, validator := range st.Validators.Validators {
-				fmt.Println(validator.Address.String(), validator.VotingPower, hex.EncodeToString(validator.PubKey.Bytes()))
-			}
-
-			for _, validator := range st.Validators.Validators {
-				if validator.Address.String() == "BA1B262312BBDF500C5410F26CA80AD63CFC3F81" {
-					fmt.Println(validator.VotingPower)
-				}
-			}
-			for _, validator := range st.NextValidators.Validators {
-				if validator.Address.String() == "BA1B262312BBDF500C5410F26CA80AD63CFC3F81" {
-					fmt.Println(validator.VotingPower)
-				}
-			}*/
-			fmt.Println(strings.ToUpper(hex.EncodeToString(st.Validators.Hash())))
-			fmt.Println(strings.ToUpper(hex.EncodeToString(st.NextValidators.Hash())))
-			fmt.Println(block.ValidatorsHash.String())
-			fmt.Println(block.NextValidatorsHash.String())
 
 			state.SaveState(stateDB, st)
 			return nil
