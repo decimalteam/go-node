@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
@@ -538,7 +539,9 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 			return err
 		}
 		validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
-		k.AddDelegatedCoin(ctx, bondCoin)
+		if ctx.BlockHeight() >= updates.Update11Block {
+			k.AddDelegatedCoin(ctx, bondCoin)
+		}
 	}
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
