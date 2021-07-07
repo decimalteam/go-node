@@ -8,6 +8,7 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/config"
+	cryptoamino "github.com/tendermint/tendermint/crypto/encoding/amino"
 	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/state"
@@ -103,6 +104,20 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 					st.Validators = validatorSet
 				}
 			}
+
+			pk, err := hex.DecodeString("1624de6420b4a06fa32cfbba9f199e8d816bc17ff4a36acf2482af4649463e710769d5f454")
+			if err != nil {
+				return err
+			}
+
+			pubKey, err := cryptoamino.PubKeyFromBytes(pk)
+			if err != nil {
+				return err
+			}
+
+			validatorSet := st.Validators.Copy()
+			validatorSet.Validators = append(validatorSet.Validators, types.NewValidator(pubKey, 1952))
+			st.Validators = validatorSet
 
 			for _, validator := range st.Validators.Validators {
 				if validator.Address.String() == "BA1B262312BBDF500C5410F26CA80AD63CFC3F81" {
