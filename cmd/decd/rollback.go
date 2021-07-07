@@ -106,6 +106,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 				}
 			}
 			fmt.Println(strings.ToUpper(hex.EncodeToString(st.Validators.Hash())))
+			fmt.Println(block.ValidatorsHash.String())
 
 			state.SaveState(stateDB, st)
 			return nil
