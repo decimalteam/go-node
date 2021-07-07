@@ -110,7 +110,13 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 					fmt.Println(validator.VotingPower)
 				}
 			}
+			for _, validator := range st.NextValidators.Validators {
+				if validator.Address.String() == "BA1B262312BBDF500C5410F26CA80AD63CFC3F81" {
+					fmt.Println(validator.VotingPower)
+				}
+			}
 			fmt.Println(strings.ToUpper(hex.EncodeToString(st.Validators.Hash())))
+			fmt.Println(strings.ToUpper(hex.EncodeToString(st.NextValidators.Hash())))
 			fmt.Println(block.ValidatorsHash.String())
 
 			state.SaveState(stateDB, st)
