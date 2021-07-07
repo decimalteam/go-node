@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -151,6 +152,8 @@ func TestUpdateNFT(t *testing.T) {
 
 func TestDeleteNFT(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
+
+	ctx = ctx.WithBlockHeight(updates.Update11Block)
 
 	// DeleteNFT should fail when NFT doesn't exist and collection doesn't exist
 	subTokenIDs := []int64{}

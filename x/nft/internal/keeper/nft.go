@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"encoding/binary"
 	"fmt"
 
@@ -154,7 +155,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 	err = k.ReserveTokens(ctx,
 		sdk.NewCoins(
 			sdk.NewCoin(
-				k.baseDenom,
+				*k.BaseDenom,
 				reserve.Mul(quantity), // reserve * quantity
 			)),
 		creator)
@@ -220,16 +221,39 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 		GetOwners().
 		SetOwner(owner))
 
-	collection, err = collection.UpdateNFT(nft)
-	if err != nil {
-		return err
+	if ctx.BlockHeight() >= updates.Update11Block {
+		collection, err = collection.UpdateNFT(nft)
+		if err != nil {
+			return err
+		}
+	} else {
+		nftOwner, err := k.GetOwner(ctx, nft.GetCreator()).DeleteID(denom, nft.GetID())
+
+		if err != nil {
+			return err
+		}
+
+		k.SetOwner(ctx, nftOwner)
+
+		collection, err = collection.DeleteNFT(nft)
+		if err != nil {
+			return err
+		}
 	}
 
 	k.SetCollection(ctx, denom, collection)
 
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ReservedPool, owner.GetAddress(), sdk.NewCoins(sdk.NewCoin(*k.BaseDenom, reserveForReturn)))
-	if err != nil {
-		return err
+	if ctx.BlockHeight() >= updates.Update11Block {
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ReservedPool, owner.GetAddress(), sdk.NewCoins(sdk.NewCoin(*k.BaseDenom, reserveForReturn)))
+		if err != nil {
+			return err
+		}
+	} else {
+		err = k.BurnTokens(ctx, sdk.NewCoins(
+			sdk.NewCoin(*k.BaseDenom, nft.GetReserve().MulRaw(int64(len(subTokenIDs))))))
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

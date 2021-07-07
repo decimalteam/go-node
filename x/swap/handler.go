@@ -47,7 +47,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, error) {
-	if ctx.BlockHeight() >= updates.Update2Block {
+	if ctx.BlockHeight() >= updates.Update11Block {
 		return nil, types.ErrDeprecated()
 	}
 
@@ -123,7 +123,7 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 }
 
 func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Result, error) {
-	if ctx.BlockHeight() >= updates.Update2Block {
+	if ctx.BlockHeight() >= updates.Update11Block {
 		return nil, types.ErrDeprecated()
 	}
 
@@ -180,7 +180,7 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Resul
 }
 
 func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Result, error) {
-	if ctx.BlockHeight() >= updates.Update2Block {
+	if ctx.BlockHeight() >= updates.Update11Block {
 		return nil, types.ErrDeprecated()
 	}
 

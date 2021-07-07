@@ -1,6 +1,7 @@
 package nft
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"fmt"
 	"testing"
 
@@ -221,6 +222,8 @@ func TestBurnNFTMsg(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 	h := GenericHandler(NFTKeeper)
 
+	ctx = ctx.WithBlockHeight(updates.Update11Block)
+
 	reserve := sdk.NewInt(100)
 	// An NFT to be burned
 	basenft := types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, []int64{1, 2, 3}, true)
@@ -284,6 +287,38 @@ func TestBurnNFTMsg(t *testing.T) {
 	ownerReturned := NFTKeeper.GetOwner(ctx, Addrs[0])
 	require.Equal(t, 1, ownerReturned.Supply())
 
+	burnNFT = types.NewMsgBurnNFT(Addrs[0], ID1, Denom1, []int64{1})
+
+	res, err = h(ctx, burnNFT)
+	require.NoError(t, err)
+
+	nft, err = NFTKeeper.GetNFT(ctx, Denom1, ID1)
+	require.NoError(t, err)
+	require.Equal(t, []int64{3}, nft.GetOwners().GetOwners()[0].GetSubTokenIDs())
+
+	// the NFT should not exist after burn
+	exists = NFTKeeper.IsNFT(ctx, Denom1, ID1)
+	require.True(t, exists)
+
+	ownerReturned = NFTKeeper.GetOwner(ctx, Addrs[0])
+	require.Equal(t, 1, ownerReturned.Supply())
+
+	burnNFT = types.NewMsgBurnNFT(Addrs[0], ID1, Denom1, []int64{3})
+
+	res, err = h(ctx, burnNFT)
+	require.NoError(t, err)
+
+	nft, err = NFTKeeper.GetNFT(ctx, Denom1, ID1)
+	require.NoError(t, err)
+	require.Equal(t, []int64(nil), nft.GetOwners().GetOwners()[0].GetSubTokenIDs())
+
+	// the NFT should not exist after burn
+	exists = NFTKeeper.IsNFT(ctx, Denom1, ID1)
+	require.True(t, exists)
+
+	ownerReturned = NFTKeeper.GetOwner(ctx, Addrs[0])
+	require.Equal(t, 1, ownerReturned.Supply())
+
 	//require.True(t, CheckInvariants(NFTKeeper, ctx))
 }
 
@@ -310,4 +345,21 @@ func TestUniqueTokenURI(t *testing.T) {
 	msg = types.NewMsgMintNFT(Addrs[0], Addrs[0], "token3", "denom1", tokenURI1, sdk.NewInt(1), reserve, true)
 	_, err = HandleMsgMintNFT(ctx, msg, nftKeeper)
 	require.Error(t, types.ErrNotUniqueTokenURI(), err)
+}
+
+func TestUniqueTokenID(t *testing.T) {
+	ctx, _, nftKeeper := createTestApp(t, false)
+
+	reserve := sdk.NewInt(100)
+
+	const tokenURI1 = "tokenURI1"
+	const tokenURI2 = "tokenURI2"
+
+	msg := types.NewMsgMintNFT(Addrs[0], Addrs[0], "token1", "denom1", tokenURI1, sdk.NewInt(1), reserve, true)
+	_, err := HandleMsgMintNFT(ctx, msg, nftKeeper)
+	require.NoError(t, err)
+
+	msg = types.NewMsgMintNFT(Addrs[0], Addrs[0], "token1", "denom2", tokenURI2, sdk.NewInt(1), reserve, true)
+	_, err = HandleMsgMintNFT(ctx, msg, nftKeeper)
+	require.Error(t, types.ErrNotUniqueTokenID(), err)
 }

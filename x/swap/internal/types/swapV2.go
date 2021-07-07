@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,13 +25,9 @@ func GetHash(transactionNumber sdk.Int, tokenSymbol string, amount sdk.Int, reci
 
 	copy(hash[:], crypto.Keccak256(encoded))
 
-	fmt.Println(hex.EncodeToString(hash[:]))
-
 	copy(hash[:], crypto.Keccak256(encodePacked(
 		encodeString(fmt.Sprintf("\x19Ethereum Signed Message:\n%d", len(hash))),
 		hash[:])))
-
-	fmt.Println(hex.EncodeToString(hash[:]))
 
 	return hash, nil
 }

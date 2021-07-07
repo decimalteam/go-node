@@ -51,8 +51,6 @@ var (
 	ValidateGenesis         = types.ValidateGenesis
 	NewBaseNFT              = types.NewBaseNFT
 	NewNFTs                 = types.NewNFTs
-	NewBaseNFT              = types.NewBaseNFT
-	NewNFTs                 = types.NewNFTs
 	NewMsgMintNFT           = types.NewMsgMintNFT
 	NewMsgBurnNFT           = types.NewMsgBurnNFT
 	NewMsgTranfserNFT       = types.NewMsgTransferNFT
