@@ -96,6 +96,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			st.LastHeightValidatorsChanged = st.LastBlockHeight
 			fmt.Println(strings.ToUpper(hex.EncodeToString(st.Validators.Hash())))
 			for i, validator := range st.Validators.Validators {
+				fmt.Println(validator.Address.String(), validator.VotingPower)
 				if validator.Address.String() == "BA1B262312BBDF500C5410F26CA80AD63CFC3F81" {
 					validatorSet := st.Validators.Copy()
 					(*validatorSet.Validators[i]).VotingPower = 4568124
