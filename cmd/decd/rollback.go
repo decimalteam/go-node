@@ -89,7 +89,12 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 				height--
 			}
 
-			fmt.Println(loadValidatorsInfo(stateDB, 5321767))
+			valInfo := loadValidatorsInfo(stateDB, height)
+			if valInfo.ValidatorSet == nil {
+				valInfo = loadValidatorsInfo(stateDB, valInfo.LastHeightChanged)
+			}
+
+			valInfo.ValidatorSet.IncrementProposerPriority(int(height - valInfo.LastHeightChanged))
 
 			block := blockStore.LoadBlock(height)
 
@@ -99,7 +104,10 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			st.LastResultsHash = block.LastResultsHash
 			st.LastBlockTime = time.Unix(0, block.Time.UnixNano()-time.Second.Nanoseconds()*5)
 			st.LastHeightValidatorsChanged = 5321767
-			fmt.Println(strings.ToUpper(hex.EncodeToString(st.Validators.Hash())))
+			st.LastValidators = valInfo.ValidatorSet
+			st.Validators = valInfo.ValidatorSet
+			st.NextValidators = valInfo.ValidatorSet
+			/*fmt.Println(strings.ToUpper(hex.EncodeToString(st.Validators.Hash())))
 			for i, validator := range st.Validators.Validators {
 				fmt.Println(validator.Address.String(), validator.VotingPower, hex.EncodeToString(validator.PubKey.Bytes()))
 				if validator.Address.String() == "BA1B262312BBDF500C5410F26CA80AD63CFC3F81" {
@@ -142,7 +150,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 				if validator.Address.String() == "BA1B262312BBDF500C5410F26CA80AD63CFC3F81" {
 					fmt.Println(validator.VotingPower)
 				}
-			}
+			}*/
 			fmt.Println(strings.ToUpper(hex.EncodeToString(st.Validators.Hash())))
 			fmt.Println(strings.ToUpper(hex.EncodeToString(st.NextValidators.Hash())))
 			fmt.Println(block.ValidatorsHash.String())
