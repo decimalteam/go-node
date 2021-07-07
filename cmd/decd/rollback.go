@@ -116,7 +116,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			}
 
 			validatorSet := st.Validators.Copy()
-			validatorSet.Validators = append(validatorSet.Validators, types.NewValidator(pubKey, 1952))
+			validatorSet.Validators = append(append(validatorSet.Validators[:18], types.NewValidator(pubKey, 1952)), validatorSet.Validators[18:]...)
 			st.Validators = validatorSet
 
 			for _, validator := range st.Validators.Validators {
