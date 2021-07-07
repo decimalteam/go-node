@@ -89,9 +89,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 				height--
 			}
 
-			fmt.Println(loadValidatorsInfo(stateDB, height))
-			fmt.Println(loadValidatorsInfo(stateDB, height-1))
-			fmt.Println(loadValidatorsInfo(stateDB, height-2))
+			fmt.Println(loadValidatorsInfo(stateDB, 5321767))
 
 			block := blockStore.LoadBlock(height)
 
@@ -100,7 +98,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			st.AppHash = block.AppHash
 			st.LastResultsHash = block.LastResultsHash
 			st.LastBlockTime = time.Unix(0, block.Time.UnixNano()-time.Second.Nanoseconds()*5)
-			st.LastHeightValidatorsChanged = st.LastBlockHeight
+			st.LastHeightValidatorsChanged = 5321767
 			fmt.Println(strings.ToUpper(hex.EncodeToString(st.Validators.Hash())))
 			for i, validator := range st.Validators.Validators {
 				fmt.Println(validator.Address.String(), validator.VotingPower, hex.EncodeToString(validator.PubKey.Bytes()))
