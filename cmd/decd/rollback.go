@@ -84,6 +84,8 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 				height--
 			}
 
+			return nil
+
 			block := blockStore.LoadBlock(height)
 
 			st.LastBlockHeight = height - 1
