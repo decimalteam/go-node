@@ -99,6 +99,8 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 					validatorSet := st.Validators.Copy()
 					(*validatorSet.Validators[i]).VotingPower = 4568124
 					st.Validators = validatorSet
+					validatorSet = st.Validators.Copy()
+					(*validatorSet.Validators[i]).VotingPower = 4568225
 					st.NextValidators = validatorSet
 				}
 			}
