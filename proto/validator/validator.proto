@@ -5,6 +5,9 @@ option go_package = "bitbucket.org/decimalteam/go-node/x/validator/types";
 
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 
 message Validator {
   option (gogoproto.equal) = false;
@@ -16,9 +19,8 @@ message Validator {
     (gogoproto.jsontag) = "val_address",
     (gogoproto.moretags) = "yaml:\"val_address\""
   ];
-  bytes PubKey = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/crypto/types.PubKey",
-    (gogoproto.nullable) = false,
+  google.protobuf.Any PubKey = 2 [
+    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
     (gogoproto.jsontag) = "pub_key",
     (gogoproto.moretags) = "yaml:\"pub_key\""
   ];
@@ -44,9 +46,9 @@ message Validator {
     (gogoproto.jsontag) = "jailed",
     (gogoproto.moretags) = "yaml:\"jailed\""
   ];
-  string UnbondingCompletionTime = 7 [
-    (gogoproto.customtype) = "time.Time",
+  google.protobuf.Timestamp UnbondingCompletionTime = 7 [
     (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true,
     (gogoproto.jsontag) = "unbonding_completion_time",
     (gogoproto.moretags) = "yaml:\"unbonding_completion_time\""
   ];
@@ -108,8 +110,9 @@ message Params {
   option (gogoproto.sizer) = true;
   option (gogoproto.marshaler) = true;
 
-   uint64 UnbondingTime = 1 [
-    (gogoproto.casttype) = "time.Duration",
+  google.protobuf.Duration UnbondingTime = 1 [
+    (gogoproto.stdduration) = true,
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "unbonding_time",
     (gogoproto.moretags) = "yaml:\"unbonding_time\""
   ];
@@ -130,8 +133,8 @@ message Params {
     (gogoproto.moretags) = "yaml:\"historical_entries\""
   ];
   uint32 MaxDelegations = 6 [
-//    (gogoproto.customtype) = "uint16",
-//    (gogoproto.nullable) = false,
+    //    (gogoproto.customtype) = "uint16",
+    //    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "max_delegations",
     (gogoproto.moretags) = "yaml:\"max_delegations\""
   ];
@@ -147,10 +150,8 @@ message bechValidator {
     (gogoproto.jsontag) = "val_address",
     (gogoproto.moretags) = "yaml:\"val_address\""
   ];
-  // todo
-  bytes PubKey = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/crypto/types.PubKey",
-    (gogoproto.nullable) = false,
+  google.protobuf.Any PubKey = 2 [
+    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
     (gogoproto.jsontag) = "pub_key",
     (gogoproto.moretags) = "yaml:\"pub_key\""
   ];
@@ -176,9 +177,9 @@ message bechValidator {
     (gogoproto.jsontag) = "jailed",
     (gogoproto.moretags) = "yaml:\"jailed\""
   ];
-  string UnbondingCompletionTime = 7 [
-    (gogoproto.customtype) = "time.Time",
+  google.protobuf.Timestamp UnbondingCompletionTime = 7 [
     (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true,
     (gogoproto.jsontag) = "unbonding_completion_time",
     (gogoproto.moretags) = "yaml:\"unbonding_completion_time\""
   ];

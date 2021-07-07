@@ -5,6 +5,7 @@ option go_package = "bitbucket.org/decimalteam/go-node/x/validator/types";
 
 import "gogoproto/gogo.proto";
 import "validator/validator.proto";
+import "google/protobuf/any.proto";
 
 service Msg {
   rpc DeclareCandidate(MsgDeclareCandidate) returns (MsgDeclareCandidateResponse);
@@ -46,9 +47,7 @@ message MsgDeclareCandidate {
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
-  bytes PubKey = 6 [
-    (gogoproto.nullable) = false,
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/crypto/types.PubKey",
+  google.protobuf.Any PubKey = 6 [
     (gogoproto.jsontag) = "pub_key",
     (gogoproto.moretags) = "yaml:\"pub_key\""
   ];

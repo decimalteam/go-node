@@ -1,6 +1,7 @@
 package types
 
 import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -17,11 +18,16 @@ var _ sdk.Msg = &MsgDeclareCandidate{}
 //}
 
 func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey types.PubKey, commission sdk.Dec, stake sdk.Coin, description Description, rewardAddress sdk.AccAddress) MsgDeclareCandidate {
+	pk, err := codectypes.NewAnyWithValue(pubKey)
+	if err != nil {
+		return MsgDeclareCandidate{}
+	}
+
 	return MsgDeclareCandidate{
 		Commission:    commission,
 		ValidatorAddr: validatorAddr.String(),
 		RewardAddr:    rewardAddress.String(),
-		PubKey:        pubKey,
+		PubKey:        pk,
 		Stake:         stake,
 		Description:   description,
 	}

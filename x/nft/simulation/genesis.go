@@ -100,9 +100,10 @@ func RandomGenesisAccounts(simState *module.SimulationState) (genesisAccs types.
 	for i, acc := range simState.Accounts {
 		coins := sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(simState.InitialStake))}
 		bacc := types.NewBaseAccountWithAddress(acc.Address)
-		if err := bacc.SetCoins(coins); err != nil {
-			panic(err)
-		}
+		// todo SetCoins
+		//if err := bacc.SetCoins(coins); err != nil {
+		//	panic(err)
+		//}
 
 		var gacc types.GenesisAccount = bacc
 

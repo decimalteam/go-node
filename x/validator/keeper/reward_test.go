@@ -1,6 +1,6 @@
 package keeper
 
-import (
+/*import (
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -36,3 +36,4 @@ func TestKeeper_PayRewardsWithMultisigAddress(t *testing.T) {
 	err = keeper.PayRewards(ctx)
 	require.NoError(t, err)
 }
+*/

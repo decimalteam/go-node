@@ -4,6 +4,8 @@ package validator;
 option go_package = "bitbucket.org/decimalteam/go-node/x/validator/types";
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/timestamp.proto";
 
 message DelegationNFT {
   option (gogoproto.equal) = false;
@@ -42,13 +44,14 @@ message DelegationNFT {
 message UnbondingDelegationNFTEntry {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
+  option (cosmos_proto.implements_interface) = "UnbondingDelegationEntryI";
 
   int64 CreationHeight = 1 [
     (gogoproto.jsontag) = "creation_height",
     (gogoproto.moretags) = "yaml:\"creation_height\""
   ];
-  string CompletionTime = 2 [
-    (gogoproto.customtype) = "time.Time",
+  google.protobuf.Timestamp CompletionTime = 2 [
+    (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "completion_time",
     (gogoproto.moretags) = "yaml:\"completion_time\""

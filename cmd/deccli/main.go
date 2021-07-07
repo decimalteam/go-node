@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"os"
 	"path"
 
@@ -11,15 +10,15 @@ import (
 
 	"github.com/tendermint/tendermint/libs/cli"
 
-	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/codec"
+
+	cliconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/client/lcd"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
-	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 
 	"bitbucket.org/decimalteam/go-node/app"
@@ -56,11 +55,11 @@ func main() {
 	// Construct Root Command
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
-		client.ConfigCmd(app.DefaultCLIHome),
+		cliconfig.Cmd(),
 		queryCmd(cdc),
 		txCmd(cdc),
 		flags.LineBreak,
-		lcd.ServeCommand(cdc, registerRoutes),
+		//lcd.ServeCommand(cdc, registerRoutes),
 		flags.LineBreak,
 		keys.Commands(app.DefaultNodeHome),
 		flags.LineBreak,
@@ -76,11 +75,11 @@ func main() {
 	}
 }
 
-func registerRoutes(rs *lcd.RestServer) {
-	client.RegisterRoutes(rs.CliCtx, rs.Mux)
-	app.ModuleBasics.RegisterRESTRoutes(rs.CliCtx, rs.Mux)
-	authrest.RegisterTxRoutes(rs.CliCtx, rs.Mux)
-}
+//func registerRoutes(rs *lcd.RestServer) {
+//	client.RegisterRoutes(rs.CliCtx, rs.Mux)
+//	app.ModuleBasics.RegisterRESTRoutes(rs.CliCtx, rs.Mux)
+//	authrest.RegisterTxRoutes(rs.CliCtx, rs.Mux)
+//}
 
 func queryCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	queryCmd := &cobra.Command{

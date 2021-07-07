@@ -63,7 +63,7 @@ func (k Keeper) SetValidator(ctx sdk.Context, validator types.Validator) error {
 // validator index
 func (k Keeper) SetValidatorByConsAddr(ctx sdk.Context, validator types.Validator) {
 	store := ctx.KVStore(k.storeKey)
-	consAddr := sdk.GetConsAddress(validator.PubKey)
+	consAddr, _ := validator.GetConsAddr()
 	store.Set(types.GetValidatorByConsAddrKey(consAddr), []byte(validator.ValAddress))
 }
 
@@ -314,7 +314,12 @@ func (k Keeper) RemoveValidator(ctx sdk.Context, address sdk.ValAddress) error {
 
 	// delete the old validator record
 	k.delete(ctx, types.GetValidatorKey(address))
-	k.delete(ctx, types.GetValidatorByConsAddrKey(sdk.ConsAddress(validator.PubKey.Address())))
+	key, err := validator.GetConsAddr()
+	if err != nil {
+		return err
+	}
+
+	k.delete(ctx, types.GetValidatorByConsAddrKey(key))
 	k.delete(ctx, types.GetValidatorsByPowerIndexKey(validator, validator.Tokens))
 	return nil
 }

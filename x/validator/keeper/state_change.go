@@ -112,11 +112,11 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			if validator.Online {
 				updates = append(updates, validator.ABCIValidatorUpdate())
 			}
-
+			addr, err := validator.GetConsPubKey()
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					types.EventTypeUpdatesValidators,
-					sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
+					sdk.NewAttribute(types.AttributeKeyPubKey, addr.String()),
 					sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower())),
 					sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
 					sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "validator"),
@@ -152,11 +152,12 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			return nil, err
 		}
 
+		pk, err := validator.GetConsPubKey()
 		if validator.Jailed {
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					types.EventTypeUpdatesValidators,
-					sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
+					sdk.NewAttribute(types.AttributeKeyPubKey, pk.String()),
 					sdk.NewAttribute(types.AttributeKeyPower, "0"),
 					sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
 					sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "candidate"),
@@ -166,7 +167,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					types.EventTypeUpdatesValidators,
-					sdk.NewAttribute(types.AttributeKeyPubKey, validator.PubKey.Address().String()),
+					sdk.NewAttribute(types.AttributeKeyPubKey, pk.String()),
 					sdk.NewAttribute(types.AttributeKeyPower, fmt.Sprintf("%d", validator.ConsensusPower())),
 					sdk.NewAttribute(types.AttributeKeyStake, validator.Tokens.String()),
 					sdk.NewAttribute(types.AttributeKeyValidatorOdCandidate, "candidate"),
@@ -297,7 +298,8 @@ func (k Keeper) bondValidator(ctx sdk.Context, valAddr sdk.ValAddress, validator
 		return types.Validator{}, err
 	}
 
-	k.AfterValidatorBonded(ctx, validator.GetConsAddr(), valAddr)
+	addr, err := validator.GetConsAddr()
+	k.AfterValidatorBonded(ctx, addr, valAddr)
 
 	return validator, nil
 }
@@ -452,7 +454,7 @@ func (k Keeper) unjailValidator(ctx sdk.Context, validator types.Validator) erro
 func (k Keeper) getValidatorsCountForBlock(ctx sdk.Context, block int64) int {
 	// count := 16 + (block/518400)*4
 	count := 5 + (block/7200)*1
-	if uint16(count) > k.GetParams(ctx).MaxValidators {
+	if uint16(count) > uint16(k.GetParams(ctx).MaxValidators) {
 		return int(k.GetParams(ctx).MaxValidators)
 	}
 

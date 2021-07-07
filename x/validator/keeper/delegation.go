@@ -554,14 +554,15 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 
 	// loop through all the entries and complete unbonding mature entries
 	for i := 0; i < len(ubd.Entries); i++ {
-		entry := ubd.Entries[i]
-		if entry.IsMature(ctxTime) {
+		val := ubd.Entries[i].GetCachedValue().(exported.UnbondingDelegationEntryI)
+
+		if val.IsMature(ctxTime) {
 			ubd.RemoveEntry(int64(i))
 			i--
 
 			// track undelegation only when remaining or truncated shares are non-zero
-			if !entry.GetBalance().IsZero() {
-				switch entry := entry.(type) {
+			if !val.GetBalance().IsZero() {
+				switch entry := val.(type) {
 				case types.UnbondingDelegationEntry:
 					amt := sdk.NewCoins(entry.Balance)
 					err := k.baseKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegatorAddr, amt)
@@ -582,7 +583,7 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 					owner := token.GetOwners().GetOwner(delAddr)
 					if owner == nil {
 						token = token.SetOwners(token.GetOwners().SetOwner(&nft.TokenOwner{
-							Address:  delAddr,
+							Address:  delAddr.String(),
 							Quantity: entry.Quantity,
 						}))
 					} else {

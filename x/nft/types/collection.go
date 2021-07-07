@@ -62,7 +62,7 @@ func (collection Collection) AddNFT(nft exported.NFT) (Collection, error) {
 		owner := collNFT.GetOwners().GetOwner(ownerAddress)
 		if owner == nil {
 			collNFT = collNFT.SetOwners(collNFT.GetOwners().SetOwner(&TokenOwner{
-				Address:  ownerAddress,
+				Address:  ownerAddress.String(),
 				Quantity: quantity,
 			}))
 		} else {

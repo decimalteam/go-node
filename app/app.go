@@ -2,7 +2,12 @@ package app
 
 import (
 	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	"github.com/cosmos/cosmos-sdk/server/api"
+	config2 "github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"io"
 	"os"
 
@@ -100,7 +105,7 @@ func MakeAminoCodec() *codec.LegacyAmino {
 	return cdc
 }
 
-type versionSetter struct {}
+type versionSetter struct{}
 
 func (vs *versionSetter) SetProtocolVersion(version uint64) {}
 
@@ -204,7 +209,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	binaryCdc := codec.NewProtoCodec(encodingConfig.InterfaceRegistry)
 
 	// func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc codec.BinaryCodec, homePath string, vs xp.ProtocolVersionSetter) Keeper {
-	app.upgradeKeeper = upgradeKeeper.NewKeeper(upgradesMap, keys[upgradeTypes.StoreKey], binaryCdc , "/upgrades", &versionSetter{})
+	app.upgradeKeeper = upgradeKeeper.NewKeeper(upgradesMap, keys[upgradeTypes.StoreKey], binaryCdc, "/upgrades", &versionSetter{})
 
 	app.capabilityKeeper = capabilityKeeper.NewKeeper(app.appCodec, keys[capabilityTypes.StoreKey], memKeys[capabilityTypes.MemStoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.StoreKey)
@@ -365,6 +370,25 @@ type GenesisState map[string]json.RawMessage
 
 func (app *newApp) NewDefaultGenesisState() GenesisState {
 	return ModuleBasics.DefaultGenesis(app.appCodec)
+}
+
+func (app *newApp) RegisterAPIRoutes(server *api.Server, _ config2.APIConfig) {
+	clientCtx := server.ClientCtx
+
+	authTx.RegisterGRPCGatewayRoutes(clientCtx, server.GRPCGatewayRouter)
+
+	tmservice.RegisterGRPCGatewayRoutes(clientCtx, server.GRPCGatewayRouter)
+
+	ModuleBasics.RegisterRESTRoutes(clientCtx, server.Router)
+	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, server.GRPCGatewayRouter)
+}
+
+func (app *newApp) RegisterTxService(clientCtx client.Context) {
+	authTx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
+}
+
+func (app *newApp) RegisterTendermintService(clientCtx client.Context) {
+	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
 }
 
 func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {

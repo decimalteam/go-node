@@ -45,8 +45,11 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterInterface("DelegationI",
 		(*exported.DelegationI)(nil),
 	)
-	registry.RegisterInterface("UnbondingDelegationEntryI",
+	registry.RegisterInterface(
+		"UnbondingDelegationEntryI",
 		(*exported.UnbondingDelegationEntryI)(nil),
+		&UnbondingDelegationEntry{},
+		&UnbondingDelegationNFTEntry{},
 	)
 }
 

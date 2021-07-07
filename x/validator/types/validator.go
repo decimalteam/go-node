@@ -4,17 +4,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
-	"github.com/cosmos/cosmos-sdk/crypto/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmprotocrypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 	"gopkg.in/yaml.v2"
 )
 
@@ -49,10 +50,11 @@ type Stake struct {
 
 // String returns a human readable string representation of a validator.
 func (v *Validator) String() string {
-	bechConsPubKey, err := sdk.Bech32ifyAddressBytes(sdk.Bech32PrefixConsPub, v.PubKey.Bytes())
+	pk, err := v.GetConsPubKey()
 	if err != nil {
 		panic(err)
 	}
+
 	return fmt.Sprintf(`Validator
   Operator Address:           %s
   Validator Consensus Pubkey: %s
@@ -64,7 +66,7 @@ func (v *Validator) String() string {
   Unbonding Height:           %d
   Unbonding Completion Time:  %v
   Commission:                 %s
-  Accum Rewards:              %s`, v.ValAddress, bechConsPubKey,
+  Accum Rewards:              %s`, v.ValAddress, pk.String(),
 		v.Jailed, v.Online, v.Status, v.Tokens,
 		v.Description,
 		v.UnbondingHeight, v.UnbondingCompletionTime, v.Commission, v.AccumRewards)
@@ -88,14 +90,9 @@ func (v *Validator) String() string {
 
 // MarshalJSON marshals the validator to JSON using Bech32
 func (v Validator) MarshalJSON() ([]byte, error) {
-	//bechConsPubKey, err := sdk.Bech32ifyAddressBytes(sdk.Bech32PrefixConsPub, v.PubKey.Bytes())
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	return ModuleCdc.MarshalJSON(&BechValidator{
 		ValAddress:              v.ValAddress,
-		PubKey:                  v.PubKey, // todo
+		PubKey:                  v.PubKey,
 		Jailed:                  v.Jailed,
 		Status:                  v.Status,
 		Tokens:                  v.Tokens,
@@ -115,10 +112,6 @@ func (v *Validator) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, bv); err != nil {
 		return err
 	}
-	//consPubKey, err := sdk.GetFromBech32(sdk.Bech32PrefixConsPub, bv.PubKey.String())
-	//if err != nil {
-	//	return err
-	//}
 
 	*v = Validator{
 		ValAddress:              bv.ValAddress,
@@ -139,6 +132,8 @@ func (v *Validator) UnmarshalJSON(data []byte) error {
 
 // custom marshal yaml function due to consensus pubkey
 func (v Validator) MarshalYAML() (interface{}, error) {
+	pk, _ := v.PubKey.GetCachedValue().(cryptotypes.PubKey)
+
 	bs, err := yaml.Marshal(struct {
 		ValAddress /*sdk.ValAddress*/    string
 		RewardAddress /*sdk.AccAddress*/ string
@@ -155,7 +150,7 @@ func (v Validator) MarshalYAML() (interface{}, error) {
 	}{
 		ValAddress:              v.ValAddress,
 		RewardAddress:           v.RewardAddress,
-		PubKey:                  sdk.MustBech32ifyAddressBytes(sdk.Bech32PrefixConsPub, v.PubKey.Bytes()),
+		PubKey:                  sdk.MustBech32ifyAddressBytes(sdk.Bech32PrefixConsPub, pk.Bytes()),
 		Jailed:                  v.Jailed,
 		Status:                  v.Status,
 		Tokens:                  v.Tokens,
@@ -192,11 +187,40 @@ func (v Validator) GetOperator() sdk.ValAddress {
 
 	return valAddr
 }
-func (v Validator) GetConsPubKey() types.PubKey  { return v.PubKey }
-func (v Validator) GetConsAddr() sdk.ConsAddress { return sdk.ConsAddress(v.PubKey.Address()) }
-func (v Validator) GetTokens() sdk.Int           { return v.Tokens }
-func (v Validator) GetBondedTokens() sdk.Int     { return v.BondedTokens() }
-func (v Validator) GetCommission() sdk.Dec       { return v.Commission }
+func (v Validator) GetConsPubKey() (cryptotypes.PubKey, error) {
+	pk, ok := v.PubKey.GetCachedValue().(cryptotypes.PubKey)
+	if !ok {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expecting cryptotypes.PubKey, got %T", pk)
+	}
+
+	return pk, nil
+}
+
+func (v Validator) TmConsPublicKey() (tmprotocrypto.PublicKey, error) {
+	pk, err := v.GetConsPubKey()
+	if err != nil {
+		return tmprotocrypto.PublicKey{}, err
+	}
+
+	tmPk, err := cryptocodec.ToTmProtoPublicKey(pk)
+	if err != nil {
+		return tmprotocrypto.PublicKey{}, err
+	}
+
+	return tmPk, nil
+}
+
+func (v Validator) GetConsAddr() (sdk.ConsAddress, error) {
+	pk, ok := v.PubKey.GetCachedValue().(cryptotypes.PubKey)
+	if !ok {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "wrong type %T", pk)
+	}
+
+	return sdk.ConsAddress(pk.Address()), nil
+}
+func (v Validator) GetTokens() sdk.Int       { return v.Tokens }
+func (v Validator) GetBondedTokens() sdk.Int { return v.BondedTokens() }
+func (v Validator) GetCommission() sdk.Dec   { return v.Commission }
 
 type Validators []Validator
 
@@ -321,6 +345,13 @@ func (b BondStatus) Equal(b2 BondStatus) bool {
 	return byte(b) == byte(b2)
 }
 
+// Size used by gogoproto
+func (b BondStatus) Size() int {
+	// todo marshal correctly
+	return len(b.String())
+}
+
+
 // String implements the Stringer interface for BondStatus.
 func (b BondStatus) String() string {
 	switch b {
@@ -335,10 +366,24 @@ func (b BondStatus) String() string {
 	}
 }
 
-func NewValidator(valAddress string, pubKey types.PubKey, commission sdk.Dec, rewardAddress string, description Description) Validator {
+func (b BondStatus) Unmarshal(data []byte) error {
+	// todo
+	return nil
+}
+
+func (b BondStatus) MarshalTo(data []byte) ([]byte, error) {
+	return data, nil
+}
+
+func NewValidator(valAddress string, pubKey cryptotypes.PubKey, commission sdk.Dec, rewardAddress string, description Description) (Validator, error) {
+	pkAny, err := codectypes.NewAnyWithValue(pubKey)
+	if err != nil {
+		return Validator{}, err
+	}
+
 	return Validator{
 		ValAddress:              valAddress,
-		PubKey:                  pubKey,
+		PubKey:                  pkAny,
 		Jailed:                  false,
 		Tokens:                  sdk.ZeroInt(),
 		Description:             description,
@@ -348,7 +393,7 @@ func NewValidator(valAddress string, pubKey types.PubKey, commission sdk.Dec, re
 		UnbondingCompletionTime: time.Unix(0, 0).UTC(),
 		AccumRewards:            sdk.ZeroInt(),
 		Online:                  true,
-	}
+	}, nil
 }
 
 // unmarshal a validator from a store value
@@ -410,10 +455,7 @@ func (v Validator) PotentialConsensusPower() int64 {
 // ABCIValidatorUpdate returns an abci.ValidatorUpdate from a staking validator type
 // with the full validator power
 func (v Validator) ABCIValidatorUpdate() abci.ValidatorUpdate {
-	pk := v.GetConsPubKey()
-
-	tmPk, err := cryptocodec.ToTmProtoPublicKey(pk)
-
+	tmPk, err := v.TmConsPublicKey()
 	if err != nil {
 		panic(err)
 	}
@@ -427,18 +469,13 @@ func (v Validator) ABCIValidatorUpdate() abci.ValidatorUpdate {
 // ABCIValidatorUpdateZero returns an abci.ValidatorUpdate from a staking validator type
 // with zero power used for validator updates.
 func (v Validator) ABCIValidatorUpdateZero() abci.ValidatorUpdate {
-	pk, err := cryptocodec.ToTmPubKeyInterface(v.PubKey)
+	tmPk, err := v.TmConsPublicKey()
 	if err != nil {
 		panic(err)
 	}
 
-	validator := &tmtypes.Validator{
-		Address: tmtypes.Address(v.ValAddress),
-		PubKey:  pk,
-	}
-
 	return abci.ValidatorUpdate{
-		PubKey: tmtypes.TM2PB.ValidatorUpdate(validator).PubKey,
+		PubKey: tmPk,
 		Power:  0,
 	}
 }
@@ -476,7 +513,17 @@ func (v Validator) AddAccumReward(reward sdk.Int) Validator {
 }
 
 func (v Validator) TestEquivalent(v2 Validator) bool {
-	return v.PubKey.Equals(v2.PubKey) &&
+	pk1, err := v.GetConsPubKey()
+	if err != nil {
+		panic(err)
+	}
+
+	pk2, err := v2.GetConsPubKey()
+	if err != nil {
+		panic(err)
+	}
+
+	return pk1.Equals(pk2) &&
 		bytes.Equal([]byte(v.ValAddress), []byte(v2.ValAddress)) &&
 		v.Status.Equal(v2.Status) &&
 		v.Tokens.Equal(v2.Tokens) &&

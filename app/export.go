@@ -2,9 +2,9 @@ package app
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator"
-	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/codec/types"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 	"log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,8 +14,8 @@ import (
 // ExportAppStateAndValidators exports the state of the application for a genesis
 // file.
 func (app *newApp) ExportAppStateAndValidators(
-	forZeroHeight bool, jailWhiteList []string,
-) (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
+	forZeroHeight bool, jailWhiteList []string, height int64,
+) (servertypes.ExportedApp, error) {
 
 	// as if they could withdraw from the start of the next block
 	ctx := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
@@ -25,13 +25,19 @@ func (app *newApp) ExportAppStateAndValidators(
 	}
 
 	genState := app.mm.ExportGenesis(ctx, app.appCodec)
-	appState, err = codec.MarshalJSONIndent(app.cdc, genState)
+	appState, err := codec.MarshalJSONIndent(app.cdc, genState)
 	if err != nil {
-		return nil, nil, err
+		return servertypes.ExportedApp{}, err
 	}
 
-	validators = validator.WriteValidators(ctx, app.validatorKeeper)
-	return appState, validators, nil
+	validators := validator.WriteValidators(ctx, app.validatorKeeper)
+
+	return servertypes.ExportedApp{
+		AppState:        appState,
+		Validators:      validators,
+		Height:          height,
+		ConsensusParams: nil,
+	}, nil
 }
 
 // prepare for fresh start at zero height
@@ -80,13 +86,21 @@ func (app *newApp) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []str
 
 	// iterate through unbonding delegations, reset creation height
 	app.validatorKeeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd validator.UnbondingDelegation) (stop bool) {
-		for i := range ubd.Entries {
-			ubd.Entries[i] = validator.UnbondingDelegationEntry{
+		for i, any := range ubd.Entries {
+			entry := any.GetCachedValue().(validator.UnbondingDelegationEntry)
+
+			delegationEntry := &validator.UnbondingDelegationEntry{
 				CreationHeight: 0,
-				CompletionTime: ubd.Entries[i].GetCompletionTime(),
-				InitialBalance: ubd.Entries[i].GetInitialBalance(),
-				Balance:        ubd.Entries[i].GetBalance(),
+				CompletionTime: entry.GetCompletionTime(),
+				InitialBalance: entry.GetInitialBalance(),
+				Balance:        entry.GetBalance(),
 			}
+			entryAny, err := types.NewAnyWithValue(delegationEntry)
+			if err != nil {
+				continue
+			}
+
+			ubd.Entries[i] = entryAny
 		}
 		app.validatorKeeper.SetUnbondingDelegation(ctx, ubd)
 		return false

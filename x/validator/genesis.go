@@ -110,10 +110,12 @@ func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Kee
 	for _, ubd := range data.UnbondingDelegations {
 		keeper.SetUnbondingDelegation(ctx, ubd)
 		for _, entry := range ubd.Entries {
-			keeper.InsertUBDQueue(ctx, ubd, entry.GetCompletionTime())
-			if _, ok := entry.(types.UnbondingDelegationEntry); ok {
+			entry, ok := entry.GetCachedValue().(UnbondingDelegationEntry)
+			if ok {
 				notBondedTokens = notBondedTokens.Add(entry.GetBalance())
 			}
+
+			keeper.InsertUBDQueue(ctx, ubd, entry.GetCompletionTime())
 		}
 	}
 
@@ -235,7 +237,10 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 func WriteValidators(ctx sdk.Context, keeper Keeper) (vals []tmtypes.GenesisValidator) {
 
 	keeper.IterateLastValidators(ctx, func(_ int64, validator types.Validator) (stop bool) {
-		pk := validator.GetConsPubKey()
+		pk, err := validator.GetConsPubKey()
+		if err != nil {
+			return true
+		}
 
 		tmPk, err := cryptocodec.ToTmPubKeyInterface(pk)
 		if err != nil {
@@ -273,7 +278,13 @@ func validateGenesisStateValidators(validators []types.Validator) (err error) {
 	addrMap := make(map[string]bool, len(validators))
 	for i := 0; i < len(validators); i++ {
 		val := validators[i]
-		strKey := string(val.PubKey.Bytes())
+
+		key, err := val.GetConsPubKey()
+		if err != nil {
+			return err
+		}
+
+		strKey := string(key.Bytes())
 		if _, ok := addrMap[strKey]; ok {
 			return fmt.Errorf("duplicate validator in genesis state: moniker %v, address %v", val.Description.Moniker, val.ValAddress)
 		}

@@ -3,6 +3,7 @@ package keeper
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"log"
 	"time"
@@ -58,11 +59,16 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 		panic(fmt.Sprintf("should not be slashing unbonded validator: %s", validator.ValAddress))
 	}
 	// call the before-modification hook
-	k.BeforeValidatorModified(ctx, validator.ValAddress)
+	valAddr, err := sdk.ValAddressFromBech32(validator.ValAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	k.BeforeValidatorModified(ctx, valAddr)
 
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 
-	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+	delegations := k.GetValidatorDelegations(ctx, sdk.ValAddress(validator.ValAddress))
 	amountSlashed := k.slashBondedDelegations(ctx, delegations, slashFactor)
 
 	switch {
@@ -82,7 +88,7 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 
 	case infractionHeight < ctx.BlockHeight():
 		// Iterate through unbonding delegations from slashed validator
-		unbondingDelegations := k.GetUnbondingDelegationsFromValidator(ctx, validator.ValAddress)
+		unbondingDelegations := k.GetUnbondingDelegationsFromValidator(ctx, valAddr)
 		for _, unbondingDelegation := range unbondingDelegations {
 			amountSlashed = amountSlashed.Add(k.slashUnbondingDelegation(ctx, unbondingDelegation, infractionHeight, slashFactor)...)
 		}
@@ -93,11 +99,11 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 		"validator %s slashed by slash factor of %s; burned %v tokens",
 		validator.GetOperator(), slashFactor.String(), amountSlashed))
 
-	validator, err = k.GetValidator(ctx, validator.ValAddress)
+	validator, err = k.GetValidator(ctx, valAddr)
 	if err != nil {
 		panic(err)
 	}
-	k.SetValidatorByPowerIndexWithoutCalc(ctx, validator)
+	k.SetValidatorByPowerIndexWithoutCalc(ctx, valAddr, validator)
 
 	return slashAmount
 }
@@ -142,11 +148,13 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 	burnedAmount := sdk.NewCoins()
 
 	// perform slashing on all entries within the unbonding delegation
-	for i, entry := range unbondingDelegation.Entries {
-		if _, ok := entry.(types.UnbondingDelegationNFTEntry); ok {
+	for i, entryAny := range unbondingDelegation.Entries {
+		val := entryAny.GetCachedValue()
+
+		if _, ok := val.(types.UnbondingDelegationNFTEntry); ok {
 			continue
 		}
-		entry := entry.(types.UnbondingDelegationEntry)
+		 entry := val.(types.UnbondingDelegationEntry)
 
 		// If unbonding started before this height, stake didn't contribute to infraction
 		if entry.CreationHeight < infractionHeight {
@@ -176,7 +184,13 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 
 		burnedAmount = burnedAmount.Add(sdk.NewCoin(entry.Balance.Denom, unbondingSlashAmount))
 		entry.Balance.Amount = entry.Balance.Amount.Sub(unbondingSlashAmount)
-		unbondingDelegation.Entries[i] = entry
+
+		v, err := codectypes.NewAnyWithValue(&entry)
+		if err != nil {
+			panic(err)
+		}
+
+		unbondingDelegation.Entries[i] = v
 		k.SetUnbondingDelegation(ctx, unbondingDelegation)
 
 		if entry.Balance.Denom != k.BondDenom(ctx) {
@@ -444,8 +458,6 @@ func (k Keeper) HandleDoubleSign(ctx sdk.Context, addr crypto.Address, infractio
 		panic(fmt.Sprintf("Validator %s not found", consAddr))
 	}
 
-	pubkey := validator.PubKey
-
 	if validator.IsUnbonded() {
 		// Defensive.
 		// Simulation doesn't take unbonding periods into account, and
@@ -459,14 +471,18 @@ func (k Keeper) HandleDoubleSign(ctx sdk.Context, addr crypto.Address, infractio
 		panic(fmt.Sprintf("Expected signing info for validator %s but not found", consAddr))
 	}
 
+	getConsAddr, err := validator.GetConsAddr()
+	if err != nil {
+		panic(err)
+	}
 	// validator is already tombstoned
 	if signInfo.Tombstoned {
-		logger.Info(fmt.Sprintf("Ignored double sign from %s at height %d, validator already tombstoned", sdk.ConsAddress(pubkey.Address()), infractionHeight))
+		logger.Info(fmt.Sprintf("Ignored double sign from %s at height %d, validator already tombstoned", getConsAddr.String(), infractionHeight))
 		return
 	}
 
 	// double sign confirmed
-	logger.Info(fmt.Sprintf("Confirmed double sign from %s at height %d, age of %d", sdk.ConsAddress(pubkey.Address()), infractionHeight, age))
+	logger.Info(fmt.Sprintf("Confirmed double sign from %s at height %d, age of %d", getConsAddr.String(), infractionHeight, age))
 
 	// We need to retrieve the stake distribution which signed the block, so we subtract ValidatorUpdateDelay from the evidence height.
 	// Note that this *can* result in a negative "distributionHeight", up to -ValidatorUpdateDelay,

@@ -1,27 +1,25 @@
 package main
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/keys"
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/store/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	types3 "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	types2 "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"io"
 	"os"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/store/types"
+	types3 "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"bitbucket.org/decimalteam/go-node/utils/keys"
 	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
-	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -105,8 +103,9 @@ func main() {
 		fixAppHashError(ctx, app.DefaultNodeHome),
 	)
 
-	//AddCommands(rootCmd *cobra.Command, defaultNodeHome string, appCreator types.AppCreator, appExport types.AppExporter, addStartFlags types.ModuleInitFlags) {
-	server.AddCommands(rootCmd, "", newApp, exportAppStateAndTMValidators)
+	server.AddCommands(rootCmd, app.DefaultNodeHome, func(logger log.Logger, db dbm.DB, writer io.Writer, options servertypes.AppOptions) servertypes.Application {
+		return newApp(logger, db, writer)
+	}, exportAppStateAndTMValidators, func (cmd *cobra.Command) {})
 
 	// prepare and add flags
 	executor := cli.PrepareBaseCmd(rootCmd, "AU", app.DefaultNodeHome)
@@ -118,7 +117,7 @@ func main() {
 	}
 }
 
-func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
+func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) servertypes.Application {
 	return app.NewInitApp(
 		logger, db, traceStore, true, invCheckPeriod,
 		baseapp.SetPruning(types.NewPruningOptionsFromString(viper.GetString("pruning"))),
@@ -128,21 +127,22 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 }
 
 func exportAppStateAndTMValidators(
-	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailWhiteList []string,
-) (json.RawMessage, []tmtypes.GenesisValidator, error) {
+	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailWhiteList []string, options servertypes.AppOptions,
+) (servertypes.ExportedApp, error) {
 
 	if height != -1 {
 		aApp := app.NewInitApp(logger, db, traceStore, true, uint(1))
 		err := aApp.LoadHeight(height)
 		if err != nil {
-			return nil, nil, err
+			return servertypes.ExportedApp{}, err
 		}
-		return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
+
+		return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList, height)
 	}
 
 	aApp := app.NewInitApp(logger, db, traceStore, true, uint(1))
 
-	return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
+	return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList, height)
 }
 
 // NOTE: Following part of the code was copied from file:
@@ -157,15 +157,21 @@ const (
 )
 
 // addGenesisAccountCmd returns add-genesis-account cobra Command.
-func addGenesisAccountCmd(ctx *server.Context, cdc codec.JSONCodec,
+func addGenesisAccountCmd(ctx *server.Context, _ codec.JSONCodec,
 	defaultNodeHome, defaultClientHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-genesis-account [address_or_key_name] [coin][,[coin]]",
 		Short: "Add genesis account to genesis.json",
 		Args:  cobra.ExactArgs(2),
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg := ctx.Config
 			cfg.SetRoot(viper.GetString(cli.HomeFlag))
+
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			cdc := clientCtx.JSONCodec.(codec.Codec)
+
+			//serverCtx := server.GetServerContextFromCmd(cmd)
+			//config := serverCtx.Config
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -237,17 +243,24 @@ func addGenesisAccountCmd(ctx *server.Context, cdc codec.JSONCodec,
 				return err
 			}
 
+
+
 			authGenState := authtypes.GetGenesisStateFromAppState(cdc, appState)
 
-			if authGenState.Accounts.Contains(addr) {
+			accs, err := authtypes.UnpackAccounts(authGenState.Accounts)
+			if err != nil {
+				return fmt.Errorf("failed to get accounts from any: %w", err)
+			}
+
+			if accs.Contains(addr) {
 				return fmt.Errorf("cannot add account at existing address %s", addr)
 			}
 
 			// Add the new account to the set of genesis accounts and sanitize the
 			// accounts afterwards.
-			authGenState.Accounts = append(authGenState.Accounts, genAccount)
+			accs = append(accs, genAccount)
 
-			authGenState.Accounts = authtypes.SanitizeGenesisAccounts(authGenState.Accounts)
+			accs = authtypes.SanitizeGenesisAccounts(accs)
 
 			authGenStateBz, err := json.Marshal(authGenState)
 			if err != nil {

@@ -29,14 +29,14 @@ message GenesisState {
     (gogoproto.jsontag) = "last_validator_powers",
     (gogoproto.moretags) = "yaml:\"last_validator_powers\""
   ];
-  bytes Validators = 4 [
-    (gogoproto.customtype) = "Validators",
+  repeated Validator Validators = 4 [
+    (gogoproto.castrepeated) = "Validators",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "validators",
     (gogoproto.moretags) = "yaml:\"validators\""
   ];
-  bytes Delegations = 5 [
-    (gogoproto.customtype) = "Delegations",
+  repeated Delegation Delegations = 5 [
+    (gogoproto.castrepeated) = "Delegations",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "delegations",
     (gogoproto.moretags) = "yaml:\"delegations\""
@@ -46,8 +46,8 @@ message GenesisState {
     (gogoproto.jsontag) = "unbonding_delegations",
     (gogoproto.moretags) = "yaml:\"unbonding_delegations\""
   ];
-  bytes DelegationsNFT = 7 [
-    (gogoproto.customtype) = "DelegationsNFT",
+  repeated DelegationNFT DelegationsNFT = 7 [
+    (gogoproto.castrepeated) = "DelegationsNFT",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "delegations_nft",
     (gogoproto.moretags) = "yaml:\"delegations_nft\""

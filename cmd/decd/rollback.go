@@ -2,18 +2,20 @@ package main
 
 import (
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/node"
+	protostore "github.com/tendermint/tendermint/proto/tendermint/store"
 	"github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
 	"github.com/tendermint/tendermint/types"
 	db "github.com/tendermint/tm-db"
-	"strconv"
-	"time"
 )
 
 func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command {
@@ -44,12 +46,17 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 				return err
 			}
 
-			st := store.LoadBlockStoreState(stateDB)
+			newst := state.NewStore(stateDB)
+			rootState, err := newst.Load()
 
-			height := st.GetHeight()
+			if err != nil {
+				return err
+			}
+			blockState := store.LoadBlockStoreState(stateDB)
+			height := blockState.GetHeight()
 
-			if countBlocks > (st.GetHeight() - st.LastBlockHeight/100*100) {
-				countBlocks = st.LastBlockHeight - st.LastBlockHeight/100*100
+			if countBlocks > (blockState.GetHeight() - rootState.LastBlockHeight/100*100) {
+				countBlocks = rootState.LastBlockHeight - rootState.LastBlockHeight/100*100
 			}
 
 			blockStore := store.NewBlockStore(blockStoreDB)
@@ -69,14 +76,15 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 
 			block := blockStore.LoadBlock(height - 1)
 
-			st.LastBlockHeight = height - 1
-			st.LastBlockID = block.LastBlockID
-			st.AppHash = block.AppHash
-			st.LastResultsHash = block.LastResultsHash
-			st.LastBlockTime = time.Unix(0, block.Time.UnixNano()-time.Second.Nanoseconds()*5)
-			st.LastHeightValidatorsChanged = st.LastBlockHeight - 3
+			rootState.LastBlockHeight = height - 1
+			rootState.LastBlockID = block.LastBlockID
+			rootState.AppHash = block.AppHash
+			rootState.LastResultsHash = block.LastResultsHash
+			rootState.LastBlockTime = time.Unix(0, block.Time.UnixNano()-time.Second.Nanoseconds()*5)
+			rootState.LastHeightValidatorsChanged = rootState.LastBlockHeight - 3
 
-			state.SaveState(stateDB, st)
+			newst.Save(rootState)
+
 			return nil
 		},
 	}
@@ -99,7 +107,7 @@ func DeleteBlock(db db.DB, blockStore *store.BlockStore, block *types.Block) err
 		return err
 	}
 
-	for i := 0; i < meta.BlockID.PartsHeader.Total; i++ {
+	for i := 0; i < int(meta.BlockID.PartSetHeader.Total); i++ {
 		err = db.Delete(calcBlockPartKey(block.Height, i))
 		if err != nil {
 			return err
@@ -116,7 +124,9 @@ func DeleteBlock(db db.DB, blockStore *store.BlockStore, block *types.Block) err
 		return err
 	}
 
-	store.BlockStoreStateJSON{Height: block.Height - 1}.Save(db)
+
+	store.SaveBlockStoreState(&protostore.BlockStoreState{Height: block.Height - 1}, db)
+	//store.BlockStoreStateJSON{Height: block.Height - 1}.Save(db)
 
 	err = db.SetSync(nil, nil)
 	if err != nil {

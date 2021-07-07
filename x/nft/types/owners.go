@@ -209,20 +209,24 @@ func (sa SortedStringArray) find(el string) (idx int) {
 // ----------------------------------------------------------------------------
 // TokenOwner
 
-type TokenOwner struct {
-	Address  sdk.AccAddress `json:"address"`
-	Quantity sdk.Int        `json:"quantity"`
-}
-
+//type TokenOwner struct {
+//	Address  sdk.AccAddress `json:"address"`
+//	Quantity sdk.Int        `json:"quantity"`
+//}
 func NewTokenOwner(address sdk.AccAddress, quantity sdk.Int) TokenOwner {
 	return TokenOwner{
-		Address:  address,
+		Address:  address.String(),
 		Quantity: quantity,
 	}
 }
 
 func (t TokenOwner) GetAddress() sdk.AccAddress {
-	return t.Address
+	addr, err := sdk.AccAddressFromBech32(t.Address)
+	if err != nil {
+		panic(err)
+	}
+
+	return addr
 }
 
 func (t TokenOwner) GetQuantity() sdk.Int {
@@ -241,15 +245,15 @@ func (t TokenOwner) String() string {
 // ----------------------------------------------------------------------------
 // TokenOwners
 
-type TokenOwners struct {
-	Owners []exported.TokenOwner `json:"owners"`
-}
+//type TokenOwners struct {
+//	Owners []exported.TokenOwner `json:"owners"`
+//}
 
-func (t TokenOwners) GetOwners() []exported.TokenOwner {
+func (t TokenOwners) GetOwners() []TokenOwner {
 	return t.Owners
 }
 
-func (t TokenOwners) SetOwner(owner exported.TokenOwner) exported.TokenOwners {
+func (t TokenOwners) SetOwner(owner TokenOwner) TokenOwners {
 	for i, o := range t.Owners {
 		if o.GetAddress().Equals(owner.GetAddress()) {
 			t.Owners[i] = owner
@@ -257,10 +261,7 @@ func (t TokenOwners) SetOwner(owner exported.TokenOwner) exported.TokenOwners {
 		}
 	}
 
-	t.Owners = append(t.Owners, TokenOwner{
-		Address:  owner.GetAddress(),
-		Quantity: owner.GetQuantity(),
-	})
+	t.Owners = append(t.Owners, NewTokenOwner(owner.GetAddress(), owner.GetQuantity()))
 
 	return t
 }

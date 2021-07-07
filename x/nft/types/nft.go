@@ -11,7 +11,8 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 )
 
-var _ exported.NFT = (*BaseNFT)(nil)
+// fixme using exported interface, needs to be updated in pb
+//var _ exported.NFT = (*BaseNFT)(nil)
 
 // BaseNFT non fungible token definition
 //type BaseNFT struct {
@@ -24,11 +25,12 @@ var _ exported.NFT = (*BaseNFT)(nil)
 //}
 
 // NewBaseNFT creates a new NFT instance
-func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity, reserve sdk.Int, allowMint bool) *BaseNFT {
-	return &BaseNFT{
+func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quantity, reserve sdk.Int, allowMint bool) exported.NFT {
+	return BaseNFT{
 		ID: id,
-		Owners: TokenOwners{Owners: []exported.TokenOwner{&TokenOwner{
-			Address:  owner,
+		// todo use interface
+		Owners: TokenOwners{Owners: []TokenOwner{{
+			Address:  owner.String(),
 			Quantity: quantity,
 		}}},
 		TokenURI:  strings.TrimSpace(tokenURI),
@@ -41,8 +43,17 @@ func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, quant
 // GetID returns the ID of the token
 func (bnft BaseNFT) GetID() string { return bnft.ID }
 
+// todo use exported interface
+// GetOwners returns the account address that owns the NFT
+func (bnft BaseNFT) GetOwners() exported.TokenOwners {
+	// todo
+	return nil
+}
+
 // GetOwner returns the account address that owns the NFT
-func (bnft BaseNFT) GetOwners() exported.TokenOwners { return bnft.Owners }
+func (bnft BaseNFT) GetOwner(owner sdk.AccAddress) exported.TokenOwner {
+	return bnft.Owners.Owners[0]
+}
 
 // GetTokenURI returns the path to optional extra properties
 func (bnft BaseNFT) GetTokenURI() string { return bnft.TokenURI }
@@ -63,7 +74,12 @@ func (bnft BaseNFT) EditMetadata(tokenURI string) exported.NFT {
 }
 
 func (bnft BaseNFT) SetOwners(owners exported.TokenOwners) exported.NFT {
-	bnft.Owners = owners
+	// fixme
+	//bnft.Owners = owners.()
+	return bnft
+}
+
+func (bnft BaseNFT) SetOwner(owner exported.TokenOwner) exported.NFT {
 	return bnft
 }
 
@@ -103,7 +119,7 @@ func (bnft BaseNFT) MarshalJSON() ([]byte, error) {
 
 	b := BaseNFTJSON{
 		ID:        bnft.ID,
-		Owners:    *bnft.Owners.(*TokenOwners),
+		Owners:    bnft.Owners,
 		Creator:   creatorAddr,
 		TokenURI:  bnft.TokenURI,
 		Reserve:   bnft.Reserve,
@@ -123,7 +139,7 @@ func (bnft *BaseNFT) UnmarshalJSON(b []byte) error {
 	bnft.TokenURI = nft.TokenURI
 	bnft.Creator = nft.Creator.String()
 	bnft.Reserve = nft.Reserve
-	bnft.Owners = &nft.Owners
+	bnft.Owners = nft.Owners
 	bnft.AllowMint = nft.AllowMint
 	return nil
 }
@@ -225,14 +241,14 @@ func (nfts NFTs) find(id string) int {
 // Encoding
 
 // NFTJSON is the exported NFT format for clients
-type NFTJSON map[string]BaseNFT
+type NFTJSON map[string]exported.NFT
 
 // MarshalJSON for NFTs
 func (nfts NFTs) MarshalJSON() ([]byte, error) {
 	nftJSON := make(NFTJSON)
 	for _, nft := range nfts {
 		id := nft.GetID()
-		nftJSON[id] = *nft.(*BaseNFT)
+		nftJSON[id] = nft
 	}
 	return json.Marshal(nftJSON)
 }
@@ -246,7 +262,7 @@ func (nfts *NFTs) UnmarshalJSON(b []byte) error {
 
 	for _, nft := range nftJSON {
 		bnft := nft
-		*nfts = append(*nfts, &bnft)
+		*nfts = append(*nfts, bnft)
 	}
 	return nil
 }

@@ -1,14 +1,16 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
 	"time"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // DVPair is struct that just has a delegator-validator pair with no other data.
@@ -172,11 +174,27 @@ func (e UnbondingDelegationEntry) String() string {
 func NewUnbondingDelegation(delegatorAddr sdk.AccAddress,
 	validatorAddr sdk.ValAddress,
 	entry exported.UnbondingDelegationEntryI) UnbondingDelegation {
+	var entries []*codectypes.Any
+
+	switch entry.(type) {
+	case UnbondingDelegationEntry:
+		v := entry.(UnbondingDelegationEntry)
+		entryAny, _ := codectypes.NewAnyWithValue(&v)
+		entries = append(entries, entryAny)
+
+		break
+	case UnbondingDelegationNFTEntry:
+		v := entry.(UnbondingDelegationNFTEntry)
+		entryAny, _ := codectypes.NewAnyWithValue(&v)
+		entries = append(entries, entryAny)
+
+		break
+	}
 
 	return UnbondingDelegation{
 		DelegatorAddress: delegatorAddr.String(),
 		ValidatorAddress: validatorAddr.String(),
-		Entries:          []exported.UnbondingDelegationEntryI{entry},
+		Entries:          entries,
 	}
 }
 
@@ -195,12 +213,18 @@ func NewUnbondingDelegationEntry(creationHeight int64, completionTime time.Time,
 // AddEntry - append entry to the unbonding delegation
 func (d *UnbondingDelegation) AddEntry(creationHeight int64,
 	minTime time.Time, balance sdk.Coin) {
+	entry := NewUnbondingDelegationEntry(creationHeight, minTime, balance)
+	entryAny, err := codectypes.NewAnyWithValue(&entry)
+	if err != nil {
+		panic(err)
+	}
 
-	d.Entries = append(d.Entries, NewUnbondingDelegationEntry(creationHeight, minTime, balance))
+	d.Entries = append(d.Entries, entryAny)
 }
 
 func (d *UnbondingDelegation) AddNFTEntry(creationHeight int64, minTime time.Time, tokenID, denom string, quantity sdk.Int, balance sdk.Coin) {
-	d.Entries = append(d.Entries, NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, quantity, balance))
+	// fixme
+	//d.Entries = append(d.Entries, NewUnbondingDelegationNFTEntry(creationHeight, minTime, denom, tokenID, quantity, balance))
 }
 
 // RemoveEntry - remove entry at index i to the unbonding delegation
@@ -210,7 +234,9 @@ func (d *UnbondingDelegation) RemoveEntry(i int64) {
 
 func (d UnbondingDelegation) GetEvents(ctxTime time.Time) sdk.Events {
 	events := sdk.Events{}
-	for _, entry := range d.Entries {
+	for _, entryAny := range d.Entries {
+		entry := entryAny.GetCachedValue().(UnbondingDelegationEntry)
+
 		if entry.IsMature(ctxTime) {
 			events = events.AppendEvent(entry.GetEvent().AppendAttributes(
 				sdk.NewAttribute(AttributeKeyValidator, d.ValidatorAddress),

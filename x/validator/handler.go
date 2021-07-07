@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/crypto/codec"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"runtime/debug"
 	"time"
 
@@ -55,17 +56,19 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		return nil, err
 	}
 
+	pk := msg.PubKey.GetCachedValue().(cryptotypes.PubKey)
+
 	// check to see if the pubkey or sender has been registered before
 	if _, err := k.GetValidator(ctx, validatorAddr); err == nil {
 		return nil, types.ErrValidatorOwnerExists()
 	}
 
-	if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(msg.PubKey)); err == nil {
+	if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); err == nil {
 		return nil, types.ErrValidatorPubKeyExists()
 	}
 
 	if ctx.ConsensusParams() != nil {
-		tmPubKey, err := codec.ToTmProtoPublicKey(msg.PubKey)
+		tmPubKey, err := codec.ToTmProtoPublicKey(pk)
 
 		if err != nil {
 			return nil, err
@@ -79,7 +82,11 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		}
 	}
 
-	val := types.NewValidator(validatorAddr.String(), msg.PubKey, msg.Commission, msg.RewardAddr, msg.Description)
+	val, err := types.NewValidator(validatorAddr.String(), pk, msg.Commission, msg.RewardAddr, msg.Description)
+	if err != nil {
+		return nil, err
+	}
+
 	err = k.SetValidator(ctx, val)
 	if err != nil {
 		return nil, types.ErrInvalidStruct()
@@ -105,7 +112,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		sdk.NewAttribute(sdk.AttributeKeySender, sdk.AccAddress(msg.ValidatorAddr).String()),
 		sdk.NewAttribute(types.AttributeKeyValidator, validatorAddr.String()),
 		sdk.NewAttribute(types.AttributeKeyCoin, msg.Stake.String()),
-		sdk.NewAttribute(types.AttributeKeyPubKey, msg.PubKey.Address().String()),
+		sdk.NewAttribute(types.AttributeKeyPubKey, pk.String()),
 		sdk.NewAttribute(types.AttributeKeyCommission, msg.Commission.String()),
 		sdk.NewAttribute(types.AttributeKeyDescriptionMoniker, msg.Description.Moniker),
 		sdk.NewAttribute(types.AttributeKeyDescriptionIdentity, msg.Description.Identity),

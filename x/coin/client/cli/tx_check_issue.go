@@ -17,8 +17,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -85,7 +83,8 @@ func GetCmdIssueCheck(cdc *codec.LegacyAmino) *cobra.Command {
 				msgError := fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", clientCtx.FromName, algo)
 				return sdkerrors.New(types2.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
 			}
-			privKeySecp256k1, ok := privKey.(secp256k1.PrivKey)
+			// todo privkey typecast
+			privKeySecp256k1, ok := privKey.Bytes(), true
 			if !ok {
 				panic("invalid private key")
 			}

@@ -106,7 +106,7 @@ func (msg *MsgMintNFT) GetSigners() []sdk.AccAddress {
 // NewMsgBurnNFT is a constructor function for MsgBurnNFT
 func NewMsgBurnNFT(sender sdk.AccAddress, id string, denom string, quantity sdk.Int) MsgBurnNFT {
 	return MsgBurnNFT{
-		Sender:   sender,
+		Sender:   sender.String(),
 		ID:       strings.TrimSpace(id),
 		Denom:    strings.TrimSpace(denom),
 		Quantity: quantity,
@@ -145,7 +145,12 @@ func (msg *MsgBurnNFT) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg *MsgBurnNFT) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	senderAddr, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{senderAddr}
 }
 
 /* --------------------------------------------------------------------------- */

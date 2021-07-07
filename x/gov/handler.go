@@ -52,7 +52,7 @@ func handleMsgSubmitProposal(ctx sdk.Context, keeper Keeper, msg types.MsgSubmit
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Proposer.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Proposer),
 			sdk.NewAttribute(types.AttributeKeyProposalTitle, msg.Content.Title),
 			sdk.NewAttribute(types.AttributeKeyProposalDescription, msg.Content.Description),
 			sdk.NewAttribute(types.AttributeKeyProposalVotingStartBlock, strconv.FormatUint(msg.VotingStartBlock, 10)),
@@ -67,12 +67,17 @@ func handleMsgSubmitProposal(ctx sdk.Context, keeper Keeper, msg types.MsgSubmit
 }
 
 func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types.MsgVote) (*sdk.Result, error) {
-	err := keeper.CheckValidator(ctx, msg.Voter)
+	voterAddr, err := sdk.ValAddressFromBech32(msg.Voter)
 	if err != nil {
 		return nil, err
 	}
 
-	err = keeper.AddVote(ctx, msg.ProposalID, msg.Voter, msg.Option)
+	err = keeper.CheckValidator(ctx, voterAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	err = keeper.AddVote(ctx, msg.ProposalID, voterAddr, msg.Option)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +86,7 @@ func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types.MsgVote) (*sdk.Resu
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter),
 			sdk.NewAttribute(types.AttributeKeyProposalID, strconv.FormatUint(msg.ProposalID, 10)),
 			sdk.NewAttribute(types.AttributeKeyOption, msg.Option.String()),
 		),

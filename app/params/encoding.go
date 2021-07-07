@@ -18,11 +18,13 @@ type EncodingConfig struct {
 
 func NewEncodingConfig() EncodingConfig {
 	interfaceRegistry := types.NewInterfaceRegistry()
+	amino := codec.NewLegacyAmino()
 	codec := codec.NewProtoCodec(interfaceRegistry)
 
 	return EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
 		Codec:             codec,
 		TxConfig:          tx.NewTxConfig(codec, tx.DefaultSignModes),
+		Amino:             amino,
 	}
 }

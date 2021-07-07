@@ -54,7 +54,7 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 			logger.Info(
 				fmt.Sprintf(
 					"proposal %d (%s) tallied; result: %s",
-					proposal.ProposalID, proposal.GetTitle(), logMsg,
+					proposal.ProposalID, /*proposal.GetTitle(),*/ logMsg,
 				),
 			)
 

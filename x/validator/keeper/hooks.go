@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"time"
 )
@@ -12,7 +13,12 @@ func (k Keeper) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress) {
 	if err != nil {
 		panic(err)
 	}
-	k.addPubkey(ctx, val.PubKey)
+	value, ok := val.PubKey.GetCachedValue().(cryptotypes.PubKey)
+	if !ok {
+		panic(err)
+	}
+
+	k.addPubkey(ctx, value)
 	if k.hooks != nil {
 		k.hooks.AfterValidatorCreated(ctx, valAddr)
 	}

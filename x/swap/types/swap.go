@@ -17,7 +17,7 @@ import (
 //}
 
 func NewSwap(transferType TransferType, hash Hash, from string, recipient string, amount sdk.Coins, timestamp uint64) Swap {
-	return Swap{TransferType: transferType, HashedSecret: hash, From: from, Recipient: recipient, Amount: amount, Timestamp: timestamp, Redeemed: false, Refunded: false}
+	return Swap{TransferType: transferType, HashedSecret: &hash, From: from, Recipient: recipient, Amount: amount, Timestamp: timestamp, Redeemed: false, Refunded: false}
 }
 
 type Swaps []Swap

@@ -100,7 +100,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			viper.Set(flags.FlagGenerateOnly, true)
 
 			// create a 'create-validator' message
-			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, true)
+			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory)
 			if err != nil {
 				return err
 			}

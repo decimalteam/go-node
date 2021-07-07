@@ -3,7 +3,6 @@ package swap
 // DONTCOVER
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/nft/types"
 	"bitbucket.org/decimalteam/go-node/x/swap/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/swap/client/rest"
 	keeper2 "bitbucket.org/decimalteam/go-node/x/swap/keeper"
@@ -244,14 +243,7 @@ func (am AppModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-
-	var data types.NFTpacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		ack = channeltypes.NewErrorAcknowledgement(fmt.Sprintf("cannot unmarshal ICS-20 transfer packet data: %s", err.Error()))
-	}
-
-	return ack
+	return nil
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
@@ -273,15 +265,6 @@ func (am AppModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) (*sdk.Result, error) {
-	var data types.NFTpacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
-	}
-
-	//if err := am.keeper.OnTimeoutPacket(ctx, packet, data); err != nil {
-	//	return nil, err
-	//}
-
 	return &sdk.Result{
 		Events: ctx.EventManager().Events().ToABCIEvents(),
 	}, nil

@@ -131,7 +131,7 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types2.MsgRedeem) (*sdk.Resu
 		return nil, types2.ErrExpired()
 	}
 
-	if getHash(msg.Secret) != swap.HashedSecret {
+	if getHash(msg.Secret) != *swap.HashedSecret {
 		return nil, types2.ErrWrongSecret()
 	}
 

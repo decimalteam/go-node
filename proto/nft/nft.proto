@@ -6,6 +6,7 @@ option go_package = "bitbucket.org/decimalteam/go-node/x/nft/types";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
+import "nft/owners.proto";
 
 message Owner {
   option (gogoproto.goproto_stringer) = false;
@@ -47,12 +48,16 @@ message BaseNFT {
     (gogoproto.jsontag) = "id",
     (gogoproto.moretags) = "yaml:\"id\""
   ];
-  // fixme, should use google.protobuf.any
-  string Owners = 2 [
-    (gogoproto.casttype) = "bitbucket.org/decimalteam/go-node/x/nft/exported.TokenOwners",
-    (gogoproto.moretags) = "yaml:\"owners\"",
-    (cosmos_proto.accepts_interface) = "TokenOwners"
+  TokenOwners Owners = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "owners",
+    (gogoproto.moretags) = "yaml:\"owners\""
   ];
+  //  repeated TokenOwner Owners = 2 [
+  //    (gogoproto.nullable) = false,
+  //    (gogoproto.jsontag) = "owners",
+  //    (gogoproto.moretags) = "yaml:\"owners\""
+  //  ];
   string Creator = 3 [
     (gogoproto.jsontag) = "creator",
     (gogoproto.moretags) = "yaml:\"creator\""
@@ -71,11 +76,4 @@ message BaseNFT {
     (gogoproto.jsontag) = "allow_mint",
     (gogoproto.moretags) = "yaml:\"allow_mint\""
   ];
-}
-
-message NFTpacketData {
-  string Denom = 1;
-  uint64 Amount = 2;
-  string Sender = 3;
-  string String = 4;
 }
