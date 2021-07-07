@@ -65,8 +65,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		validator := validators[i]
 
-		fmt.Println(validator.ValAddress, validator.Description.Moniker, validator.ConsensusPower())
-
 		if validator.Jailed {
 			return nil, errors.New("ApplyAndReturnValidatorSetUpdates: should never retrieve a jailed validator from the power store")
 		}
