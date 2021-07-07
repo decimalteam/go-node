@@ -121,7 +121,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			validatorSet.Validators = append(append(validatorSet.Validators[:18], types.NewValidator(pubKey, 1952)), validatorSet2.Validators[18:]...)
 			st.Validators = validatorSet
 			st.LastValidators = validatorSet.Copy()
-			//st.NextValidators = validatorSet.Copy()
+			st.NextValidators = validatorSet.Copy()
 
 			for _, validator := range st.Validators.Validators {
 				fmt.Println(validator.Address.String(), validator.VotingPower, hex.EncodeToString(validator.PubKey.Bytes()))
