@@ -7,9 +7,11 @@ import (
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/config"
 	cryptoamino "github.com/tendermint/tendermint/crypto/encoding/amino"
 	"github.com/tendermint/tendermint/libs/cli"
+	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
@@ -28,6 +30,8 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 		Short: "",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
+			cryptoamino.RegisterAmino(cdc)
+
 			cfg := config.DefaultConfig()
 			cfg.SetRoot(viper.GetString(cli.HomeFlag))
 
@@ -84,6 +88,10 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 
 				height--
 			}
+
+			fmt.Println(loadValidatorsInfo(stateDB, height))
+			fmt.Println(loadValidatorsInfo(stateDB, height-1))
+			fmt.Println(loadValidatorsInfo(stateDB, height-2))
 
 			block := blockStore.LoadBlock(height)
 
@@ -154,6 +162,33 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 	cmd.Flags().AddFlagSet(FsSetStateHeight)
 
 	return cmd
+}
+
+var cdc = amino.NewCodec()
+
+func loadValidatorsInfo(db db.DB, height int64) *state.ValidatorsInfo {
+	buf, err := db.Get(calcValidatorsKey(height))
+	if err != nil {
+		panic(err)
+	}
+	if len(buf) == 0 {
+		return nil
+	}
+
+	v := new(state.ValidatorsInfo)
+	err = cdc.UnmarshalBinaryBare(buf, v)
+	if err != nil {
+		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
+		tmos.Exit(fmt.Sprintf(`LoadValidators: Data has been corrupted or its spec has changed:
+                %v\n`, err))
+	}
+	// TODO: ensure that buf is completely read.
+
+	return v
+}
+
+func calcValidatorsKey(height int64) []byte {
+	return []byte(fmt.Sprintf("validatorsKey:%v", height))
 }
 
 func DeleteBlock(db db.DB, blockStore *store.BlockStore, block *types.Block) error {
