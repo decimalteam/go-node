@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/spf13/cobra"
@@ -14,6 +15,7 @@ import (
 	"github.com/tendermint/tendermint/types"
 	db "github.com/tendermint/tm-db"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -90,6 +92,15 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			st.LastResultsHash = block.LastResultsHash
 			st.LastBlockTime = time.Unix(0, block.Time.UnixNano()-time.Second.Nanoseconds()*5)
 			st.LastHeightValidatorsChanged = st.LastBlockHeight
+			fmt.Println(strings.ToUpper(hex.EncodeToString(st.Validators.Hash())))
+			for i, validator := range st.Validators.Validators {
+				if validator.Address.String() == "BA1B262312BBDF500C5410F26CA80AD63CFC3F81" {
+					fmt.Println("done")
+					st.Validators.Validators[i].VotingPower = 4568124
+				}
+			}
+
+			fmt.Println(strings.ToUpper(hex.EncodeToString(st.Validators.Hash())))
 
 			state.SaveState(stateDB, st)
 			return nil
