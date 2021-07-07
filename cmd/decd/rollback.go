@@ -77,8 +77,6 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 					break
 				}
 
-				fmt.Printf("%v+\n", block)
-
 				err = DeleteBlock(blockStoreDB, blockStore, block)
 				if err != nil {
 					return err
@@ -102,6 +100,9 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 					validatorSet := st.Validators.Copy()
 					(*validatorSet.Validators[i]).VotingPower = 4568124
 					st.Validators = validatorSet
+					validatorSet = st.Validators.Copy()
+					(*validatorSet.Validators[i]).VotingPower = 4568124
+					st.NextValidators = validatorSet
 				}
 			}
 
@@ -118,6 +119,10 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			validatorSet := st.Validators.Copy()
 			validatorSet.Validators = append(append(validatorSet.Validators[:18], types.NewValidator(pubKey, 1952)), validatorSet.Validators[18:]...)
 			st.Validators = validatorSet
+
+			for _, validator := range st.Validators.Validators {
+				fmt.Println(validator.Address.String(), validator.VotingPower, hex.EncodeToString(validator.PubKey.Bytes()))
+			}
 
 			for _, validator := range st.Validators.Validators {
 				if validator.Address.String() == "BA1B262312BBDF500C5410F26CA80AD63CFC3F81" {
