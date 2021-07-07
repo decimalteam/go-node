@@ -92,6 +92,9 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			valInfo := loadValidatorsInfo(stateDB, height)
 			if valInfo.ValidatorSet == nil {
 				valInfo = loadValidatorsInfo(stateDB, valInfo.LastHeightChanged)
+				if valInfo.ValidatorSet == nil {
+					panic(valInfo)
+				}
 			}
 
 			//valInfo.ValidatorSet.IncrementProposerPriority(int(height - valInfo.LastHeightChanged))
