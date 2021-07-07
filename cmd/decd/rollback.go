@@ -76,6 +76,8 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 					break
 				}
 
+				fmt.Printf("%v+\n", block)
+
 				err = DeleteBlock(blockStoreDB, blockStore, block)
 				if err != nil {
 					return err
@@ -83,8 +85,6 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 
 				height--
 			}
-
-			return nil
 
 			block := blockStore.LoadBlock(height)
 
