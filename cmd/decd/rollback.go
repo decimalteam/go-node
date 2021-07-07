@@ -100,7 +100,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 					(*validatorSet.Validators[i]).VotingPower = 4568124
 					st.Validators = validatorSet
 					validatorSet = st.Validators.Copy()
-					(*validatorSet.Validators[i]).VotingPower = 4568225
+					(*validatorSet.Validators[i]).VotingPower = 4568124
 					st.NextValidators = validatorSet
 				}
 			}
@@ -118,6 +118,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			fmt.Println(strings.ToUpper(hex.EncodeToString(st.Validators.Hash())))
 			fmt.Println(strings.ToUpper(hex.EncodeToString(st.NextValidators.Hash())))
 			fmt.Println(block.ValidatorsHash.String())
+			fmt.Println(block.NextValidatorsHash.String())
 
 			state.SaveState(stateDB, st)
 			return nil
