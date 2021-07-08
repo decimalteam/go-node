@@ -51,7 +51,7 @@ func main() {
 		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome)
 
-	cdc := initClientCtx.JSONCodec
+	//cdc := initClientCtx.JSONCodec
 
 	_config := sdk.GetConfig()
 	_config.SetCoinType(60)
@@ -89,23 +89,22 @@ func main() {
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(ctx, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, bankTypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
-		//func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxEncodingConfig, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
 		genutilcli.GenTxCmd(
 			ctx, encodingConfig.TxConfig, app.ModuleBasics, validator.AppModuleBasic{},
 			bankTypes.GenesisBalancesIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
 		genutilcli.GenDeclareCandidateTxCmd(
-			ctx, app.ModuleBasics, validator.AppModuleBasic{},  app.DefaultNodeHome, app.DefaultCLIHome,
+			ctx, app.ModuleBasics, validator.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
 		genutilcli.ValidateGenesisCmd(ctx, app.ModuleBasics),
 		// AddGenesisAccountCmd allows users to add accounts to the genesis file
-		addGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome),
+		addGenesisAccountCmd(ctx, app.DefaultNodeHome, app.DefaultCLIHome),
 		fixAppHashError(ctx, app.DefaultNodeHome),
 	)
 
 	server.AddCommands(rootCmd, app.DefaultNodeHome, func(logger log.Logger, db dbm.DB, writer io.Writer, options servertypes.AppOptions) servertypes.Application {
 		return newApp(logger, db, writer)
-	}, exportAppStateAndTMValidators, func (cmd *cobra.Command) {})
+	}, exportAppStateAndTMValidators, func(cmd *cobra.Command) {})
 
 	// prepare and add flags
 	executor := cli.PrepareBaseCmd(rootCmd, "AU", app.DefaultNodeHome)
@@ -137,12 +136,12 @@ func exportAppStateAndTMValidators(
 			return servertypes.ExportedApp{}, err
 		}
 
-		return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList, height)
+		return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
 
 	aApp := app.NewInitApp(logger, db, traceStore, true, uint(1))
 
-	return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList, height)
+	return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }
 
 // NOTE: Following part of the code was copied from file:
@@ -157,7 +156,7 @@ const (
 )
 
 // addGenesisAccountCmd returns add-genesis-account cobra Command.
-func addGenesisAccountCmd(ctx *server.Context, _ codec.JSONCodec,
+func addGenesisAccountCmd(ctx *server.Context,
 	defaultNodeHome, defaultClientHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-genesis-account [address_or_key_name] [coin][,[coin]]",
@@ -242,8 +241,6 @@ func addGenesisAccountCmd(ctx *server.Context, _ codec.JSONCodec,
 			if err != nil {
 				return err
 			}
-
-
 
 			authGenState := authtypes.GetGenesisStateFromAppState(cdc, appState)
 

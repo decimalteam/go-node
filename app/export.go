@@ -2,30 +2,32 @@ package app
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/validator"
+	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"log"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // ExportAppStateAndValidators exports the state of the application for a genesis
 // file.
 func (app *newApp) ExportAppStateAndValidators(
-	forZeroHeight bool, jailWhiteList []string, height int64,
+	forZeroHeight bool, jailWhiteList []string,
 ) (servertypes.ExportedApp, error) {
 
 	// as if they could withdraw from the start of the next block
 	ctx := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
 
+	height := app.LastBlockHeight() + 1
 	if forZeroHeight {
+		height = 0
 		app.prepForZeroHeightGenesis(ctx, jailWhiteList)
 	}
 
 	genState := app.mm.ExportGenesis(ctx, app.appCodec)
-	appState, err := codec.MarshalJSONIndent(app.cdc, genState)
+	appState, err := json.MarshalIndent(genState, "", " ")
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}
@@ -36,7 +38,7 @@ func (app *newApp) ExportAppStateAndValidators(
 		AppState:        appState,
 		Validators:      validators,
 		Height:          height,
-		ConsensusParams: nil,
+		ConsensusParams: app.BaseApp.GetConsensusParams(ctx),
 	}, nil
 }
 
