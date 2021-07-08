@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server/cmd"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/store/types"
 	types3 "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -49,9 +50,8 @@ func main() {
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
-		WithHomeDir(app.DefaultNodeHome)
-
-	//cdc := initClientCtx.JSONCodec
+		WithHomeDir(app.DefaultNodeHome).
+		WithViper("")
 
 	_config := sdk.GetConfig()
 	_config.SetCoinType(60)
@@ -107,12 +107,18 @@ func main() {
 	}, exportAppStateAndTMValidators, func(cmd *cobra.Command) {})
 
 	// prepare and add flags
-	executor := cli.PrepareBaseCmd(rootCmd, "AU", app.DefaultNodeHome)
+	//executor := cli.PrepareBaseCmd(rootCmd, "AU", app.DefaultNodeHome)
 	rootCmd.PersistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 		0, "Assert registered invariants every N blocks")
-	err := executor.Execute()
-	if err != nil {
-		panic(err)
+
+	if err := cmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
+		switch e := err.(type) {
+		case server.ErrorCode:
+			os.Exit(e.Code)
+
+		default:
+			os.Exit(1)
+		}
 	}
 }
 
@@ -167,7 +173,8 @@ func addGenesisAccountCmd(ctx *server.Context,
 			cfg.SetRoot(viper.GetString(cli.HomeFlag))
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			cdc := clientCtx.JSONCodec.(codec.Codec)
+			depCdc := clientCtx.JSONCodec
+			cdc := depCdc.(codec.Codec)
 
 			//serverCtx := server.GetServerContextFromCmd(cmd)
 			//config := serverCtx.Config
@@ -203,7 +210,7 @@ func addGenesisAccountCmd(ctx *server.Context,
 			// create concrete account type based on input parameters
 			var genAccount authtypes.GenesisAccount
 
-			_ = bankTypes.Balance{
+			balances := bankTypes.Balance{
 				Address: addr.String(),
 				Coins:   coins.Sort(),
 			}
@@ -259,11 +266,29 @@ func addGenesisAccountCmd(ctx *server.Context,
 
 			accs = authtypes.SanitizeGenesisAccounts(accs)
 
-			authGenStateBz, err := json.Marshal(authGenState)
+			genAccs, err := authtypes.PackAccounts(accs)
+			if err != nil {
+				return fmt.Errorf("failed to convert accounts into any's: %w", err)
+			}
+			authGenState.Accounts = genAccs
+
+			authGenStateBz, err := cdc.MarshalJSON(&authGenState)
 			if err != nil {
 				return fmt.Errorf("failed to marshal auth genesis state: %w", err)
 			}
 			appState[authtypes.ModuleName] = authGenStateBz
+
+			bankGetState := bankTypes.GetGenesisStateFromAppState(depCdc, appState)
+			bankGetState.Balances = append(bankGetState.Balances, balances)
+			bankGetState.Balances = bankTypes.SanitizeGenesisBalances(bankGetState.Balances)
+			bankGetState.Supply = bankGetState.Supply.Add(balances.Coins...)
+
+			bankGenStateBz, err := cdc.MarshalJSON(bankGetState)
+			if err != nil {
+				return fmt.Errorf("falied to marshal bank genesis state: %w", err)
+			}
+
+			appState[bankTypes.ModuleName] = bankGenStateBz
 
 			appStateJSON, err := json.Marshal(appState)
 			if err != nil {
