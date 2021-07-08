@@ -137,7 +137,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 }
 
 func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
-	panic("implement me")
+	return NewQuerier(am.keeper)
 }
 
 // InitGenesis performs genesis initialization for the multisig module. It returns

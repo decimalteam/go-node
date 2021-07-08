@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	types2 "bitbucket.org/decimalteam/go-node/x/swap/types"
+	swaptypes "bitbucket.org/decimalteam/go-node/x/swap/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -13,11 +13,11 @@ import (
 func NewQuerier(k Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
-		case types2.QuerySwap:
+		case swaptypes.QuerySwap:
 			return querySwap(ctx, req, k)
-		case types2.QueryActiveSwaps:
+		case swaptypes.QueryActiveSwaps:
 			return queryActiveSwaps(ctx, k)
-		case types2.QueryPool:
+		case swaptypes.QueryPool:
 			return queryPool(ctx, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown swap query endpoint")
@@ -26,19 +26,19 @@ func NewQuerier(k Keeper) sdk.Querier {
 }
 
 func querySwap(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types2.QuerySwapParams
+	var params swaptypes.QuerySwapParams
 
-	err := types2.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := swaptypes.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	swap, ok := k.GetSwap(ctx, params.HashedSecret)
 	if !ok {
-		return nil, types2.ErrSwapNotFound()
+		return nil, swaptypes.ErrSwapNotFound()
 	}
 
-	res, err := codec.MarshalJSONIndent(types2.ModuleCdc, swap)
+	res, err := codec.MarshalJSONIndent(swaptypes.ModuleCdc, swap)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -47,7 +47,7 @@ func querySwap(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error)
 }
 
 func queryActiveSwaps(ctx sdk.Context, k Keeper) ([]byte, error) {
-	var activeSwaps types2.Swaps
+	var activeSwaps swaptypes.Swaps
 	swaps := k.GetAllSwaps(ctx)
 	for _, swap := range swaps {
 		if ctx.BlockTime().Sub(time.Unix(0, int64(swap.Timestamp))) <= k.LockedTimeOut(ctx) {
@@ -55,7 +55,7 @@ func queryActiveSwaps(ctx sdk.Context, k Keeper) ([]byte, error) {
 		}
 	}
 
-	res, err := codec.MarshalJSONIndent(types2.ModuleCdc, activeSwaps)
+	res, err := codec.MarshalJSONIndent(swaptypes.ModuleCdc, activeSwaps)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -66,7 +66,7 @@ func queryActiveSwaps(ctx sdk.Context, k Keeper) ([]byte, error) {
 func queryPool(ctx sdk.Context, k Keeper) ([]byte, error) {
 	pool := k.GetPool(ctx)
 
-	res, err := codec.MarshalJSONIndent(types2.ModuleCdc, pool)
+	res, err := codec.MarshalJSONIndent(swaptypes.ModuleCdc, pool)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

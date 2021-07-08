@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/cosmos/cosmos-sdk/store/types"
 	"math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,6 +10,14 @@ import (
 type gasMeter struct {
 	limit    sdk.Gas
 	consumed sdk.Gas
+}
+
+func (g *gasMeter) RefundGas(amount types.Gas, descriptor string) {
+	if g.consumed < amount {
+		panic(types.ErrorNegativeGasConsumed{Descriptor: descriptor})
+	}
+
+	g.consumed -= amount
 }
 
 func (g *gasMeter) String() string {

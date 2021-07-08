@@ -115,7 +115,6 @@ func (am AppModule) RegisterInvariants(sdk.InvariantRegistry) {}
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(module.Configurator) {
-	panic("implement me")
 }
 
 // NewHandler returns an sdk.Handler for the gov module.
@@ -135,7 +134,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 
 // LegacyQuerierHandler returns no sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
-	panic("implement me")
+	return keeper2.NewQuerier(am.keeper)
 }
 
 // InitGenesis performs genesis initialization for the gov module. It returns

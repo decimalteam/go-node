@@ -1,7 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/cosmos-sdk/server/cmd"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"os"
 	"path"
 
@@ -29,8 +32,18 @@ import (
 
 func main() {
 	cobra.EnableCommandSorting = false
+	encodingConfig := app.MakeEncodingConfig()
+	_ = client.Context{}.
+		WithJSONCodec(encodingConfig.Codec).
+		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
+		WithTxConfig(encodingConfig.TxConfig).
+		WithLegacyAmino(encodingConfig.Amino).
+		WithInput(os.Stdin).
+		WithAccountRetriever(authtypes.AccountRetriever{}).
+		WithHomeDir(app.DefaultNodeHome).
+		WithViper("")
 
-	cdc := app.MakeAminoCodec()
+	cdc := encodingConfig.Amino
 
 	// Read in the configuration file for the sdk
 	_config := sdk.GetConfig()
@@ -67,11 +80,16 @@ func main() {
 		cli.NewCompletionCmd(rootCmd, true),
 	)
 
-	executor := cli.PrepareMainCmd(rootCmd, "AU", app.DefaultCLIHome)
-	err := executor.Execute()
-	if err != nil {
-		fmt.Printf("Failed executing CLI command: %s, exiting...\n", err)
-		os.Exit(1)
+	//executor := cli.PrepareMainCmd(rootCmd, "AU", app.DefaultCLIHome)
+
+	if err := cmd.Execute(rootCmd, app.DefaultCLIHome); err != nil {
+		switch e := err.(type) {
+		case server.ErrorCode:
+			os.Exit(e.Code)
+
+		default:
+			os.Exit(1)
+		}
 	}
 }
 

@@ -7,7 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	config2 "github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"io"
 	"os"
 
@@ -27,6 +29,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	ibc "github.com/cosmos/ibc-go/modules/core"
 
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -160,6 +163,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		multisig.StoreKey,
 		validator.StoreKey,
 		gov.StoreKey,
+		upgradeTypes.ModuleName,
 		swap.StoreKey,
 		ibchost.StoreKey,
 		capabilityTypes.StoreKey,
@@ -184,6 +188,9 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// The ParamsKeeper handles parameter storage for the application
 	app.paramsKeeper = paramsKeeper.NewKeeper(app.appCodec, app.cdc, keys[paramsTypes.StoreKey], tkeys[paramsTypes.TStoreKey])
 
+	// set the BaseApp's parameter store
+	bApp.SetParamStore(app.paramsKeeper.Subspace(bam.Paramspace).WithKeyTable(paramsKeeper.ConsensusParamsKeyTable()))
+
 	// Set specific subspaces
 	authSubspace := app.paramsKeeper.Subspace(authTypes.ModuleName)
 	stakingSubspace := app.paramsKeeper.Subspace(stakingTypes.ModuleName)
@@ -205,11 +212,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	)
 
 	upgradesMap := map[int64]bool{}
-
-	binaryCdc := codec.NewProtoCodec(encodingConfig.InterfaceRegistry)
-
-	// func NewKeeper(skipUpgradeHeights map[int64]bool, storeKey sdk.StoreKey, cdc codec.BinaryCodec, homePath string, vs xp.ProtocolVersionSetter) Keeper {
-	app.upgradeKeeper = upgradeKeeper.NewKeeper(upgradesMap, keys[upgradeTypes.StoreKey], binaryCdc, "/upgrades", &versionSetter{})
+	app.upgradeKeeper = upgradeKeeper.NewKeeper(upgradesMap, keys[upgradeTypes.StoreKey], encodingConfig.Codec, "/upgrades", &versionSetter{})
 
 	app.capabilityKeeper = capabilityKeeper.NewKeeper(app.appCodec, keys[capabilityTypes.StoreKey], memKeys[capabilityTypes.MemStoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.StoreKey)
@@ -223,11 +226,13 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.ModuleAccountAddrs(),
 	)
 
+	// Create staking keeper
 	stakingKeeper := stakingKeeper.NewKeeper(app.appCodec, keys[stakingTypes.StoreKey], app.accountKeeper, app.bankKeeper, stakingSubspace)
 
 	// Create ibc keeper
+	sp, _ := app.paramsKeeper.GetSubspace(ibchost.ModuleName)
 	app.ibcKeeper = ibckeeper.NewKeeper(
-		app.appCodec, keys[ibchost.StoreKey], app.paramsKeeper.Subspace(ibchost.ModuleName), stakingKeeper, app.upgradeKeeper, scopedIBCKeeper,
+		app.appCodec, keys[ibchost.StoreKey], sp, stakingKeeper, app.upgradeKeeper, scopedIBCKeeper,
 	)
 
 	app.coinKeeper = coin.NewKeeper(
@@ -291,12 +296,9 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.bankKeeper,
 	)
 
-	//type RandomGenesisAccountsFn func(simState *module.SimulationState) GenesisAccounts
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
-		auth.NewAppModule(app.appCodec, app.accountKeeper, func(state *module.SimulationState) authTypes.GenesisAccounts {
-			return authTypes.GenesisAccounts{}
-		}),
+		auth.NewAppModule(app.appCodec, app.accountKeeper, simulation.RandomGenesisAccounts),
 		bank.NewAppModule(app.appCodec, app.bankKeeper, app.accountKeeper),
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		capability.NewAppModule(app.appCodec, *app.capabilityKeeper),
@@ -305,6 +307,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		gov.NewAppModule(app.govKeeper, app.accountKeeper),
 		swap.NewAppModule(app.swapKeeper),
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
+		upgrade.NewAppModule(app.upgradeKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 	)
 
@@ -314,7 +317,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	ibcRouter.AddRoute(coin.ModuleName, coinModule)
 	app.ibcKeeper.SetRouter(ibcRouter)
 
-	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
+	app.mm.SetOrderBeginBlockers(upgradeTypes.ModuleName)
 	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName, ibchost.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
@@ -322,9 +325,9 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
 		capabilityTypes.ModuleName,
-		validator.ModuleName,
 		authTypes.ModuleName,
 		bankTypes.ModuleName,
+		validator.ModuleName,
 		coin.ModuleName,
 		multisig.ModuleName,
 		genutil.ModuleName,
@@ -337,10 +340,14 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// register all module routes and module queriers
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), app.cdc)
 
+	// initialize stores
+	app.MountKVStores(keys)
+	app.MountTransientStores(tkeys)
+	app.MountMemoryStores(memKeys)
+
 	// The initChainer handles translating the genesis.json file into initial state for the network
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	app.SetEndBlocker(app.EndBlocker)
 
 	// The AnteHandler handles signature verification and transaction pre-processing
 	app.SetAnteHandler(
@@ -353,13 +360,16 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		),
 	)
 
-	// initialize stores
-	app.MountKVStores(keys)
-	app.MountTransientStores(tkeys)
+	app.SetEndBlocker(app.EndBlocker)
 
-	err := app.LoadLatestVersion()
-	if err != nil {
-		tos.Exit(err.Error())
+	if loadLatest {
+		err := app.LoadLatestVersion()
+		if err != nil {
+			tos.Exit(err.Error())
+		}
+
+		ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
+		app.capabilityKeeper.InitializeAndSeal(ctx)
 	}
 
 	return app
@@ -394,11 +404,11 @@ func (app *newApp) RegisterTendermintService(clientCtx client.Context) {
 func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
 
-	err := app.cdc.UnmarshalJSON(req.AppStateBytes, &genesisState)
+	err := json.Unmarshal(req.AppStateBytes, &genesisState)
 	if err != nil {
 		panic(err)
 	}
-
+	app.upgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
