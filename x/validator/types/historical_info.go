@@ -10,10 +10,10 @@ import (
 )
 
 // HistoricalInfo contains the historical information that gets stored at each height
-type HistoricalInfo struct {
-	Header tmproto.Header `json:"header" yaml:"header"`
-	ValSet []Validator    `json:"valset" yaml:"valset"`
-}
+//type HistoricalInfo struct {
+//	Header tmproto.Header `json:"header" yaml:"header"`
+//	ValSet []Validator    `json:"valset" yaml:"valset"`
+//}
 
 // NewHistoricalInfo will create a historical information struct from header and valset
 // it will first sort valset before inclusion into historical info

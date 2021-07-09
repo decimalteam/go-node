@@ -32,6 +32,7 @@ import (
 
 func main() {
 	cobra.EnableCommandSorting = false
+
 	encodingConfig := app.MakeEncodingConfig()
 	_ = client.Context{}.
 		WithJSONCodec(encodingConfig.Codec).
@@ -41,7 +42,7 @@ func main() {
 		WithInput(os.Stdin).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
-		WithViper("")
+		WithViper("AU")
 
 	cdc := encodingConfig.Amino
 
@@ -162,6 +163,8 @@ func initConfig(cmd *cobra.Command) error {
 			return err
 		}
 	}
+	return nil
+
 	if err := viper.BindPFlag(flags.FlagChainID, cmd.PersistentFlags().Lookup(flags.FlagChainID)); err != nil {
 		return err
 	}

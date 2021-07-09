@@ -55,7 +55,7 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 	if err != nil {
 		return err
 	}
-	return ValidateGenesis(cdc, types2.GenesisState(data))
+	return ValidateGenesis((*types2.GenesisState)(&data), config.TxDecoder())
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
@@ -143,7 +143,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 // no genutil updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
-	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	cdc.MustUnmarshalJSON(data, &genesisState)
 	return InitGenesis(ctx, cdc, am.validatorKeeper, am.deliverTx, types2.GenesisState(genesisState), am.txConfig)
 }
 

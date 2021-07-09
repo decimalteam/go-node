@@ -13,6 +13,8 @@ import (
 	types3 "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	"github.com/spf13/cast"
+
 	"bitbucket.org/decimalteam/go-node/utils/keys"
 	"github.com/pkg/errors"
 
@@ -51,7 +53,7 @@ func main() {
 		WithInput(os.Stdin).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
-		WithViper("")
+		WithViper("AU")
 
 	_config := sdk.GetConfig()
 	_config.SetCoinType(60)
@@ -101,15 +103,12 @@ func main() {
 		addGenesisAccountCmd(ctx, app.DefaultNodeHome, app.DefaultCLIHome),
 		fixAppHashError(ctx, app.DefaultNodeHome),
 	)
-
-	server.AddCommands(rootCmd, app.DefaultNodeHome, func(logger log.Logger, db dbm.DB, writer io.Writer, options servertypes.AppOptions) servertypes.Application {
-		return newApp(logger, db, writer)
-	}, exportAppStateAndTMValidators, func(cmd *cobra.Command) {})
+	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, exportAppStateAndTMValidators, func(cmd *cobra.Command) {})
 
 	// prepare and add flags
 	//executor := cli.PrepareBaseCmd(rootCmd, "AU", app.DefaultNodeHome)
-	rootCmd.PersistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
-		0, "Assert registered invariants every N blocks")
+	//rootCmd.PrsistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
+	//	0, "Assert registered invariants every N blocks")
 
 	if err := cmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
 		switch e := err.(type) {
@@ -122,9 +121,15 @@ func main() {
 	}
 }
 
-func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) servertypes.Application {
+func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, options servertypes.AppOptions) servertypes.Application {
+	skipUpgradesHeight := map[int64]bool{}
+
+	for _, h := range cast.ToIntSlice(options.Get(server.FlagUnsafeSkipUpgrades)) {
+		skipUpgradesHeight[int64(h)] = true
+	}
+
 	return app.NewInitApp(
-		logger, db, traceStore, true, invCheckPeriod,
+		logger, db, traceStore, true, skipUpgradesHeight, invCheckPeriod,
 		baseapp.SetPruning(types.NewPruningOptionsFromString(viper.GetString("pruning"))),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(uint64(viper.GetInt(server.FlagHaltHeight))),
@@ -136,7 +141,7 @@ func exportAppStateAndTMValidators(
 ) (servertypes.ExportedApp, error) {
 
 	if height != -1 {
-		aApp := app.NewInitApp(logger, db, traceStore, true, uint(1))
+		aApp := app.NewInitApp(logger, db, traceStore, true, map[int64]bool{}, uint(1))
 		err := aApp.LoadHeight(height)
 		if err != nil {
 			return servertypes.ExportedApp{}, err
@@ -145,7 +150,7 @@ func exportAppStateAndTMValidators(
 		return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
 
-	aApp := app.NewInitApp(logger, db, traceStore, true, uint(1))
+	aApp := app.NewInitApp(logger, db, traceStore, true, map[int64]bool{}, uint(1))
 
 	return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }
@@ -169,15 +174,14 @@ func addGenesisAccountCmd(ctx *server.Context,
 		Short: "Add genesis account to genesis.json",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg := ctx.Config
-			cfg.SetRoot(viper.GetString(cli.HomeFlag))
-
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			depCdc := clientCtx.JSONCodec
+			depCdc := clientCtx.Codec
 			cdc := depCdc.(codec.Codec)
 
-			//serverCtx := server.GetServerContextFromCmd(cmd)
-			//config := serverCtx.Config
+			serverCtx := server.GetServerContextFromCmd(cmd)
+			config := serverCtx.Config
+
+			config.SetRoot(clientCtx.HomeDir)
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -243,7 +247,7 @@ func addGenesisAccountCmd(ctx *server.Context,
 			}
 
 			// retrieve the app state
-			genFile := cfg.GenesisFile()
+			genFile := config.GenesisFile()
 			appState, genDoc, err := genutil.GenesisStateFromGenFile(cdc, genFile)
 			if err != nil {
 				return err

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/pkg/errors"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -25,15 +24,19 @@ const ModuleName = "genutil"
 //}
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(genTxs []json.RawMessage) types.GenesisState {
-	return types.GenesisState{
+func NewGenesisState(genTxs []json.RawMessage) *types.GenesisState {
+	if len(genTxs) == 0 {
+		genTxs = make([]json.RawMessage, 0)
+	}
+
+	return &types.GenesisState{
 		GenTxs: genTxs,
 	}
 }
 
 // NewGenesisStateFromStdTx creates a new GenesisState object
 // from auth transactions
-func NewGenesisStateFromStdTx(codec *codec.LegacyAmino, genTxs []tx.Tx) types.GenesisState {
+func NewGenesisStateFromStdTx(codec *codec.LegacyAmino, genTxs []sdk.Tx) *types.GenesisState {
 	genTxsBz := make([]json.RawMessage, len(genTxs))
 	for i, genTx := range genTxs {
 		genTxsBz[i] = codec.MustMarshalJSON(genTx)
@@ -42,19 +45,19 @@ func NewGenesisStateFromStdTx(codec *codec.LegacyAmino, genTxs []tx.Tx) types.Ge
 }
 
 // GetGenesisStateFromAppState gets the genutil genesis state from the expected app state
-func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.RawMessage) types.GenesisState {
+func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.RawMessage) *types.GenesisState {
 	var genesisState types.GenesisState
 	if appState[ModuleName] != nil {
 		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
 	}
-	return genesisState
+	return &genesisState
 }
 
 // SetGenesisStateInAppState sets the genutil genesis state within the expected app state
 func SetGenesisStateInAppState(cdc codec.JSONCodec,
-	appState map[string]json.RawMessage, genesisState types.GenesisState) map[string]json.RawMessage {
+	appState map[string]json.RawMessage, genesisState *types.GenesisState) map[string]json.RawMessage {
 
-	genesisStateBz := cdc.MustMarshalJSON(&genesisState)
+	genesisStateBz := cdc.MustMarshalJSON(genesisState)
 	appState[ModuleName] = genesisStateBz
 	return appState
 }
@@ -66,7 +69,7 @@ func SetGenesisStateInAppState(cdc codec.JSONCodec,
 func GenesisStateFromGenDoc(cdc codec.JSONCodec, genDoc tmtypes.GenesisDoc,
 ) (genesisState map[string]json.RawMessage, err error) {
 
-	if err = json.Unmarshal(genDoc.AppState, genesisState); err != nil {
+	if err = json.Unmarshal(genDoc.AppState, &genesisState); err != nil {
 		return genesisState, err
 	}
 	return genesisState, nil
@@ -93,10 +96,10 @@ func GenesisStateFromGenFile(cdc codec.JSONCodec, genFile string,
 }
 
 // ValidateGenesis validates GenTx transactions
-func ValidateGenesis(cdc codec.JSONCodec, genesisState types.GenesisState) error {
+func ValidateGenesis(genesisState *types.GenesisState, txJSONDecoder sdk.TxDecoder) error {
 	for i, genTx := range genesisState.GenTxs {
-		var tx tx.Tx
-		if err := cdc.UnmarshalJSON(genTx, &tx); err != nil {
+		tx, err := txJSONDecoder(genTx)
+		if err != nil {
 			return err
 		}
 

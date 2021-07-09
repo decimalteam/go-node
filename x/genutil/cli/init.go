@@ -35,12 +35,14 @@ func InitCmd(ctx *server.Context, mbm module.BasicManager,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			cdc := clientCtx.JSONCodec
-			config := ctx.Config
+			cdc := clientCtx.Codec
 
-			config.SetRoot(viper.GetString(cli.HomeFlag))
+			serverCtx := server.GetServerContextFromCmd(cmd)
+			config := serverCtx.Config
 
-			chainID := viper.GetString(flags.FlagChainID)
+			config.SetRoot(clientCtx.HomeDir)
+
+			chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
 			if chainID == "" {
 				chainID = fmt.Sprintf("test-chain-%v", trand.Str(6))
 			}

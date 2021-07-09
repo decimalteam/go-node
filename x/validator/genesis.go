@@ -66,7 +66,7 @@ func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Kee
 		if err != nil {
 			continue
 		}
-		delegationValAddr, err := sdk.ValAddressFromBech32(delegation.DelegatorAddress)
+		delegationValAddr, err := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
 		if err != nil {
 			continue
 		}

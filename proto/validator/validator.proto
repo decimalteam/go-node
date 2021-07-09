@@ -4,10 +4,17 @@ package validator;
 option go_package = "bitbucket.org/decimalteam/go-node/x/validator/types";
 
 import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
+
+import "cosmos_proto/cosmos.proto";
+import "tendermint/types/types.proto";
+
+message HistoricalInfo {
+  tendermint.types.Header Header = 1 [(gogoproto.nullable) = false];
+  repeated Validator ValSet = 2 [(gogoproto.nullable) = false];
+}
 
 message Validator {
   option (gogoproto.equal) = false;
@@ -107,8 +114,6 @@ message Params {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
   option (gogoproto.goproto_stringer) = false;
-  option (gogoproto.sizer) = true;
-  option (gogoproto.marshaler) = true;
 
   google.protobuf.Duration UnbondingTime = 1 [
     (gogoproto.stdduration) = true,

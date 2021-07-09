@@ -22,10 +22,14 @@ func ValidateGenesisCmd(ctx *server.Context, mbm module.BasicManager) *cobra.Com
 
 			cdc := clientCtx.JSONCodec
 
+			serverCtx := server.GetServerContextFromCmd(cmd)
+			config := serverCtx.Config
+
+
 			// Load default if passed no args, otherwise load passed file
 			var genesis string
 			if len(args) == 0 {
-				genesis = ctx.Config.GenesisFile()
+				genesis = config.GenesisFile()
 			} else {
 				genesis = args[0]
 			}

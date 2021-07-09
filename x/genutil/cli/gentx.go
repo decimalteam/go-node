@@ -70,8 +70,11 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 
 			cdc := clientCtx.JSONCodec
 
-			config := ctx.Config
-			config.SetRoot(viper.GetString(flags.FlagHome))
+			serverCtx := server.GetServerContextFromCmd(cmd)
+			config := serverCtx.Config
+
+			config.SetRoot(clientCtx.HomeDir)
+
 			if err != nil {
 				return err
 			}

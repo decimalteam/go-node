@@ -18,11 +18,9 @@ import (
 	tos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/cosmos/cosmos-sdk/codec/types"
-	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
-
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -49,7 +47,6 @@ import (
 
 	ibckeeper "github.com/cosmos/ibc-go/modules/core/keeper"
 
-	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
 
 	appParams "bitbucket.org/decimalteam/go-node/app/params"
@@ -99,15 +96,6 @@ var (
 	}
 )
 
-// MakeAminoCodec generates necessary codec for Amino
-func MakeAminoCodec() *codec.LegacyAmino {
-	var cdc = codec.NewLegacyAmino()
-	ModuleBasics.RegisterLegacyAminoCodec(cdc)
-	sdk.RegisterLegacyAminoCodec(cdc)
-	codec2.RegisterCrypto(cdc)
-	return cdc
-}
-
 type versionSetter struct{}
 
 func (vs *versionSetter) SetProtocolVersion(version uint64) {}
@@ -142,17 +130,16 @@ type newApp struct {
 }
 
 // Newgo-nodeApp is a constructor function for go-nodeApp
-func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
+func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
-
 	encodingConfig := appParams.NewEncodingConfig()
-	encodingConfig.Amino = MakeAminoCodec()
 
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 
 	bApp.SetVersion(config.DecimalVersion)
 	bApp.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
+	bApp.SetCommitMultiStoreTracer(traceStore)
 
 	// TODO: Add the keys that module requires
 	keys := sdk.NewKVStoreKeys(
@@ -200,7 +187,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	validatorSubspace := app.paramsKeeper.Subspace(validator.ModuleName)
 	govSubspace := app.paramsKeeper.Subspace(gov.ModuleName).WithKeyTable(gov.ParamKeyTable())
 	swapSubspace := app.paramsKeeper.Subspace(swap.ModuleName)
-	_ = app.paramsKeeper.Subspace(ibchost.ModuleName)
+	ibcSubspace := app.paramsKeeper.Subspace(ibchost.ModuleName)
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = authKeeper.NewAccountKeeper(
@@ -210,9 +197,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		authTypes.ProtoBaseAccount,
 		maccPerms,
 	)
-
-	upgradesMap := map[int64]bool{}
-	app.upgradeKeeper = upgradeKeeper.NewKeeper(upgradesMap, keys[upgradeTypes.StoreKey], encodingConfig.Codec, "/upgrades", &versionSetter{})
 
 	app.capabilityKeeper = capabilityKeeper.NewKeeper(app.appCodec, keys[capabilityTypes.StoreKey], memKeys[capabilityTypes.MemStoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.StoreKey)
@@ -230,9 +214,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	stakingKeeper := stakingKeeper.NewKeeper(app.appCodec, keys[stakingTypes.StoreKey], app.accountKeeper, app.bankKeeper, stakingSubspace)
 
 	// Create ibc keeper
-	sp, _ := app.paramsKeeper.GetSubspace(ibchost.ModuleName)
 	app.ibcKeeper = ibckeeper.NewKeeper(
-		app.appCodec, keys[ibchost.StoreKey], sp, stakingKeeper, app.upgradeKeeper, scopedIBCKeeper,
+		app.appCodec, keys[ibchost.StoreKey], ibcSubspace, stakingKeeper, app.upgradeKeeper, scopedIBCKeeper,
 	)
 
 	app.coinKeeper = coin.NewKeeper(
@@ -296,6 +279,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.bankKeeper,
 	)
 
+	app.upgradeKeeper = upgradeKeeper.NewKeeper(skipUpgradeHeights, keys[upgradeTypes.StoreKey], encodingConfig.Codec, "/upgrades", &versionSetter{})
+
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
 		auth.NewAppModule(app.appCodec, app.accountKeeper, simulation.RandomGenesisAccounts),
@@ -310,12 +295,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		upgrade.NewAppModule(app.upgradeKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 	)
-
-	coinModule := coin.NewAppModule(app.coinKeeper, app.accountKeeper)
-
-	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(coin.ModuleName, coinModule)
-	app.ibcKeeper.SetRouter(ibcRouter)
 
 	app.mm.SetOrderBeginBlockers(upgradeTypes.ModuleName)
 	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName, ibchost.ModuleName)

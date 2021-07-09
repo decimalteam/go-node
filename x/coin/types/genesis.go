@@ -38,8 +38,8 @@ func ValidateGenesis(data GenesisState) error {
 		return ErrInvalidCoinSymbol(data.Symbol)
 	}
 	// Check coin initial volume to be correct
-	if data.InitialVolume.LT(minCoinSupply) || data.InitialVolume.GT(maxCoinSupply) {
-		return ErrInvalidCoinInitialVolume(data.InitialVolume.String())
-	}
+	//if data.InitialVolume.LT(minCoinSupply) || data.InitialVolume.GT(maxCoinSupply) {
+	//	return ErrInvalidCoinInitialVolume(data.InitialVolume.String())
+	//}
 	return nil
 }
