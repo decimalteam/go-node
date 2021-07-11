@@ -4,7 +4,6 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strconv"
 )
 
 // Governance message types and routes
@@ -43,19 +42,18 @@ func (msg MsgSubmitProposal) Type() string { return TypeMsgSubmitProposal }
 // ValidateBasic implements Msg
 func (msg MsgSubmitProposal) ValidateBasic() error {
 	if msg.Content.Title == "" || msg.Content.Description == "" {
-		return ErrInvalidProposalContent()
+		return sdkerrors.Wrap(ErrInvalidProposalContent, "missing content")
 	}
 	if msg.Proposer.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Proposer.String())
 	}
 
 	if msg.VotingStartBlock >= msg.VotingEndBlock {
-		return ErrInvalidStartEndBlocks(
-			strconv.FormatUint(msg.VotingStartBlock, 10), strconv.FormatUint(msg.VotingEndBlock, 10))
+		return ErrInvalidStartEndBlocks
 	}
 
 	if msg.VotingEndBlock-msg.VotingStartBlock > 1296000 {
-		return ErrDurationTooLong()
+		return ErrDurationTooLong
 	}
 
 	return nil
@@ -104,7 +102,7 @@ func (msg MsgVote) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Voter.String())
 	}
 	if !ValidVoteOption(msg.Option) {
-		return ErrInvalidVote(msg.Option.String())
+		return sdkerrors.Wrap(ErrInvalidVote, msg.Option.String())
 	}
 
 	return nil

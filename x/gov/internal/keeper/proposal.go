@@ -3,8 +3,10 @@ package keeper
 import (
 	"fmt"
 
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 )
 
 // SubmitProposal create new proposal given a content
@@ -35,7 +37,7 @@ func (keeper Keeper) GetProposalID(ctx sdk.Context) (proposalID uint64, err erro
 	store := ctx.KVStore(keeper.storeKey)
 	bz := store.Get(types.ProposalIDKey)
 	if bz == nil {
-		return 0, types.ErrInvalidGenesis()
+		return 0, sdkerrors.Wrap(types.ErrInvalidGenesis, "initial proposal ID hasn't been set")
 	}
 
 	proposalID = types.GetProposalIDFromBytes(bz)

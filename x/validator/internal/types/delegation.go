@@ -105,19 +105,6 @@ func GetBaseDelegations(delegations []exported.DelegationI) Delegations {
 	return dels
 }
 
-func MustMarshalDelegateCoin(cdc *codec.Codec, amount sdk.Int) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(amount)
-}
-
-func MustUnmarshalDelegateCoin(cdc *codec.Codec, value []byte) sdk.Int {
-	amount := sdk.ZeroInt()
-	err := cdc.UnmarshalBinaryLengthPrefixed(value, &amount)
-	if err != nil {
-		panic(err)
-	}
-	return amount
-}
-
 // UnbondingDelegation stores all of a single delegator's unbonding bonds
 // for a single validator in an time-ordered list
 type UnbondingDelegation struct {

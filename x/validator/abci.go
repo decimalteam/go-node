@@ -33,15 +33,6 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 			k.Logger(ctx).Error(fmt.Sprintf("ignored unknown evidence type: %s", evidence.Type))
 		}
 	}
-
-	if ctx.BlockHeight() == updates.Update3Block {
-		delegations := k.GetAllDelegations(ctx)
-		for _, delegation := range delegations {
-			if delegation.GetCoin().Denom != k.BondDenom(ctx) {
-				k.AddDelegatedCoin(ctx, delegation.GetCoin())
-			}
-		}
-	}
 }
 
 // EndBlocker called every block, process inflation, update validator set.

@@ -8,7 +8,9 @@ const (
 	QueryValidator                     = "validator"
 	QueryDelegatorDelegations          = "delegatorDelegations"
 	QueryDelegatorUnbondingDelegations = "delegatorUnbondingDelegations"
+	QueryRedelegations                 = "redelegations"
 	QueryValidatorDelegations          = "validatorDelegations"
+	QueryValidatorRedelegations        = "validatorRedelegations"
 	QueryValidatorUnbondingDelegations = "validatorUnbondingDelegations"
 	QueryDelegation                    = "delegation"
 	QueryUnbondingDelegation           = "unbondingDelegation"
@@ -17,10 +19,9 @@ const (
 	QueryPool                          = "pool"
 	QueryParameters                    = "parameters"
 	QueryHistoricalInfo                = "historicalInfo"
-	QueryDelegatedCoins                = "delegatedCoins"
 )
 
-// QueryDelegatorParams defines the params for the following queries:
+// defines the params for the following queries:
 // - 'custom/validator/delegatorDelegations'
 // - 'custom/validator/delegatorUnbondingDelegations'
 // - 'custom/validator/delegatorRedelegations'
@@ -35,7 +36,7 @@ func NewQueryDelegatorParams(delegatorAddr sdk.AccAddress) QueryDelegatorParams 
 	}
 }
 
-// QueryValidatorParams defines the params for the following queries:
+// defines the params for the following queries:
 // - 'custom/validator/validator'
 // - 'custom/validator/validatorDelegations'
 // - 'custom/validator/validatorUnbondingDelegations'
@@ -50,7 +51,7 @@ func NewQueryValidatorParams(validatorAddr sdk.ValAddress) QueryValidatorParams 
 	}
 }
 
-// QueryBondsParams defines the params for the following queries:
+// defines the params for the following queries:
 // - 'custom/validator/delegation'
 // - 'custom/validator/unbondingDelegation'
 // - 'custom/validator/delegatorValidator'

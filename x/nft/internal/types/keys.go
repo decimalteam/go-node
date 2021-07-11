@@ -37,7 +37,6 @@ var (
 	SubTokenKeyPrefix       = []byte{NFTPrefix, 0x02}
 	LastSubTokenIDKeyPrefix = []byte{NFTPrefix, 0x03}
 	TokenURIKeyPrefix       = []byte{NFTPrefix, 0x04}
-	TokenIDKeyPrefix        = []byte{NFTPrefix, 0x05}
 )
 
 const OwnerKeyHashLength = 54
@@ -87,10 +86,6 @@ func GetLastSubTokenIDKey(denom, id string) []byte {
 
 func GetTokenURIKey(tokenURI string) []byte {
 	return append(TokenURIKeyPrefix, []byte(tokenURI)...)
-}
-
-func GetTokenIDKey(id string) []byte {
-	return append(TokenIDKeyPrefix, []byte(id)...)
 }
 
 func getHash(denom string) []byte {

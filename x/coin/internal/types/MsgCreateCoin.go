@@ -3,7 +3,6 @@ package types
 import (
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"regexp"
-	"strconv"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -67,7 +66,7 @@ func (msg MsgCreateCoin) GetSignBytes() []byte {
 func (msg MsgCreateCoin) ValidateBasic() error {
 	// Validate coin title
 	if len(msg.Title) > maxCoinNameBytes {
-		return ErrInvalidCoinTitle(msg.Title)
+		return ErrInvalidCoinTitle()
 	}
 	// Validate coin symbol
 	if match, _ := regexp.MatchString(allowedCoinSymbols, msg.Symbol); !match {
@@ -81,7 +80,7 @@ func (msg MsgCreateCoin) ValidateBasic() error {
 	}
 	// Validate coin CRR
 	if msg.ConstantReserveRatio < 10 || msg.ConstantReserveRatio > 100 {
-		return ErrInvalidCRR(strconv.FormatUint(uint64(msg.ConstantReserveRatio), 10))
+		return ErrInvalidCRR()
 	}
 	// Check coin initial volume to be correct
 	if msg.InitialVolume.LT(minCoinSupply) || msg.InitialVolume.GT(maxCoinSupply) {

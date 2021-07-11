@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -92,7 +93,11 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		for _, del := range delegations {
 			reward := sdk.NewIntFromBigInt(rewards.BigInt())
 			if del.GetCoin().Denom != k.BondDenom(ctx) {
-				defAmount := del.GetTokensBase()
+				coinDel, err := k.GetCoin(ctx, del.GetCoin().Denom)
+				if err != nil {
+					return err
+				}
+				defAmount := formulas.CalculateSaleReturn(coinDel.Volume, coinDel.Reserve, coinDel.CRR, del.GetCoin().Amount)
 
 				reward = reward.Mul(defAmount).Quo(totalStake)
 				if reward.LT(sdk.NewInt(1)) {

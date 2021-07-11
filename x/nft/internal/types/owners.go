@@ -7,8 +7,10 @@ import (
 	"strconv"
 	"strings"
 
-	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/x/nft/exported"
 )
 
 type SortedIntArray []int64
@@ -50,7 +52,9 @@ func (idCollection IDCollection) AddID(id string) IDCollection {
 func (idCollection IDCollection) DeleteID(id string) (IDCollection, error) {
 	index := idCollection.IDs.find(id)
 	if index == -1 {
-		return idCollection, ErrUnknownNFT(idCollection.Denom, id)
+		return idCollection, sdkerrors.Wrap(ErrUnknownNFT,
+			fmt.Sprintf("ID #%s doesn't exist on ID Collection %s", id, idCollection.Denom),
+		)
 	}
 
 	idCollection.IDs = append(idCollection.IDs[:index], idCollection.IDs[index+1:]...)
@@ -133,9 +137,12 @@ func (owner Owner) GetIDCollection(denom string) (IDCollection, bool) {
 
 // UpdateIDCollection updates the ID Collection of an owner
 func (owner Owner) UpdateIDCollection(idCollection IDCollection) (Owner, error) {
-	index := owner.IDCollections.find(idCollection.Denom)
+	denom := idCollection.Denom
+	index := owner.IDCollections.find(denom)
 	if index == -1 {
-		return owner, ErrUnknownCollection(idCollection.Denom)
+		return owner, sdkerrors.Wrap(ErrUnknownCollection,
+			fmt.Sprintf("ID Collection %s doesn't exist for owner %s", denom, owner.Address),
+		)
 	}
 
 	owner.IDCollections = append(append(owner.IDCollections[:index], idCollection), owner.IDCollections[index+1:]...)
@@ -147,7 +154,9 @@ func (owner Owner) UpdateIDCollection(idCollection IDCollection) (Owner, error) 
 func (owner Owner) DeleteID(denom string, id string) (Owner, error) {
 	idCollection, found := owner.GetIDCollection(denom)
 	if !found {
-		return owner, ErrUnknownNFT(denom, id)
+		return owner, sdkerrors.Wrap(ErrUnknownNFT,
+			fmt.Sprintf("ID #%s doesn't exist in ID Collection %s", id, denom),
+		)
 	}
 	idCollection, err := idCollection.DeleteID(id)
 	if err != nil {

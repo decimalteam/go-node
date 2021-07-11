@@ -6,6 +6,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // HistoricalInfo contains the historical information that gets stored at each height
@@ -47,10 +48,10 @@ func UnmarshalHistoricalInfo(cdc *codec.Codec, value []byte) (hi HistoricalInfo,
 // ValidateBasic will ensure HistoricalInfo is not nil and sorted
 func ValidateBasic(hi HistoricalInfo) error {
 	if len(hi.ValSet) == 0 {
-		return ErrValidatorSetEmpty()
+		return sdkerrors.Wrap(ErrInvalidHistoricalInfo(), "validator set is empty")
 	}
 	if !sort.IsSorted(Validators(hi.ValSet)) {
-		return ErrValidatorSetNotSorted()
+		return sdkerrors.Wrap(ErrInvalidHistoricalInfo(), "validator set is not sorted by address")
 	}
 	return nil
 }

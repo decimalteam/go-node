@@ -1,8 +1,12 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 )
 
 // GetOwners returns all the Owners ID Collections
@@ -107,7 +111,9 @@ func (k Keeper) IterateOwners(ctx sdk.Context, handler func(owner types.Owner) (
 func (k Keeper) SwapOwners(ctx sdk.Context, denom string, id string, oldAddress sdk.AccAddress, newAddress sdk.AccAddress) (err error) {
 	oldOwnerIDCollection, found := k.GetOwnerByDenom(ctx, oldAddress, denom)
 	if !found {
-		return types.ErrUnknownCollection(denom)
+		return sdkerrors.Wrap(types.ErrUnknownCollection,
+			fmt.Sprintf("id collection %s doesn't exist for owner %s", denom, oldAddress),
+		)
 	}
 	oldOwnerIDCollection, err = oldOwnerIDCollection.DeleteID(id)
 	if err != nil {

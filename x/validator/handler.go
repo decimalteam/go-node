@@ -1,16 +1,18 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"errors"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"runtime/debug"
+	"time"
+
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"runtime/debug"
-	"strings"
-	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // NewHandler creates an sdk.Handler for all the validator type messages
@@ -59,9 +61,9 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 	if ctx.ConsensusParams() != nil {
 		tmPubKey := tmtypes.TM2PB.PubKey(msg.PubKey)
 		if !tmstrings.StringInSlice(tmPubKey.Type, ctx.ConsensusParams().Validator.PubKeyTypes) {
-			return nil, types.ErrValidatorPubKeyTypeNotSupported(
-				tmPubKey.Type,
-				strings.Join(ctx.ConsensusParams().Validator.PubKeyTypes, ","),
+			return nil, sdkerrors.Wrapf(
+				types.ErrValidatorPubKeyTypeNotSupported(),
+				"got: %s, valid: %s", tmPubKey.Type, ctx.ConsensusParams().Validator.PubKeyTypes,
 			)
 		}
 	}

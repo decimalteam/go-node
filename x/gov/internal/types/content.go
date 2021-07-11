@@ -2,7 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"strconv"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"strings"
 )
 
@@ -29,18 +29,18 @@ type Handler func(ctx sdk.Context, content Content) error
 func Validate(c Content) error {
 	title := c.GetTitle()
 	if len(strings.TrimSpace(title)) == 0 {
-		return ErrInvalidProposalContentTitleBlank()
+		return sdkerrors.Wrap(ErrInvalidProposalContent, "proposal title cannot be blank")
 	}
 	if len(title) > MaxTitleLength {
-		return ErrInvalidProposalContentTitleLong(strconv.Itoa(MaxTitleLength))
+		return sdkerrors.Wrapf(ErrInvalidProposalContent, "proposal title is longer than max length of %d", MaxTitleLength)
 	}
 
 	description := c.GetDescription()
 	if len(description) == 0 {
-		return ErrInvalidProposalContentDescrBlank()
+		return sdkerrors.Wrap(ErrInvalidProposalContent, "proposal description cannot be blank")
 	}
 	if len(description) > MaxDescriptionLength {
-		return ErrInvalidProposalContentDescrLong(strconv.Itoa(MaxDescriptionLength))
+		return sdkerrors.Wrapf(ErrInvalidProposalContent, "proposal description is longer than max length of %d", MaxDescriptionLength)
 	}
 
 	return nil

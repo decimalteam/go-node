@@ -297,16 +297,28 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		case coin.CreateCoinConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(createCoinFee)
 		case swap.MsgHTLTConst:
-			if msg.(swap.MsgHTLT).From.Equals(swap.SwapServiceAddress()) {
+			swapAddress, err := sdk.AccAddressFromBech32(swap.SwapServiceAddress)
+			if err != nil {
+				return ctx, err
+			}
+			if msg.(swap.MsgHTLT).From.Equals(swapAddress) {
 				return next(ctx, tx, simulate)
 			}
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
 		case swap.MsgRedeemConst:
-			if msg.(swap.MsgRedeem).From.Equals(swap.SwapServiceAddress()) {
+			swapAddress, err := sdk.AccAddressFromBech32(swap.SwapServiceAddress)
+			if err != nil {
+				return ctx, err
+			}
+			if msg.(swap.MsgRedeem).From.Equals(swapAddress) {
 				return next(ctx, tx, simulate)
 			}
 		case swap.MsgRefundConst:
-			if msg.(swap.MsgRefund).From.Equals(swap.SwapServiceAddress()) {
+			swapAddress, err := sdk.AccAddressFromBech32(swap.SwapServiceAddress)
+			if err != nil {
+				return ctx, err
+			}
+			if msg.(swap.MsgRefund).From.Equals(swapAddress) {
 				return next(ctx, tx, simulate)
 			}
 		}
@@ -416,7 +428,7 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 	if ctx.BlockHeight() >= updates.Update1Block {
 		if !coinKeeper.IsCoinBase(fee.Denom) {
 			if feeCoin.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
-				return coin.ErrTxBreaksMinReserveRule(coin.MinCoinReserve(ctx).String(), feeCoin.Reserve.Sub(feeInBaseCoin).String())
+				return coin.ErrTxBreaksMinReserveRule(ctx, feeCoin.Reserve.Sub(feeInBaseCoin).String())
 			}
 		}
 	}

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"crypto/sha256"
+	"fmt"
 	"math/big"
 	"strconv"
 
@@ -18,15 +19,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/mintkey"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
-)
-
-const (
-	ALGO_SECP256K1 string = "secp256k1"
 )
 
 func GetCmdIssueCheck(cdc *codec.Codec) *cobra.Command {
@@ -75,22 +73,25 @@ func GetCmdIssueCheck(cdc *codec.Codec) *cobra.Command {
 			// Retrieve private key from the keybase account
 			privKeyArmored, err := txBldr.Keybase().ExportPrivKey(cliCtx.FromName, "", "")
 			if err != nil {
-				return types.ErrUnableRetrieveArmoredPkey(cliCtx.FromName, err.Error())
+				msgError := fmt.Sprintf("unable to retrieve armored private key for account %s: %s", cliCtx.FromName, err.Error())
+				return sdkerrors.New(types.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
 			}
 			privKey, algo, err := mintkey.UnarmorDecryptPrivKey(privKeyArmored, "")
 			if err != nil {
-				return types.ErrUnableRetrievePkey(cliCtx.FromName, err.Error())
+				msgError := fmt.Sprintf("unable to retrieve private key for account %s: %s", cliCtx.FromName, err.Error())
+				return sdkerrors.New(types.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
 			}
-			if algo != ALGO_SECP256K1 {
-				return types.ErrUnableRetrieveSECPPkey(cliCtx.FromName, algo)
+			if algo != "secp256k1" {
+				msgError := fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", cliCtx.FromName, algo)
+				return sdkerrors.New(types.DefaultCodespace, sdkerrors.ErrInvalidRequest.ABCICode(), msgError)
 			}
 			privKeySecp256k1, ok := privKey.(secp256k1.PrivKeySecp256k1)
 			if !ok {
-				return types.ErrInvalidPkey()
+				panic("invalid private key")
 			}
 			privKeyECDSA, err := crypto.ToECDSA(privKeySecp256k1[:])
 			if err != nil {
-				return types.ErrInternal(err.Error())
+				panic(err)
 			}
 			// address := sdk.AccAddress(privKey.PubKey().Address())
 

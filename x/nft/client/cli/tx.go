@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -166,12 +167,12 @@ dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 
 			quantity, ok := sdk.NewIntFromString(args[3])
 			if !ok {
-				return types.ErrInvalidQuantity(args[2])
+				return errors.New("invalid quantity")
 			}
 
 			reserve, ok := sdk.NewIntFromString(args[4])
 			if !ok {
-				return types.ErrInvalidQuantity(args[2])
+				return errors.New("invalid quantity")
 			}
 
 			var allowMint bool

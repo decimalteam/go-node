@@ -35,16 +35,16 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 func handleMsgSubmitProposal(ctx sdk.Context, keeper Keeper, msg types.MsgSubmitProposal) (*sdk.Result, error) {
 	if !types.CheckProposalAddress(msg.Proposer) {
-		return nil, types.ErrNotAllowed()
+		return nil, types.ErrNotAllowed
 	}
 
 	if int64(msg.VotingStartBlock) <= ctx.BlockHeight() {
-		return nil, types.ErrStartBlock()
+		return nil, types.ErrStartBlock
 	}
 
 	proposal, err := keeper.SubmitProposal(ctx, msg.Content, msg.VotingStartBlock, msg.VotingEndBlock)
 	if err != nil {
-		return nil, types.ErrSubmitProposal(err.Error())
+		return nil, sdkerrors.Wrap(types.ErrSubmitProposal, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(
