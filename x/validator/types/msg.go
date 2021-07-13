@@ -6,7 +6,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var _ sdk.Msg = &MsgDeclareCandidate{}
+var (
+	_ sdk.Msg                            = &MsgDeclareCandidate{}
+	_ codectypes.UnpackInterfacesMessage = (*MsgDeclareCandidate)(nil)
+	_ sdk.Msg                            = &MsgDelegate{}
+	_ sdk.Msg                            = &MsgDelegateNFT{}
+	_ sdk.Msg                            = &MsgUnbondNFT{}
+	_ sdk.Msg                            = &MsgUnbond{}
+	_ sdk.Msg                            = &MsgEditCandidate{}
+)
 
 //type MsgDeclareCandidate struct {
 //	Commission    sdk.Dec        `json:"commission" yaml:"commission"`
@@ -18,16 +26,19 @@ var _ sdk.Msg = &MsgDeclareCandidate{}
 //}
 
 func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey types.PubKey, commission sdk.Dec, stake sdk.Coin, description Description, rewardAddress sdk.AccAddress) MsgDeclareCandidate {
-	pk, err := codectypes.NewAnyWithValue(pubKey)
-	if err != nil {
-		return MsgDeclareCandidate{}
+	var pkAny *codectypes.Any
+	if pubKey != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(pubKey); err != nil {
+			return MsgDeclareCandidate{}
+		}
 	}
 
 	return MsgDeclareCandidate{
 		Commission:    commission,
 		ValidatorAddr: validatorAddr.String(),
 		RewardAddr:    rewardAddress.String(),
-		PubKey:        pk,
+		PubKey:        pkAny,
 		Stake:         stake,
 		Description:   description,
 	}
@@ -63,6 +74,11 @@ func (msg MsgDeclareCandidate) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+func (msg MsgDeclareCandidate) UnpackInterfaces(c codectypes.AnyUnpacker) error {
+	var pk types.PubKey
+	return c.UnpackAny(msg.PubKey, &pk)
 }
 
 // -----------------------------------------------------------------------------------------
