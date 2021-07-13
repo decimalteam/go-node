@@ -3,12 +3,13 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/x/bank/exported"
 
 	"github.com/pkg/errors"
 
@@ -39,12 +40,14 @@ func CollectGenTxsCmd(ctx *server.Context,
 		Use:   "collect-gentxs",
 		Short: "Collect genesis txs and output a genesis.json file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			config := serverCtx.Config
-
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			cdc := clientCtx.Codec
 
+			// config := ctx.Config
+
+			// LABEL-TEST: added line for test
+			serverCtx := server.GetServerContextFromCmd(cmd)
+			config := serverCtx.Config
 			config.SetRoot(clientCtx.HomeDir)
 
 			config.Mempool.CacheSize = 100000

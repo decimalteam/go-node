@@ -84,9 +84,16 @@ func main() {
 				return err
 			}
 
+			// LABEL-TEST: added line for test
+			serverCtx := server.GetServerContextFromCmd(cmd)
+			config := serverCtx.Config
+			config.SetRoot(initClientCtx.HomeDir)
+
 			return server.InterceptConfigsPreRunHandler(cmd, "", "")
 		},
 	}
+
+	// ctx.Config.RootDir = initClientCtx.HomeDir
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(ctx, app.ModuleBasics, app.DefaultNodeHome),
@@ -109,6 +116,8 @@ func main() {
 	//rootCmd.PrsistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 	//	0, "Assert registered invariants every N blocks")
 
+	// printJSON(ctx)
+
 	if err := cmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
 		switch e := err.(type) {
 		case server.ErrorCode:
@@ -119,6 +128,14 @@ func main() {
 		}
 	}
 }
+
+// func printJSON(data interface{}) {
+// 	x, err := json.MarshalIndent(data, "", "\t")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	fmt.Println(string(x))
+// }
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, options servertypes.AppOptions) servertypes.Application {
 	skipUpgradesHeight := map[int64]bool{}

@@ -5,16 +5,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/cosmos-sdk/types/errors"
-	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
-	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/types/errors"
+	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
+	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -72,7 +73,6 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
-
 			config.SetRoot(clientCtx.HomeDir)
 
 			if err != nil {
@@ -106,6 +106,7 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 				return err
 			}
 
+			// LABEL-TEST: check this part of code
 			if err = mbm.ValidateGenesis(cdc, txEncodingConfig, genesisState); err != nil {
 				return err
 			}
@@ -220,6 +221,14 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 	cmd.MarkFlagRequired(flags.FlagName)
 	return cmd
 }
+
+// func printJSON(data interface{}) {
+// 	x, err := json.MarshalIndent(data, "", "\t")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	fmt.Println(string(x))
+// }
 
 func makeOutputFilepath(rootDir, nodeID string) (string, error) {
 	writePath := filepath.Join(rootDir, "config", "gentx")

@@ -40,10 +40,9 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-
 			serverCtx := server.GetServerContextFromCmd(cmd)
-			config := serverCtx.Config
 
+			config := serverCtx.Config
 			config.SetRoot(clientCtx.HomeDir)
 
 			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(ctx.Config)
