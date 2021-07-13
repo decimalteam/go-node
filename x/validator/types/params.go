@@ -164,7 +164,7 @@ func validateUnbondingTime(i interface{}) error {
 }
 
 func validateMaxValidators(i interface{}) error {
-	v, ok := i.(uint16)
+	v, ok := i.(uint32)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -177,7 +177,7 @@ func validateMaxValidators(i interface{}) error {
 }
 
 func validateMaxEntries(i interface{}) error {
-	v, ok := i.(uint16)
+	v, ok := i.(uint32)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -190,7 +190,7 @@ func validateMaxEntries(i interface{}) error {
 }
 
 func validateHistoricalEntries(i interface{}) error {
-	_, ok := i.(uint16)
+	_, ok := i.(uint32)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -215,7 +215,7 @@ func validateBondDenom(i interface{}) error {
 }
 
 func validateMaxDelegations(i interface{}) error {
-	v, ok := i.(uint16)
+	v, ok := i.(uint32)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
