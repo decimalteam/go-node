@@ -115,7 +115,7 @@ func (v *Validator) UnmarshalJSON(data []byte) error {
 
 	*v = Validator{
 		ValAddress:              bv.ValAddress,
-		PubKey:                  bv.PubKey, // todo
+		PubKey:                  bv.PubKey,
 		Jailed:                  bv.Jailed,
 		Tokens:                  bv.Tokens,
 		Status:                  bv.Status,
@@ -135,18 +135,18 @@ func (v Validator) MarshalYAML() (interface{}, error) {
 	pk, _ := v.PubKey.GetCachedValue().(cryptotypes.PubKey)
 
 	bs, err := yaml.Marshal(struct {
-		ValAddress /*sdk.ValAddress*/    string
-		RewardAddress /*sdk.AccAddress*/ string
-		PubKey                           string
-		Jailed                           bool
-		Status                           BondStatus
-		Tokens                           sdk.Int
-		Description                      Description
-		UnbondingHeight                  int64
-		UnbondingCompletionTime          time.Time
-		Commission                       sdk.Dec
-		AccumRewards                     sdk.Int
-		Online                           bool
+		ValAddress/*sdk.ValAddress*/ string
+		RewardAddress/*sdk.AccAddress*/ string
+		PubKey                  string
+		Jailed                  bool
+		Status                  BondStatus
+		Tokens                  sdk.Int
+		Description             Description
+		UnbondingHeight         int64
+		UnbondingCompletionTime time.Time
+		Commission              sdk.Dec
+		AccumRewards            sdk.Int
+		Online                  bool
 	}{
 		ValAddress:              v.ValAddress,
 		RewardAddress:           v.RewardAddress,
@@ -222,6 +222,11 @@ func (v Validator) GetTokens() sdk.Int       { return v.Tokens }
 func (v Validator) GetBondedTokens() sdk.Int { return v.BondedTokens() }
 func (v Validator) GetCommission() sdk.Dec   { return v.Commission }
 
+func (v Validator) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pk cryptotypes.PubKey
+	return unpacker.UnpackAny(v.PubKey, &pk)
+}
+
 type Validators []Validator
 
 func (v Validators) String() string {
@@ -252,6 +257,15 @@ func (v Validators) Swap(i, j int) {
 	it := v[i]
 	v[i] = v[j]
 	v[j] = it
+}
+
+func (v Validators) UnpackInterfaces(u codectypes.AnyUnpacker) error {
+	for i := range v {
+		if err := v[i].UnpackInterfaces(u); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // constant used in flags to indicate that description field should not be updated
@@ -350,7 +364,6 @@ func (b BondStatus) Size() int {
 	// todo marshal correctly
 	return len(b.String())
 }
-
 
 // String implements the Stringer interface for BondStatus.
 func (b BondStatus) String() string {
