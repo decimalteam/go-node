@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
 // RegisterLegacyAminoCodec registers concrete types on codec
@@ -36,14 +37,12 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgEditCandidate{},
 		&MsgSetOnline{},
 		&MsgSetOffline{},
-		&Delegation{},
-		&DelegationNFT{},
-		&UnbondingDelegationEntry{},
-		&UnbondingDelegationNFTEntry{},
 	)
 
 	registry.RegisterInterface("DelegationI",
 		(*exported.DelegationI)(nil),
+		&Delegation{},
+		&DelegationNFT{},
 	)
 	registry.RegisterInterface(
 		"UnbondingDelegationEntryI",
@@ -51,6 +50,9 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&UnbondingDelegationEntry{},
 		&UnbondingDelegationNFTEntry{},
 	)
+
+	// todo implement msg_service
+	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
 // ModuleCdc defines the module codec
