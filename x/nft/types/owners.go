@@ -25,7 +25,7 @@ type SortedStringArray []string
 // String is the string representation
 func (sa SortedStringArray) String() string { return strings.Join(sa[:], ",") }
 
-// Size is for used by protobuf
+// Size used by protobuf
 func (sa SortedStringArray) Size() int {
 	return len(sa)
 }
@@ -324,7 +324,6 @@ func (sa SortedStringArray) Sort() SortedStringArray {
 	return sa
 }
 
-
 // Sort and Findable interface for IDCollections
 
 func (idCollections IDCollections) ElAtIndex(index int) string { return idCollections[index].Denom }
@@ -343,4 +342,3 @@ func (idCollections IDCollections) Sort() IDCollections {
 	sort.Sort(idCollections)
 	return idCollections
 }
-

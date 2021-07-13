@@ -8,14 +8,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/libs/rand"
 )
 
-func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
+func GetTxCmd() *cobra.Command {
 	swapTxCmd := &cobra.Command{
 		Use:                        types2.ModuleName,
 		Short:                      fmt.Sprintf("%s transactions subcommands", types2.ModuleName),
@@ -25,15 +24,15 @@ func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	}
 
 	swapTxCmd.AddCommand(
-		GetCmdHTLT(cdc),
-		GetCmdRedeem(cdc),
-		GetRefund(cdc),
+		GetCmdHTLT(),
+		GetCmdRedeem(),
+		GetRefund(),
 	)
 
 	return swapTxCmd
 }
 
-func GetCmdHTLT(cdc *codec.LegacyAmino) *cobra.Command {
+func GetCmdHTLT() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "htlt [in | out] [recipient] [amount] [--hash] --from",
 		Short: "Create swap",
@@ -90,7 +89,7 @@ func GetCmdHTLT(cdc *codec.LegacyAmino) *cobra.Command {
 	return cmd
 }
 
-func GetCmdRedeem(cdc *codec.LegacyAmino) *cobra.Command {
+func GetCmdRedeem() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "redeem [secret] --from",
 		Short: "Redeem swap",
@@ -119,7 +118,7 @@ func GetCmdRedeem(cdc *codec.LegacyAmino) *cobra.Command {
 	return cmd
 }
 
-func GetRefund(cdc *codec.LegacyAmino) *cobra.Command {
+func GetRefund() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "refund [hash] --from",
 		Short: "Refund locked coins",
