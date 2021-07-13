@@ -1,6 +1,7 @@
 package multisig
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/multisig/types"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -67,7 +68,9 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
-func (AppModuleBasic) RegisterInterfaces(cdctypes.InterfaceRegistry) {}
+func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
+}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the validator module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(client.Context, *runtime.ServeMux) {}

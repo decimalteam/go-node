@@ -2,6 +2,8 @@ package coin
 
 import (
 	"encoding/json"
+
+	cointypes "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -67,7 +69,9 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
-func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {}
+func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	cointypes.RegisterInterfaces(registry)
+}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the coin module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
@@ -272,4 +276,3 @@ func (am AppModule) OnTimeoutPacket(
 		Events: ctx.EventManager().Events().ToABCIEvents(),
 	}, nil
 }
-

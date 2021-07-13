@@ -6,6 +6,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/nft/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/nft/client/rest"
 	"bitbucket.org/decimalteam/go-node/x/nft/simulation"
+	"bitbucket.org/decimalteam/go-node/x/nft/types"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
@@ -68,7 +69,9 @@ func (AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, config client.T
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
-func (AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {}
+func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
+}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the nft module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
@@ -170,7 +173,6 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 	return []abci.ValidatorUpdate{}
 }
 
-
 // RegisterStoreDecoder registers a decoder for nft module's types
 func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	//todo change it for correct decode store
@@ -178,7 +180,9 @@ func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simulationtypes.WeightedProposalContent { return nil }
+func (AppModule) ProposalContents(_ module.SimulationState) []simulationtypes.WeightedProposalContent {
+	return nil
+}
 
 // GenerateGenesisState creates a randomized GenState of the nft module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {

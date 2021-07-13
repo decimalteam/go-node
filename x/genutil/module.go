@@ -97,7 +97,7 @@ func NewAppModule(accountKeeper types.AccountKeeper,
 		accountKeeper:   accountKeeper,
 		validatorKeeper: validatorKeeper,
 		deliverTx:       deliverTx,
-		txConfig: txConfig,
+		txConfig:        txConfig,
 	})
 }
 
@@ -143,8 +143,9 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 // no genutil updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
-	cdc.MustUnmarshalJSON(data, &genesisState)
-	return InitGenesis(ctx, cdc, am.validatorKeeper, am.deliverTx, types2.GenesisState(genesisState), am.txConfig)
+	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	return []abci.ValidatorUpdate{}
+	//return InitGenesis(ctx, cdc, am.validatorKeeper, am.deliverTx, types2.GenesisState(genesisState), am.txConfig)
 }
 
 // module export genesis

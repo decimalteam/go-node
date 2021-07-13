@@ -5,6 +5,7 @@ package gov
 import (
 	"bitbucket.org/decimalteam/go-node/x/gov/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/gov/client/rest"
+	"bitbucket.org/decimalteam/go-node/x/gov/types"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -66,7 +67,9 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
-func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {}
+func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
+}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the gov module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}

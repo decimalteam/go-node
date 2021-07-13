@@ -6,6 +6,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/swap/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/swap/client/rest"
 	keeper2 "bitbucket.org/decimalteam/go-node/x/swap/keeper"
+	"bitbucket.org/decimalteam/go-node/x/swap/types"
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -31,7 +32,7 @@ var (
 
 // AppModuleBasic defines the basic application module used by the gov module.
 type AppModuleBasic struct {
-	cdc codec.LegacyAmino
+	cdc *codec.LegacyAmino
 }
 
 // Name returns the gov module's name.
@@ -61,7 +62,8 @@ func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConf
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
-func (a AppModuleBasic) RegisterInterfaces(cdctypes.InterfaceRegistry) {
+func (a AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
 }
 
 // RegisterRESTRoutes registers the REST routes for the swap module.
@@ -73,12 +75,12 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(client.Context, *runtime.Serve
 
 // GetTxCmd returns the root tx command for the gov module.
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd(&a.cdc)
+	return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns the root query command for the gov module.
 func (a AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd(StoreKey, &a.cdc)
+	return cli.GetQueryCmd(StoreKey, a.cdc)
 }
 
 //____________________________________________________________________________
@@ -104,10 +106,8 @@ func (AppModule) Name() string {
 }
 
 // Route returns the message routing key for the gov module.
-func (AppModule) Route() sdk.Route {
-	return sdk.NewRoute(RouterKey, func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		return &sdk.Result{}, nil
-	})
+func (am AppModule) Route() sdk.Route {
+	return sdk.NewRoute(RouterKey, NewHandler(am.keeper))
 }
 
 // RegisterInvariants registers module invariants
@@ -129,7 +129,7 @@ func (AppModule) QuerierRoute() string {
 
 // NewQuerierHandler returns no sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return keeper2.NewQuerier(am.keeper)
+	return nil
 }
 
 // LegacyQuerierHandler returns no sdk.Querier.
@@ -139,9 +139,12 @@ func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 
 // InitGenesis performs genesis initialization for the gov module. It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
-	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	json.Unmarshal(data, &genesisState)
+	fmt.Printf("state %v", genesisState)
+	genesisState = GenesisState{}
+	cdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
@@ -165,6 +168,7 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 func (am AppModule) ConsensusVersion() uint64 {
 	return 1
 }
+
 // OnChanOpenInit implements the IBCModule interface
 func (am AppModule) OnChanOpenInit(
 	ctx sdk.Context,

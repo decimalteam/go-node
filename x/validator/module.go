@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -75,7 +76,9 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
-func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {}
+func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
+}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the validator module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
@@ -100,7 +103,7 @@ func (AppModuleBasic) CreateValidatorMsgHelpers(ipDefault string) (
 }
 
 // PrepareFlagsForTxCreateValidator - used for gen-tx
-func (AppModuleBasic) PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey) (stakingCli.TxCreateValidatorConfig, error){
+func (AppModuleBasic) PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey) (stakingCli.TxCreateValidatorConfig, error) {
 	cli.PrepareFlagsForTxCreateValidator(config, nodeID, chainID, valPubKey)
 
 	return stakingCli.TxCreateValidatorConfig{}, nil
@@ -143,10 +146,8 @@ func (AppModule) Name() string {
 }
 
 // Route returns the message routing key for the validator module.
-func (AppModule) Route() sdk.Route {
-	return sdk.NewRoute(RouterKey, func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		return &sdk.Result{}, nil
-	})
+func (am AppModule) Route() sdk.Route {
+	return sdk.NewRoute(RouterKey, NewHandler(am.keeper))
 }
 
 // RegisterInvariants registers the validator module invariants.
@@ -179,8 +180,9 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
-	cdc.MustUnmarshalJSON(data, &genesisState)
-	return InitGenesis(ctx, am.accKeeper, am.keeper, am.bankKeeper, genesisState)
+	ModuleCdc. /* cdc */ MustUnmarshalJSON(data, &genesisState)
+	return []abci.ValidatorUpdate{}
+	//return InitGenesis(ctx, am.accKeeper, am.keeper, am.bankKeeper, &genesisState)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the validator
