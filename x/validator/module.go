@@ -180,9 +180,9 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
-	ModuleCdc. /* cdc */ MustUnmarshalJSON(data, &genesisState)
+	cdc.MustUnmarshalJSON(data, &genesisState)
 	return []abci.ValidatorUpdate{}
-	//return InitGenesis(ctx, am.accKeeper, am.keeper, am.bankKeeper, &genesisState)
+	return InitGenesis(ctx, am.accKeeper, am.keeper, am.bankKeeper, &genesisState)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the validator

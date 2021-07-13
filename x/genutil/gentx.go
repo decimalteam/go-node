@@ -44,13 +44,13 @@ func SetGenTxsInAppGenesisState(cdc codec.JSONCodec, txJSONEncoder sdk.TxEncoder
 // coins in the genesis accounts
 func ValidateAccountInGenesis(appGenesisState map[string]json.RawMessage,
 	genBalIterator types.GenesisBalancesIterator,
-	key sdk.AccAddress, coins sdk.Coins, cdc codec.JSONCodec) error {
+	key sdk.AccAddress, coins sdk.Coins, legacyAmino *codec.LegacyAmino, cdc codec.Codec) error {
 
 	accountIsInGenesis := false
 
 	genUtilDataBz := appGenesisState[ModuleName]
 	var genesisState types.GenesisState
-	cdc.MustUnmarshalJSON(genUtilDataBz, &genesisState)
+	legacyAmino.MustUnmarshalJSON(genUtilDataBz, &genesisState)
 
 	var err error
 	genBalIterator.IterateGenesisBalances(cdc, appGenesisState,
@@ -126,8 +126,6 @@ func InitializeNodeValidatorFiles(config *cfg.Config,
 	}
 
 	nodeID = string(nodeKey.ID())
-	// todo
-	//server.UpgradeOldPrivValFile(config)
 
 	pvKeyFile := config.PrivValidatorKeyFile()
 	if err := tos.EnsureDir(filepath.Dir(pvKeyFile), 0777); err != nil {

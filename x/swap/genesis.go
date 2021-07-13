@@ -1,11 +1,12 @@
 package swap
 
 import (
-	types2 "bitbucket.org/decimalteam/go-node/x/swap/types"
+	swaptypes "bitbucket.org/decimalteam/go-node/x/swap/types"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func ValidateGenesis(data types2.GenesisState) error {
+func ValidateGenesis(data swaptypes.GenesisState) error {
 	err := data.Params.Validate()
 	if err != nil {
 		return err
@@ -14,6 +15,8 @@ func ValidateGenesis(data types2.GenesisState) error {
 }
 
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
+	fmt.Printf("PARAMS : %s", data.Params.String())
+
 	k.SetParams(ctx, data.Params)
 
 	for _, swap := range data.Swaps {
@@ -21,10 +24,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
 	}
 }
 
-func ExportGenesis(ctx sdk.Context, k Keeper) types2.GenesisState {
+func ExportGenesis(ctx sdk.Context, k Keeper) swaptypes.GenesisState {
 	params := k.GetParams(ctx)
 	swaps := k.GetAllSwaps(ctx)
-	return types2.GenesisState{
+	return swaptypes.GenesisState{
 		Swaps:  swaps,
 		Params: params,
 	}

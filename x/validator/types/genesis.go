@@ -1,5 +1,9 @@
 package types
 
+import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+)
+
 // GenesisState - all staking state that must be provided at genesis
 //type GenesisState struct {
 //	Params               Params                `json:"params" yaml:"params"`
@@ -18,8 +22,8 @@ package types
 //	Power   int64
 //}
 
-func NewGenesisState(params Params, validators []Validator, delegations Delegations, delegationsNFT DelegationsNFT) GenesisState {
-	return GenesisState{
+func NewGenesisState(params Params, validators []Validator, delegations Delegations, delegationsNFT DelegationsNFT) *GenesisState {
+	return &GenesisState{
 		Params:         params,
 		Validators:     validators,
 		Delegations:    delegations,
@@ -32,4 +36,13 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		Params: DefaultParams(),
 	}
+}
+
+func (g GenesisState) UnpackInterfaces(c codectypes.AnyUnpacker) error {
+	for i := range g.Validators {
+		if err := g.Validators[i].UnpackInterfaces(c); err != nil {
+			return err
+		}
+	}
+	return nil
 }

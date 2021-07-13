@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	codec2 "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
 // RegisterCodec registers concrete types on codec
@@ -20,6 +21,9 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgRedeem{},
 		&MsgRefund{},
 	)
+
+	// todo implement msg_service
+	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
 // ModuleCdc defines the module codec

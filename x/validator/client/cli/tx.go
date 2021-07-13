@@ -65,7 +65,7 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 			}
 
 			var pk cryptotypes.PubKey
-			if err := clientCtx.JSONCodec.UnmarshalInterfaceJSON([]byte(args[0]), &pk); err != nil {
+			if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(args[0]), &pk); err != nil {
 				return err
 			}
 			if err != nil {

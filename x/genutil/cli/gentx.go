@@ -68,11 +68,13 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
-
-			cdc := clientCtx.JSONCodec
-
 			serverCtx := server.GetServerContextFromCmd(cmd)
+
+			cdc := clientCtx.Codec
+			amino := clientCtx.LegacyAmino
+
 			config := serverCtx.Config
+
 			config.SetRoot(clientCtx.HomeDir)
 
 			if err != nil {
@@ -139,7 +141,7 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 				return err
 			}
 
-			err = genutil.ValidateAccountInGenesis(genesisState, genBalIterator, key.GetAddress(), coins, cdc)
+			err = genutil.ValidateAccountInGenesis(genesisState, genBalIterator, key.GetAddress(), coins, amino, cdc)
 			if err != nil {
 				return err
 			}

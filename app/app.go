@@ -14,6 +14,7 @@ import (
 	"os"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
@@ -271,7 +272,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	)
 
 	app.swapKeeper = swap.NewKeeper(
-		app.cdc,
+		app.appCodec,
 		keys[swap.StoreKey],
 		swapSubspace,
 		app.coinKeeper,
@@ -383,7 +384,7 @@ func (app *newApp) RegisterTendermintService(clientCtx client.Context) {
 func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
 
-	err := json.Unmarshal(req.AppStateBytes, &genesisState)
+	err := tmjson.Unmarshal(req.AppStateBytes, &genesisState)
 	if err != nil {
 		panic(err)
 	}

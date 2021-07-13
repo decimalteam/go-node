@@ -7,7 +7,7 @@ import (
 
 func (k Keeper) SetSwap(ctx sdk.Context, swap types2.Swap) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(swap)
+	bz := k.cdc.MustMarshalLengthPrefixed(&swap)
 	store.Set(types2.GetSwapKey(*swap.HashedSecret), bz)
 }
 

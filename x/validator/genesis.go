@@ -18,7 +18,7 @@ import (
 // setting the indexes. In addition, it also sets any delegations found in
 // data. Finally, it updates the bonded validators.
 // Returns final validator set after applying all declaration and delegations
-func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Keeper, bankKeeper keeper.BaseKeeper, data GenesisState) []abci.ValidatorUpdate {
+func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Keeper, bankKeeper keeper.BaseKeeper, data *GenesisState) []abci.ValidatorUpdate {
 	var updates []abci.ValidatorUpdate
 	bondedTokens := sdk.NewCoins()
 	notBondedTokens := sdk.NewCoins()
