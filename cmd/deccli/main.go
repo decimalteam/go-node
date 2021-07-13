@@ -42,7 +42,7 @@ func main() {
 		WithInput(os.Stdin).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
-		WithViper("")
+		WithViper("AU")
 
 	cdc := encodingConfig.Amino
 
@@ -62,6 +62,7 @@ func main() {
 
 	// Add --chain-id to persistent flags and mark it required
 	rootCmd.PersistentFlags().String(flags.FlagChainID, "", "Chain ID of decimal node")
+	rootCmd.Flags().String(cli.HomeFlag, app.DefaultCLIHome, "node's home directory")
 
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, _ []string) error {
 		// set the default command outputs
@@ -71,12 +72,6 @@ func main() {
 		initClientCtx = client.ReadHomeFlag(initClientCtx, cmd)
 
 		if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
-			return err
-		}
-
-		err := initConfig(cmd)
-
-		if err != nil {
 			return err
 		}
 
@@ -90,7 +85,6 @@ func main() {
 		queryCmd(cdc),
 		txCmd(cdc),
 		flags.LineBreak,
-		//lcd.ServeCommand(cdc, registerRoutes),
 		flags.LineBreak,
 		flags.LineBreak,
 		version.NewVersionCommand(),
@@ -102,8 +96,6 @@ func main() {
 		server.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec),
 	)
 
-	rootCmd.Flags().String(cli.HomeFlag, app.DefaultNodeHome, "node's home directory")
-
 	if err := cmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
 		switch e := err.(type) {
 		case server.ErrorCode:
@@ -114,12 +106,6 @@ func main() {
 		}
 	}
 }
-
-//func registerRoutes(rs *lcd.RestServer) {
-//	client.RegisterRoutes(rs.CliCtx, rs.Mux)
-//	app.ModuleBasics.RegisterRESTRoutes(rs.CliCtx, rs.Mux)
-//	authrest.RegisterTxRoutes(rs.CliCtx, rs.Mux)
-//}
 
 func queryCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	queryCmd := &cobra.Command{
