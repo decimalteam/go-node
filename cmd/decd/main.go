@@ -46,14 +46,14 @@ var invCheckPeriod uint
 func main() {
 	encodingConfig := app.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
-		WithJSONCodec(encodingConfig.Codec).
+		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
-		WithViper("AU")
+		WithViper("")
 
 	_config := sdk.GetConfig()
 	_config.SetCoinType(60)
@@ -106,7 +106,6 @@ func main() {
 	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, exportAppStateAndTMValidators, func(cmd *cobra.Command) {})
 
 	// prepare and add flags
-	//executor := cli.PrepareBaseCmd(rootCmd, "AU", app.DefaultNodeHome)
 	//rootCmd.PrsistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 	//	0, "Assert registered invariants every N blocks")
 
@@ -254,6 +253,10 @@ func addGenesisAccountCmd(ctx *server.Context,
 			}
 
 			authGenState := authtypes.GetGenesisStateFromAppState(cdc, appState)
+
+			valState := appState[validator.ModuleName]
+
+			fmt.Printf("val state %v", valState)
 
 			accs, err := authtypes.UnpackAccounts(authGenState.Accounts)
 			if err != nil {

@@ -34,15 +34,15 @@ func main() {
 	cobra.EnableCommandSorting = false
 
 	encodingConfig := app.MakeEncodingConfig()
-	_ = client.Context{}.
-		WithJSONCodec(encodingConfig.Codec).
+	initClientCtx := client.Context{}.
+		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
-		WithViper("AU")
+		WithViper("")
 
 	cdc := encodingConfig.Amino
 
@@ -62,8 +62,25 @@ func main() {
 
 	// Add --chain-id to persistent flags and mark it required
 	rootCmd.PersistentFlags().String(flags.FlagChainID, "", "Chain ID of decimal node")
-	rootCmd.PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
-		return initConfig(rootCmd)
+
+	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, _ []string) error {
+		// set the default command outputs
+		cmd.SetOut(cmd.OutOrStdout())
+		cmd.SetErr(cmd.ErrOrStderr())
+
+		initClientCtx = client.ReadHomeFlag(initClientCtx, cmd)
+
+		if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
+			return err
+		}
+
+		err := initConfig(cmd)
+
+		if err != nil {
+			return err
+		}
+
+		return server.InterceptConfigsPreRunHandler(cmd, "", "")
 	}
 
 	// Construct Root Command
@@ -75,15 +92,19 @@ func main() {
 		flags.LineBreak,
 		//lcd.ServeCommand(cdc, registerRoutes),
 		flags.LineBreak,
-		keys.Commands(app.DefaultNodeHome),
 		flags.LineBreak,
 		version.NewVersionCommand(),
 		cli.NewCompletionCmd(rootCmd, true),
+		keys.Commands(app.DefaultNodeHome),
 	)
 
-	//executor := cli.PrepareMainCmd(rootCmd, "AU", app.DefaultCLIHome)
+	rootCmd.AddCommand(
+		server.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec),
+	)
 
-	if err := cmd.Execute(rootCmd, app.DefaultCLIHome); err != nil {
+	rootCmd.Flags().String(cli.HomeFlag, app.DefaultNodeHome, "node's home directory")
+
+	if err := cmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
 		switch e := err.(type) {
 		case server.ErrorCode:
 			os.Exit(e.Code)
@@ -105,6 +126,7 @@ func queryCmd(cdc *codec.LegacyAmino) *cobra.Command {
 		Use:     "query",
 		Aliases: []string{"q"},
 		Short:   "Querying subcommands",
+		RunE:    client.ValidateCmd,
 	}
 
 	queryCmd.AddCommand(
@@ -121,6 +143,8 @@ func queryCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	app.ModuleBasics.AddQueryCommands(coinCmd.GetQueryCmd("coin", cdc))
 	app.ModuleBasics.AddQueryCommands(multisigCmd.GetQueryCmd("multisig", cdc))
 	app.ModuleBasics.AddQueryCommands(queryCmd)
+
+	queryCmd.Flags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return queryCmd
 }
@@ -145,6 +169,8 @@ func txCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	// add modules' tx commands
 	app.ModuleBasics.AddTxCommands(coinCmd.GetTxCmd(cdc))
 	app.ModuleBasics.AddTxCommands(txCmd)
+
+	txCmd.Flags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return txCmd
 }

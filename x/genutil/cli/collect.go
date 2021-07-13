@@ -39,11 +39,13 @@ func CollectGenTxsCmd(ctx *server.Context,
 		Use:   "collect-gentxs",
 		Short: "Collect genesis txs and output a genesis.json file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			cdc := clientCtx.JSONCodec
+			serverCtx := server.GetServerContextFromCmd(cmd)
+			config := serverCtx.Config
 
-			config := ctx.Config
-			config.SetRoot(viper.GetString(cli.HomeFlag))
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			cdc := clientCtx.Codec
+
+			config.SetRoot(clientCtx.HomeDir)
 
 			config.Mempool.CacheSize = 100000
 			config.Mempool.Recheck = false

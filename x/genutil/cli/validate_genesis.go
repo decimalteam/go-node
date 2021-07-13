@@ -19,17 +19,14 @@ func ValidateGenesisCmd(ctx *server.Context, mbm module.BasicManager) *cobra.Com
 		Short: "validates the genesis file at the default location or at the location passed as an arg",
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-
-			cdc := clientCtx.JSONCodec
-
 			serverCtx := server.GetServerContextFromCmd(cmd)
-			config := serverCtx.Config
 
+			cdc := clientCtx.Codec
 
 			// Load default if passed no args, otherwise load passed file
 			var genesis string
 			if len(args) == 0 {
-				genesis = config.GenesisFile()
+				genesis = serverCtx.Config.GenesisFile()
 			} else {
 				genesis = args[0]
 			}
