@@ -35,10 +35,14 @@ type ValAddress []byte
 
 ### Coins
 
+```
 GET: /coins
 GET: /coin/{symbol}
+```
 
+```
 POST: /coin/create
+```
 ```go
 type CoinCreateReq struct {
 	BaseReq              rest.BaseReq `json:"base_req" yaml:"base_req"`
@@ -52,7 +56,9 @@ type CoinCreateReq struct {
 }
 ```
 
+```
 POST: /coin/send
+```
 ```go
 type CoinSendReq struct {
 	BaseReq  rest.BaseReq `json:"base_req" yaml:"base_req"`
@@ -62,7 +68,9 @@ type CoinSendReq struct {
 }
 ```
 
+```
 POST: /coin/sell
+```
 ```go
 type CoinSellReq struct {
 	BaseReq      rest.BaseReq `json:"base_req" yaml:"base_req"`
@@ -72,7 +80,9 @@ type CoinSellReq struct {
 }
 ```
 
+```
 POST: /coin/buy
+```
 ```go
 type CoinBuyReq struct {
 	BaseReq      rest.BaseReq `json:"base_req" yaml:"base_req"`
@@ -84,14 +94,18 @@ type CoinBuyReq struct {
 
 ### Gov
 
+```
 GET: /gov/parameters/type
 GET: /gov/proposals
 GET: /gov/proposals/proposal-id
 GET: /gov/proposals/proposal-id/tally
 GET: /gov/proposals/proposal-id/votes
 GET: /gov/proposals/proposal-id/votes/voter
+```
 
+```
 POST: /gov/proposals
+```
 ```go
 type PostProposalReq struct {
 	BaseReq          rest.BaseReq   `json:"base_req" yaml:"base_req"`
@@ -103,7 +117,9 @@ type PostProposalReq struct {
 }
 ```
 
+```
 POST: /gov/proposals/proposal-id/votes
+```
 ```go
 type VoteReq struct {
 	BaseReq rest.BaseReq   `json:"base_req" yaml:"base_req"`
@@ -114,17 +130,23 @@ type VoteReq struct {
 
 ### Multisig
 
+```
 GET: /multisig/parameters
+```
 
 ### NFT
 
+```
 GET: /nft/supply/{denom}
 GET: /nft/owner/{delegatorAddr}
 GET: /nft/owner/{delegatorAddr}/collection/{denom}
 GET: /nft/denoms
 GET: /nft/collection/{denom}/nft/{id}
+```
 
+```
 POST: /nfts/transfer
+```
 ```go
 type transferNFTReq struct {
 	BaseReq     rest.BaseReq `json:"base_req"`
@@ -135,7 +157,9 @@ type transferNFTReq struct {
 }
 ```
 
+```
 POST: /nfts/collection/{denom}/nft/{id}/metadata
+```
 ```go
 type editNFTMetadataReq struct {
 	BaseReq  rest.BaseReq `json:"base_req"`
@@ -145,7 +169,9 @@ type editNFTMetadataReq struct {
 }
 ```
 
+```
 POST: /nfts/mint
+```
 ```go
 type mintNFTReq struct {
 	BaseReq   rest.BaseReq   `json:"base_req"`
@@ -157,7 +183,9 @@ type mintNFTReq struct {
 }
 ```
 
+```
 PUT: /nfts/collection/{denom}/nft/{id}/burn
+```
 ```go
 type burnNFTReq struct {
 	BaseReq     rest.BaseReq `json:"base_req"`
@@ -169,6 +197,7 @@ type burnNFTReq struct {
 
 ### Validator
 
+```
 GET: /validator/delegators/{delegatorAddr}/delegations
 GET: /validator/delegators/{delegatorAddr}/unbonding_delegations
 GET: /validator/delegators/{delegatorAddr}/txs
@@ -182,8 +211,11 @@ GET: /validator/validators/{validatorAddr}/delegations
 GET: /validator/validators/{validatorAddr}/unbonding_delegations
 GET: /validator/pool
 GET: /validator/parameters
+```
 
+```
 POST: /validator/delegators/{delegatorAddr}/delegations
+```
 ```go
 type DelegateRequest struct {
     BaseReq          rest.BaseReq   `json:"base_req" yaml:"base_req"`
@@ -193,7 +225,9 @@ type DelegateRequest struct {
 }
 ```
 
+```
 POST: /validator/delegators/{delegatorAddr}/unbonding_delegations
+```
 ```go
 type UndelegateRequest struct {
     BaseReq          rest.BaseReq   `json:"base_req" yaml:"base_req"`
