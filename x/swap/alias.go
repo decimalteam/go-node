@@ -33,8 +33,7 @@ var (
 	RegisterCodec       = types.RegisterCodec
 	DefaultGenesisState = types.DefaultGenesisState
 
-	SwapServiceAccAddress = types.SwapServiceAccAddress
-	SwapServiceAddress    = types.SwapServiceAddress
+	SwapServiceAddress = types.SwapServiceAddress
 
 	NewKeeper = keeper.NewKeeper
 
