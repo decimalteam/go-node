@@ -99,8 +99,8 @@ $ %s query gov proposals --page=2 --limit=100
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			bechVoterAddr := viper.GetString(flagVoter)
-			strProposalStatus := viper.GetString(flagStatus)
+			bechVoterAddr, _ := cmd.Flags().GetString(flagVoter)
+			strProposalStatus, _ := cmd.Flags().GetString(flagStatus)
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 

@@ -5,24 +5,22 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/types/errors"
+	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
+	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 
-	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/cosmos-sdk/types/errors"
-	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
-	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
-
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
 	tos "github.com/tendermint/tendermint/libs/os"
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -44,8 +42,8 @@ const (
 // StakingMsgBuildingHelpers helpers for message building gen-tx command
 type StakingMsgBuildingHelpers interface {
 	CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string)
-	PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey) (cli.TxCreateValidatorConfig, error)
-	BuildCreateValidatorMsg(cliCtx client.Context, config cli.TxCreateValidatorConfig, txBldr tx.Factory) (tx.Factory, sdk.Msg, error)
+	PrepareFlagsForTxCreateValidator(set *flag.FlagSet, moniker, nodeID, chainID string, valPubKey cryptotypes.PubKey) (cli.TxCreateValidatorConfig, error)
+	BuildCreateValidatorMsg(cliCtx client.Context, config cli.TxCreateValidatorConfig, txBldr tx.Factory, fs *flag.FlagSet) (tx.Factory, sdk.Msg, error)
 }
 
 // GenTxCmd builds the application's gentx command.
@@ -81,18 +79,18 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 				return err
 			}
 
-			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(ctx.Config)
+			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(serverCtx.Config)
 			if err != nil {
 				return err
 			}
 
 			// Read --nodeID, if empty take it from priv_validator.json
-			if nodeIDString := viper.GetString(flagNodeID); nodeIDString != "" {
+			if nodeIDString, _ := cmd.Flags().GetString(flagNodeID); nodeIDString != "" {
 				nodeID = nodeIDString
 			}
 			// Read --pubkey, if empty take it from priv_validator.json
-			if valPubKeyString := viper.GetString(flagPubKey); valPubKeyString != "" {
-				_, err := sdk.GetFromBech32(sdk.Bech32PrefixConsPub, valPubKeyString)
+			if val, _ := cmd.Flags().GetString(flagPubKey); val != "" {
+				err = clientCtx.JSONMarshaler.UnmarshalJSON([]byte(val), valPubKey)
 				if err != nil {
 					return err
 				}
@@ -120,22 +118,22 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 			//	return err
 			//}
 
-			name := viper.GetString(flags.FlagName)
+			name, _ := cmd.Flags().GetString(flags.FlagName)
 			key, err := clientCtx.Keyring.Key(name)
 			if err != nil {
 				return err
 			}
 
 			// Set flags for creating gentx
-			viper.Set(flags.FlagHome, viper.GetString(flagClientHome))
+			cmd.Flags().Set(flags.FlagHome, viper.GetString(flagClientHome))
 
-			createValCfg, err := smbh.PrepareFlagsForTxCreateValidator(config, nodeID, genDoc.ChainID, valPubKey)
+			createValCfg, err := smbh.PrepareFlagsForTxCreateValidator(cmd.Flags(), config.Moniker, nodeID, genDoc.ChainID, valPubKey)
 			if err != nil {
 				return err
 			}
 
 			// Fetch the amount of coins staked
-			amount := viper.GetString(flagAmount)
+			amount, _ := cmd.Flags().GetString(flagAmount)
 			coins, err := sdk.ParseCoinsNormalized(amount)
 			if err != nil {
 				return err
@@ -151,8 +149,11 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 			clientCtx = clientCtx.WithInput(inBuf).WithFromAddress(key.GetAddress())
 
 			viper.Set(flags.FlagGenerateOnly, true)
+
+			createValCfg.Amount = amount
+
 			// create a 'create-validator' message
-			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory)
+			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, cmd.Flags())
 			if err != nil {
 				return err
 			}
@@ -195,7 +196,7 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 			}
 
 			// Fetch output file name
-			outputDocument := viper.GetString(flags.FlagOutputDocument)
+			outputDocument, _ := cmd.Flags().GetString(flags.FlagOutputDocument)
 			if outputDocument == "" {
 				outputDocument, err = makeOutputFilepath(config.RootDir, nodeID)
 				if err != nil {

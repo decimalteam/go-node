@@ -10,9 +10,6 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
-
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -72,7 +69,7 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 				return err
 			}
 
-			rewardAddressStr := viper.GetString(FlagRewardAddress)
+			rewardAddressStr, _ := cmd.Flags().GetString(FlagRewardAddress)
 			rewardAddress := sdk.AccAddress{}
 			if rewardAddressStr != "" {
 				rewardAddress, err = sdk.AccAddressFromBech32(rewardAddressStr)
@@ -133,45 +130,88 @@ func CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, 
 }
 
 // PrepareFlagsForTxCreateValidator prepare flags in config.
-func PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey) {
+func PrepareFlagsForTxCreateValidator(flagSet *flag.FlagSet, moniker, nodeID, chainID string, valPubKey cryptotypes.PubKey) (cli2.TxCreateValidatorConfig, error) {
+	c := cli2.TxCreateValidatorConfig{}
 
-	ip := viper.GetString(FlagIP)
+	ip, _ := flagSet.GetString(FlagIP)
 	if ip == "" {
 		fmt.Println("couldn't retrieve an external IP; the tx's memo field will be unset")
 	}
+	c.IP = ip
 
-	website := viper.GetString(FlagWebsite)
-	securityContact := viper.GetString(FlagSecurityContact)
-	details := viper.GetString(FlagDetails)
-	identity := viper.GetString(FlagIdentity)
-	rewardAddr := viper.GetString(FlagRewardAddress)
+	website, err := flagSet.GetString(FlagWebsite)
+	if err != nil {
+		return c, err
+	}
+	c.Website = website
 
-	viper.Set(flags.FlagChainID, chainID)
+	securityContact, err := flagSet.GetString(FlagSecurityContact)
+	if err != nil {
+		return c, err
+	}
+	c.SecurityContact = securityContact
+
+	details, err := flagSet.GetString(FlagDetails)
+	if err != nil {
+		return c, err
+	}
+	c.SecurityContact = details
+
+	identity, err := flagSet.GetString(FlagIdentity)
+	if err != nil {
+		return c, err
+	}
+	c.Identity = identity
+
+	c.Amount, err = flagSet.GetString(FlagAmount)
+	if err != nil {
+		return c, err
+	}
+
+	c.CommissionRate, err = flagSet.GetString(FlagCommissionRate)
+	if err != nil {
+		return c, err
+	}
+
+	c.NodeID = nodeID
+	c.PubKey = valPubKey.String()
+	c.Website = website
+	c.SecurityContact = securityContact
+	c.Details = details
+	c.Identity = identity
+	c.ChainID = chainID
+	c.Moniker = moniker
+
+	if c.Amount == "" {
+		c.Amount = types.TokensFromConsensusPower(100).String()+types.DefaultBondDenom
+	}
+
+	if c.CommissionRate == "" {
+		c.CommissionRate = "0.1"
+	}
+
+	if c.Moniker == "" {
+		c.Moniker, _ = flagSet.GetString(flags.FlagName)
+	}
+
+	//viper.Set(flags.FlagChainID, chainID)
+	//viper.Set(FlagNodeID, nodeID)
+	//viper.Set(FlagIP, ip)
+	//viper.Set(FlagPubKey, sdk.MustBech32ifyAddressBytes(sdk.Bech32PrefixConsPub, valPubKey.Bytes()))
+	//viper.Set(FlagMoniker, moniker)
+	//viper.Set(FlagWebsite, website)
+	//viper.Set(FlagSecurityContact, securityContact)
+	//viper.Set(FlagDetails, details)
+	//viper.Set(FlagIdentity, identity)
 	viper.Set(flags.FlagFrom, viper.GetString(flags.FlagName))
-	viper.Set(FlagNodeID, nodeID)
-	viper.Set(FlagIP, ip)
-	viper.Set(FlagPubKey, sdk.MustBech32ifyAddressBytes(sdk.Bech32PrefixConsPub, valPubKey.Bytes()))
-	viper.Set(FlagMoniker, config.Moniker)
-	viper.Set(FlagWebsite, website)
-	viper.Set(FlagSecurityContact, securityContact)
-	viper.Set(FlagDetails, details)
-	viper.Set(FlagIdentity, identity)
-	viper.Set(FlagRewardAddress, rewardAddr)
+	viper.Set(FlagRewardAddress, viper.Get(FlagRewardAddress))
 
-	if config.Moniker == "" {
-		viper.Set(FlagMoniker, viper.GetString(flags.FlagName))
-	}
-	if viper.GetString(FlagAmount) == "" {
-		viper.Set(FlagAmount, types.TokensFromConsensusPower(100).String()+types.DefaultBondDenom)
-	}
-	if viper.GetString(FlagCommissionRate) == "" {
-		viper.Set(FlagCommissionRate, "0.1")
-	}
+	return c, nil
 }
 
 // BuildCreateValidatorMsg makes a new MsgCreateValidator.
-func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValidatorConfig, txBldr tx.Factory) (tx.Factory, sdk.Msg, error) {
-	amounstStr := viper.GetString(FlagAmount)
+func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValidatorConfig, txBldr tx.Factory, fs *flag.FlagSet) (tx.Factory, sdk.Msg, error) {
+	amounstStr := config.Amount
 	amount, err := sdk.ParseCoinNormalized(amounstStr)
 	if err != nil {
 		return txBldr, nil, err
@@ -179,30 +219,30 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValid
 
 	valAddr := clientCtx.GetFromAddress()
 	rewardAddr := valAddr
-	rewardAddrStr := viper.GetString(FlagRewardAddress)
+	rewardAddrStr, _ := fs.GetString(FlagRewardAddress)
 	if len(rewardAddrStr) > 0 {
 		rewardAddr, err = sdk.AccAddressFromBech32(rewardAddrStr)
 		if err != nil {
 			return txBldr, nil, err
 		}
 	}
-	pkStr := viper.GetString(FlagPubKey)
+	pkStr := config.PubKey
 
 	var pk cryptotypes.PubKey
+
 	if err := clientCtx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(pkStr), &pk); err != nil {
 		return txBldr, nil, err
 	}
-
 	description := types.NewDescription(
-		viper.GetString(FlagMoniker),
-		viper.GetString(FlagIdentity),
-		viper.GetString(FlagWebsite),
-		viper.GetString(FlagSecurityContact),
-		viper.GetString(FlagDetails),
+		config.Moniker,
+		config.Identity,
+		config.Website,
+		config.SecurityContact,
+		config.Details,
 	)
 
 	// get the initial validator commission parameters
-	rateStr := viper.GetString(FlagCommissionRate)
+	rateStr := config.CommissionRate
 	commission, err := sdk.NewDecFromStr(rateStr)
 	if err != nil {
 		return txBldr, nil, err
@@ -211,8 +251,8 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValid
 	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, description, rewardAddr)
 
 	// NOTE: No need to show public IP of the node
-	// ip := viper.GetString(FlagIP)
-	// nodeID := viper.GetString(FlagNodeID)
+	// ip, _ := cmd.Flags().GetString(FlagIP)
+	// nodeID, _ := cmd.Flags().GetString(FlagNodeID)
 	// if nodeID != "" && ip != "" {
 	// 	txBldr = txBldr.WithMemo(fmt.Sprintf("%s@%s:26656", nodeID, ip))
 	// }

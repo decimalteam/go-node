@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -113,7 +112,7 @@ $ %s tx %s edit-metadata crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd42
 
 			denom := args[0]
 			tokenID := args[1]
-			tokenURI := viper.GetString(flagTokenURI)
+			tokenURI, _ := cmd.Flags().GetString(flagTokenURI)
 
 			msg := types2.NewMsgEditNFTMetadata(clientCtx.GetFromAddress(), tokenID, denom, tokenURI)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
@@ -155,7 +154,7 @@ dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 				return err
 			}
 
-			tokenURI := viper.GetString(flagTokenURI)
+			tokenURI, _ := cmd.Flags().GetString(flagTokenURI)
 
 			quantity, ok := sdk.NewIntFromString(args[3])
 			if !ok {

@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	cli2 "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
@@ -15,18 +16,14 @@ import (
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
-
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/validator/client/cli"
+	"bitbucket.org/decimalteam/go-node/x/validator/client/rest"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	stakingCli "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
-
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/validator/client/cli"
-	"bitbucket.org/decimalteam/go-node/x/validator/client/rest"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // Type check to ensure the interface is properly implemented
@@ -99,10 +96,14 @@ func (AppModuleBasic) CreateValidatorMsgHelpers(ipDefault string) (
 }
 
 // PrepareFlagsForTxCreateValidator - used for gen-tx
-func (AppModuleBasic) PrepareFlagsForTxCreateValidator(config *cfg.Config, nodeID, chainID string, valPubKey crypto.PubKey) (stakingCli.TxCreateValidatorConfig, error) {
-	cli.PrepareFlagsForTxCreateValidator(config, nodeID, chainID, valPubKey)
+func (AppModuleBasic) PrepareFlagsForTxCreateValidator(cmd *flag.FlagSet, moniker, nodeID, chainID string, valPubKey cryptotypes.PubKey) (stakingCli.TxCreateValidatorConfig, error) {
+	c, err := cli.PrepareFlagsForTxCreateValidator(cmd, moniker, nodeID, chainID, valPubKey)
 
-	return stakingCli.TxCreateValidatorConfig{}, nil
+	if err != nil {
+		return stakingCli.TxCreateValidatorConfig{}, err
+	}
+
+	return c, nil
 }
 
 // BuildCreateValidatorMsg - used for gen-tx
@@ -110,8 +111,9 @@ func (AppModuleBasic) BuildCreateValidatorMsg(
 	cliCtx client.Context,
 	config cli2.TxCreateValidatorConfig,
 	txBldr tx.Factory,
+	fs *flag.FlagSet,
 ) (tx.Factory, sdk.Msg, error) {
-	return cli.BuildCreateValidatorMsg(cliCtx, config, txBldr)
+	return cli.BuildCreateValidatorMsg(cliCtx, config, txBldr, fs)
 }
 
 // AppModule implements an application module for the validator module.

@@ -14,13 +14,11 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/cli"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
+	cosmosflags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -60,7 +58,9 @@ func CollectGenTxsCmd(ctx *server.Context,
 
 			config.P2P.Seeds = "8a2cc38f5264e9699abb8db91c9b4a4a061f000d@decimal-node-1.devnet.decimalchain.com:26656 (http://8a2cc38f5264e9699abb8db91c9b4a4a061f000d@decimal-node1.devnet.decimalchain.com:26656/),27fcfef145b3717c5d639ec72fb12f9c43da98f0@decimal-node-2.devnet.decimalchain.com:26656 (http://,27fcfef145b3717c5d639ec72fb12f9c43da98f0@decimal-node2.devnet.decimalchain.com:26656/)"
 
-			name := viper.GetString(flags.FlagName)
+			flags := cmd.Flags()
+
+			name, _ := flags.GetString(cosmosflags.FlagName)
 			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(config)
 			if err != nil {
 				return err
@@ -71,7 +71,7 @@ func CollectGenTxsCmd(ctx *server.Context,
 				return err
 			}
 
-			genTxsDir := viper.GetString(flagGenTxDir)
+			genTxsDir, _ := flags.GetString(flagGenTxDir)
 			if genTxsDir == "" {
 				genTxsDir = filepath.Join(config.RootDir, "config", "gentx")
 			}

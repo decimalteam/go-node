@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/libs/rand"
 )
 
@@ -54,7 +53,7 @@ func GetCmdHTLT() *cobra.Command {
 
 			var hash [32]byte
 			var secret [32]byte
-			hashStr := viper.GetString(FlagHash)
+			hashStr, _ := cmd.Flags().GetString(FlagHash)
 			if hashStr == "" {
 				copy(secret[:], rand.Bytes(32))
 				hash = sha256.Sum256(secret[:])

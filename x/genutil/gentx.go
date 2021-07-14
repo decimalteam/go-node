@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"path/filepath"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
 	tos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
@@ -118,7 +119,7 @@ func DeliverGenTxs(ctx sdk.Context, cdc codec.JSONMarshaler, genTxs []json.RawMe
 
 // InitializeNodeValidatorFiles creates private validator and p2p configuration files.
 func InitializeNodeValidatorFiles(config *cfg.Config,
-) (nodeID string, valPubKey crypto.PubKey, err error) {
+) (nodeID string, valPubKey cryptotypes.PubKey, err error) {
 
 	nodeKey, err := p2p.LoadOrGenNodeKey(config.NodeKeyFile())
 	if err != nil {
@@ -137,11 +138,13 @@ func InitializeNodeValidatorFiles(config *cfg.Config,
 		return nodeID, valPubKey, nil
 	}
 
-	valPubKey, err = privval.LoadOrGenFilePV(pvKeyFile, pvStateFile).GetPubKey()
+	tmValPubKey, err := privval.LoadOrGenFilePV(pvKeyFile, pvStateFile).GetPubKey()
 
 	if err != nil {
 		return nodeID, valPubKey, err
 	}
+
+	valPubKey, err = cryptocodec.FromTmPubKeyInterface(tmValPubKey)
 
 	return nodeID, valPubKey, nil
 }

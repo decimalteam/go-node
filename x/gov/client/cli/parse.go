@@ -3,13 +3,14 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"io/ioutil"
 )
 
-func parseSubmitProposalFlags() (*proposal, error) {
+func parseSubmitProposalFlags(fs *flag.FlagSet) (*proposal, error) {
 	proposal := &proposal{}
-	proposalFile := viper.GetString(FlagProposal)
+	proposalFile, _ := fs.GetString(FlagProposal)
 
 	if proposalFile == "" {
 		proposal.Title = viper.GetString(FlagTitle)

@@ -99,7 +99,7 @@ $ %s tx gov submit-proposal --title="Test Proposal" --description="My awesome pr
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc).WithInput(inBuf)
 
-			proposal, err := parseSubmitProposalFlags()
+			proposal, err := parseSubmitProposalFlags(cmd.Flags())
 			if err != nil {
 				return err
 			}

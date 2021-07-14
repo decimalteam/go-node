@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/client/cli"
 	"bufio"
 	"bytes"
 	"encoding/json"
@@ -51,11 +52,11 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			}
 
 			// Read --nodeID, if empty take it from priv_validator.json
-			if nodeIDString := viper.GetString(flagNodeID); nodeIDString != "" {
+			if nodeIDString, _ := cmd.Flags().GetString(flagNodeID); nodeIDString != "" {
 				nodeID = nodeIDString
 			}
 			// Read --pubkey, if empty take it from priv_validator.json
-			if valPubKeyString := viper.GetString(flagPubKey); valPubKeyString != "" {
+			if valPubKeyString, _ := cmd.Flags().GetString(flagPubKey); valPubKeyString != "" {
 				_, err := sdk.GetFromBech32(sdk.Bech32PrefixConsPub, valPubKeyString)
 				if err != nil {
 					return err
@@ -63,7 +64,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			}
 
 			// Read chain ID
-			chainID := viper.GetString(flags.FlagChainID)
+			chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
 			if len(chainID) == 0 {
 				return fmt.Errorf("chain ID must be specified")
 			}
@@ -73,7 +74,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 				return err
 			}
 
-			name := viper.GetString(flags.FlagName)
+			name, _ := cmd.Flags().GetString(flags.FlagName)
 			key, err := clientCtx.Keyring.Key(name)
 			if err != nil {
 				return err
@@ -81,17 +82,22 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 
 			// Set flags for creating declare validator candidate tx
 			viper.Set(flags.FlagHome, viper.GetString(flagClientHome))
-			smbh.PrepareFlagsForTxCreateValidator(config, nodeID, chainID, valPubKey)
+			//smbh.PrepareFlagsForTxCreateValidator(cmd.Flags(), config.Moniker, nodeID, chainID, valPubKey)
 
 			// Fetch the amount of coins staked
-			amount := viper.GetString(flagAmount)
+			amount, _ := cmd.Flags().GetString(flagAmount)
 			_, err = sdk.ParseCoinNormalized(amount)
 			if err != nil {
 				return err
 			}
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 
-			createValCfg, err := smbh.PrepareFlagsForTxCreateValidator(config, nodeID, chainID, valPubKey)
+			moniker := config.Moniker
+			if m, _ := cmd.Flags().GetString(cli.FlagMoniker); m != "" {
+				moniker = m
+			}
+
+			createValCfg, err := smbh.PrepareFlagsForTxCreateValidator(cmd.Flags(), moniker, nodeID, chainID, valPubKey)
 			if err != nil {
 				return err
 			}
@@ -102,7 +108,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			viper.Set(flags.FlagGenerateOnly, true)
 
 			// create a 'create-validator' message
-			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory)
+			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, cmd.Flags())
 			if err != nil {
 				return err
 			}
@@ -127,7 +133,6 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			}
 
 			// sign the transaction and write it to the output file
-			// fixme (tx.Sign)
 			txBuilder, err := clientCtx.TxConfig.WrapTxBuilder(stdTx)
 			if err != nil {
 				return err
