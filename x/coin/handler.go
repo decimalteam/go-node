@@ -1,6 +1,7 @@
 package coin
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bytes"
 	"encoding/base64"
 	"fmt"
@@ -204,8 +205,12 @@ func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types.MsgUpdateCoin) (*s
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
 	if ctx.BlockHeight() >= 430 {
 		err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
-		if err != nil {
-			return nil, types.ErrInternal(err.Error())
+		if ctx.BlockHeight() >= updates.Update2Block {
+			if err != nil {
+				return nil, types.ErrInternal(err.Error())
+			}
+		} else {
+			return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
 		}
 	} else {
 		err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin}.Add(msg.Coin))
