@@ -989,11 +989,16 @@ func TestConvertAddr(t *testing.T) {
 	_config := sdk.GetConfig()
 	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
 
-	pubkey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, "dxvalconspub1zcjduepqnm4fvecksk6yvfeanmgdez2dyltqgqz47xs2gm6gzxfy7uzt456qzdh7pj")
+	pubkey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, "dxvalconspub1zcjduepqvgm3w28q3nx8vle4p578lau9zx749glqtyrmnqfeaufzqlhy3x5sgg8523")
 	require.NoError(t, err)
 
 	consAddr := sdk.GetConsAddress(pubkey)
 
 	t.Log(consAddr)
 	t.Log(consAddr.String())
+
+	addr, err := sdk.ConsAddressFromHex("30B3070F0F4203A88A75EE36FABB2DE09F50625A")
+	require.NoError(t, err)
+
+	t.Log(addr.String())
 }
