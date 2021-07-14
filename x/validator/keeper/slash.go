@@ -400,7 +400,7 @@ func (k Keeper) getValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress
 		found = false
 		return
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &info)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &info)
 	found = true
 	return
 }
@@ -408,7 +408,7 @@ func (k Keeper) getValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress
 // Stored by *validator* address (not operator address)
 func (k Keeper) setValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress, info types.ValidatorSigningInfo) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(info)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(info)
 	store.Set(types.GetValidatorSigningInfoKey(address), bz)
 }
 
@@ -431,14 +431,14 @@ func (k Keeper) getValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.Con
 		missed = false
 		return
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &missed)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &missed)
 	return
 }
 
 // Stored by *validator* address (not operator address)
 func (k Keeper) setValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress, index int64, missed bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(missed)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(missed)
 	store.Set(types.GetValidatorMissedBlockBitArrayKey(address, index), bz)
 }
 
@@ -523,7 +523,7 @@ func (k Keeper) HandleDoubleSign(ctx sdk.Context, addr crypto.Address, infractio
 func (k Keeper) getPubkey(ctx sdk.Context, address crypto.Address) (crypto.PubKey, error) {
 	store := ctx.KVStore(k.storeKey)
 	var pubkey crypto.PubKey
-	err := k.cdc.UnmarshalLengthPrefixed(store.Get(types.GetAddrPubkeyRelationKey(address)), &pubkey)
+	err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(types.GetAddrPubkeyRelationKey(address)), &pubkey)
 	if err != nil {
 		return nil, fmt.Errorf("address %s not found", sdk.ConsAddress(address))
 	}
@@ -537,6 +537,6 @@ func (k Keeper) addPubkey(ctx sdk.Context, pubkey cryptotypes.PubKey) {
 
 func (k Keeper) setAddrPubkeyRelation(ctx sdk.Context, addr crypto.Address, pubkey cryptotypes.PubKey) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(pubkey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(pubkey)
 	store.Set(types.GetAddrPubkeyRelationKey(addr), bz)
 }

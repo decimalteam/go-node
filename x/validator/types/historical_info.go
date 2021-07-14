@@ -27,7 +27,7 @@ func NewHistoricalInfo(header tmproto.Header, valSet []Validator) HistoricalInfo
 
 // MustMarshalHistoricalInfo wll marshal historical info and panic on error
 func MustMarshalHistoricalInfo(cdc *codec.LegacyAmino, hi HistoricalInfo) []byte {
-	return cdc.MustMarshalLengthPrefixed(hi)
+	return cdc.MustMarshalBinaryLengthPrefixed(hi)
 }
 
 // MustUnmarshalHistoricalInfo wll unmarshal historical info and panic on error
@@ -41,7 +41,7 @@ func MustUnmarshalHistoricalInfo(cdc *codec.LegacyAmino, value []byte) Historica
 
 // UnmarshalHistoricalInfo will unmarshal historical info and return any error
 func UnmarshalHistoricalInfo(cdc *codec.LegacyAmino, value []byte) (hi HistoricalInfo, err error) {
-	err = cdc.UnmarshalLengthPrefixed(value, &hi)
+	err = cdc.UnmarshalBinaryLengthPrefixed(value, &hi)
 	return hi, err
 }
 

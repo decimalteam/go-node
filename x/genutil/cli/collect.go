@@ -41,7 +41,7 @@ func CollectGenTxsCmd(ctx *server.Context,
 		Short: "Collect genesis txs and output a genesis.json file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			cdc := clientCtx.Codec
+			cdc := clientCtx.JSONMarshaler
 
 			// config := ctx.Config
 
@@ -129,7 +129,7 @@ func displayInfo(info printInfo) error {
 }
 
 // GenAppStateFromConfig gets the genesis app state from the config
-func GenAppStateFromConfig(cdc codec.JSONCodec, txEncodingConfig client.TxEncodingConfig, config *cfg.Config,
+func GenAppStateFromConfig(cdc codec.JSONMarshaler, txEncodingConfig client.TxEncodingConfig, config *cfg.Config,
 	initCfg genutil.InitConfig, genDoc tmtypes.GenesisDoc,
 	genBalancesIterator types.GenesisBalancesIterator,
 ) (appState json.RawMessage, err error) {
@@ -168,7 +168,7 @@ func GenAppStateFromConfig(cdc codec.JSONCodec, txEncodingConfig client.TxEncodi
 
 // CollectStdTxs processes and validates application's genesis StdTxs and returns
 // the list of appGenTxs, and persistent peers required to generate genesis.json.
-func CollectStdTxs(cdc codec.JSONCodec, txJSONDecoder sdk.TxDecoder, moniker, genTxsDir string,
+func CollectStdTxs(cdc codec.JSONMarshaler, txJSONDecoder sdk.TxDecoder, moniker, genTxsDir string,
 	genDoc tmtypes.GenesisDoc, genAccIterator types.GenesisBalancesIterator,
 ) (appGenTxs []sdk.Tx, err error) {
 

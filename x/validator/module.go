@@ -6,13 +6,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	cli2 "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gorilla/mux"
@@ -56,12 +52,12 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 // DefaultGenesis returns default genesis state as raw bytes for the validator
 // module.
-func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
+func (AppModuleBasic) DefaultGenesis(_ codec.JSONMarshaler) json.RawMessage {
 	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the validator module.
-func (AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(marshaler codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var data GenesisState
 	err := ModuleCdc.UnmarshalJSON(bz, &data)
 	if err != nil {
@@ -178,7 +174,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 
 // InitGenesis performs genesis initialization for the validator module. It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 	return []abci.ValidatorUpdate{}
@@ -187,7 +183,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 
 // ExportGenesis returns the exported genesis state as raw bytes for the validator
 // module.
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
 	return cdc.MustMarshalJSON(&gs)
 }
@@ -205,106 +201,4 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 
 func (am AppModule) ConsensusVersion() uint64 {
 	return 1
-}
-
-// OnChanOpenInit implements the IBCModule interface
-func (am AppModule) OnChanOpenInit(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID string,
-	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	version string,
-) error {
-
-	return nil
-}
-
-// OnChanOpenTry implements the IBCModule interface
-func (am AppModule) OnChanOpenTry(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID,
-	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	version,
-	counterpartyVersion string,
-) error {
-	return nil
-}
-
-// OnChanOpenAck implements the IBCModule interface
-func (am AppModule) OnChanOpenAck(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-	counterpartyVersion string,
-) error {
-	return nil
-}
-
-// OnChanOpenConfirm implements the IBCModule interface
-func (am AppModule) OnChanOpenConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
-	return nil
-}
-
-// OnChanCloseInit implements the IBCModule interface
-func (am AppModule) OnChanCloseInit(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
-	// Disallow user-initiated channel closing for transfer channels
-	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
-}
-
-// OnChanCloseConfirm implements the IBCModule interface
-func (am AppModule) OnChanCloseConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
-	return nil
-}
-
-// OnRecvPacket implements the IBCModule interface. A successful acknowledgement
-// is returned if the packet data is succesfully decoded and the receive application
-// logic returns without error.
-func (am AppModule) OnRecvPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
-) ibcexported.Acknowledgement {
-	return nil
-}
-
-// OnAcknowledgementPacket implements the IBCModule interface
-func (am AppModule) OnAcknowledgementPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	acknowledgement []byte,
-	relayer sdk.AccAddress,
-) (*sdk.Result, error) {
-	return &sdk.Result{
-		Events: ctx.EventManager().Events().ToABCIEvents(),
-	}, nil
-}
-
-// OnTimeoutPacket implements the IBCModule interface
-func (am AppModule) OnTimeoutPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
-) (*sdk.Result, error) {
-	return &sdk.Result{
-		Events: ctx.EventManager().Events().ToABCIEvents(),
-	}, nil
 }

@@ -35,7 +35,7 @@ func main() {
 
 	encodingConfig := app.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
-		WithCodec(encodingConfig.Codec).
+		WithJSONMarshaler(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
@@ -75,7 +75,7 @@ func main() {
 			return err
 		}
 
-		return server.InterceptConfigsPreRunHandler(cmd, "", "")
+		return server.InterceptConfigsPreRunHandler(cmd)
 	}
 
 	// Construct Root Command
@@ -90,10 +90,6 @@ func main() {
 		version.NewVersionCommand(),
 		cli.NewCompletionCmd(rootCmd, true),
 		keys.Commands(app.DefaultNodeHome),
-	)
-
-	rootCmd.AddCommand(
-		server.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec),
 	)
 
 	if err := cmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {

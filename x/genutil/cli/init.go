@@ -35,7 +35,7 @@ func InitCmd(ctx *server.Context, mbm module.BasicManager,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			cdc := clientCtx.Codec
+			cdc := clientCtx.JSONMarshaler
 
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config

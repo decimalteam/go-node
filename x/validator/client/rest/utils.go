@@ -3,7 +3,7 @@ package rest
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -32,7 +32,7 @@ func queryTxs(clientCtx client.Context, action string, delegatorAddr string) (*s
 		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeySender, delegatorAddr),
 	}
 
-	return tx.QueryTxsByEvents(clientCtx, events, page, limit, "desc")
+	return client2.QueryTxsByEvents(clientCtx, events, page, limit, "desc")
 }
 
 func queryBonds(clientCtx client.Context, endpoint string) http.HandlerFunc {

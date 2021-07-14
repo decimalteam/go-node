@@ -8,10 +8,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/nft/simulation"
 	"bitbucket.org/decimalteam/go-node/x/nft/types"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	channeltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/modules/core/exported"
-
 	//"bitbucket.org/decimalteam/go-node/x/nft/simulation"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -54,12 +50,12 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 // DefaultGenesis default genesis state
-func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
+func (AppModuleBasic) DefaultGenesis(_ codec.JSONMarshaler) json.RawMessage {
 	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
 }
 
 // ValidateGenesis module validate genesis
-func (AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(marshaler codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var data GenesisState
 	err := ModuleCdc.UnmarshalJSON(bz, &data)
 	if err != nil {
@@ -152,7 +148,7 @@ func (am AppModule) LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier {
 }
 
 // InitGenesis module init-genesis
-func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.keeper, genesisState)
@@ -160,7 +156,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONCodec, data json.Ra
 }
 
 // ExportGenesis module export genesis
-func (am AppModule) ExportGenesis(ctx sdk.Context, _ codec.JSONCodec) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx sdk.Context, _ codec.JSONMarshaler) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
 	return ModuleCdc.MustMarshalJSON(gs)
 }
@@ -196,44 +192,4 @@ func (AppModule) RandomizedParams(_ *rand.Rand) []simulationtypes.ParamChange { 
 func (am AppModule) WeightedOperations(_ module.SimulationState) []simulationtypes.WeightedOperation {
 	return nil
 	//return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
-}
-
-func (am AppModule) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string) error {
-	return nil
-}
-
-func (am AppModule) OnChanOpenTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version, counterpartyVersion string) error {
-	return nil
-}
-
-func (am AppModule) OnChanOpenAck(ctx sdk.Context, portID, channelID string, counterpartyVersion string) error {
-	return nil
-}
-
-func (am AppModule) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
-	return nil
-}
-
-func (am AppModule) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
-	return nil
-}
-
-func (am AppModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
-	return nil
-}
-
-func (am AppModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
-	return nil
-}
-
-func (am AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) (*sdk.Result, error) {
-	return &sdk.Result{}, nil
-}
-
-func (am AppModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) (*sdk.Result, error) {
-	return &sdk.Result{}, nil
-}
-
-func (am AppModule) ConsensusVersion() uint64 {
-	return 1
 }

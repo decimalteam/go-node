@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"strings"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -22,7 +21,7 @@ import (
 )
 
 // Ante
-func NewAnteHandler(ak keeper.AccountKeeper, bankKeeper bankKeeper.Keeper, vk validator.Keeper, ck coin.Keeper, consumer ante.SignatureVerificationGasConsumer) sdk.AnteHandler {
+func NewAnteHandler(ak keeper.AccountKeeper, bankKeeper bankKeeper.Keeper, bankViewKeeper bankKeeper.ViewKeeper, vk validator.Keeper, ck coin.Keeper, consumer ante.SignatureVerificationGasConsumer) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		NewCountMsgDecorator(),
@@ -33,7 +32,7 @@ func NewAnteHandler(ak keeper.AccountKeeper, bankKeeper bankKeeper.Keeper, vk va
 		NewPreCreateAccountDecorator(ak), // should be before SetPubKeyDecorator
 		ante.NewSetPubKeyDecorator(ak),   // SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewValidateSigCountDecorator(ak),
-		NewFeeDecorator(ck, ak, bankKeeper, vk),
+		NewFeeDecorator(ck, ak, bankKeeper, bankViewKeeper, vk),
 		ante.NewSigGasConsumeDecorator(ak, consumer),
 		ante.NewSigVerificationDecorator(ak, nil),
 		NewPostCreateAccountDecorator(ak),      // should be after SigVerificationDecorator
@@ -188,10 +187,11 @@ func SetGasMeter(simulate bool, ctx sdk.Context, gasLimit uint64) sdk.Context {
 }
 
 type FeeDecorator struct {
-	ck coin.Keeper
-	bk bankKeeper.Keeper
-	ak keeper.AccountKeeper
-	vk validator.Keeper
+	ck             coin.Keeper
+	bk             bankKeeper.Keeper
+	bankViewKeeper bankKeeper.ViewKeeper
+	ak             keeper.AccountKeeper
+	vk             validator.Keeper
 }
 
 // FeeTx defines the interface to be implemented by Tx to use the FeeDecorators
@@ -203,12 +203,13 @@ type FeeTx interface {
 }
 
 // NewSetUpContextDecorator creates new SetUpContextDecorator.
-func NewFeeDecorator(ck coin.Keeper, ak keeper.AccountKeeper, bankKeeper bankKeeper.Keeper, vk validator.Keeper) FeeDecorator {
+func NewFeeDecorator(ck coin.Keeper, ak keeper.AccountKeeper, bankKeeper bankKeeper.Keeper, bankViewKeeper bankKeeper.ViewKeeper, vk validator.Keeper) FeeDecorator {
 	return FeeDecorator{
-		ck: ck,
-		bk: bankKeeper,
-		ak: ak,
-		vk: vk,
+		ck:             ck,
+		bk:             bankKeeper,
+		ak:             ak,
+		bankViewKeeper: bankViewKeeper,
+		vk:             vk,
 	}
 }
 
@@ -319,7 +320,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		if commissionInBaseCoin.IsZero() {
 			return next(ctx, tx, simulate)
 		}
-		err = DeductFees(fd.bk, fd.ak, ctx, feePayerAcc, fd.ck, sdk.NewCoin(fd.vk.BondDenom(ctx), commissionInBaseCoin), commissionInBaseCoin)
+		err = DeductFees(fd.bk, fd.bankViewKeeper, fd.ak, ctx, feePayerAcc, fd.ck, sdk.NewCoin(fd.vk.BondDenom(ctx), commissionInBaseCoin), commissionInBaseCoin)
 		if err != nil {
 			return ctx, err
 		}
@@ -365,7 +366,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	}
 
 	// deduct the fees
-	err = DeductFees(fd.bk, fd.ak, ctx, feePayerAcc, fd.ck, f, feeInBaseCoin)
+	err = DeductFees(fd.bk, fd.bankViewKeeper, fd.ak, ctx, feePayerAcc, fd.ck, f, feeInBaseCoin)
 	if err != nil {
 		return ctx, err
 	}
@@ -386,15 +387,8 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 //
 // NOTE: We could use the BankKeeper (in addition to the AccountKeeper, because
 // the BankKeeper doesn't give us accounts), but it seems easier to do this.
-func DeductFees(bankKeeper bankKeeper.Keeper, accKeeper keeper.AccountKeeper, ctx sdk.Context, acc client.Account, coinKeeper coin.Keeper, fee sdk.Coin, feeInBaseCoin sdk.Int) error {
-	//blockTime := ctx.BlockHeader().Time
-	var coins sdk.Coins
-
-	bankKeeper.IterateTotalSupply(ctx, func (c sdk.Coin) bool {
-		coins = coins.Add(c)
-
-		return true
-	})
+func DeductFees(bankKeeper bankKeeper.Keeper, bankViewKeeper bankKeeper.ViewKeeper, accKeeper keeper.AccountKeeper, ctx sdk.Context, acc client.Account, coinKeeper coin.Keeper, fee sdk.Coin, feeInBaseCoin sdk.Int) error {
+	coins := bankViewKeeper.GetAllBalances(ctx, acc.GetAddress())
 
 	feeCoin, err := coinKeeper.GetCoin(ctx, strings.ToLower(fee.Denom))
 	if err != nil {
@@ -420,13 +414,7 @@ func DeductFees(bankKeeper bankKeeper.Keeper, accKeeper keeper.AccountKeeper, ct
 
 	// Validate the account has enough "spendable" coins as this will cover cases
 	// such as vesting accounts.
-	var spendableCoins sdk.Coins
-	bankKeeper.IterateAccountBalances(ctx, acc.GetAddress(), func (c sdk.Coin) bool {
-		spendableCoins = spendableCoins.Add(c)
-
-		return false
-	})
-
+	spendableCoins := bankViewKeeper.SpendableCoins(ctx, acc.GetAddress())
 	if _, hasNeg := spendableCoins.SafeSub(sdk.NewCoins(fee)); hasNeg {
 		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds,
 			"insufficient funds to pay for fee; %s < %s", spendableCoins, fee)
@@ -437,11 +425,9 @@ func DeductFees(bankKeeper bankKeeper.Keeper, accKeeper keeper.AccountKeeper, ct
 		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, err.Error())
 	}
 
-	s := bankKeeper.GetSupply(ctx, "del").Add(fee)
-	newcoins := sdk.NewCoins(s)
-	bankKeeper.MintCoins(ctx, minttypes.ModuleName, newcoins)
-
-	bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, acc.GetAddress(), newcoins)
+	s := bankKeeper.GetSupply(ctx)
+	s.Inflate(sdk.NewCoins(fee))
+	bankKeeper.SetSupply(ctx, s)
 
 	// update coin: decrease reserve and volume
 	if !coinKeeper.IsCoinBase(fee.Denom) {

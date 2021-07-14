@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	cli2 "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"io"
 	"os"
 
@@ -46,7 +47,7 @@ var invCheckPeriod uint
 func main() {
 	encodingConfig := app.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
-		WithCodec(encodingConfig.Codec).
+		WithJSONMarshaler(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
@@ -89,7 +90,7 @@ func main() {
 			config := serverCtx.Config
 			config.SetRoot(initClientCtx.HomeDir)
 
-			return server.InterceptConfigsPreRunHandler(cmd, "", "")
+			return server.InterceptConfigsPreRunHandler(cmd)
 		},
 	}
 
@@ -102,6 +103,7 @@ func main() {
 			ctx, encodingConfig.TxConfig, app.ModuleBasics, validator.AppModuleBasic{},
 			bankTypes.GenesisBalancesIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
+		cli2.MigrateGenesisCmd(),
 		genutilcli.GenDeclareCandidateTxCmd(
 			ctx, app.ModuleBasics, validator.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
@@ -191,8 +193,8 @@ func addGenesisAccountCmd(ctx *server.Context,
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			depCdc := clientCtx.Codec
-			cdc := depCdc.(codec.Codec)
+			depCdc := clientCtx.JSONMarshaler
+			cdc := depCdc.(codec.Marshaler)
 
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config

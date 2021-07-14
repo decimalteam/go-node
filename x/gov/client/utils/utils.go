@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
 )
 
 const (
@@ -44,7 +44,7 @@ func QueryVotesByTxQuery(clientCtx client.Context, params types2.QueryProposalVo
 	)
 	// query interrupted either if we collected enough votes or tx indexer run out of relevant txs
 	for len(votes) < totalLimit {
-		searchResult, err := tx.QueryTxsByEvents(clientCtx, events, nextTxPage, defaultLimit, "")
+		searchResult, err := client2.QueryTxsByEvents(clientCtx, events, nextTxPage, defaultLimit, "")
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +88,7 @@ func QueryVoteByTxQuery(cliCtx client.Context, params types2.QueryVoteParams) ([
 
 	// NOTE: SearchTxs is used to facilitate the txs query which does not currently
 	// support configurable pagination.
-	searchResult, err := tx.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit, "")
+	searchResult, err := client2.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit, "")
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func QueryProposerByTxQuery(cliCtx client.Context, proposalID uint64) (Proposer,
 
 	// NOTE: SearchTxs is used to facilitate the txs query which does not currently
 	// support configurable pagination.
-	searchResult, err := tx.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit, "")
+	searchResult, err := client2.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit, "")
 	if err != nil {
 		return Proposer{}, err
 	}

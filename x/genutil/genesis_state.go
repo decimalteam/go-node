@@ -45,7 +45,7 @@ func NewGenesisStateFromStdTx(codec *codec.LegacyAmino, genTxs []sdk.Tx) *types.
 }
 
 // GetGenesisStateFromAppState gets the genutil genesis state from the expected app state
-func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.RawMessage) *types.GenesisState {
+func GetGenesisStateFromAppState(cdc codec.JSONMarshaler, appState map[string]json.RawMessage) *types.GenesisState {
 	var genesisState types.GenesisState
 	if appState[ModuleName] != nil {
 		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
@@ -54,7 +54,7 @@ func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.R
 }
 
 // SetGenesisStateInAppState sets the genutil genesis state within the expected app state
-func SetGenesisStateInAppState(cdc codec.JSONCodec,
+func SetGenesisStateInAppState(cdc codec.JSONMarshaler,
 	appState map[string]json.RawMessage, genesisState *types.GenesisState) map[string]json.RawMessage {
 
 	genesisStateBz := cdc.MustMarshalJSON(genesisState)
@@ -66,7 +66,7 @@ func SetGenesisStateInAppState(cdc codec.JSONCodec,
 // for the application.
 //
 // NOTE: The pubkey input is this machines pubkey.
-func GenesisStateFromGenDoc(cdc codec.JSONCodec, genDoc tmtypes.GenesisDoc,
+func GenesisStateFromGenDoc(cdc codec.JSONMarshaler, genDoc tmtypes.GenesisDoc,
 ) (genesisState map[string]json.RawMessage, err error) {
 
 	if err = json.Unmarshal(genDoc.AppState, &genesisState); err != nil {
@@ -79,7 +79,7 @@ func GenesisStateFromGenDoc(cdc codec.JSONCodec, genDoc tmtypes.GenesisDoc,
 // for the application.
 //
 // NOTE: The pubkey input is this machines pubkey.
-func GenesisStateFromGenFile(cdc codec.JSONCodec, genFile string,
+func GenesisStateFromGenFile(cdc codec.JSONMarshaler, genFile string,
 ) (genesisState map[string]json.RawMessage, genDoc *tmtypes.GenesisDoc, err error) {
 
 	if !tos.FileExists(genFile) {
@@ -118,7 +118,7 @@ func ValidateGenesis(genesisState *types.GenesisState, txJSONDecoder sdk.TxDecod
 }
 
 // InitGenesis - initialize accounts and deliver genesis transactions
-func InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, validatorKeeper validator.Keeper,
+func InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, validatorKeeper validator.Keeper,
 	deliverTx deliverTxfn, genesisState types.GenesisState, txConfig client.TxConfig) []abci.ValidatorUpdate {
 
 	var validators []abci.ValidatorUpdate

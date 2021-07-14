@@ -73,7 +73,7 @@ func (k Keeper) TotalBondedTokens(ctx sdk.Context) sdk.Int {
 
 // StakingTokenSupply staking tokens from the total supply
 func (k Keeper) StakingTokenSupply(ctx sdk.Context) sdk.Int {
-	 return k.baseKeeper.GetSupply(ctx, k.BondDenom(ctx)).Amount
+	return k.baseKeeper.GetSupply(ctx).GetTotal().AmountOf(k.BondDenom(ctx))
 }
 
 // BondedRatio the fraction of the staking tokens which are currently bonded

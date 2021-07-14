@@ -14,7 +14,7 @@ type gasMeter struct {
 
 func (g *gasMeter) RefundGas(amount types.Gas, descriptor string) {
 	if g.consumed < amount {
-		panic(types.ErrorNegativeGasConsumed{Descriptor: descriptor})
+		panic("Negative gas not allowed")
 	}
 
 	g.consumed -= amount

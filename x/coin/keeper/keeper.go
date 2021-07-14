@@ -31,8 +31,6 @@ type Keeper struct {
 	BankKeeper    bankKeeper.Keeper
 	Config        *config.Config
 	ScopedKeeper  capabilityKeeper.ScopedKeeper
-	channelKeeper types.ChannelKeeper
-	portKeeper    types.PortKeeper
 
 	coinCache      map[string]bool
 	coinCacheMutex *sync.Mutex
@@ -45,9 +43,6 @@ func NewKeeper(
 	paramspace types.ParamSubspace,
 	accountKeeper authKeeper.AccountKeeper,
 	coinKeeper bankKeeper.Keeper,
-	channelKeeper types.ChannelKeeper,
-	portKeeper types.PortKeeper,
-	scopedKeeper capabilityKeeper.ScopedKeeper,
 	config *config.Config,
 ) Keeper {
 	keeper := Keeper{
@@ -58,9 +53,6 @@ func NewKeeper(
 		BankKeeper:     coinKeeper,
 		Config:         config,
 		coinCache:      make(map[string]bool),
-		ScopedKeeper:   scopedKeeper,
-		portKeeper:     portKeeper,
-		channelKeeper:  channelKeeper,
 		coinCacheMutex: &sync.Mutex{},
 	}
 	return keeper
@@ -80,7 +72,7 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (types.Coin, error) {
 	if value == nil {
 		return coin, fmt.Errorf("coin %s is not found in the key-value store", strings.ToLower(symbol))
 	}
-	err := k.cdc.UnmarshalLengthPrefixed(value, &coin)
+	err := k.cdc.UnmarshalBinaryLengthPrefixed(value, &coin)
 	if err != nil {
 		return coin, err
 	}
@@ -89,7 +81,7 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (types.Coin, error) {
 
 func (k Keeper) SetCoin(ctx sdk.Context, coin types.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	value := k.cdc.MustMarshalLengthPrefixed(coin)
+	value := k.cdc.MustMarshalBinaryLengthPrefixed(coin)
 	key := []byte(types.CoinPrefix + strings.ToLower(coin.Symbol))
 	store.Set(key, value)
 }
@@ -107,7 +99,7 @@ func (k Keeper) GetAllCoins(ctx sdk.Context) []types.Coin {
 
 	for ; iterator.Valid(); iterator.Next() {
 		var coin types.Coin
-		err := k.cdc.UnmarshalLengthPrefixed(iterator.Value(), &coin)
+		err := k.cdc.UnmarshalBinaryLengthPrefixed(iterator.Value(), &coin)
 		if err != nil {
 			panic(err)
 		}

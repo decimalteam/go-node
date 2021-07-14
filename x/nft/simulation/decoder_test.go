@@ -34,7 +34,7 @@ func TestDecodeStore(t *testing.T) {
 
 	kvPairs := []tmtypes.EventAttribute{
 		tmtypes.EventAttribute{Key: types.AddressStoreKey(delAddr1), Value: cdc.MustMarshal(acc)},
-		tmtypes.EventAttribute{Key: types.GlobalAccountNumberKey, Value: cdc.MustMarshalLengthPrefixed(globalAccNumber)},
+		tmtypes.EventAttribute{Key: types.GlobalAccountNumberKey, Value: cdc.MustMarshalBinaryLengthPrefixed(globalAccNumber)},
 		tmtypes.EventAttribute{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 	tests := []struct {

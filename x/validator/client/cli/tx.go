@@ -65,7 +65,7 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 			}
 
 			var pk cryptotypes.PubKey
-			if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(args[0]), &pk); err != nil {
+			if err := clientCtx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(args[0]), &pk); err != nil {
 				return err
 			}
 			if err != nil {
@@ -189,7 +189,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValid
 	pkStr := viper.GetString(FlagPubKey)
 
 	var pk cryptotypes.PubKey
-	if err := clientCtx.JSONCodec.UnmarshalInterfaceJSON([]byte(pkStr), &pk); err != nil {
+	if err := clientCtx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(pkStr), &pk); err != nil {
 		return txBldr, nil, err
 	}
 

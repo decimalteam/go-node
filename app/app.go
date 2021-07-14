@@ -29,7 +29,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	ibc "github.com/cosmos/ibc-go/modules/core"
 
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -42,13 +41,6 @@ import (
 
 	upgradeKeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradeTypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
-	stakingKeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	stakingTypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	ibckeeper "github.com/cosmos/ibc-go/modules/core/keeper"
-
-	ibchost "github.com/cosmos/ibc-go/modules/core/24-host"
 
 	appParams "bitbucket.org/decimalteam/go-node/app/params"
 
@@ -85,7 +77,6 @@ var (
 		gov.AppModuleBasic{},
 		swap.AppModuleBasic{},
 		nft.AppModuleBasic{},
-		ibc.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
@@ -104,7 +95,7 @@ func (vs *versionSetter) SetProtocolVersion(version uint64) {}
 type newApp struct {
 	*bam.BaseApp
 	cdc               *codec.LegacyAmino
-	appCodec          codec.Codec
+	appCodec          codec.Marshaler
 	interfaceRegistry types.InterfaceRegistry
 
 	// keys to access the substores
@@ -114,7 +105,6 @@ type newApp struct {
 
 	// Keepers
 	accountKeeper    authKeeper.AccountKeeper
-	ibcKeeper        *ibckeeper.Keeper
 	capabilityKeeper *capabilityKeeper.Keeper
 	bankKeeper       bankKeeper.BaseKeeper
 	paramsKeeper     paramsKeeper.Keeper
@@ -138,7 +128,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 
-	bApp.SetVersion(config.DecimalVersion)
 	bApp.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 
@@ -147,13 +136,13 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		bam.Paramspace,
 		authTypes.StoreKey,
 		paramsTypes.StoreKey,
+		bankTypes.StoreKey,
 		coin.StoreKey,
 		multisig.StoreKey,
 		validator.StoreKey,
 		gov.StoreKey,
 		upgradeTypes.ModuleName,
 		swap.StoreKey,
-		ibchost.StoreKey,
 		capabilityTypes.StoreKey,
 	)
 
@@ -181,14 +170,12 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// Set specific subspaces
 	authSubspace := app.paramsKeeper.Subspace(authTypes.ModuleName)
-	stakingSubspace := app.paramsKeeper.Subspace(stakingTypes.ModuleName)
 	bankSupspace := app.paramsKeeper.Subspace(bankTypes.ModuleName)
 	coinSubspace := app.paramsKeeper.Subspace(coin.ModuleName)
 	multisigSubspace := app.paramsKeeper.Subspace(multisig.ModuleName)
 	validatorSubspace := app.paramsKeeper.Subspace(validator.ModuleName)
 	govSubspace := app.paramsKeeper.Subspace(gov.ModuleName).WithKeyTable(gov.ParamKeyTable())
 	swapSubspace := app.paramsKeeper.Subspace(swap.ModuleName)
-	ibcSubspace := app.paramsKeeper.Subspace(ibchost.ModuleName)
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = authKeeper.NewAccountKeeper(
@@ -200,7 +187,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	)
 
 	app.capabilityKeeper = capabilityKeeper.NewKeeper(app.appCodec, keys[capabilityTypes.StoreKey], memKeys[capabilityTypes.MemStoreKey])
-	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.StoreKey)
 
 	// The BankKeeper allows you perform sdk.Coins interactions
 	app.bankKeeper = bankKeeper.NewBaseKeeper(
@@ -211,23 +197,12 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.ModuleAccountAddrs(),
 	)
 
-	// Create staking keeper
-	stakingKeeper := stakingKeeper.NewKeeper(app.appCodec, keys[stakingTypes.StoreKey], app.accountKeeper, app.bankKeeper, stakingSubspace)
-
-	// Create ibc keeper
-	app.ibcKeeper = ibckeeper.NewKeeper(
-		app.appCodec, keys[ibchost.StoreKey], ibcSubspace, stakingKeeper, app.upgradeKeeper, scopedIBCKeeper,
-	)
-
 	app.coinKeeper = coin.NewKeeper(
 		app.cdc,
 		keys[coin.StoreKey],
 		coinSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		app.ibcKeeper.ChannelKeeper,
-		&app.ibcKeeper.PortKeeper,
-		scopedIBCKeeper,
 		config,
 	)
 
@@ -272,7 +247,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	)
 
 	app.swapKeeper = swap.NewKeeper(
-		app.appCodec,
+		*app.cdc,
 		keys[swap.StoreKey],
 		swapSubspace,
 		app.coinKeeper,
@@ -280,7 +255,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.bankKeeper,
 	)
 
-	app.upgradeKeeper = upgradeKeeper.NewKeeper(skipUpgradeHeights, keys[upgradeTypes.StoreKey], encodingConfig.Codec, "/upgrades", &versionSetter{})
+	//app.upgradeKeeper = upgradeKeeper.NewKeeper(skipUpgradeHeights, keys[upgradeTypes.StoreKey], encodingConfig.Codec, "/upgrades", &versionSetter{})
 
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
@@ -294,11 +269,10 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		swap.NewAppModule(app.swapKeeper),
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
-		ibc.NewAppModule(app.ibcKeeper),
 	)
 
 	app.mm.SetOrderBeginBlockers(upgradeTypes.ModuleName)
-	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName, ibchost.ModuleName)
+	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
 	// NOTE: The genutils moodule must occur after staking so that pools are
@@ -314,7 +288,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		gov.ModuleName,
 		swap.ModuleName,
 		nft.ModuleName,
-		ibchost.ModuleName,
 	)
 
 	// register all module routes and module queriers
@@ -334,6 +307,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		utils.NewAnteHandler(
 			app.accountKeeper,
 			app.bankKeeper,
+			bankKeeper.NewBaseViewKeeper(app.appCodec, keys[bankTypes.StoreKey], app.accountKeeper),
 			app.validatorKeeper,
 			app.coinKeeper,
 			ante.DefaultSigVerificationGasConsumer,
@@ -388,7 +362,7 @@ func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 	if err != nil {
 		panic(err)
 	}
-	app.upgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+	//app.upgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 

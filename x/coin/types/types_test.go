@@ -31,7 +31,7 @@ package types
 //	}
 //
 //	cdc := codec.New()
-//	value := cdc.MustMarshalLengthPrefixed(coin)
+//	value := cdc.MustMarshalBinaryLengthPrefixed(coin)
 //	fmt.Println(value)
 //
 //	type NewCoin struct {
@@ -46,7 +46,7 @@ package types
 //	}
 //
 //	newCoin := NewCoin{}
-//	cdc.MustUnmarshalLengthPrefixed(value, &newCoin)
-//	value = cdc.MustMarshalLengthPrefixed(newCoin)
+//	cdc.MustUnmarshalBinaryLengthPrefixed(value, &newCoin)
+//	value = cdc.MustMarshalBinaryLengthPrefixed(newCoin)
 //	fmt.Println(value)
 //}

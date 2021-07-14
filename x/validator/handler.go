@@ -259,7 +259,7 @@ func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Resul
 		}
 	}
 
-	//completionTimeBz := types.ModuleCdc.MustMarshalLengthPrefixed(completionTime)
+	//completionTimeBz := types.Modulecdc.MustMarshalBinaryLengthPrefixed(completionTime)
 	completionTimeBz, err := json.Marshal(completionTime)
 	if err != nil {
 		return nil, err

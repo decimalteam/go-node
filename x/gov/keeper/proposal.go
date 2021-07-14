@@ -56,14 +56,14 @@ func (keeper Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (proposal t
 	if bz == nil {
 		return
 	}
-	keeper.cdc.MustUnmarshalLengthPrefixed(bz, &proposal)
+	keeper.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &proposal)
 	return proposal, true
 }
 
 // SetProposal set a proposal to store
 func (keeper Keeper) SetProposal(ctx sdk.Context, proposal types2.Proposal) {
 	store := ctx.KVStore(keeper.storeKey)
-	bz := keeper.cdc.MustMarshalLengthPrefixed(proposal)
+	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(proposal)
 	store.Set(types2.ProposalKey(proposal.ProposalID), bz)
 }
 
@@ -87,7 +87,7 @@ func (keeper Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types2.P
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var proposal types2.Proposal
-		keeper.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &proposal)
+		keeper.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &proposal)
 
 		if cb(proposal) {
 			break

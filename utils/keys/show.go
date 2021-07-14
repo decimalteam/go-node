@@ -85,7 +85,7 @@ func runShowCmd(cmd *cobra.Command, args []string) (err error) {
 		}
 
 		multikey := multisig.NewLegacyAminoPubKey(multisigThreshold, pks)
-		info, err = keyring.NewMultiInfo(defaultMultiSigKeyName, multikey)
+		info = keyring.NewMultiInfo(defaultMultiSigKeyName, multikey)
 
 		if err != nil {
 			return err
@@ -164,11 +164,11 @@ func validateMultisigThreshold(k, nKeys int) error {
 func getBechKeyOut(bechPrefix string) (bechKeyOutFn, error) {
 	switch bechPrefix {
 	case sdk.PrefixAccount:
-		return keyring.MkAccKeyOutput, nil
+		return keyring.Bech32KeyOutput, nil
 	case sdk.PrefixValidator:
-		return keyring.MkValKeyOutput, nil
+		return keyring.Bech32ValKeyOutput, nil
 	case sdk.PrefixConsensus:
-		return keyring.MkConsKeyOutput, nil
+		return keyring.Bech32ConsKeyOutput, nil
 	}
 
 	return nil, fmt.Errorf("invalid Bech32 prefix encoding provided: %s", bechPrefix)

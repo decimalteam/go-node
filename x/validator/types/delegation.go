@@ -51,7 +51,7 @@ func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, c
 
 // return the delegation
 func MustMarshalDelegation(cdc *codec.LegacyAmino, delegation Delegation) []byte {
-	return cdc.MustMarshalLengthPrefixed(delegation)
+	return cdc.MustMarshalBinaryLengthPrefixed(delegation)
 }
 
 // return the delegation
@@ -65,7 +65,7 @@ func MustUnmarshalDelegation(cdc *codec.LegacyAmino, value []byte) Delegation {
 
 // return the delegation
 func UnmarshalDelegation(cdc *codec.LegacyAmino, value []byte) (delegation Delegation, err error) {
-	err = cdc.UnmarshalLengthPrefixed(value, &delegation)
+	err = cdc.UnmarshalBinaryLengthPrefixed(value, &delegation)
 	return delegation, err
 }
 
@@ -92,8 +92,8 @@ func (d Delegation) GetValidatorAddr() sdk.ValAddress {
 
 	return valAddr
 }
-func (d Delegation) GetCoin() sdk.Coin                { return d.Coin }
-func (d Delegation) GetTokensBase() sdk.Int           { return d.TokensBase }
+func (d Delegation) GetCoin() sdk.Coin      { return d.Coin }
+func (d Delegation) GetTokensBase() sdk.Int { return d.TokensBase }
 func (d Delegation) SetTokensBase(tokensBase sdk.Int) exported.DelegationI {
 	d.TokensBase = tokensBase
 	return d
@@ -250,7 +250,7 @@ func (d UnbondingDelegation) GetEvents(ctxTime time.Time) sdk.Events {
 
 // return the unbonding delegation
 func MustMarshalUBD(cdc *codec.LegacyAmino, ubd UnbondingDelegation) []byte {
-	return cdc.MustMarshalLengthPrefixed(ubd)
+	return cdc.MustMarshalBinaryLengthPrefixed(ubd)
 }
 
 // unmarshal a unbonding delegation from a store value
@@ -264,15 +264,15 @@ func MustUnmarshalUBD(cdc *codec.LegacyAmino, value []byte) UnbondingDelegation 
 
 // unmarshal a unbonding delegation from a store value
 func UnmarshalUBD(cdc *codec.LegacyAmino, value []byte) (ubd UnbondingDelegation, err error) {
-	err = cdc.UnmarshalLengthPrefixed(value, &ubd)
+	err = cdc.UnmarshalBinaryLengthPrefixed(value, &ubd)
 	return ubd, err
 }
 
 // nolint
 // inefficient but only used in testing
 func (d UnbondingDelegation) Equal(d2 UnbondingDelegation) bool {
-	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&d)
-	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&d2)
+	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&d)
+	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&d2)
 	return bytes.Equal(bz1, bz2)
 }
 

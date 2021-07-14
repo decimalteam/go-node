@@ -190,7 +190,7 @@ func RunAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 	pubKey, _ := cmd.Flags().GetString(FlagPublicKey)
 	if viper.GetString(FlagPublicKey) != "" {
 		var pk cryptotypes.PubKey
-		err = ctx.JSONCodec.UnmarshalInterfaceJSON([]byte(pubKey), &pk)
+		err = ctx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(pubKey), &pk)
 		if err != nil {
 			return err
 		}
@@ -307,7 +307,7 @@ func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic bool, mnemo
 	switch output {
 	case OutputFormatText:
 		cmd.PrintErrln()
-		printKeyInfo(info, keyring.MkAccKeyOutput)
+		printKeyInfo(info, keyring.Bech32KeyOutput)
 
 		// print mnemonic unless requested not to.
 		if showMnemonic {
@@ -317,7 +317,7 @@ func printCreate(cmd *cobra.Command, info keyring.Info, showMnemonic bool, mnemo
 			cmd.PrintErrln(mnemonic)
 		}
 	case OutputFormatJSON:
-		out, err := keyring.MkAccKeyOutput(info)
+		out, err := keyring.Bech32KeyOutput(info)
 		if err != nil {
 			return err
 		}

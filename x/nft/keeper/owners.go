@@ -42,7 +42,7 @@ func (k Keeper) GetOwnerByDenom(ctx sdk.Context, owner sdk.AccAddress, denom str
 	if b == nil {
 		return types2.NewIDCollection(denom, []string{}), false
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(b, &idCollection)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &idCollection)
 	return idCollection, true
 }
 
@@ -55,7 +55,7 @@ func (k Keeper) SetOwnerByDenom(ctx sdk.Context, owner sdk.AccAddress, denom str
 	idCollection.Denom = denom
 	idCollection.IDs = ids
 
-	store.Set(key, k.cdc.MustMarshalLengthPrefixed(idCollection))
+	store.Set(key, k.cdc.MustMarshalBinaryLengthPrefixed(idCollection))
 }
 
 // SetOwner sets an entire Owner
@@ -85,7 +85,7 @@ func (k Keeper) IterateIDCollections(ctx sdk.Context, prefix []byte,
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var idCollection types2.IDCollection
-		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &idCollection)
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &idCollection)
 
 		owner, _ := types2.SplitOwnerKey(iterator.Key())
 		if handler(owner, idCollection) {

@@ -411,7 +411,7 @@ func NewValidator(valAddress string, pubKey cryptotypes.PubKey, commission sdk.D
 
 // unmarshal a validator from a store value
 func UnmarshalValidator(cdc *codec.LegacyAmino, value []byte) (validator Validator, err error) {
-	err = cdc.UnmarshalLengthPrefixed(value, &validator)
+	err = cdc.UnmarshalBinaryLengthPrefixed(value, &validator)
 	return validator, err
 }
 

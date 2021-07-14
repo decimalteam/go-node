@@ -70,7 +70,7 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 			clientCtx, err := client.GetClientTxContext(cmd)
 			serverCtx := server.GetServerContextFromCmd(cmd)
 
-			cdc := clientCtx.Codec
+			cdc := clientCtx.JSONMarshaler
 			amino := clientCtx.LegacyAmino
 
 			config := serverCtx.Config

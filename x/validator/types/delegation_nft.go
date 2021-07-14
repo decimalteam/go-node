@@ -28,7 +28,7 @@ func NewDelegationNFT(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress
 }
 
 func MustMarshalDelegationNFT(cdc *codec.LegacyAmino, delegation DelegationNFT) []byte {
-	return cdc.MustMarshalLengthPrefixed(delegation)
+	return cdc.MustMarshalBinaryLengthPrefixed(delegation)
 }
 
 // return the delegation
@@ -42,7 +42,7 @@ func MustUnmarshalDelegationNFT(cdc *codec.LegacyAmino, value []byte) Delegation
 
 // return the delegation
 func UnmarshalDelegationNFT(cdc *codec.LegacyAmino, value []byte) (delegation DelegationNFT, err error) {
-	err = cdc.UnmarshalLengthPrefixed(value, &delegation)
+	err = cdc.UnmarshalBinaryLengthPrefixed(value, &delegation)
 	return delegation, err
 }
 

@@ -80,7 +80,7 @@ func (k Keeper) Codespace() string {
 // Get returns the pubkey from the adddress-pubkey relation
 func (k Keeper) Get(ctx sdk.Context, key []byte, value interface{}) error {
 	store := ctx.KVStore(k.storeKey)
-	err := k.cdc.UnmarshalLengthPrefixed(store.Get(key), &value)
+	err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(key), &value)
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (k Keeper) Get(ctx sdk.Context, key []byte, value interface{}) error {
 
 func (k Keeper) set(ctx sdk.Context, key []byte, value interface{}) error {
 	store := ctx.KVStore(k.storeKey)
-	bz, err := k.cdc.MarshalLengthPrefixed(value)
+	bz, err := k.cdc.MarshalBinaryLengthPrefixed(value)
 	if err != nil {
 		return err
 	}
