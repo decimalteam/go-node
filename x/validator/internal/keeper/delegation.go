@@ -539,7 +539,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 			return err
 		}
 		validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
-		if ctx.BlockHeight() >= updates.Update4Block {
+		if ctx.BlockHeight() >= updates.Update2Block {
 			k.AddDelegatedCoin(ctx, bondCoin)
 		}
 	}
@@ -683,7 +683,7 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 					if err != nil {
 						return err
 					}
-					if ctx.BlockHeight() >= updates.Update4Block {
+					if ctx.BlockHeight() >= updates.Update2Block {
 						k.SubtractDelegatedCoin(ctx, entry.Balance)
 					}
 				case types.UnbondingDelegationNFTEntry:
