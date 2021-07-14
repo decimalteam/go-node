@@ -6,7 +6,7 @@ import (
 )
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
-	if ctx.BlockHeight() == updates.Update3Block {
+	if ctx.BlockHeight() == updates.Update1Block {
 		collections := k.GetCollections(ctx)
 		for _, collection := range collections {
 			for _, nft := range collection.NFTs {

@@ -34,7 +34,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		}
 	}
 
-	if ctx.BlockHeight() == updates.Update3Block {
+	if ctx.BlockHeight() == updates.Update4Block {
 		delegations := k.GetAllDelegations(ctx)
 		for _, delegation := range delegations {
 			if delegation.GetCoin().Denom != k.BondDenom(ctx) {

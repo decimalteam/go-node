@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
@@ -538,7 +539,9 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 			return err
 		}
 		validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
-		k.AddDelegatedCoin(ctx, bondCoin)
+		if ctx.BlockHeight() >= updates.Update4Block {
+			k.AddDelegatedCoin(ctx, bondCoin)
+		}
 	}
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
@@ -680,7 +683,9 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 					if err != nil {
 						return err
 					}
-					k.SubtractDelegatedCoin(ctx, entry.Balance)
+					if ctx.BlockHeight() >= updates.Update4Block {
+						k.SubtractDelegatedCoin(ctx, entry.Balance)
+					}
 				case types.UnbondingDelegationNFTEntry:
 					collection, ok := k.nftKeeper.GetCollection(ctx, entry.Denom)
 					if !ok {
