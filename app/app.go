@@ -19,6 +19,7 @@ import (
 	tos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
+	ibc "bitbucket.org/decimalteam/go-node/x/ibc/core"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -42,7 +43,9 @@ import (
 	upgradeKeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradeTypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	appParams "bitbucket.org/decimalteam/go-node/app/params"
+	ibckeeper "bitbucket.org/decimalteam/go-node/x/ibc/core/keeper"
+
+	ibchost "bitbucket.org/decimalteam/go-node/x/ibc/core/24-host"
 
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils"
@@ -77,6 +80,7 @@ var (
 		gov.AppModuleBasic{},
 		swap.AppModuleBasic{},
 		nft.AppModuleBasic{},
+		ibc.AppModuleBasic{},
 	)
 	// account permissions
 	maccPerms = map[string][]string{
@@ -87,10 +91,6 @@ var (
 		nft.ReservedPool:            {authTypes.Burner},
 	}
 )
-
-type versionSetter struct{}
-
-func (vs *versionSetter) SetProtocolVersion(version uint64) {}
 
 type newApp struct {
 	*bam.BaseApp
@@ -105,6 +105,7 @@ type newApp struct {
 
 	// Keepers
 	accountKeeper    authKeeper.AccountKeeper
+	ibcKeeper        *ibckeeper.Keeper
 	capabilityKeeper *capabilityKeeper.Keeper
 	bankKeeper       bankKeeper.BaseKeeper
 	paramsKeeper     paramsKeeper.Keeper
@@ -123,7 +124,7 @@ type newApp struct {
 // Newgo-nodeApp is a constructor function for go-nodeApp
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
-	encodingConfig := appParams.NewEncodingConfig()
+	encodingConfig := MakeEncodingConfig()
 
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
@@ -143,6 +144,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		gov.StoreKey,
 		upgradeTypes.ModuleName,
 		swap.StoreKey,
+		ibchost.StoreKey,
 		capabilityTypes.StoreKey,
 	)
 
@@ -176,6 +178,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	validatorSubspace := app.paramsKeeper.Subspace(validator.ModuleName)
 	govSubspace := app.paramsKeeper.Subspace(gov.ModuleName).WithKeyTable(gov.ParamKeyTable())
 	swapSubspace := app.paramsKeeper.Subspace(swap.ModuleName)
+	ibcSubspace := app.paramsKeeper.Subspace(ibchost.ModuleName)
 
 	// The AccountKeeper handles address -> account lookups
 	app.accountKeeper = authKeeper.NewAccountKeeper(
@@ -186,7 +189,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		maccPerms,
 	)
 
-	app.capabilityKeeper = capabilityKeeper.NewKeeper(app.appCodec, keys[capabilityTypes.StoreKey], memKeys[capabilityTypes.MemStoreKey])
+	//app.capabilityKeeper = capabilityKeeper.NewKeeper(app.appCodec, keys[capabilityTypes.StoreKey], memKeys[capabilityTypes.MemStoreKey])
+	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.StoreKey)
 
 	// The BankKeeper allows you perform sdk.Coins interactions
 	app.bankKeeper = bankKeeper.NewBaseKeeper(
@@ -195,6 +199,11 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.accountKeeper,
 		bankSupspace,
 		app.ModuleAccountAddrs(),
+	)
+
+	// Create ibc keeper
+	app.ibcKeeper = ibckeeper.NewKeeper(
+		app.appCodec, keys[ibchost.StoreKey], ibcSubspace, app.validatorKeeper, scopedIBCKeeper,
 	)
 
 	app.coinKeeper = coin.NewKeeper(
@@ -269,10 +278,11 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		swap.NewAppModule(app.swapKeeper),
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
+		ibc.NewAppModule(app.ibcKeeper),
 	)
 
 	app.mm.SetOrderBeginBlockers(upgradeTypes.ModuleName)
-	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName)
+	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName, ibchost.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
 	// NOTE: The genutils moodule must occur after staking so that pools are
@@ -288,6 +298,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		gov.ModuleName,
 		swap.ModuleName,
 		nft.ModuleName,
+		ibchost.ModuleName,
 	)
 
 	// register all module routes and module queriers

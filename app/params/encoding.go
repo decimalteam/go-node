@@ -4,7 +4,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -14,17 +13,4 @@ type EncodingConfig struct {
 	Codec             codec.Marshaler
 	TxConfig          client.TxConfig
 	Amino             *codec.LegacyAmino
-}
-
-func NewEncodingConfig() EncodingConfig {
-	interfaceRegistry := types.NewInterfaceRegistry()
-	amino := codec.NewLegacyAmino()
-	codec := codec.NewProtoCodec(interfaceRegistry)
-
-	return EncodingConfig{
-		InterfaceRegistry: interfaceRegistry,
-		Codec:             codec,
-		TxConfig:          tx.NewTxConfig(codec, tx.DefaultSignModes),
-		Amino:             amino,
-	}
 }

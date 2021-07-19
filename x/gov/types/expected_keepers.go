@@ -26,7 +26,7 @@ type SupplyKeeper interface {
 	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 }
 
-// StakingKeeper expected staking keeper (Validator and Delegator sets) (noalias)
+// ValidatorKeeper expected staking keeper (Validator and Delegator sets) (noalias)
 type ValidatorKeeper interface {
 	// iterate through bonded validators by operator address, execute func for each validator
 	IterateBondedValidatorsByPower(
