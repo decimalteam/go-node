@@ -249,7 +249,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.bankKeeper,
 	)
 
-	//app.upgradeKeeper = upgradeKeeper.NewKeeper(skipUpgradeHeights, keys[upgradeTypes.StoreKey], encodingConfig.Codec, "/upgrades", &versionSetter{})
+	app.upgradeKeeper = upgradeKeeper.NewKeeper(skipUpgradeHeights, keys[upgradeTypes.StoreKey], encodingConfig.Codec, "/upgrades")
 
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
