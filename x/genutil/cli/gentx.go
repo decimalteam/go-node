@@ -48,7 +48,7 @@ type StakingMsgBuildingHelpers interface {
 
 // GenTxCmd builds the application's gentx command.
 // nolint: errcheck
-func GenTxCmd(_ *server.Context, txEncodingConfig client.TxConfig, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
+func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
 	genBalIterator types.GenesisBalancesIterator, defaultNodeHome, defaultCLIHome string) *cobra.Command {
 
 	ipDefault, _ := server.ExternalIP()
@@ -102,7 +102,7 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxConfig, mbm module.Ba
 			}
 
 			var genesisState map[string]json.RawMessage
-			if err = amino.UnmarshalJSON(genDoc.AppState, &genesisState); err != nil {
+			if err = json.Unmarshal(genDoc.AppState, &genesisState); err != nil {
 				return err
 			}
 
