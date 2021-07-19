@@ -1,7 +1,7 @@
 package genutil
 
 import (
-	types2 "bitbucket.org/decimalteam/go-node/x/genutil/types"
+	genutiltypes "bitbucket.org/decimalteam/go-node/x/genutil/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -46,12 +46,12 @@ func (AppModuleBasic) DefaultGenesis(_ codec.JSONMarshaler) json.RawMessage {
 
 // ValidateGenesis performs genesis state validation for the genutil module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var data types.GenesisState
-	err := ModuleCdc.UnmarshalJSON(bz, &data)
+	var data genutiltypes.GenesisState
+	err := cdc.UnmarshalJSON(bz, &data)
 	if err != nil {
 		return err
 	}
-	return ValidateGenesis((*types2.GenesisState)(&data), config.TxDecoder())
+	return ValidateGenesis(&data, config.TxDecoder())
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
@@ -81,12 +81,12 @@ type AppModule struct {
 	accountKeeper   types.AccountKeeper
 	validatorKeeper validator.Keeper
 	deliverTx       deliverTxfn
-	txConfig        client.TxConfig
+	txConfig        client.TxEncodingConfig
 }
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(accountKeeper types.AccountKeeper,
-	validatorKeeper validator.Keeper, deliverTx deliverTxfn, txConfig client.TxConfig) module.AppModule {
+	validatorKeeper validator.Keeper, deliverTx deliverTxfn, txConfig client.TxEncodingConfig) module.AppModule {
 
 	return module.NewGenesisOnlyAppModule(AppModule{
 		AppModuleBasic:  AppModuleBasic{},
@@ -138,10 +138,9 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 // InitGenesis performs genesis initialization for the genutil module. It returns
 // no genutil updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState types.GenesisState
-	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	return []abci.ValidatorUpdate{}
-	//return InitGenesis(ctx, cdc, am.validatorKeeper, am.deliverTx, types2.GenesisState(genesisState), am.txConfig)
+	var genesisState genutiltypes.GenesisState
+	cdc.MustUnmarshalJSON(data, &genesisState)
+	return InitGenesis(ctx, cdc, am.validatorKeeper, am.deliverTx, genesisState, am.txConfig)
 }
 
 // module export genesis

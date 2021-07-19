@@ -231,6 +231,9 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// register the proposal types
 	govRouter := gov.NewRouter()
+	//govRouter.AddRoute(
+	//	upgradeTypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper),
+	//)
 	app.govKeeper = gov.NewKeeper(
 		app.cdc,
 		keys[gov.StoreKey],

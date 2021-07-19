@@ -48,16 +48,16 @@ type StakingMsgBuildingHelpers interface {
 
 // GenTxCmd builds the application's gentx command.
 // nolint: errcheck
-func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
+func GenTxCmd(_ *server.Context, txEncodingConfig client.TxConfig, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
 	genBalIterator types.GenesisBalancesIterator, defaultNodeHome, defaultCLIHome string) *cobra.Command {
 
 	ipDefault, _ := server.ExternalIP()
-	fsCreateValidator, flagNodeID, flagPubKey, flagAmount, defaultsDesc := smbh.CreateValidatorMsgHelpers(ipDefault)
+	fsCreateValidator, flagNodeID, flagPubKey, _, defaultsDesc := smbh.CreateValidatorMsgHelpers(ipDefault)
 
 	cmd := &cobra.Command{
-		Use:   "gentx",
+		Use:   "gentx [key_name] [amount]",
 		Short: "Generate a genesis tx carrying a self delegation",
-		Args:  cobra.NoArgs,
+		Args:  cobra.ExactArgs(2),
 		Long: fmt.Sprintf(`This command is an alias of the 'tx create-validator' command'.
 
 		It creates a genesis transaction to create a validator. 
@@ -102,23 +102,19 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 			}
 
 			var genesisState map[string]json.RawMessage
-			if err = json.Unmarshal(genDoc.AppState, &genesisState); err != nil {
+			if err = amino.UnmarshalJSON(genDoc.AppState, &genesisState); err != nil {
 				return err
 			}
 
 			// LABEL-TEST: check this part of code
 			if err = mbm.ValidateGenesis(cdc, txEncodingConfig, genesisState); err != nil {
+				fmt.Printf("errors FUCK")
 				return err
 			}
 
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 
-			//kb, err := keyring.New(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flagClientHome), cmd.InOrStdin())
-			//if err != nil {
-			//	return err
-			//}
-
-			name, _ := cmd.Flags().GetString(flags.FlagName)
+			name := args[0]
 			key, err := clientCtx.Keyring.Key(name)
 			if err != nil {
 				return err
@@ -133,7 +129,7 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 			}
 
 			// Fetch the amount of coins staked
-			amount, _ := cmd.Flags().GetString(flagAmount)
+			amount := args[1]
 			coins, err := sdk.ParseCoinsNormalized(amount)
 			if err != nil {
 				return err
@@ -158,12 +154,6 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 				return err
 			}
 			log.Println(msg)
-
-			//keys.NewInMemoryKeyBase()
-			//info, err := txBldr.Keybase().Get(name)
-			//if err != nil {
-			//	return err
-			//}
 
 			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
 				fmt.Println("Offline key passed in. Use `tx sign` command to sign:")
@@ -220,8 +210,10 @@ func GenTxCmd(ctx *server.Context, txEncodingConfig client.TxConfig, mbm module.
 	cmd.Flags().String(flags.FlagOutputDocument, "",
 		"write the genesis transaction JSON document to the given file instead of the default location")
 	cmd.Flags().AddFlagSet(fsCreateValidator)
+	//cmd.MarkFlagRequired(flags.FlagName)
 
-	cmd.MarkFlagRequired(flags.FlagName)
+	flags.AddTxFlagsToCmd(cmd)
+
 	return cmd
 }
 

@@ -183,7 +183,7 @@ func PrepareFlagsForTxCreateValidator(flagSet *flag.FlagSet, moniker, nodeID, ch
 	c.Moniker = moniker
 
 	if c.Amount == "" {
-		c.Amount = types.TokensFromConsensusPower(100).String()+types.DefaultBondDenom
+		c.Amount = types.TokensFromConsensusPower(100).String() + types.DefaultBondDenom
 	}
 
 	if c.CommissionRate == "" {
@@ -220,19 +220,24 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValid
 	valAddr := clientCtx.GetFromAddress()
 	rewardAddr := valAddr
 	rewardAddrStr, _ := fs.GetString(FlagRewardAddress)
+	pkStr := config.PubKey
+
 	if len(rewardAddrStr) > 0 {
 		rewardAddr, err = sdk.AccAddressFromBech32(rewardAddrStr)
 		if err != nil {
 			return txBldr, nil, err
 		}
 	}
-	pkStr := config.PubKey
 
-	var pk cryptotypes.PubKey
-
-	if err := clientCtx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(pkStr), &pk); err != nil {
+	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
+	if err != nil {
 		return txBldr, nil, err
 	}
+
+	//if err := clientCtx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(pkStr), &pk); err != nil {
+	//	fmt.Printf("wrong %s", config.PubKey)
+	//	return txBldr, nil, err
+	//}
 	description := types.NewDescription(
 		config.Moniker,
 		config.Identity,
@@ -251,11 +256,11 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValid
 	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, description, rewardAddr)
 
 	// NOTE: No need to show public IP of the node
-	// ip, _ := cmd.Flags().GetString(FlagIP)
-	// nodeID, _ := cmd.Flags().GetString(FlagNodeID)
-	// if nodeID != "" && ip != "" {
-	// 	txBldr = txBldr.WithMemo(fmt.Sprintf("%s@%s:26656", nodeID, ip))
-	// }
+	ip, _ := fs.GetString(FlagIP)
+	nodeID, _ := fs.GetString(FlagNodeID)
+	if nodeID != "" && ip != "" {
+		txBldr = txBldr.WithMemo(fmt.Sprintf("%s@%s:26656", nodeID, ip))
+	}
 
 	return txBldr, &msg, nil
 }

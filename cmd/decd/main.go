@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	cli2 "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"io"
 	"os"
 
@@ -94,8 +93,6 @@ func main() {
 		},
 	}
 
-	// ctx.Config.RootDir = initClientCtx.HomeDir
-
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(ctx, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, bankTypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
@@ -103,7 +100,7 @@ func main() {
 			ctx, encodingConfig.TxConfig, app.ModuleBasics, validator.AppModuleBasic{},
 			bankTypes.GenesisBalancesIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
-		cli2.MigrateGenesisCmd(),
+		app.MigrateGenesisCmd(),
 		genutilcli.GenDeclareCandidateTxCmd(
 			ctx, app.ModuleBasics, validator.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
@@ -118,8 +115,6 @@ func main() {
 	//rootCmd.PrsistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 	//	0, "Assert registered invariants every N blocks")
 
-	// printJSON(ctx)
-
 	if err := cmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
 		switch e := err.(type) {
 		case server.ErrorCode:
@@ -130,14 +125,6 @@ func main() {
 		}
 	}
 }
-
-// func printJSON(data interface{}) {
-// 	x, err := json.MarshalIndent(data, "", "\t")
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	fmt.Println(string(x))
-// }
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, options servertypes.AppOptions) servertypes.Application {
 	skipUpgradesHeight := map[int64]bool{}
@@ -272,10 +259,6 @@ func addGenesisAccountCmd(ctx *server.Context,
 			}
 
 			authGenState := authtypes.GetGenesisStateFromAppState(cdc, appState)
-
-			valState := appState[validator.ModuleName]
-
-			fmt.Printf("val state %v", valState)
 
 			accs, err := authtypes.UnpackAccounts(authGenState.Accounts)
 			if err != nil {

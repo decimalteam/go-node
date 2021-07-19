@@ -111,7 +111,7 @@ func ValidateGenesis(genesisState *types.GenesisState, txJSONDecoder sdk.TxDecod
 
 		if _, ok := msgs[0].(*validator.MsgDeclareCandidate); !ok {
 			return fmt.Errorf(
-				"genesis transaction %v does not contain a MsgCreateValidator", i)
+				"genesis transaction %v does not contain a MsgDeclareCandidate", i)
 		}
 	}
 	return nil
@@ -119,7 +119,7 @@ func ValidateGenesis(genesisState *types.GenesisState, txJSONDecoder sdk.TxDecod
 
 // InitGenesis - initialize accounts and deliver genesis transactions
 func InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, validatorKeeper validator.Keeper,
-	deliverTx deliverTxfn, genesisState types.GenesisState, txConfig client.TxConfig) []abci.ValidatorUpdate {
+	deliverTx deliverTxfn, genesisState types.GenesisState, txConfig client.TxEncodingConfig) []abci.ValidatorUpdate {
 
 	var validators []abci.ValidatorUpdate
 	var err error

@@ -13,7 +13,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // migratePassphrase is used as a no-op migration key passphrase as a passphrase
@@ -60,11 +59,13 @@ func runMigrateCmd(cmd *cobra.Command, args []string) error {
 	keyringServiceName := sdk.KeyringServiceName()
 
 	var (
-		tmpDir  string
-		keybase keyring.Keyring
+		tmpDir   string
+		migrator keyring.Importer
 	)
 
-	if viper.GetBool(flags.FlagDryRun) {
+	flagSet := cmd.Flags()
+
+	if dryRun, _ := flagSet.GetBool(flags.FlagDryRun); dryRun {
 		tmpDir, err = ioutil.TempDir("", "keybase-migrate-dryrun")
 		if err != nil {
 			return errors.Wrap(err, "failed to create temporary directory for dryrun migration")
@@ -72,9 +73,10 @@ func runMigrateCmd(cmd *cobra.Command, args []string) error {
 
 		defer os.RemoveAll(tmpDir)
 
-		keybase, err = keyring.New(keyringServiceName, "test", tmpDir, buf)
+		migrator, err = keyring.New(keyringServiceName, "test", tmpDir, buf)
 	} else {
-		keybase, err = keyring.New(keyringServiceName, viper.GetString(flags.FlagKeyringBackend), rootDir, buf)
+		backend, _ := flagSet.GetString(flags.FlagKeyringBackend)
+		migrator, err = keyring.New(keyringServiceName, backend, rootDir, buf)
 	}
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf(
@@ -84,19 +86,8 @@ func runMigrateCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, key := range oldKeys {
-		legKeyInfo, err := legacyKb.Export(key.GetName())
-		if err != nil {
-			return err
-		}
-
 		keyName := key.GetName()
 		keyType := key.GetType()
-
-		// skip key if already migrated
-		if _, err := keybase.Key(keyName); err == nil {
-			cmd.PrintErrf("Key '%s (%s)' already exists; skipping ...\n", key.GetName(), keyType)
-			continue
-		}
 
 		cmd.PrintErrf("Migrating key: '%s (%s)' ...\n", key.GetName(), keyType)
 
@@ -111,8 +102,15 @@ func runMigrateCmd(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
+		// TypeLocal needs an additional step to ask password.
+		// The other keyring types are handled by ImportInfo.
 		if keyType != keyring.TypeLocal {
-			if err := keybase.ImportPubKey(keyName, legKeyInfo); err != nil {
+			infoImporter, ok := migrator.(keyring.LegacyInfoImporter)
+			if !ok {
+				return fmt.Errorf("the Keyring implementation does not support import operations of Info types")
+			}
+
+			if err = infoImporter.ImportInfo(key); err != nil {
 				return err
 			}
 
@@ -132,7 +130,7 @@ func runMigrateCmd(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		if err := keybase.ImportPrivKey(keyName, armoredPriv, migratePassphrase); err != nil {
+		if err := migrator.ImportPrivKey(keyName, armoredPriv, migratePassphrase); err != nil {
 			return err
 		}
 	}

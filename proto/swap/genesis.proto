@@ -9,7 +9,8 @@ import "swap/swap.proto";
 message GenesisState {
   Params Params = 1 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "swaps"
+    (gogoproto.jsontag) = "params",
+    (gogoproto.moretags) = "yaml:\"params\""
   ];
   repeated Swap Swaps = 2 [
     (gogoproto.nullable) = false,
