@@ -53,8 +53,8 @@ definitions:
         else echo 0; fi
 
       # run reset playbook for SLAVE HOSTS
-      - if [[ $MESSAGE == *\[reset\]* ]]; then
-        ansible-playbook -i "$SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
+      - if [[ $MESSAGE == *\[devnet_test\]* ]]; then
+        ansible-playbook -i "$MASTER_HOSTS" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
         else echo 0; fi
 
   caches:
@@ -78,5 +78,13 @@ pipelines:
       - step:
           name: Deploy
           deployment: Test
-          <<: *deploy       
+          <<: *deploy 
+
+    feature/cosmos-sdk-v0.42:
+      - step:
+          <<: *build
+      - step:
+          name: Deploy
+          deployment: Test2
+          <<: *deploy              
 
