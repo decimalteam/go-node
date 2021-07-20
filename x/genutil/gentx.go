@@ -47,13 +47,13 @@ func SetGenTxsInAppGenesisState(cdc codec.JSONMarshaler, txJSONEncoder sdk.TxEnc
 // coins in the genesis accounts
 func ValidateAccountInGenesis(appGenesisState map[string]json.RawMessage,
 	genBalIterator types.GenesisBalancesIterator,
-	key sdk.AccAddress, coins sdk.Coins, amino *codec.LegacyAmino, cdc codec.JSONMarshaler) error {
+	key sdk.AccAddress, coins sdk.Coins, cdc codec.JSONMarshaler) error {
 
 	accountIsInGenesis := false
 
 	genUtilDataBz := appGenesisState[ModuleName]
 	var genesisState genutiltypes.GenesisState
-	amino.MustUnmarshalJSON(genUtilDataBz, &genesisState)
+	cdc.MustUnmarshalJSON(genUtilDataBz, &genesisState)
 
 	var err error
 	genBalIterator.IterateGenesisBalances(cdc, appGenesisState,

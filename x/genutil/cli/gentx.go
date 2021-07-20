@@ -65,19 +65,17 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 		    %s`, defaultsDesc),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
 			serverCtx := server.GetServerContextFromCmd(cmd)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			cdc := clientCtx.JSONMarshaler
-			amino := clientCtx.LegacyAmino
 
 			config := serverCtx.Config
 
 			config.SetRoot(clientCtx.HomeDir)
-
-			if err != nil {
-				return err
-			}
 
 			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(serverCtx.Config)
 			if err != nil {
@@ -134,7 +132,7 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 				return err
 			}
 
-			err = genutil.ValidateAccountInGenesis(genesisState, genBalIterator, key.GetAddress(), coins, amino, cdc)
+			err = genutil.ValidateAccountInGenesis(genesisState, genBalIterator, key.GetAddress(), coins, cdc)
 			if err != nil {
 				return err
 			}
