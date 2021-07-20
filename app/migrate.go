@@ -43,7 +43,6 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 
 			var err error
 
-			firstMigration := "v0.38"
 			importGenesis := args[0]
 
 			jsonBlob, err := ioutil.ReadFile(importGenesis)
@@ -85,7 +84,7 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 
 			bankGenesis.DenomMetadata = []bank.Metadata{
 				{
-					Description: "Decimal coin",
+					Description: "Decimal",
 					DenomUnits: []*bank.DenomUnit{
 						{Denom: "del", Exponent: uint32(0), Aliases: []string{"del"}},
 					},
@@ -94,10 +93,6 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 				},
 			}
 			newGenState[bank.ModuleName] = clientCtx.JSONMarshaler.MustMarshalJSON(&bankGenesis)
-
-			//var validatorGenesis validator.GenesisState
-
-			//clientCtx.JSONMarshaler.MustUnmarshalJSON(newGenState[validator.ModuleName], &validatorGenesis)
 
 			//ibcTransferGenesis := ibcxfertypes.DefaultGenesisState()
 			//ibcCoreGenesis := ibccoretypes.DefaultGenesisState()

@@ -5,7 +5,6 @@ import (
 	tx "github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	cli2 "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
-
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -234,10 +233,6 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValid
 		return txBldr, nil, err
 	}
 
-	//if err := clientCtx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(pkStr), &pk); err != nil {
-	//	fmt.Printf("wrong %s", config.PubKey)
-	//	return txBldr, nil, err
-	//}
 	description := types.NewDescription(
 		config.Moniker,
 		config.Identity,

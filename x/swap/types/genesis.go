@@ -13,8 +13,8 @@ func NewGenesisState(params Params, swaps Swaps) GenesisState {
 }
 
 // get raw genesis raw message for testing
-func DefaultGenesisState() GenesisState {
-	return GenesisState{
+func DefaultGenesisState() *GenesisState {
+	return &GenesisState{
 		Params: DefaultParams(),
 	}
 }

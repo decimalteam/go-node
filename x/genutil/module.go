@@ -40,8 +40,8 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 // DefaultGenesis returns default genesis state as raw bytes for the genutil
 // module.
-func (AppModuleBasic) DefaultGenesis(_ codec.JSONMarshaler) json.RawMessage {
-	return ModuleCdc.MustMarshalJSON(types.GenesisState{})
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+	return cdc.MustMarshalJSON(&types.GenesisState{})
 }
 
 // ValidateGenesis performs genesis state validation for the genutil module.

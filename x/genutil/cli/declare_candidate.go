@@ -57,7 +57,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			}
 			// Read --pubkey, if empty take it from priv_validator.json
 			if valPubKeyString, _ := cmd.Flags().GetString(flagPubKey); valPubKeyString != "" {
-				_, err := sdk.GetFromBech32(sdk.Bech32PrefixConsPub, valPubKeyString)
+				valPubKey, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valPubKeyString)
 				if err != nil {
 					return err
 				}
@@ -69,10 +69,10 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 				return fmt.Errorf("chain ID must be specified")
 			}
 
-			_, err = keyring.New(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flagClientHome), cmd.InOrStdin())
-			if err != nil {
-				return err
-			}
+			//_, err = keyring.New(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flagClientHome), cmd.InOrStdin())
+			//if err != nil {
+			//	return err
+			//}
 
 			name, _ := cmd.Flags().GetString(flags.FlagName)
 			key, err := clientCtx.Keyring.Key(name)
@@ -81,8 +81,15 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			}
 
 			// Set flags for creating declare validator candidate tx
-			viper.Set(flags.FlagHome, viper.GetString(flagClientHome))
-			//smbh.PrepareFlagsForTxCreateValidator(cmd.Flags(), config.Moniker, nodeID, chainID, valPubKey)
+			cliHome, _ := cmd.Flags().GetString(flagClientHome)
+			cmd.Flags().Set(flags.FlagHome, cliHome)
+
+			moniker := config.Moniker
+			if m, _ := cmd.Flags().GetString(cli.FlagMoniker); m != "" {
+				moniker = m
+			}
+
+			createValCfg, _ := smbh.PrepareFlagsForTxCreateValidator(cmd.Flags(), moniker, nodeID, chainID, valPubKey)
 
 			// Fetch the amount of coins staked
 			amount, _ := cmd.Flags().GetString(flagAmount)
@@ -92,17 +99,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			}
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 
-			moniker := config.Moniker
-			if m, _ := cmd.Flags().GetString(cli.FlagMoniker); m != "" {
-				moniker = m
-			}
-
-			createValCfg, err := smbh.PrepareFlagsForTxCreateValidator(cmd.Flags(), moniker, nodeID, chainID, valPubKey)
-			if err != nil {
-				return err
-			}
-
-			txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+			txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
 			clientCtx = clientCtx.WithInput(inBuf).WithFromAddress(key.GetAddress())
 
 			viper.Set(flags.FlagGenerateOnly, true)
@@ -142,11 +139,6 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			if err != nil {
 				return errors.Wrap(err, "failed to sign std tx")
 			}
-
-			//signedTx, err := utils.SignStdTx(txBldr, clientCtx, name, stdTx, false, true)
-			//if err != nil {
-			//	return err
-			//}
 
 			txJSON, err := json.MarshalIndent(stdTx, "", "  ")
 			if err != nil {

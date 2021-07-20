@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -55,7 +53,8 @@ func InitCmd(ctx *server.Context, mbm module.BasicManager,
 			config.Moniker = args[0]
 
 			genFile := config.GenesisFile()
-			if !viper.GetBool(flagOverwrite) && tos.FileExists(genFile) {
+			overwrite, _ := cmd.Flags().GetBool(flagOverwrite)
+			if !overwrite && tos.FileExists(genFile) {
 				return fmt.Errorf("genesis.json file already exists: %v", genFile)
 			}
 

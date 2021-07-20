@@ -1,21 +1,24 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 
+	"bitbucket.org/decimalteam/go-node/app/params"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server/cmd"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/store/types"
-	types3 "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/spf13/cast"
 
-	"bitbucket.org/decimalteam/go-node/utils/keys"
 	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
@@ -109,11 +112,13 @@ func main() {
 		addGenesisAccountCmd(ctx, app.DefaultNodeHome, app.DefaultCLIHome),
 		fixAppHashError(ctx, app.DefaultNodeHome),
 	)
-	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, exportAppStateAndTMValidators, func(cmd *cobra.Command) {})
+	ac := appCreator{encodingConfig}
+
+	server.AddCommands(rootCmd, app.DefaultNodeHome, ac.newApp, ac.exportAppStateAndTMValidators, func(cmd *cobra.Command) {})
 
 	// prepare and add flags
-	//rootCmd.PrsistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
-	//	0, "Assert registered invariants every N blocks")
+	rootCmd.PersistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod, 0, "Assert registered invariants every N blocks")
+	rootCmd.Flags().Set(flags.FlagLogLevel, "info")
 
 	if err := cmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
 		switch e := err.(type) {
@@ -126,7 +131,11 @@ func main() {
 	}
 }
 
-func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, options servertypes.AppOptions) servertypes.Application {
+type appCreator struct {
+	encodingConfig params.EncodingConfig
+}
+
+func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, options servertypes.AppOptions) servertypes.Application {
 	skipUpgradesHeight := map[int64]bool{}
 
 	for _, h := range cast.ToIntSlice(options.Get(server.FlagUnsafeSkipUpgrades)) {
@@ -134,19 +143,26 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, options serverty
 	}
 
 	return app.NewInitApp(
-		logger, db, traceStore, true, skipUpgradesHeight, invCheckPeriod,
+		logger, db, traceStore, true, skipUpgradesHeight,
+		cast.ToString(options.Get(flags.FlagHome)),
+		cast.ToUint(options.Get(server.FlagInvCheckPeriod)),
+		a.encodingConfig,
 		baseapp.SetPruning(types.NewPruningOptionsFromString(viper.GetString("pruning"))),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(uint64(viper.GetInt(server.FlagHaltHeight))),
 	)
 }
 
-func exportAppStateAndTMValidators(
+func (a appCreator) exportAppStateAndTMValidators(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailWhiteList []string, options servertypes.AppOptions,
 ) (servertypes.ExportedApp, error) {
+	homePath, ok := options.Get(flags.FlagHome).(string)
+	if !ok || homePath == "" {
+		return servertypes.ExportedApp{}, errors.New("application home not set")
+	}
 
 	if height != -1 {
-		aApp := app.NewInitApp(logger, db, traceStore, true, map[int64]bool{}, uint(1))
+		aApp := app.NewInitApp(logger, db, traceStore, true, map[int64]bool{}, homePath, uint(1), a.encodingConfig)
 		err := aApp.LoadHeight(height)
 		if err != nil {
 			return servertypes.ExportedApp{}, err
@@ -155,7 +171,7 @@ func exportAppStateAndTMValidators(
 		return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
 
-	aApp := app.NewInitApp(logger, db, traceStore, true, map[int64]bool{}, uint(1))
+	aApp := app.NewInitApp(logger, db, traceStore, true, map[int64]bool{}, homePath, uint(1), a.encodingConfig)
 
 	return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }
@@ -190,18 +206,20 @@ func addGenesisAccountCmd(ctx *server.Context,
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
-				kb, err := keys.NewKeyBaseFromDir(viper.GetString(flagClientHome))
+				inBuf := bufio.NewReader(cmd.InOrStdin())
+				keyringBackend, _ := cmd.Flags().GetString(flags.FlagKeyringBackend)
+
+				kb, err := keyring.New(sdk.KeyringServiceName(), keyringBackend, clientCtx.HomeDir, inBuf)
 				if err != nil {
 					return err
 				}
 
-				// todo
-				_, err = kb.Export(args[0])
+				info, err := kb.Key(args[0])
 				if err != nil {
 					return err
 				}
 
-				//addr = info.GetAddress()
+				addr = info.GetAddress()
 			}
 
 			coins, err := sdk.ParseCoinsNormalized(args[1])
@@ -209,9 +227,11 @@ func addGenesisAccountCmd(ctx *server.Context,
 				return err
 			}
 
-			vestingStart := viper.GetInt64(flagVestingStart)
-			vestingEnd := viper.GetInt64(flagVestingEnd)
-			vestingAmt, err := sdk.ParseCoinsNormalized(viper.GetString(flagVestingAmt))
+			vestingStart, _ := cmd.Flags().GetInt64(flagVestingStart)
+			vestingEnd, _ := cmd.Flags().GetInt64(flagVestingEnd)
+			vestingAmtStr, _ := cmd.Flags().GetString(flagVestingAmt)
+
+			vestingAmt, err := sdk.ParseCoinsNormalized(vestingAmtStr)
 			if err != nil {
 				return err
 			}
@@ -226,7 +246,7 @@ func addGenesisAccountCmd(ctx *server.Context,
 			baseAccount := authtypes.NewBaseAccount(addr, nil, 0, 0)
 
 			if !vestingAmt.IsZero() {
-				baseVestingAccount := types3.NewBaseVestingAccount(
+				baseVestingAccount := vestingtypes.NewBaseVestingAccount(
 					baseAccount, vestingAmt.Sort(), vestingEnd,
 				)
 				if err != nil {
@@ -235,10 +255,10 @@ func addGenesisAccountCmd(ctx *server.Context,
 
 				switch {
 				case vestingStart != 0 && vestingEnd != 0:
-					genAccount = types3.NewContinuousVestingAccountRaw(baseVestingAccount, vestingStart)
+					genAccount = vestingtypes.NewContinuousVestingAccountRaw(baseVestingAccount, vestingStart)
 
 				case vestingEnd != 0:
-					genAccount = types3.NewDelayedVestingAccountRaw(baseVestingAccount)
+					genAccount = vestingtypes.NewDelayedVestingAccountRaw(baseVestingAccount)
 
 				default:
 					return errors.New("invalid vesting parameters; must supply start and end time or end time")

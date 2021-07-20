@@ -21,10 +21,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
 	}
 }
 
-func ExportGenesis(ctx sdk.Context, k Keeper) swaptypes.GenesisState {
+func ExportGenesis(ctx sdk.Context, k Keeper) *swaptypes.GenesisState {
 	params := k.GetParams(ctx)
 	swaps := k.GetAllSwaps(ctx)
-	return swaptypes.GenesisState{
+	return &swaptypes.GenesisState{
 		Swaps:  swaps,
 		Params: params,
 	}

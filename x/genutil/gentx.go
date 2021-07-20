@@ -3,6 +3,8 @@ package genutil
 import (
 	"encoding/json"
 	"fmt"
+
+	genutiltypes "bitbucket.org/decimalteam/go-node/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -45,13 +47,13 @@ func SetGenTxsInAppGenesisState(cdc codec.JSONMarshaler, txJSONEncoder sdk.TxEnc
 // coins in the genesis accounts
 func ValidateAccountInGenesis(appGenesisState map[string]json.RawMessage,
 	genBalIterator types.GenesisBalancesIterator,
-	key sdk.AccAddress, coins sdk.Coins, _ *codec.LegacyAmino, cdc codec.JSONMarshaler) error {
+	key sdk.AccAddress, coins sdk.Coins, amino *codec.LegacyAmino, cdc codec.JSONMarshaler) error {
 
 	accountIsInGenesis := false
 
 	genUtilDataBz := appGenesisState[ModuleName]
-	var genesisState types.GenesisState
-	cdc.MustUnmarshalJSON(genUtilDataBz, &genesisState)
+	var genesisState genutiltypes.GenesisState
+	amino.MustUnmarshalJSON(genUtilDataBz, &genesisState)
 
 	var err error
 	genBalIterator.IterateGenesisBalances(cdc, appGenesisState,

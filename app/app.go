@@ -13,6 +13,7 @@ import (
 	"io"
 	"os"
 
+	appparams "bitbucket.org/decimalteam/go-node/app/params"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
@@ -116,9 +117,7 @@ type newApp struct {
 
 // Newgo-nodeApp is a constructor function for go-nodeApp
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool,
-	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
-	encodingConfig := MakeEncodingConfig()
-
+	homePath string, invCheckPeriod uint, encodingConfig appparams.EncodingConfig, baseAppOptions ...func(*bam.BaseApp)) *newApp {
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 
@@ -252,7 +251,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.bankKeeper,
 	)
 
-	app.upgradeKeeper = upgradeKeeper.NewKeeper(skipUpgradeHeights, keys[upgradeTypes.StoreKey], encodingConfig.Codec, "/upgrades")
+	app.upgradeKeeper = upgradeKeeper.NewKeeper(skipUpgradeHeights, keys[upgradeTypes.StoreKey], encodingConfig.Codec, homePath)
 
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.validatorKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
