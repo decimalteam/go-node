@@ -60,7 +60,8 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 
 		It creates a genesis transaction to create a validator. 
 		The following default parameters are included: 
-		    %s`, defaultsDesc),
+		    %s
+`, defaultsDesc),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
@@ -138,7 +139,7 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 				return err
 			}
 
-			txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+			txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithKeybase(clientCtx.Keyring)
 
 			clientCtx = clientCtx.WithInput(inBuf).WithFromAddress(key.GetAddress())
 
@@ -149,7 +150,7 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 			if err != nil {
 				return err
 			}
-			log.Println(msg)
+			log.Printf("MSG %v", msg)
 
 			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
 				cmd.PrintErrln("Offline key passed in. Use `tx sign` command to sign:")

@@ -49,7 +49,12 @@ const DeclareCandidateConst = "declare_candidate"
 func (msg MsgDeclareCandidate) Route() string { return RouterKey }
 func (msg MsgDeclareCandidate) Type() string  { return DeclareCandidateConst }
 func (msg MsgDeclareCandidate) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddr)}
+	valaddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddr)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{sdk.AccAddress(valaddr)}
 }
 
 func (msg MsgDeclareCandidate) GetSignBytes() []byte {
@@ -71,6 +76,9 @@ func (msg MsgDeclareCandidate) ValidateBasic() error {
 	}
 	if msg.Commission.GT(sdk.OneDec()) {
 		return ErrCommissionHuge()
+	}
+	if msg.PubKey == nil {
+		return ErrEmptyPubKey()
 	}
 
 	return nil
