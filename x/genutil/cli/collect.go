@@ -224,7 +224,10 @@ func CollectStdTxs(cdc codec.JSONMarshaler, txJSONDecoder sdk.TxDecoder, moniker
 		msg := msgs[0].(*validator.MsgDeclareCandidate)
 		// validate delegator and validator addresses and funds against the accounts in the state
 		delAddr := sdk.AccAddress(msg.ValidatorAddr).String()
-		valAddr := sdk.AccAddress(msg.ValidatorAddr).String()
+		valAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddr)
+		if err != nil {
+			return nil, err
+		}
 
 		delAcc, delOk := genBalances[delAddr]
 		if !delOk {
@@ -232,7 +235,7 @@ func CollectStdTxs(cdc codec.JSONMarshaler, txJSONDecoder sdk.TxDecoder, moniker
 				"account %v not in genesis.json: %+v", delAddr, genBalances)
 		}
 
-		_, valOk := genBalances[valAddr]
+		_, valOk := genBalances[sdk.AccAddress(valAddr).String()]
 		if !valOk {
 			return appGenTxs, fmt.Errorf(
 				"account %v not in genesis.json: %+v", valAddr, genBalances)

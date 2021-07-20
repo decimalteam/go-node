@@ -19,8 +19,6 @@ import (
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
-	"github.com/spf13/viper"
-
 	tos "github.com/tendermint/tendermint/libs/os"
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -118,9 +116,12 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 			}
 
 			// Set flags for creating gentx
-			cmd.Flags().Set(flags.FlagHome, viper.GetString(flagClientHome))
+			moniker := config.Moniker
+			if m, _ := cmd.Flags().GetString(cli.FlagMoniker); m != "" {
+				moniker = m
+			}
 
-			createValCfg, err := smbh.PrepareFlagsForTxCreateValidator(cmd.Flags(), config.Moniker, nodeID, genDoc.ChainID, valPubKey)
+			createValCfg, err := smbh.PrepareFlagsForTxCreateValidator(cmd.Flags(), moniker, nodeID, genDoc.ChainID, valPubKey)
 			if err != nil {
 				return err
 			}
