@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	client2 "github.com/cosmos/cosmos-sdk/x/auth/client"
+	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
@@ -27,7 +27,7 @@ import (
 func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh StakingMsgBuildingHelpers, defaultNodeHome, defaultCLIHome string) *cobra.Command {
 
 	ipDefault, _ := server.ExternalIP()
-	fsCreateValidator, flagNodeID, flagPubKey, flagAmount, defaultsDesc := smbh.CreateValidatorMsgHelpers(ipDefault)
+	fsCreateValidator, defaultsDesc := smbh.CreateValidatorMsgHelpers(ipDefault)
 
 	cmd := &cobra.Command{
 		Use:   "gen-declare-candidate-tx",
@@ -52,11 +52,11 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			}
 
 			// Read --nodeID, if empty take it from priv_validator.json
-			if nodeIDString, _ := cmd.Flags().GetString(flagNodeID); nodeIDString != "" {
+			if nodeIDString, _ := cmd.Flags().GetString(cli.FlagNodeID); nodeIDString != "" {
 				nodeID = nodeIDString
 			}
 			// Read --pubkey, if empty take it from priv_validator.json
-			if valPubKeyString, _ := cmd.Flags().GetString(flagPubKey); valPubKeyString != "" {
+			if valPubKeyString, _ := cmd.Flags().GetString(cli.FlagPubKey); valPubKeyString != "" {
 				valPubKey, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, valPubKeyString)
 				if err != nil {
 					return err
@@ -74,7 +74,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			//	return err
 			//}
 
-			name, _ := cmd.Flags().GetString(flags.FlagName)
+			name := args[0]
 			key, err := clientCtx.Keyring.Key(name)
 			if err != nil {
 				return err
@@ -92,7 +92,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			createValCfg, _ := smbh.PrepareFlagsForTxCreateValidator(cmd.Flags(), moniker, nodeID, chainID, valPubKey)
 
 			// Fetch the amount of coins staked
-			amount, _ := cmd.Flags().GetString(flagAmount)
+			amount := args[1]
 			_, err = sdk.ParseCoinNormalized(amount)
 			if err != nil {
 				return err
@@ -105,21 +105,21 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			viper.Set(flags.FlagGenerateOnly, true)
 
 			// create a 'create-validator' message
-			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, cmd.Flags())
+			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, cmd.Flags(), true)
 			if err != nil {
 				return err
 			}
 
 			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
 				fmt.Println("Offline key passed in. Use `tx sign` command to sign:")
-				return client2.PrintUnsignedStdTx(txBldr, clientCtx, []sdk.Msg{msg})
+				return authclient.PrintUnsignedStdTx(txBldr, clientCtx, []sdk.Msg{msg})
 			}
 
 			// write the unsigned transaction to the buffer
 			w := bytes.NewBuffer([]byte{})
 			clientCtx = clientCtx.WithOutput(w)
 
-			if err = client2.PrintUnsignedStdTx(txFactory, clientCtx, []sdk.Msg{msg}); err != nil {
+			if err = authclient.PrintUnsignedStdTx(txFactory, clientCtx, []sdk.Msg{msg}); err != nil {
 				return err
 			}
 
@@ -130,16 +130,19 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			}
 
 			// sign the transaction and write it to the output file
+			fmt.Printf("1\n")
 			txBuilder, err := clientCtx.TxConfig.WrapTxBuilder(stdTx)
 			if err != nil {
 				return err
 			}
 
-			err = client2.SignTx(txFactory, clientCtx, name, txBuilder, true, true)
+			fmt.Printf("2\n")
+			err = authclient.SignTx(txFactory, clientCtx, name, txBuilder, true, true)
 			if err != nil {
 				return errors.Wrap(err, "failed to sign std tx")
 			}
 
+			fmt.Printf("3\n")
 			txJSON, err := json.MarshalIndent(stdTx, "", "  ")
 			if err != nil {
 				return err

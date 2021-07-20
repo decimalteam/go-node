@@ -41,9 +41,9 @@ const (
 
 // StakingMsgBuildingHelpers helpers for message building gen-tx command
 type StakingMsgBuildingHelpers interface {
-	CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string)
+	CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, defaultsDesc string)
 	PrepareFlagsForTxCreateValidator(set *flag.FlagSet, moniker, nodeID, chainID string, valPubKey cryptotypes.PubKey) (cli.TxCreateValidatorConfig, error)
-	BuildCreateValidatorMsg(cliCtx client.Context, config cli.TxCreateValidatorConfig, txBldr tx.Factory, fs *flag.FlagSet) (tx.Factory, sdk.Msg, error)
+	BuildCreateValidatorMsg(cliCtx client.Context, config cli.TxCreateValidatorConfig, txBldr tx.Factory, fs *flag.FlagSet, generateOnly bool) (tx.Factory, sdk.Msg, error)
 }
 
 // GenTxCmd builds the application's gentx command.
@@ -52,7 +52,7 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 	genBalIterator types.GenesisBalancesIterator, defaultNodeHome, defaultCLIHome string) *cobra.Command {
 
 	ipDefault, _ := server.ExternalIP()
-	fsCreateValidator, flagNodeID, flagPubKey, _, defaultsDesc := smbh.CreateValidatorMsgHelpers(ipDefault)
+	fsCreateValidator, defaultsDesc := smbh.CreateValidatorMsgHelpers(ipDefault)
 
 	cmd := &cobra.Command{
 		Use:   "gentx [key_name] [amount]",
@@ -85,14 +85,14 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 			}
 
 			// Read --nodeID, if empty take it from priv_validator.json
-			if nodeIDString, _ := cmd.Flags().GetString(flagNodeID); nodeIDString != "" {
+			if nodeIDString, _ := cmd.Flags().GetString(cli.FlagNodeID); nodeIDString != "" {
 				nodeID = nodeIDString
 			}
 			// Read --pubkey, if empty take it from priv_validator.json
-			if val, _ := cmd.Flags().GetString(flagPubKey); val != "" {
-				err = clientCtx.JSONMarshaler.UnmarshalJSON([]byte(val), valPubKey)
+			if val, _ := cmd.Flags().GetString(cli.FlagPubKey); val != "" {
+				valPubKey, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, val)
 				if err != nil {
-					return err
+					return errors.Wrap(err, "failed to get consensus node pub key")
 				}
 			}
 
@@ -143,19 +143,17 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 
 			clientCtx = clientCtx.WithInput(inBuf).WithFromAddress(key.GetAddress())
 
-			viper.Set(flags.FlagGenerateOnly, true)
-
 			createValCfg.Amount = amount
 
 			// create a 'create-validator' message
-			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, cmd.Flags())
+			txBldr, msg, err := smbh.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, cmd.Flags(), true)
 			if err != nil {
 				return err
 			}
 			log.Println(msg)
 
 			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
-				fmt.Println("Offline key passed in. Use `tx sign` command to sign:")
+				cmd.PrintErrln("Offline key passed in. Use `tx sign` command to sign:")
 				return client2.PrintUnsignedStdTx(txBldr, clientCtx, []sdk.Msg{msg})
 			}
 
@@ -179,6 +177,9 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 				return err
 			}
 
+			for n, s := range txBuilder.GetTx().GetSigners() {
+				fmt.Printf("Signer %d: %s\n", n, s.String())
+			}
 			err = client2.SignTx(txFactory, clientCtx, name, txBuilder, true, true)
 			if err != nil {
 				return errors.Wrap(err, "failed to sign std tx")

@@ -91,7 +91,7 @@ func (amb AppModuleBasic) GetQueryCmd() *cobra.Command {
 
 // CreateValidatorMsgHelpers - used for gen-tx
 func (AppModuleBasic) CreateValidatorMsgHelpers(ipDefault string) (
-	fs *flag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string) {
+	fs *flag.FlagSet, defaultsDesc string) {
 	return cli.CreateValidatorMsgHelpers(ipDefault)
 }
 
@@ -112,8 +112,9 @@ func (AppModuleBasic) BuildCreateValidatorMsg(
 	config cli2.TxCreateValidatorConfig,
 	txBldr tx.Factory,
 	fs *flag.FlagSet,
+	generateOnly bool,
 ) (tx.Factory, sdk.Msg, error) {
-	return cli.BuildCreateValidatorMsg(cliCtx, config, txBldr, fs)
+	return cli.BuildCreateValidatorMsg(cliCtx, config, txBldr, fs, generateOnly)
 }
 
 // AppModule implements an application module for the validator module.

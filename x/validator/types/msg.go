@@ -25,23 +25,23 @@ var (
 //	Description   Description    `json:"description"`
 //}
 
-func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey types.PubKey, commission sdk.Dec, stake sdk.Coin, description Description, rewardAddress sdk.AccAddress) MsgDeclareCandidate {
+func NewMsgDeclareCandidate(validatorAddr sdk.ValAddress, pubKey types.PubKey, commission sdk.Dec, stake sdk.Coin, description Description, rewardAddress sdk.AccAddress) (*MsgDeclareCandidate, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
 		var err error
 		if pkAny, err = codectypes.NewAnyWithValue(pubKey); err != nil {
-			return MsgDeclareCandidate{}
+			return nil, err
 		}
 	}
 
-	return MsgDeclareCandidate{
+	return &MsgDeclareCandidate{
 		Commission:    commission,
 		ValidatorAddr: validatorAddr.String(),
 		RewardAddr:    rewardAddress.String(),
 		PubKey:        pkAny,
 		Stake:         stake,
 		Description:   description,
-	}
+	}, nil
 }
 
 const DeclareCandidateConst = "declare_candidate"

@@ -79,13 +79,17 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 				rewardAddress = valAddress
 			}
 
-			msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddress), pk, commission, stake, types.Description{}, rewardAddress)
+			msg, err := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddress), pk, commission, stake, types.Description{}, rewardAddress)
+			if err != nil {
+				return err
+			}
+
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -109,7 +113,7 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 
 // CreateValidatorMsgHelpers returns the flagset, particular flags and a description of defaults
 // this is anticipated to be used with the gen-tx.
-func CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, pubkeyFlag, amountFlag, defaultsDesc string) {
+func CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, defaultsDesc string) {
 
 	fsCreateValidator := flag.NewFlagSet("", flag.ContinueOnError)
 	fsCreateValidator.String(FlagIP, ipDefault, "The node's public IP")
@@ -125,7 +129,7 @@ func CreateValidatorMsgHelpers(ipDefault string) (fs *flag.FlagSet, nodeIDFlag, 
 	fsCreateValidator.AddFlagSet(FsAmount)
 	fsCreateValidator.AddFlagSet(FsPk)
 
-	return fsCreateValidator, FlagNodeID, FlagPubKey, FlagAmount, defaultsDesc
+	return fsCreateValidator, defaultsDesc
 }
 
 // PrepareFlagsForTxCreateValidator prepare flags in config.
@@ -173,7 +177,7 @@ func PrepareFlagsForTxCreateValidator(flagSet *flag.FlagSet, moniker, nodeID, ch
 	}
 
 	c.NodeID = nodeID
-	c.PubKey = valPubKey.String()
+	c.PubKey = sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, valPubKey)
 	c.Website = website
 	c.SecurityContact = securityContact
 	c.Details = details
@@ -193,15 +197,6 @@ func PrepareFlagsForTxCreateValidator(flagSet *flag.FlagSet, moniker, nodeID, ch
 		c.Moniker, _ = flagSet.GetString(flags.FlagName)
 	}
 
-	//viper.Set(flags.FlagChainID, chainID)
-	//viper.Set(FlagNodeID, nodeID)
-	//viper.Set(FlagIP, ip)
-	//viper.Set(FlagPubKey, sdk.MustBech32ifyAddressBytes(sdk.Bech32PrefixConsPub, valPubKey.Bytes()))
-	//viper.Set(FlagMoniker, moniker)
-	//viper.Set(FlagWebsite, website)
-	//viper.Set(FlagSecurityContact, securityContact)
-	//viper.Set(FlagDetails, details)
-	//viper.Set(FlagIdentity, identity)
 	viper.Set(flags.FlagFrom, viper.GetString(flags.FlagName))
 	viper.Set(FlagRewardAddress, viper.Get(FlagRewardAddress))
 
@@ -209,7 +204,7 @@ func PrepareFlagsForTxCreateValidator(flagSet *flag.FlagSet, moniker, nodeID, ch
 }
 
 // BuildCreateValidatorMsg makes a new MsgCreateValidator.
-func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValidatorConfig, txBldr tx.Factory, fs *flag.FlagSet) (tx.Factory, sdk.Msg, error) {
+func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValidatorConfig, txBldr tx.Factory, fs *flag.FlagSet, generateOnly bool) (tx.Factory, sdk.Msg, error) {
 	amounstStr := config.Amount
 	amount, err := sdk.ParseCoinNormalized(amounstStr)
 	if err != nil {
@@ -248,16 +243,23 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValid
 		return txBldr, nil, err
 	}
 
-	msg := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, description, rewardAddr)
+	msg, err := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddr), pk, commission, amount, description, rewardAddr)
 
-	// NOTE: No need to show public IP of the node
-	ip, _ := fs.GetString(FlagIP)
-	nodeID, _ := fs.GetString(FlagNodeID)
-	if nodeID != "" && ip != "" {
-		txBldr = txBldr.WithMemo(fmt.Sprintf("%s@%s:26656", nodeID, ip))
+	if err != nil {
+		return txBldr, nil, err
 	}
 
-	return txBldr, &msg, nil
+	// NOTE: No need to show public IP of the node
+	if generateOnly {
+		ip := config.IP
+		nodeID := config.NodeID
+
+		if nodeID != "" && ip != "" {
+			txBldr = txBldr.WithMemo(fmt.Sprintf("%s@%s:26656", nodeID, ip))
+		}
+	}
+
+	return txBldr, msg, nil
 }
 
 // GetDelegate .
