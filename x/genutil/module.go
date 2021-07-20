@@ -51,7 +51,7 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxE
 	if err != nil {
 		return err
 	}
-	return ValidateGenesis(&data, config.TxDecoder())
+	return ValidateGenesis(&data, config.TxJSONDecoder())
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces

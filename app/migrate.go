@@ -52,12 +52,6 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 				return errors.Wrap(err, "failed to read provided genesis file")
 			}
 
-			//jsonBlob, err = migrateTendermintGenesis(jsonBlob)
-
-			if err != nil {
-				return errors.Wrap(err, "failed to migration from 0.32 Tendermint params to 0.34 parms")
-			}
-
 			genDoc, err := tmtypes.GenesisDocFromJSON(jsonBlob)
 			if err != nil {
 				return errors.Wrapf(err, "failed to read genesis document from file %s", importGenesis)
@@ -67,22 +61,14 @@ $ %s migrate /path/to/genesis.json --chain-id=cosmoshub-4 --genesis-time=2019-04
 			if err := json.Unmarshal(genDoc.AppState, &initialState); err != nil {
 				return errors.Wrap(err, "failed to JSON unmarshal initial genesis state")
 			}
-
-			migrationFunc := cli.GetMigrationCallback(firstMigration)
-			if migrationFunc == nil {
-				return fmt.Errorf("unknown migration function for version: %s", firstMigration)
-			}
-
-			newGenState := migrationFunc(initialState, clientCtx)
-
 			secondMigration := "v0.39"
 
-			migrationFunc = cli.GetMigrationCallback(secondMigration)
+			migrationFunc := cli.GetMigrationCallback(secondMigration)
 			if migrationFunc == nil {
 				return fmt.Errorf("unknown migration function for version: %s", secondMigration)
 			}
 
-			newGenState = migrationFunc(newGenState, clientCtx)
+			newGenState := migrationFunc(initialState, clientCtx)
 
 			thirdMigration := "v0.40"
 

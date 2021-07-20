@@ -108,7 +108,6 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 
 			// LABEL-TEST: check this part of code
 			if err = mbm.ValidateGenesis(cdc, txEncodingConfig, genesisState); err != nil {
-				fmt.Printf("errors FUCK")
 				return err
 			}
 
