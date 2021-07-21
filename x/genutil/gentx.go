@@ -1,10 +1,9 @@
 package genutil
 
 import (
+	genutiltypes "bitbucket.org/decimalteam/go-node/x/genutil/types"
 	"encoding/json"
 	"fmt"
-
-	genutiltypes "bitbucket.org/decimalteam/go-node/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -94,13 +93,8 @@ func ValidateAccountInGenesis(appGenesisState map[string]json.RawMessage,
 type deliverTxfn func(abci.RequestDeliverTx) abci.ResponseDeliverTx
 
 // DeliverGenTxs - deliver a genesis transaction
-func DeliverGenTxs(ctx sdk.Context, cdc codec.JSONMarshaler, genTxs []json.RawMessage,
-	validatorKeeper validator.Keeper, deliverTx deliverTxfn, txEncodingConfig client.TxEncodingConfig) ([]abci.ValidatorUpdate, error) {
-
+func DeliverGenTxs(ctx sdk.Context, cdc codec.JSONMarshaler, genTxs []json.RawMessage, validatorKeeper validator.Keeper, deliverTx deliverTxfn, txEncodingConfig client.TxEncodingConfig) ([]abci.ValidatorUpdate, error) {
 	for _, genTx := range genTxs {
-		//var tx legacytx.StdTx
-		//cdc.MustUnmarshalJSON(genTx, &tx)
-		//bz := cdc.MustMarshalJSON(tx)
 		tx, err := txEncodingConfig.TxJSONDecoder()(genTx)
 		if err != nil {
 			panic(err)
@@ -109,8 +103,6 @@ func DeliverGenTxs(ctx sdk.Context, cdc codec.JSONMarshaler, genTxs []json.RawMe
 		if err != nil {
 			panic(err)
 		}
-		//cdc.MustUnmarshalJSON(genTx, &tx)
-		//bz := cdc.MustMarshalJSON(tx)
 		res := deliverTx(abci.RequestDeliverTx{Tx: bz})
 		if !res.IsOK() {
 			panic(res.Log)

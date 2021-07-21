@@ -7,15 +7,15 @@ import (
 )
 
 // NewGenesisState creates a new genesis state for the governance module
-func NewGenesisState(startingProposalID uint64, tp TallyParams) GenesisState {
-	return GenesisState{
+func NewGenesisState(startingProposalID uint64, tp TallyParams) *GenesisState {
+	return &GenesisState{
 		StartingProposalID: startingProposalID,
 		TallyParams:        tp,
 	}
 }
 
 // DefaultGenesisState defines the default governance genesis state
-func DefaultGenesisState() GenesisState {
+func DefaultGenesisState() *GenesisState {
 	return NewGenesisState(
 		DefaultStartingProposalID,
 		DefaultTallyParams(),

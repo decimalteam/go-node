@@ -135,18 +135,18 @@ func (v Validator) MarshalYAML() (interface{}, error) {
 	pk, _ := v.PubKey.GetCachedValue().(cryptotypes.PubKey)
 
 	bs, err := yaml.Marshal(struct {
-		ValAddress/*sdk.ValAddress*/ string
-		RewardAddress/*sdk.AccAddress*/ string
-		PubKey                  string
-		Jailed                  bool
-		Status                  BondStatus
-		Tokens                  sdk.Int
-		Description             Description
-		UnbondingHeight         int64
-		UnbondingCompletionTime time.Time
-		Commission              sdk.Dec
-		AccumRewards            sdk.Int
-		Online                  bool
+		ValAddress /*sdk.ValAddress*/    string
+		RewardAddress /*sdk.AccAddress*/ string
+		PubKey                           string
+		Jailed                           bool
+		Status                           BondStatus
+		Tokens                           sdk.Int
+		Description                      Description
+		UnbondingHeight                  int64
+		UnbondingCompletionTime          time.Time
+		Commission                       sdk.Dec
+		AccumRewards                     sdk.Int
+		Online                           bool
 	}{
 		ValAddress:              v.ValAddress,
 		RewardAddress:           v.RewardAddress,
@@ -340,15 +340,8 @@ func (d Description) EnsureLength() (Description, error) {
 	return d, nil
 }
 
-// BondStatus is the status of a validator
-type BondStatus byte
-
 // staking constants
 const (
-	Unbonded  BondStatus = 0x00
-	Unbonding BondStatus = 0x01
-	Bonded    BondStatus = 0x02
-
 	BondStatusUnbonded  = "Unbonded"
 	BondStatusUnbonding = "Unbonding"
 	BondStatusBonded    = "Bonded"
@@ -357,12 +350,6 @@ const (
 // Equal compares two BondStatus instances
 func (b BondStatus) Equal(b2 BondStatus) bool {
 	return byte(b) == byte(b2)
-}
-
-// Size used by gogoproto
-func (b BondStatus) Size() int {
-	// todo marshal correctly
-	return len(b.String())
 }
 
 // String implements the Stringer interface for BondStatus.
@@ -377,15 +364,6 @@ func (b BondStatus) String() string {
 	default:
 		panic("invalid bond status")
 	}
-}
-
-func (b BondStatus) Unmarshal(data []byte) error {
-	// todo
-	return nil
-}
-
-func (b BondStatus) MarshalTo(data []byte) ([]byte, error) {
-	return data, nil
 }
 
 func NewValidator(valAddress string, pubKey cryptotypes.PubKey, commission sdk.Dec, rewardAddress string, description Description) (Validator, error) {

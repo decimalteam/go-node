@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -150,7 +149,6 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 			if err != nil {
 				return err
 			}
-			log.Printf("MSG %v", msg)
 
 			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
 				cmd.PrintErrln("Offline key passed in. Use `tx sign` command to sign:")
@@ -177,9 +175,6 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 				return err
 			}
 
-			for n, s := range txBuilder.GetTx().GetSigners() {
-				fmt.Printf("Signer %d: %s\n", n, s.String())
-			}
 			err = client2.SignTx(txFactory, clientCtx, name, txBuilder, true, true)
 			if err != nil {
 				return errors.Wrap(err, "failed to sign std tx")

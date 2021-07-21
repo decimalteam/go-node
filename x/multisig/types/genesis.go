@@ -16,8 +16,8 @@ func NewGenesisState(
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
-func DefaultGenesisState() GenesisState {
-	return GenesisState{
+func DefaultGenesisState() *GenesisState {
+	return &GenesisState{
 		// TODO: Fill out according to your genesis state, these values will be initialized but empty
 	}
 }

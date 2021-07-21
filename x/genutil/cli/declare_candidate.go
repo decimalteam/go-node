@@ -125,19 +125,16 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			}
 
 			// sign the transaction and write it to the output file
-			fmt.Printf("1\n")
 			txBuilder, err := clientCtx.TxConfig.WrapTxBuilder(stdTx)
 			if err != nil {
 				return err
 			}
 
-			fmt.Printf("2\n")
 			err = authclient.SignTx(txFactory, clientCtx, name, txBuilder, true, true)
 			if err != nil {
 				return errors.Wrap(err, "failed to sign std tx")
 			}
 
-			fmt.Printf("3\n")
 			txJSON, err := json.MarshalIndent(stdTx, "", "  ")
 			if err != nil {
 				return err

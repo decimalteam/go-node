@@ -19,8 +19,8 @@ func NewGenesisState(title string, symbol string, initVolume sdk.Int) GenesisSta
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
-func DefaultGenesisState() GenesisState {
-	return GenesisState{
+func DefaultGenesisState() *GenesisState {
+	return &GenesisState{
 		Title:         config.TitleBaseCoin,
 		Symbol:        config.SymbolBaseCoin,
 		InitialVolume: config.InitialVolumeBaseCoin,

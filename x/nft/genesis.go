@@ -16,5 +16,5 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
 
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
-	return NewGenesisState(k.GetOwners(ctx), k.GetCollections(ctx))
+	return *NewGenesisState(k.GetOwners(ctx), k.GetCollections(ctx))
 }

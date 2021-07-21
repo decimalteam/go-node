@@ -11,15 +11,15 @@ import (
 //}
 
 // NewGenesisState creates a new genesis state.
-func NewGenesisState(owners []Owner, collections Collections) GenesisState {
-	return GenesisState{
+func NewGenesisState(owners []Owner, collections Collections) *GenesisState {
+	return &GenesisState{
 		Owners:      owners,
 		Collections: collections,
 	}
 }
 
 // DefaultGenesisState returns a default genesis state
-func DefaultGenesisState() GenesisState {
+func DefaultGenesisState() *GenesisState {
 	return NewGenesisState([]Owner{}, NewCollections())
 }
 
