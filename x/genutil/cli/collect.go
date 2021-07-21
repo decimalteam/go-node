@@ -181,11 +181,16 @@ func CollectStdTxs(cdc codec.JSONMarshaler, txJSONDecoder sdk.TxDecoder, moniker
 	// prepare a map of all accounts in genesis state to then validate
 	// against the validators addresses
 	var appState map[string]json.RawMessage
-	if err := cdc.UnmarshalInterfaceJSON(genDoc.AppState, &appState); err != nil {
+	fmt.Printf("1")
+	if err := json.Unmarshal(genDoc.AppState, &appState); err != nil {
 		return appGenTxs, err
 	}
 
+	fmt.Printf("State %v", appState)
+
+	fmt.Printf("11212")
 	genBalances := make(map[string]exported.GenesisBalance)
+	fmt.Printf("2")
 	genAccIterator.IterateGenesisBalances(cdc, appState,
 		func(balance exported.GenesisBalance) (stop bool) {
 			genBalances[balance.GetAddress().String()] = balance
@@ -204,10 +209,6 @@ func CollectStdTxs(cdc codec.JSONMarshaler, txJSONDecoder sdk.TxDecoder, moniker
 		if jsonRawTx, err = ioutil.ReadFile(filename); err != nil {
 			return appGenTxs, err
 		}
-		//var genStdTx legacytx.StdTx
-		//if err = cdc.UnmarshalJSON(jsonRawTx, &genStdTx); err != nil {
-		//	return appGenTxs, err
-		//}
 		var genTx sdk.Tx
 		if genTx, err = txJSONDecoder(jsonRawTx); err != nil {
 			return appGenTxs, err
@@ -223,13 +224,16 @@ func CollectStdTxs(cdc codec.JSONMarshaler, txJSONDecoder sdk.TxDecoder, moniker
 
 		msg := msgs[0].(*validator.MsgDeclareCandidate)
 		// validate delegator and validator addresses and funds against the accounts in the state
-		delAddr := sdk.AccAddress(msg.ValidatorAddr).String()
+		delAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddr)
+		if err != nil {
+			return nil, err
+		}
 		valAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddr)
 		if err != nil {
 			return nil, err
 		}
 
-		delAcc, delOk := genBalances[delAddr]
+		delAcc, delOk := genBalances[sdk.AccAddress(delAddr).String()]
 		if !delOk {
 			return appGenTxs, fmt.Errorf(
 				"account %v not in genesis.json: %+v", delAddr, genBalances)

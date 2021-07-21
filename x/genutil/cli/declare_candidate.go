@@ -69,12 +69,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 				return fmt.Errorf("chain ID must be specified")
 			}
 
-			//_, err = keyring.New(sdk.KeyringServiceName(), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flagClientHome), cmd.InOrStdin())
-			//if err != nil {
-			//	return err
-			//}
-
-			name := args[0]
+			name, _ := cmd.Flags().GetString(flags.FlagName)
 			key, err := clientCtx.Keyring.Key(name)
 			if err != nil {
 				return err
@@ -92,7 +87,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			createValCfg, _ := smbh.PrepareFlagsForTxCreateValidator(cmd.Flags(), moniker, nodeID, chainID, valPubKey)
 
 			// Fetch the amount of coins staked
-			amount := args[1]
+			amount, _ := cmd.Flags().GetString(cli.FlagAmount)
 			_, err = sdk.ParseCoinNormalized(amount)
 			if err != nil {
 				return err
