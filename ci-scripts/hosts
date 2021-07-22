@@ -1,0 +1,3 @@
+[go_node]
+dev-node-02.devnet.decimalchain.com         ansible_host=185.242.122.122:3202
+dev-node-03.devnet.decimalchain.com         ansible_host=185.242.122.122:3203
