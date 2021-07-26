@@ -683,7 +683,9 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 					if err != nil {
 						return err
 					}
-					k.SubtractDelegatedCoin(ctx, entry.Balance)
+					if ctx.BlockHeight() >= updates.Update11Block {
+						k.SubtractDelegatedCoin(ctx, entry.Balance)
+					}
 				case types.UnbondingDelegationNFTEntry:
 					collection, ok := k.nftKeeper.GetCollection(ctx, entry.Denom)
 					if !ok {

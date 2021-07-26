@@ -22,9 +22,9 @@ const (
 	CodeExpired           = 106
 	CodeWrongSecret       = 107
 
-	CodeChainNotExist         = 200
-	CodeInvalidServiceAddress = 201
-	CodeInsufficientPoolFunds = 202
+	CodeChainNotExist            = 200
+	CodeInvalidServiceAddress    = 201
+	CodeInsufficientPoolFunds    = 202
 	CodeInvalidTransactionNumber = 203
 
 	CodeDeprecated = 300

@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	SwapKey = []byte{0x50, 0x01}
+	SwapKey   = []byte{0x50, 0x01}
 	SwapV2Key = []byte{0x50, 0x02}
 	ChainKey  = []byte{0x50, 0x03}
 )

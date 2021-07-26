@@ -140,9 +140,12 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 		}
 	} else {
 		collection = types.NewCollection(denom, types.NewNFTs(nft))
-		k.SetTokenIDIndex(ctx, id)
 	}
 	k.SetCollection(ctx, denom, collection)
+
+	if ctx.BlockHeight() >= updates.Update2Block {
+		k.SetTokenIDIndex(ctx, id)
+	}
 
 	newLastSubTokenID := lastSubTokenID + quantity.Int64()
 
