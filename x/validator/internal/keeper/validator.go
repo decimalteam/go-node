@@ -157,13 +157,14 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 				} else {
 					del = del.SetTokensBase(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount))
 				}
+				tokenBase := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount)
 				eventMutex.Lock()
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
 					types.EventTypeCalcStake,
 					sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
 					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
 					sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
-					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
+					sdk.NewAttribute(types.AttributeKeyStake, tokenBase.String()),
 				))
 				eventMutex.Unlock()
 				switch del := del.(type) {
