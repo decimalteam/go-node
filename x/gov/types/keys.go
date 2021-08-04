@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"encoding/binary"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -147,8 +146,8 @@ func splitKeyWithTime(key []byte) (proposalID uint64, endBlock uint64) {
 }
 
 func splitKeyWithAddress(key []byte) (proposalID uint64, addr sdk.AccAddress) {
-	if len(key[1:]) != 8+types.AddrLen {
-		panic(fmt.Sprintf("unexpected key length (%d ≠ %d)", len(key), 8+types.AddrLen))
+	if len(key[1:]) != 8+sdk.AddrLen {
+		panic(fmt.Sprintf("unexpected key length (%d ≠ %d)", len(key), 8+sdk.AddrLen))
 	}
 
 	proposalID = GetProposalIDFromBytes(key[1:9])

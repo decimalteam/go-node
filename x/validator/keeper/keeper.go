@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"bitbucket.org/decimalteam/go-node/x/coin"
@@ -22,7 +23,7 @@ const aminoCacheSize = 500
 type Keeper struct {
 	storeKey         sdk.StoreKey
 	cdc              *codec.LegacyAmino
-	paramSpace       types.ParamSubspace
+	paramstore       paramtypes.Subspace
 	CoinKeeper       coin.Keeper
 	AccountKeeper    authKeeper.AccountKeeper
 	baseKeeper       bankKeeper.BaseKeeper
@@ -36,7 +37,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc *codec.LegacyAmino,
 	key sdk.StoreKey,
-	paramSpace types.ParamSubspace,
+	paramstore paramtypes.Subspace,
 	coinKeeper coin.Keeper,
 	accountKeeper authKeeper.AccountKeeper,
 	baseKeeper bankKeeper.BaseKeeper,
@@ -44,6 +45,10 @@ func NewKeeper(
 	nftKeeper nft.Keeper,
 	feeCollectorName string,
 ) Keeper {
+	// set KeyTable if it has not already been set
+	if !paramstore.HasKeyTable() {
+		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
+	}
 
 	// ensure bonded and not bonded module accounts are set
 	if addr := accountKeeper.GetModuleAddress(types.BondedPoolName); addr == nil {
@@ -57,7 +62,7 @@ func NewKeeper(
 	keeper := Keeper{
 		storeKey:         key,
 		cdc:              cdc,
-		paramSpace:       paramSpace.WithKeyTable(ParamKeyTable()),
+		paramstore:       paramstore,
 		CoinKeeper:       coinKeeper,
 		AccountKeeper:    accountKeeper,
 		baseKeeper:       baseKeeper,

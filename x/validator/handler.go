@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"runtime/debug"
 	"time"
@@ -67,17 +66,12 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 		return nil, types.ErrValidatorPubKeyExists()
 	}
 
-	if ctx.ConsensusParams() != nil {
-		tmPubKey, err := codec.ToTmProtoPublicKey(pk)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if !tmstrings.StringInSlice(tmPubKey.String(), ctx.ConsensusParams().Validator.PubKeyTypes) {
+	cp := ctx.ConsensusParams()
+	if cp != nil && cp.Validator != nil {
+		if !tmstrings.StringInSlice(pk.Type(), cp.Validator.PubKeyTypes) {
 			return nil, sdkerrors.Wrapf(
 				types.ErrValidatorPubKeyTypeNotSupported(),
-				"got: %s, valid: %s", tmPubKey.String(), ctx.ConsensusParams().Validator.PubKeyTypes,
+				"got: %s, expected: %s", pk.Type(), cp.Validator.PubKeyTypes,
 			)
 		}
 	}
@@ -96,7 +90,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 
 	k.AfterValidatorCreated(ctx, validatorAddr)
 
-	err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
+	err = k.Delegate(ctx, sdk.AccAddress(validatorAddr), msg.Stake, types.Unbonded, val, true)
 	if err != nil {
 		e := sdkerrors.Error{}
 		if errors.As(err, &e) {
@@ -171,11 +165,11 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 func handleMsgDelegateNFT(ctx sdk.Context, k Keeper, msg types.MsgDelegateNFT) (*sdk.Result, error) {
 	delegatorAddr, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 
 	val, err := k.GetValidator(ctx, validatorAddr)
@@ -206,11 +200,11 @@ func handleMsgDelegateNFT(ctx sdk.Context, k Keeper, msg types.MsgDelegateNFT) (
 func handleMsgUnbondNFT(ctx sdk.Context, k Keeper, msg types.MsgUnbondNFT) (*sdk.Result, error) {
 	delegatorAddr, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 
 	completionTime, err := k.UndelegateNFT(ctx, delegatorAddr, validatorAddr, msg.TokenID, msg.Denom, msg.Quantity)
@@ -242,11 +236,11 @@ func handleMsgUnbondNFT(ctx sdk.Context, k Keeper, msg types.MsgUnbondNFT) (*sdk
 func handleMsgUnbond(ctx sdk.Context, k Keeper, msg types.MsgUnbond) (*sdk.Result, error) {
 	delegatorAddr, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 
 	completionTime, err := k.Undelegate(ctx, delegatorAddr, validatorAddr, msg.Coin)
@@ -282,7 +276,7 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 
 	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 
 	validator, err = k.GetValidator(ctx, validatorAddr)
@@ -316,7 +310,7 @@ func handleMsgEditCandidate(ctx sdk.Context, k Keeper, msg types.MsgEditCandidat
 func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk.Result, error) {
 	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 	validator, err := k.GetValidator(ctx, validatorAddr)
 	if err != nil {
@@ -350,7 +344,7 @@ func handleMsgSetOnline(ctx sdk.Context, k Keeper, msg types.MsgSetOnline) (*sdk
 func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*sdk.Result, error) {
 	validatorAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 
 	validator, err := k.GetValidator(ctx, validatorAddr)

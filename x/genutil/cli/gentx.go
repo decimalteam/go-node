@@ -204,6 +204,7 @@ func GenTxCmd(_ *server.Context, txEncodingConfig client.TxEncodingConfig, mbm m
 	cmd.Flags().String(flags.FlagName, "", "name of private key with which to sign the gentx")
 	cmd.Flags().String(flags.FlagOutputDocument, "",
 		"write the genesis transaction JSON document to the given file instead of the default location")
+	cmd.Flags().String(flags.FlagChainID, "", "The network chain ID")
 	cmd.Flags().AddFlagSet(fsCreateValidator)
 	//cmd.MarkFlagRequired(flags.FlagName)
 

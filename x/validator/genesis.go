@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authKeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 	"log"
@@ -127,17 +126,10 @@ func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Kee
 	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
 	// add coins if not provided on genesis
 
-	addr := bondedPool.GetAddress()
-
-	if bankKeeper.GetAllBalances(ctx, addr).IsZero() {
-		//if err := bankKeeper.SetBalances(ctx, addr, bondedTokens); err != nil {
-		//	panic(err)
-		//}
-		if err := bankKeeper.MintCoins(ctx, minttypes.ModuleName, bondedTokens); err != nil {
+	if bankKeeper.GetAllBalances(ctx, bondedPool.GetAddress()).IsZero() {
+		if err := bankKeeper.SetBalances(ctx, bondedPool.GetAddress(), bondedTokens); err != nil {
 			panic(err)
 		}
-
-		bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, bondedTokens)
 
 		accKeeper.SetModuleAccount(ctx, bondedPool)
 	}
@@ -147,14 +139,10 @@ func InitGenesis(ctx sdk.Context, accKeeper authKeeper.AccountKeeper, keeper Kee
 		panic(fmt.Sprintf("%s module account has not been set", types.NotBondedPoolName))
 	}
 
-	if bankKeeper.GetAllBalances(ctx, addr).IsZero() {
-		//if err := bankKeeper.SetBalances(ctx, addr, notBondedTokens); err != nil {
-		if err := bankKeeper.MintCoins(ctx, minttypes.ModuleName, notBondedTokens); err != nil {
+	if bankKeeper.GetAllBalances(ctx, notBondedPool.GetAddress()).IsZero() {
+		if err := bankKeeper.SetBalances(ctx, notBondedPool.GetAddress(), notBondedTokens); err != nil {
 			panic(err)
 		}
-
-		bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, notBondedTokens)
-		panic(err)
 
 		accKeeper.SetModuleAccount(ctx, notBondedPool)
 	}

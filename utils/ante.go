@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
+	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"strings"
@@ -21,7 +22,9 @@ import (
 )
 
 // Ante
-func NewAnteHandler(ak keeper.AccountKeeper, bankKeeper bankKeeper.Keeper, bankViewKeeper bankKeeper.ViewKeeper, vk validator.Keeper, ck coin.Keeper, consumer ante.SignatureVerificationGasConsumer) sdk.AnteHandler {
+func NewAnteHandler(ak keeper.AccountKeeper, bankKeeper bankKeeper.Keeper, bankViewKeeper bankKeeper.ViewKeeper,
+	vk validator.Keeper, ck coin.Keeper, consumer ante.SignatureVerificationGasConsumer,
+	signModeHandler signing.SignModeHandler) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		NewCountMsgDecorator(),
@@ -34,7 +37,7 @@ func NewAnteHandler(ak keeper.AccountKeeper, bankKeeper bankKeeper.Keeper, bankV
 		ante.NewValidateSigCountDecorator(ak),
 		NewFeeDecorator(ck, ak, bankKeeper, bankViewKeeper, vk),
 		ante.NewSigGasConsumeDecorator(ak, consumer),
-		ante.NewSigVerificationDecorator(ak, nil),
+		ante.NewSigVerificationDecorator(ak, signModeHandler),
 		NewPostCreateAccountDecorator(ak),      // should be after SigVerificationDecorator
 		ante.NewIncrementSequenceDecorator(ak), // innermost AnteDecorator
 	)
@@ -70,23 +73,23 @@ func (cad PreCreateAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 		return next(ctx, tx, simulate)
 	}
 
-	msgs := tx.GetMsgs()
-	if len(msgs) > 0 {
-		switch msgs[0].String() {
-		case coin.RedeemCheckConst:
-			signers := msgs[0].GetSigners()
-			if len(signers) == 1 {
-				acc := cad.ak.GetAccount(ctx, signers[0])
-				if acc == nil {
-					acc = cad.ak.NewAccountWithAddress(ctx, signers[0])
-					ctx = ctx.WithValue("created_account_address", signers[0].String())
-					ctx = ctx.WithValue("created_account_number", acc.GetAccountNumber())
-					acc.SetAccountNumber(0) // necessary to validate signature
-					cad.ak.SetAccount(ctx, acc)
-				}
-			}
-		}
-	}
+	//msgs := tx.GetMsgs()
+	//if len(msgs) > 0 {
+	//	switch msgs[0].(type) {
+	//	case coin.MsgRedeemCheck:
+	//		signers := msgs[0].GetSigners()
+	//		if len(signers) == 1 {
+	//			acc := cad.ak.GetAccount(ctx, signers[0])
+	//			if acc == nil {
+	//				acc = cad.ak.NewAccountWithAddress(ctx, signers[0])
+	//				ctx = ctx.WithValue("created_account_address", signers[0].String())
+	//				ctx = ctx.WithValue("created_account_number", acc.GetAccountNumber())
+	//				acc.SetAccountNumber(0) // necessary to validate signature
+	//				cad.ak.SetAccount(ctx, acc)
+	//			}
+	//		}
+	//	}
+	//}
 
 	return next(ctx, tx, simulate)
 }

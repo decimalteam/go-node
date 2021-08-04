@@ -44,7 +44,7 @@ func GenDeclareCandidateTxCmd(ctx *server.Context, mbm module.BasicManager, smbh
 			serverCtx := server.GetServerContextFromCmd(cmd)
 
 			config := serverCtx.Config
-			config.SetRoot(clientCtx.HomeDir)
+			config.SetRoot(viper.GetString(flags.FlagHome))
 
 			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(ctx.Config)
 			if err != nil {

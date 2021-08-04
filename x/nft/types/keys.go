@@ -1,13 +1,12 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"bitbucket.org/decimalteam/go-node/x/coin"
 )
 
 const (
@@ -51,8 +50,8 @@ func SplitOwnerKey(key []byte) (sdk.AccAddress, []byte) {
 	if len(key) != 53 {
 		panic(fmt.Sprintf("unexpected key length %d", len(key)))
 	}
-	address := key[1 : types.AddrLen+1]
-	denomHashBz := key[types.AddrLen+1:]
+	address := key[1 : sdk.AddrLen+1]
+	denomHashBz := key[sdk.AddrLen+1:]
 	return sdk.AccAddress(address), denomHashBz
 }
 

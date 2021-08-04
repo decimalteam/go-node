@@ -135,18 +135,18 @@ func (v Validator) MarshalYAML() (interface{}, error) {
 	pk, _ := v.PubKey.GetCachedValue().(cryptotypes.PubKey)
 
 	bs, err := yaml.Marshal(struct {
-		ValAddress /*sdk.ValAddress*/    string
-		RewardAddress /*sdk.AccAddress*/ string
-		PubKey                           string
-		Jailed                           bool
-		Status                           BondStatus
-		Tokens                           sdk.Int
-		Description                      Description
-		UnbondingHeight                  int64
-		UnbondingCompletionTime          time.Time
-		Commission                       sdk.Dec
-		AccumRewards                     sdk.Int
-		Online                           bool
+		ValAddress/*sdk.ValAddress*/ string
+		RewardAddress/*sdk.AccAddress*/ string
+		PubKey                  string
+		Jailed                  bool
+		Status                  BondStatus
+		Tokens                  sdk.Int
+		Description             Description
+		UnbondingHeight         int64
+		UnbondingCompletionTime time.Time
+		Commission              sdk.Dec
+		AccumRewards            sdk.Int
+		Online                  bool
 	}{
 		ValAddress:              v.ValAddress,
 		RewardAddress:           v.RewardAddress,
@@ -340,30 +340,9 @@ func (d Description) EnsureLength() (Description, error) {
 	return d, nil
 }
 
-// staking constants
-const (
-	BondStatusUnbonded  = "Unbonded"
-	BondStatusUnbonding = "Unbonding"
-	BondStatusBonded    = "Bonded"
-)
-
 // Equal compares two BondStatus instances
 func (b BondStatus) Equal(b2 BondStatus) bool {
 	return byte(b) == byte(b2)
-}
-
-// String implements the Stringer interface for BondStatus.
-func (b BondStatus) String() string {
-	switch b {
-	case 0x00:
-		return BondStatusUnbonded
-	case 0x01:
-		return BondStatusUnbonding
-	case 0x02:
-		return BondStatusBonded
-	default:
-		panic("invalid bond status")
-	}
 }
 
 func NewValidator(valAddress string, pubKey cryptotypes.PubKey, commission sdk.Dec, rewardAddress string, description Description) (Validator, error) {

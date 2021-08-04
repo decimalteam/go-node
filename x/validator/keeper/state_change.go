@@ -1,20 +1,21 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"errors"
 	"fmt"
 	"runtime/debug"
 	"sort"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	gogotypes "github.com/gogo/protobuf/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 )
 
+// ApplyAndReturnValidatorSetUpdates
 // Apply and return accumulated updates to the bonded validator set. Also,
 // * Updates the active valset as keyed by LastValidatorPowerKey.
 // * Updates the total power as keyed by LastTotalPowerKey.
@@ -99,13 +100,12 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		}
 
 		// fetch the old power bytes
-		var valAddrBytes [types.AddrLen]byte
-		copy(valAddrBytes[:], validator.ValAddress[:])
-		oldPowerBytes, found := last[valAddrBytes]
+		var valAddrBytes [sdk.AddrLen]byte
 
-		// calculate the new power bytes
+		copy(valAddrBytes[:], valAddr[:])
+		oldPowerBytes, found := last[valAddrBytes]
 		newPower := validator.ConsensusPower()
-		newPowerBytes := k.cdc.MustMarshalBinaryLengthPrefixed(newPower)
+		newPowerBytes := k.cdc.MustMarshalBinaryBare(&gogotypes.Int64Value{Value: newPower})
 
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
@@ -241,17 +241,17 @@ func (k Keeper) completeUnbondingValidator(ctx sdk.Context, validator types.Vali
 }
 
 // map of operator addresses to serialized power
-type validatorsByAddr map[[types.AddrLen]byte][]byte
+type validatorsByAddr map[[sdk.AddrLen]byte][]byte
 
 // get the last validator set
 func (k Keeper) getLastValidatorsByAddr(ctx sdk.Context) validatorsByAddr {
 	last := make(validatorsByAddr)
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{types.LastValidatorPowerKey})
+
+	iterator := k.LastValidatorsIterator(ctx)
 	defer iterator.Close()
 	// iterate over the last validator set index
 	for ; iterator.Valid(); iterator.Next() {
-		var valAddr [types.AddrLen]byte
+		var valAddr [sdk.AddrLen]byte
 		// extract the validator address from the key (prefix is 1-byte)
 		copy(valAddr[:], iterator.Key()[1:])
 		// power bytes is just the value
@@ -406,7 +406,7 @@ func sortNoLongerBonded(last validatorsByAddr) [][]byte {
 	noLongerBonded := make([][]byte, len(last))
 	index := 0
 	for valAddrBytes := range last {
-		valAddr := make([]byte, types.AddrLen)
+		valAddr := make([]byte, sdk.AddrLen)
 		copy(valAddr[:], valAddrBytes[:])
 		noLongerBonded[index] = valAddr
 		index++

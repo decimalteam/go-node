@@ -485,7 +485,7 @@ func (k Keeper) GetValidators(ctx sdk.Context, maxRetrieve uint16) (validators [
 
 func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validatorAddr sdk.ValAddress, delAddr sdk.AccAddress, stake sdk.Coin) (bool, error) {
 	delegations := k.GetValidatorDelegations(ctx, validatorAddr)
-	if uint16(len(delegations)) < k.MaxDelegations(ctx) {
+	if len(delegations) < int(k.MaxDelegations(ctx)) {
 		return true, nil
 	}
 

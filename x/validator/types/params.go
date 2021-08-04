@@ -20,18 +20,18 @@ const (
 	DefaultUnbondingTime = time.Hour * 24 * 30
 
 	// Default maximum number of bonded validators
-	DefaultMaxValidators uint16 = 256
+	DefaultMaxValidators uint32 = 256
 
 	// Default maximum entries in a UBD/RED pair
-	DefaultMaxEntries uint16 = 7
+	DefaultMaxEntries uint32 = 7
 
 	// DefaultHistorical entries is 0 since it must only be non-zero for
 	// IBC connected chains
-	DefaultHistoricalEntries uint16 = 0
+	DefaultHistoricalEntries uint32 = 0
 
 	DefaultBondDenom string = "del"
 
-	DefaultMaxDelegations uint16 = 1000
+	DefaultMaxDelegations uint32 = 1000
 )
 
 // nolint - Keys for parameter access
@@ -46,6 +46,11 @@ var (
 
 var _ paramsTypes.ParamSet = (*Params)(nil)
 
+// ParamTable for staking module
+func ParamKeyTable() paramsTypes.KeyTable {
+	return paramsTypes.NewKeyTable().RegisterParamSet(&Params{})
+}
+
 // Params defines the high level settings for staking
 //type Params struct {
 //	UnbondingTime time.Duration `json:"unbonding_time" yaml:"unbonding_time"` // time duration of unbonding
@@ -58,16 +63,16 @@ var _ paramsTypes.ParamSet = (*Params)(nil)
 //}
 
 // NewParams creates a new Params instance
-func NewParams(unbondingTime time.Duration, maxValidators, maxEntries, historicalEntries uint16,
-	bondDenom string, maxDelegations uint16) Params {
+func NewParams(unbondingTime time.Duration, maxValidators, maxEntries, historicalEntries uint32,
+	bondDenom string, maxDelegations uint32) Params {
 
 	return Params{
 		UnbondingTime:     unbondingTime,
-		MaxValidators:     uint32(maxValidators),
-		MaxEntries:        uint32(maxEntries),
+		MaxValidators:     maxValidators,
+		MaxEntries:        maxEntries,
 		BondDenom:         bondDenom,
-		HistoricalEntries: uint32(historicalEntries),
-		MaxDelegations:    uint32(maxDelegations),
+		HistoricalEntries: historicalEntries,
+		MaxDelegations:    maxDelegations,
 	}
 }
 

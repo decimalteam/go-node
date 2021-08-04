@@ -28,6 +28,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/capability"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
@@ -37,6 +38,7 @@ import (
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilityKeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilityTypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	genutilTypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	paramsKeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramsTypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -46,7 +48,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bitbucket.org/decimalteam/go-node/x/gov"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/nft"
@@ -267,7 +268,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		upgrade.NewAppModule(app.upgradeKeeper),
 	)
 
-	app.mm.SetOrderBeginBlockers(upgradeTypes.ModuleName)
+	app.mm.SetOrderBeginBlockers()
 	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
@@ -280,7 +281,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		validator.ModuleName,
 		coin.ModuleName,
 		multisig.ModuleName,
-		genutil.ModuleName,
+		genutilTypes.ModuleName,
 		gov.ModuleName,
 		swap.ModuleName,
 		nft.ModuleName,
@@ -307,6 +308,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 			app.validatorKeeper,
 			app.coinKeeper,
 			ante.DefaultSigVerificationGasConsumer,
+			encodingConfig.TxConfig.SignModeHandler(),
 		),
 	)
 
@@ -363,10 +365,10 @@ func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 }
 
 func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	return app.BeginBlock(req)
+	return app.mm.BeginBlock(ctx, req)
 }
 func (app *newApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.EndBlock(req)
+	return app.mm.EndBlock(ctx, req)
 }
 func (app *newApp) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
