@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bytes"
 	"errors"
 	"fmt"
@@ -149,7 +150,13 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 				if err != nil {
 					panic(err)
 				}
-				del = del.SetTokensBase(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount))
+				if ctx.BlockHeight() >= updates.Update2Block {
+					delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
+					totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
+					del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount.ToDec().Quo(delegatedCoin.ToDec()).TruncateInt()))
+				} else {
+					del = del.SetTokensBase(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount))
+				}
 				tokenBase := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount)
 				eventMutex.Lock()
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
