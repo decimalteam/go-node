@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
+	"runtime/debug"
 	"strings"
 	"sync"
 
@@ -143,6 +144,9 @@ func (k Keeper) UpdateCoin(ctx sdk.Context, coin types.Coin, reserve sdk.Int, vo
 	coin.Reserve = reserve
 	coin.Volume = volume
 	k.SetCoin(ctx, coin)
+	if coin.Symbol == "ruiner" {
+		debug.PrintStack()
+	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeUpdateCoin,
 		sdk.NewAttribute(types.AttributeSymbol, coin.Symbol),
