@@ -184,6 +184,7 @@ func (k Keeper) GetAllDelegatedCoins(ctx sdk.Context) sdk.Coins {
 	for ; iterator.Valid(); iterator.Next() {
 		amount := types.MustUnmarshalDelegateCoin(k.cdc, iterator.Value())
 		denom := string(iterator.Key()[1:])
+		fmt.Println(amount, denom)
 		coins = coins.Add(sdk.NewCoin(denom, amount))
 	}
 
