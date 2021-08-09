@@ -64,9 +64,6 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 			if err := clientCtx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(args[0]), &pk); err != nil {
 				return err
 			}
-			if err != nil {
-				return err
-			}
 
 			rewardAddressStr, _ := cmd.Flags().GetString(FlagRewardAddress)
 			rewardAddress := sdk.AccAddress{}

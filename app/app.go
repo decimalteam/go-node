@@ -46,7 +46,6 @@ import (
 	upgradeTypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/gov"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
@@ -125,7 +124,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	bApp.SetInterfaceRegistry(encodingConfig.InterfaceRegistry)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 
-	// TODO: Add the keys that module requires
 	keys := sdk.NewKVStoreKeys(
 		bam.Paramspace,
 		authTypes.StoreKey,
@@ -289,6 +287,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// register all module routes and module queriers
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), app.cdc)
+	app.mm.RegisterServices(module.NewConfigurator(app.MsgServiceRouter(), app.GRPCQueryRouter()))
 
 	// initialize stores
 	app.MountKVStores(keys)
@@ -300,17 +299,23 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.SetBeginBlocker(app.BeginBlocker)
 
 	// The AnteHandler handles signature verification and transaction pre-processing
+	//app.SetAnteHandler(
+	//	utils.NewAnteHandler(
+	//		app.accountKeeper,
+	//		app.bankKeeper,
+	//		bankKeeper.NewBaseViewKeeper(app.appCodec, keys[bankTypes.StoreKey], app.accountKeeper),
+	//		app.validatorKeeper,
+	//		app.coinKeeper,
+	//		ante.DefaultSigVerificationGasConsumer,
+	//		encodingConfig.TxConfig.SignModeHandler(),
+	//	),
+	//)
+
 	app.SetAnteHandler(
-		utils.NewAnteHandler(
-			app.accountKeeper,
-			app.bankKeeper,
-			bankKeeper.NewBaseViewKeeper(app.appCodec, keys[bankTypes.StoreKey], app.accountKeeper),
-			app.validatorKeeper,
-			app.coinKeeper,
-			ante.DefaultSigVerificationGasConsumer,
+		ante.NewAnteHandler(
+			app.accountKeeper, app.bankKeeper, ante.DefaultSigVerificationGasConsumer,
 			encodingConfig.TxConfig.SignModeHandler(),
-		),
-	)
+		))
 
 	app.SetEndBlocker(app.EndBlocker)
 

@@ -5,7 +5,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
 // DAO     {"address":"dx1pk2rurh73er88p032qrd6kq5xmu53thjylflsr","owners":["dx18tay9ayumxjun9sexlq4t3nvt7zts5typnyjdr","dx1w54s4wq8atjmmu4snv0tt72qpvtg38megw5ngn","dx19ws36j00axpk0ytumc20l9wyv0ae26zygk2z0f"],"weights":["1","1","1"],"threshold":"3"}
@@ -47,16 +46,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 
 		daoVal := rewards.ToDec().Mul(DAOCommission).TruncateInt()
 
-		//err = k.CoinKeeper.BankKeeper.AddCoins(ctx, daoWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), daoVal)))
-		coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), daoVal))
-		if err := k.CoinKeeper.BankKeeper.MintCoins(ctx, minttypes.ModuleName, coins); err != nil {
-			panic(err)
-		}
-		if err != nil {
-			return err
-		}
-
-		err = k.CoinKeeper.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, daoWallet, coins)
+		err = k.CoinKeeper.BankKeeper.AddCoins(ctx, daoWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), daoVal)))
 		if err != nil {
 			return err
 		}
@@ -71,17 +61,8 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		)
 
 		developVal := rewards.ToDec().Mul(DevelopCommission).TruncateInt()
-		newCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), developVal))
-		//err = k.CoinKeeper.BankKeeper.AddCoins(ctx, developWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), developVal)))
 
-		if err := k.CoinKeeper.BankKeeper.MintCoins(ctx, minttypes.ModuleName, newCoins); err != nil {
-			panic(err)
-		}
-		if err != nil {
-			return err
-		}
-
-		err = k.CoinKeeper.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, developWallet, newCoins)
+		err = k.CoinKeeper.BankKeeper.AddCoins(ctx, developWallet, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), developVal)))
 		if err != nil {
 			return err
 		}

@@ -87,11 +87,6 @@ func main() {
 				return err
 			}
 
-			// LABEL-TEST: added line for test
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			config := serverCtx.Config
-			config.SetRoot(initClientCtx.HomeDir)
-
 			return server.InterceptConfigsPreRunHandler(cmd)
 		},
 	}

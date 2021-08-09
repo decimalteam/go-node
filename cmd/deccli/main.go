@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/server/cmd"
+	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"os"
 	"path"
@@ -71,6 +71,11 @@ func main() {
 
 		initClientCtx = client.ReadHomeFlag(initClientCtx, cmd)
 
+		initClientCtx, err := cliconfig.ReadFromClientConfig(initClientCtx)
+		if err != nil {
+			return err
+		}
+
 		if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 			return err
 		}
@@ -92,7 +97,7 @@ func main() {
 		keys.Commands(app.DefaultNodeHome),
 	)
 
-	if err := cmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
+	if err := svrcmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
 		switch e := err.(type) {
 		case server.ErrorCode:
 			os.Exit(e.Code)
@@ -132,12 +137,12 @@ func queryCmd(cdc *codec.LegacyAmino) *cobra.Command {
 }
 
 func txCmd(cdc *codec.LegacyAmino) *cobra.Command {
-	txCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "tx",
 		Short: "Transactions subcommands",
 	}
 
-	txCmd.AddCommand(
+	cmd.AddCommand(
 		bankcmd.NewSendTxCmd(),
 		flags.LineBreak,
 		authcmd.GetSignCommand(),
@@ -149,12 +154,11 @@ func txCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	)
 
 	// add modules' tx commands
-	app.ModuleBasics.AddTxCommands(coinCmd.GetTxCmd(cdc))
-	app.ModuleBasics.AddTxCommands(txCmd)
+	app.ModuleBasics.AddTxCommands(cmd)
 
-	txCmd.Flags().String(flags.FlagChainID, "", "The network chain ID")
+	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
-	return txCmd
+	return cmd
 }
 
 func initConfig(cmd *cobra.Command) error {

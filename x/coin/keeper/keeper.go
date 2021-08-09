@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"strings"
 	"sync"
 
@@ -135,13 +134,7 @@ func (k Keeper) UpdateBalance(ctx sdk.Context, coinSymbol string, amount sdk.Int
 		coins = coins.Add(updCoin...)
 	}
 	// Update coin information
-	//err := k.BankKeeper.SetBalances(ctx, acc.GetAddress(), coins)
-	if err := k.BankKeeper.MintCoins(ctx, minttypes.ModuleName, coins); err != nil {
-		panic(err)
-	}
-
-	err := k.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, acc.GetAddress(), coins)
-
+	err := k.BankKeeper.SetBalances(ctx, acc.GetAddress(), coins)
 	if err != nil {
 		return err
 	}

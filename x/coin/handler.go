@@ -1,6 +1,7 @@
 package coin
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/coin/keeper"
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"bytes"
 	"encoding/base64"
@@ -37,6 +38,7 @@ func floatFromInt(amount sdk.Int) float64 {
 
 // NewHandler creates an sdk.Handler for all the coin type messages
 func NewHandler(k Keeper) sdk.Handler {
+	msgServer := keeper.NewMsgServerImpl(k)
 
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		defer func() {
@@ -51,7 +53,8 @@ func NewHandler(k Keeper) sdk.Handler {
 		case *MsgUpdateCoin:
 			return handleMsgUpdateCoin(ctx, k, *msg)
 		case *MsgSendCoin:
-			return handleMsgSendCoin(ctx, k, *msg)
+			res, err := msgServer.SendCoin(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 		case *MsgMultiSendCoin:
 			return handleMsgMultiSendCoin(ctx, k, *msg)
 		case *MsgBuyCoin:
