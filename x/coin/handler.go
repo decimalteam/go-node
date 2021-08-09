@@ -362,8 +362,6 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell.Denom))
 
-	fmt.Println(msg)
-
 	// Fill amount to sell in case of MsgSellAll
 	if sellAll {
 		msg.CoinToSell.Amount = balance
