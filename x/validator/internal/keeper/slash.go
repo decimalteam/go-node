@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"log"
@@ -320,10 +321,18 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	return tokensToBurn
 }
 
+const WithoutSlashPeriod1Start = updates.Update3Block
+const WithoutSlashPeriod1End = WithoutSlashPeriod1Start + 15_709
+
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
 	height := ctx.BlockHeight()
+
+	if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
+		return
+	}
+
 	consAddr := sdk.ConsAddress(addr)
 	pubkey, err := k.getPubkey(ctx, addr)
 	if err != nil {
