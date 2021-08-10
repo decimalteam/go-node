@@ -149,7 +149,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 				defer wg.Done()
 				defer func() {
 					if r := recover(); r != nil {
-						fmt.Printf("stacktrace from panic TotalStake: %s \n%s\n", r, string(debug.Stack()))
+						ctx.Logger().Debug(string(debug.Stack()))
 					}
 				}()
 				if del.GetCoin().Denom != k.BondDenom(ctx) {
