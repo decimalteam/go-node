@@ -221,7 +221,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 		}
 	}
 
-	if ctx.BlockHeight() < updates.Update3Block {
+	if ctx.BlockHeight() >= updates.Update3Block {
 		wg.Wait()
 	}
 
