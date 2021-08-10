@@ -321,7 +321,7 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	return tokensToBurn
 }
 
-const WithoutSlashPeriod1Start = updates.Update3Block
+const WithoutSlashPeriod1Start = updates.Update3Block + 8
 const WithoutSlashPeriod1End = WithoutSlashPeriod1Start + 15_709
 
 // handle a validator signature, must be called once per validator per block
