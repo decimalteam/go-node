@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"sync"
 	"time"
 
@@ -143,6 +144,11 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	for _, del := range delegations {
 		go func(del exported.DelegationI) {
 			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
+				}
+			}()
 			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
 				coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
 				if err != nil {
@@ -150,7 +156,11 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 				}
 				delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
 				totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
-				del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount.ToDec().Quo(delegatedCoin.ToDec()).TruncateInt()))
+				if ctx.BlockHeight() >= 1_087_900 {
+					del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount).Quo(delegatedCoin))
+				} else {
+					del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount.ToDec().Quo(delegatedCoin.ToDec()).TruncateInt()))
+				}
 				eventMutex.Lock()
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
 					types.EventTypeCalcStake,
