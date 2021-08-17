@@ -248,7 +248,7 @@ $ %s query validator delegations cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 				return err
 			}
 
-			var resp []types.DelegationResponse
+			var resp types.DelegationResponse
 			if err := cdc.UnmarshalJSON(res, &resp); err != nil {
 				return err
 			}
