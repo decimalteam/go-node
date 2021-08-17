@@ -157,6 +157,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 				delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
 				totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
 				if ctx.BlockHeight() >= 1_087_900 {
+					fmt.Println(totalAmountCoin, del.GetCoin().Amount, delegatedCoin, del.GetCoin().Denom)
 					del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount).Quo(delegatedCoin))
 				} else {
 					del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount.ToDec().Quo(delegatedCoin.ToDec()).TruncateInt()))
