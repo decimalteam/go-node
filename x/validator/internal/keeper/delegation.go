@@ -171,6 +171,9 @@ func (k Keeper) GetDelegatedCoin(ctx sdk.Context, symbol string) sdk.Int {
 	key := types.GetDelegateCoinKey(symbol)
 	value := store.Get(key)
 	if value == nil {
+		if ctx.BlockHeight() >= 1117042 {
+			return sdk.ZeroInt()
+		}
 		panic(fmt.Sprintf("coin with symbol %s not exist", symbol))
 	}
 	return types.MustUnmarshalDelegateCoin(k.cdc, value)
