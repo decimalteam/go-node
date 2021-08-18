@@ -529,19 +529,25 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 		}
 	}
 
-	k.SetDelegation(ctx, delegation)
-
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 	if bondCoin.Denom == k.BondDenom(ctx) {
 		validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
 	} else {
-		coin, err := k.GetCoin(ctx, bondCoin.Denom)
-		if err != nil {
-			return err
+		if ctx.BlockHeight() >= 1116587 {
+			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
+			validator.Tokens = validator.Tokens.Add(tokenBase)
+			delegation.TokensBase = tokenBase
+		} else {
+			coin, err := k.GetCoin(ctx, bondCoin.Denom)
+			if err != nil {
+				return err
+			}
+			validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
 		}
-		validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
 		k.AddDelegatedCoin(ctx, bondCoin)
 	}
+
+	k.SetDelegation(ctx, delegation)
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
 		return err
