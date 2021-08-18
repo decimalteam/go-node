@@ -194,6 +194,9 @@ func (k Keeper) TokenBaseOfDelegation(ctx sdk.Context, del exported.DelegationI)
 	}
 	delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
 	totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
+	if delegatedCoin.IsZero() {
+		return totalAmountCoin
+	}
 	return totalAmountCoin.Mul(del.GetCoin().Amount).Quo(delegatedCoin)
 }
 
