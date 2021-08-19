@@ -536,6 +536,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	if bondCoin.Denom == k.BondDenom(ctx) {
 		validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
 	} else {
+		k.AddDelegatedCoin(ctx, bondCoin)
 		if ctx.BlockHeight() >= 1116587 {
 			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
 			validator.Tokens = validator.Tokens.Add(tokenBase)
@@ -547,7 +548,6 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 			}
 			validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
 		}
-		k.AddDelegatedCoin(ctx, bondCoin)
 	}
 
 	k.SetDelegation(ctx, delegation)
