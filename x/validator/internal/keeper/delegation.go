@@ -535,6 +535,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 	if bondCoin.Denom == k.BondDenom(ctx) {
 		validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
+		delegation.TokensBase = bondCoin.Amount
 	} else {
 		k.AddDelegatedCoin(ctx, bondCoin)
 		if ctx.BlockHeight() >= 1116587 {
