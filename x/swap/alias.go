@@ -20,11 +20,15 @@ const (
 )
 
 type (
-	Keeper       = keeper.Keeper
-	MsgHTLT      = types.MsgHTLT
-	MsgRedeem    = types.MsgRedeem
-	MsgRefund    = types.MsgRefund
-	GenesisState = types.GenesisState
+	Keeper             = keeper.Keeper
+	MsgHTLT            = types.MsgHTLT
+	MsgRedeem          = types.MsgRedeem
+	MsgRefund          = types.MsgRefund
+	MsgSwapInitialize  = types.MsgSwapInitialize
+	MsgRedeemV2        = types.MsgRedeemV2
+	MsgChainDeactivate = types.MsgChainDeactivate
+	MsgChainActivate   = types.MsgChainActivate
+	GenesisState       = types.GenesisState
 )
 
 var (
@@ -37,7 +41,11 @@ var (
 
 	NewKeeper = keeper.NewKeeper
 
-	NewMsgRedeem = types.NewMsgRedeem
-	NewMsgHTLT   = types.NewMsgHTLT
-	NewMsgRefund = types.NewMsgRefund
+	NewMsgRedeem          = types.NewMsgRedeem
+	NewMsgHTLT            = types.NewMsgHTLT
+	NewMsgRefund          = types.NewMsgRefund
+	NewMsgSwapInitialize  = types.NewMsgSwapInitialize
+	NewMsgRedeemV2        = types.NewMsgRedeemV2
+	NewMsgChainDeactivate = types.NewMsgChainDeactivate
+	NewMsgChainActivate   = types.NewMsgChainActivate
 )

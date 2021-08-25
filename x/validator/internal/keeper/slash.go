@@ -186,6 +186,7 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 			}
 			ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, unbondingSlashAmount)
 			k.CoinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(unbondingSlashAmount))
+			k.SubtractDelegatedCoin(ctx, sdk.NewCoin(entry.Balance.Denom, unbondingSlashAmount))
 		}
 	}
 
@@ -246,6 +247,8 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 				ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondSlashAmount)
 				k.CoinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(bondSlashAmount))
 				validator.Tokens = validator.Tokens.Sub(ret)
+
+				k.SubtractDelegatedCoin(ctx, sdk.NewCoin(delegation.GetCoin().Denom, bondSlashAmount))
 			} else {
 				validator.Tokens = validator.Tokens.Sub(bondSlashAmount)
 			}

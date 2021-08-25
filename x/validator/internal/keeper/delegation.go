@@ -109,7 +109,9 @@ func (k Keeper) GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddres
 
 // set a delegation
 func (k Keeper) SetDelegation(ctx sdk.Context, delegation types.Delegation) {
-	delegation.TokensBase = k.CalcTokensBase(ctx, delegation)
+	if ctx.BlockHeight() < updates.Update2Block {
+		delegation.TokensBase = k.CalcTokensBase(ctx, delegation)
+	}
 	err := k.set(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.Coin.Denom), delegation)
 	if err != nil {
 		panic(err)
@@ -170,6 +172,9 @@ func (k Keeper) GetDelegatedCoin(ctx sdk.Context, symbol string) sdk.Int {
 	key := types.GetDelegateCoinKey(symbol)
 	value := store.Get(key)
 	if value == nil {
+		if ctx.BlockHeight() >= updates.Update2Block {
+			return sdk.ZeroInt()
+		}
 		panic(fmt.Sprintf("coin with symbol %s not exist", symbol))
 	}
 	return types.MustUnmarshalDelegateCoin(k.cdc, value)
@@ -184,7 +189,6 @@ func (k Keeper) GetAllDelegatedCoins(ctx sdk.Context) sdk.Coins {
 	for ; iterator.Valid(); iterator.Next() {
 		amount := types.MustUnmarshalDelegateCoin(k.cdc, iterator.Value())
 		denom := string(iterator.Key()[1:])
-		fmt.Println(amount, denom)
 		coins = coins.Add(sdk.NewCoin(denom, amount))
 	}
 
@@ -529,21 +533,29 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 		}
 	}
 
-	k.SetDelegation(ctx, delegation)
-
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 	if bondCoin.Denom == k.BondDenom(ctx) {
 		validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
+		delegation.TokensBase = bondCoin.Amount
 	} else {
-		coin, err := k.GetCoin(ctx, bondCoin.Denom)
-		if err != nil {
-			return err
-		}
-		validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
 		if ctx.BlockHeight() >= updates.Update1Block {
 			k.AddDelegatedCoin(ctx, bondCoin)
 		}
+		if ctx.BlockHeight() >= updates.Update2Block {
+			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
+			validator.Tokens = validator.Tokens.Add(tokenBase)
+			delegation.TokensBase = tokenBase
+			k.CoinKeeper.SetCachedCoin(bondCoin.Denom)
+		} else {
+			coin, err := k.GetCoin(ctx, bondCoin.Denom)
+			if err != nil {
+				return err
+			}
+			validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
+		}
 	}
+
+	k.SetDelegation(ctx, delegation)
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
 		return err

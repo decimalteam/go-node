@@ -152,25 +152,28 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 				}
 			}()
 			if del.GetCoin().Denom != k.BondDenom(ctx) {
-				coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
-				if err != nil {
-					panic(err)
-				}
-				if ctx.BlockHeight() >= updates.Update1Block {
-					delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
-					totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
-					del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount.ToDec().Quo(delegatedCoin.ToDec()).TruncateInt()))
+				if ctx.BlockHeight() >= 1_087_900 {
+					del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
 				} else {
-					del = del.SetTokensBase(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount))
+					coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
+					if err != nil {
+						panic(err)
+					}
+					if ctx.BlockHeight() >= updates.Update1Block {
+						delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
+						totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
+						del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount.ToDec().Quo(delegatedCoin.ToDec()).TruncateInt()))
+					} else {
+						del = del.SetTokensBase(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount))
+					}
 				}
-				tokenBase := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount)
 				eventMutex.Lock()
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
 					types.EventTypeCalcStake,
 					sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
 					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
 					sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
-					sdk.NewAttribute(types.AttributeKeyStake, tokenBase.String()),
+					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
 				))
 				eventMutex.Unlock()
 				switch del := del.(type) {
@@ -189,6 +192,16 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	wg.Wait()
 
 	return total
+}
+
+func (k Keeper) TokenBaseOfDelegation(ctx sdk.Context, del exported.DelegationI) sdk.Int {
+	coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
+	if err != nil {
+		panic(err)
+	}
+	delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
+	totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
+	return totalAmountCoin.Mul(del.GetCoin().Amount).Quo(delegatedCoin)
 }
 
 //_______________________________________________________________________
