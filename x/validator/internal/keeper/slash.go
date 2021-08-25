@@ -323,6 +323,9 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	return tokensToBurn
 }
 
+const WithoutSlashPeriod1Start = 230_871
+const WithoutSlashPeriod1End = 260_969
+
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
@@ -331,6 +334,10 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	pubkey, err := k.getPubkey(ctx, addr)
 	if err != nil {
 		panic(fmt.Sprintf("Validator consensus-address %s not found", consAddr))
+	}
+
+	if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
+		return
 	}
 
 	validator, err := k.GetValidatorByConsAddr(ctx, consAddr)
