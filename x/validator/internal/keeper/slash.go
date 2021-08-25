@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"log"
@@ -248,7 +249,9 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 				k.CoinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(bondSlashAmount))
 				validator.Tokens = validator.Tokens.Sub(ret)
 
-				k.SubtractDelegatedCoin(ctx, sdk.NewCoin(delegation.GetCoin().Denom, bondSlashAmount))
+				if ctx.BlockHeight() >= updates.Update2Block {
+					k.SubtractDelegatedCoin(ctx, sdk.NewCoin(delegation.GetCoin().Denom, bondSlashAmount))
+				}
 			} else {
 				validator.Tokens = validator.Tokens.Sub(bondSlashAmount)
 			}
@@ -336,10 +339,6 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		panic(fmt.Sprintf("Validator consensus-address %s not found", consAddr))
 	}
 
-	if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
-		return
-	}
-
 	validator, err := k.GetValidatorByConsAddr(ctx, consAddr)
 	if err != nil {
 		panic(err)
@@ -413,6 +412,11 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			// i.e. at the end of the pre-genesis block (none) = at the beginning of the genesis block.
 			// That's fine since this is just used to filter unbonding delegations & redelegations.
 			distributionHeight := height - sdk.ValidatorUpdateDelay - 1
+
+			if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
+				log.Println(consAddr.String())
+				return
+			}
 
 			slashAmount := k.Slash(ctx, consAddr, distributionHeight, types.SlashFractionDowntime)
 			k.Jail(ctx, consAddr)
