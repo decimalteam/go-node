@@ -413,10 +413,10 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			// That's fine since this is just used to filter unbonding delegations & redelegations.
 			distributionHeight := height - sdk.ValidatorUpdateDelay - 1
 
-			if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
-				log.Println(consAddr.String())
-				return
-			}
+			//if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
+			//	log.Println(consAddr.String())
+			//	return
+			//}
 
 			slashAmount := k.Slash(ctx, consAddr, distributionHeight, types.SlashFractionDowntime)
 			k.Jail(ctx, consAddr)
