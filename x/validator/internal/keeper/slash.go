@@ -399,6 +399,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	maxMissed := types.SignedBlocksWindow - types.MinSignedPerWindow
 
 	//if we are past the minimum height and the validator has missed too many blocks, punish them
+	fmt.Println(height, minHeight, signInfo.MissedBlocksCounter, maxMissed)
 	if height > minHeight && signInfo.MissedBlocksCounter > maxMissed {
 		if !validator.IsJailed() {
 
