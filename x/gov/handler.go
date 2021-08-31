@@ -27,6 +27,9 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		case types.MsgVote:
 			return handleMsgVote(ctx, keeper, msg)
 
+		case types.MsgSoftwareUpgradeProposal:
+			return handleSoftwareUpgradeProposal(ctx, keeper, msg)
+
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -86,5 +89,9 @@ func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types.MsgVote) (*sdk.Resu
 		),
 	)
 
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleSoftwareUpgradeProposal(ctx sdk.Context, k Keeper, p types.MsgSoftwareUpgradeProposal) (*sdk.Result, error) {
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
