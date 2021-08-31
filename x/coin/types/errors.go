@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -91,7 +92,7 @@ func ErrInvalidCoinInitialReserve(ctx sdk.Context) *sdkerrors.Error {
 }
 
 func ErrInternal(err string) *sdkerrors.Error {
-	return sdkerrors.New(DefaultCodespace, CodeInternal, err)
+	return sdkerrors.New(DefaultCodespace, CodeInternal, fmt.Sprintf("internal error: %s", err))
 }
 
 func ErrInsufficientCoinReserve() *sdkerrors.Error {

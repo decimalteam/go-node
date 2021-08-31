@@ -25,6 +25,10 @@ ignored as it is implied from [from_key_or_address].`,
 			}
 
 			coin, err := sdk.ParseCoinNormalized(args[2])
+			if err != nil {
+				return nil
+			}
+
 			receiver, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return err
