@@ -187,7 +187,7 @@ const (
 
 	FlagUpgradeHeight = "upgrade-height"
 	FlagUpgradeTime   = "time"
-	FlagUpgradeInfo   = "info"
+	FlagUpgradeInfo   = "upgrade-info"
 )
 
 const (
