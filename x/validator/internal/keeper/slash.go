@@ -403,7 +403,6 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	maxMissed := types.SignedBlocksWindow - types.MinSignedPerWindow
 
 	//if we are past the minimum height and the validator has missed too many blocks, punish them
-	fmt.Println(height, minHeight, signInfo.MissedBlocksCounter, maxMissed)
 	if height > minHeight && signInfo.MissedBlocksCounter > maxMissed {
 		if !validator.IsJailed() {
 
@@ -417,11 +416,6 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			// i.e. at the end of the pre-genesis block (none) = at the beginning of the genesis block.
 			// That's fine since this is just used to filter unbonding delegations & redelegations.
 			distributionHeight := height - sdk.ValidatorUpdateDelay - 1
-
-			//if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
-			//	log.Println(consAddr.String())
-			//	return
-			//}
 
 			slashAmount := k.Slash(ctx, consAddr, distributionHeight, types.SlashFractionDowntime)
 			k.Jail(ctx, consAddr)
