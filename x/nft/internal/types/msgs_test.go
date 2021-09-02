@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"testing"
@@ -128,19 +129,19 @@ func TestNewMsgMintNFT(t *testing.T) {
 }
 
 func TestMsgMsgMintNFTValidateBasicMethod(t *testing.T) {
-	newMsgMintNFT := NewMsgMintNFT(nil, Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), sdk.NewInt(100), true)
+	newMsgMintNFT := NewMsgMintNFT(nil, Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), helpers.BipToPip(sdk.NewInt(100)), true)
 	err := newMsgMintNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgMintNFT = NewMsgMintNFT(Addrs[0], nil, ID1, Denom1, TokenURI1, sdk.NewInt(1), sdk.NewInt(100), true)
+	newMsgMintNFT = NewMsgMintNFT(Addrs[0], nil, ID1, Denom1, TokenURI1, sdk.NewInt(1), helpers.BipToPip(sdk.NewInt(100)), true)
 	err = newMsgMintNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], "", Denom1, TokenURI1, sdk.NewInt(1), sdk.NewInt(100), true)
+	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], "", Denom1, TokenURI1, sdk.NewInt(1), helpers.BipToPip(sdk.NewInt(100)), true)
 	err = newMsgMintNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], ID1, "", TokenURI1, sdk.NewInt(1), sdk.NewInt(100), true)
+	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], ID1, "", TokenURI1, sdk.NewInt(1), helpers.BipToPip(sdk.NewInt(100)), true)
 	err = newMsgMintNFT.ValidateBasic()
 	require.Error(t, err)
 
@@ -148,7 +149,7 @@ func TestMsgMsgMintNFTValidateBasicMethod(t *testing.T) {
 	err = newMsgMintNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), sdk.NewInt(100), true)
+	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), helpers.BipToPip(sdk.NewInt(100)), true)
 	err = newMsgMintNFT.ValidateBasic()
 	require.NoError(t, err)
 }
