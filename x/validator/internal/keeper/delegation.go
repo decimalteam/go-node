@@ -109,7 +109,7 @@ func (k Keeper) GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddres
 
 // set a delegation
 func (k Keeper) SetDelegation(ctx sdk.Context, delegation types.Delegation) {
-	if ctx.BlockHeight() < updates.Update2Block {
+	if ctx.BlockHeight() < updates.Update1Block {
 		delegation.TokensBase = k.CalcTokensBase(ctx, delegation)
 	}
 	err := k.set(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.Coin.Denom), delegation)
@@ -172,7 +172,7 @@ func (k Keeper) GetDelegatedCoin(ctx sdk.Context, symbol string) sdk.Int {
 	key := types.GetDelegateCoinKey(symbol)
 	value := store.Get(key)
 	if value == nil {
-		if ctx.BlockHeight() >= updates.Update2Block {
+		if ctx.BlockHeight() >= updates.Update1Block {
 			return sdk.ZeroInt()
 		}
 		panic(fmt.Sprintf("coin with symbol %s not exist", symbol))
@@ -541,7 +541,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 		if ctx.BlockHeight() >= updates.Update1Block {
 			k.AddDelegatedCoin(ctx, bondCoin)
 		}
-		if ctx.BlockHeight() >= updates.Update2Block {
+		if ctx.BlockHeight() >= updates.Update1Block {
 			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
 			validator.Tokens = validator.Tokens.Add(tokenBase)
 			delegation.TokensBase = tokenBase

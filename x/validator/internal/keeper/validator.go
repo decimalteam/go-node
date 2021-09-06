@@ -152,7 +152,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 				}
 			}()
 			if del.GetCoin().Denom != k.BondDenom(ctx) {
-				if ctx.BlockHeight() >= updates.Update2Block {
+				if ctx.BlockHeight() >= updates.Update1Block {
 					del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
 				} else {
 					coin, err := k.GetCoin(ctx, del.GetCoin().Denom)

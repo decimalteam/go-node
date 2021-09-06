@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
@@ -249,7 +248,7 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 				k.CoinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(bondSlashAmount))
 				validator.Tokens = validator.Tokens.Sub(ret)
 
-				if ctx.BlockHeight() >= updates.Update2Block {
+				if ctx.BlockHeight() >= updates.Update1Block {
 					k.SubtractDelegatedCoin(ctx, sdk.NewCoin(delegation.GetCoin().Denom, bondSlashAmount))
 				}
 			} else {
@@ -326,9 +325,6 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	return tokensToBurn
 }
 
-const WithoutSlashPeriod1Start = 341_168
-const WithoutSlashPeriod1End = 372_848
-
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
@@ -370,10 +366,6 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	missed := !signed
 	switch {
 	case !previous && missed:
-		if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
-			log.Println(consAddr.String())
-			return
-		}
 		// Array value has changed from not missed to missed, increment counter
 		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 		signInfo.MissedBlocksCounter++
@@ -386,7 +378,6 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	}
 
 	if missed {
-		log.Println(fmt.Sprintf("Missed blocks: %d", signInfo.MissedBlocksCounter), signInfo.Address.String())
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeLiveness,
