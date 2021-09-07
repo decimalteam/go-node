@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -325,6 +326,11 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	return tokensToBurn
 }
 
+const (
+	WithoutSlashPeriod1Start = 5_000
+	WithoutSlashPeriod1End   = 30_540
+)
+
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
@@ -366,6 +372,10 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	missed := !signed
 	switch {
 	case !previous && missed:
+		if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
+			log.Println(consAddr.String())
+			return
+		}
 		// Array value has changed from not missed to missed, increment counter
 		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 		signInfo.MissedBlocksCounter++
