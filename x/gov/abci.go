@@ -6,6 +6,32 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+func BeginBlocker(ctx sdk.Context, k Keeper) {
+	plan, found := k.GetUpgradePlan(ctx)
+	if !found {
+		return
+	}
+
+	// To make sure clear upgrade is executed at the same block
+	if plan.ShouldExecute(ctx) {
+		// If skip upgrade has been set for current height, we clear the upgrade plan
+		if k.IsSkipHeight(ctx.BlockHeight()) {
+			skipUpgradeMsg := fmt.Sprintf("UPGRADE \"%s\" SKIPPED at %d: %s", plan.Name, plan.Height, plan.Info)
+			ctx.Logger().Info(skipUpgradeMsg)
+
+			// Clear the upgrade plan at current height
+			k.ClearUpgradePlan(ctx)
+			return
+		}
+
+		// We have an upgrade handler for this upgrade name, so apply the upgrade
+		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
+		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
+		k.ApplyUpgrade(ctx, plan)
+		return
+	}
+}
+
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
 	logger := keeper.Logger(ctx)

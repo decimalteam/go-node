@@ -42,6 +42,8 @@ var (
 	ProposalIDKey               = []byte{0x03}
 
 	VotesKeyPrefix = []byte{0x10}
+
+	PlanPrefix = []byte{0x20}
 )
 
 // GetProposalIDBytes returns the byte representation of the proposalID
@@ -153,4 +155,10 @@ func splitKeyWithAddress(key []byte) (proposalID uint64, addr sdk.AccAddress) {
 	proposalID = GetProposalIDFromBytes(key[1:9])
 	addr = key[9:]
 	return
+}
+
+// PlanKey is the key under which the current plan is saved
+// We store PlanByte as a const to keep it immutable (unlike a []byte)
+func PlanKey() []byte {
+	return PlanPrefix
 }

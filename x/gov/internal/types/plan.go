@@ -75,3 +75,8 @@ func (p Plan) DueAt() string {
 	}
 	return fmt.Sprintf("height: %d", p.Height)
 }
+
+// UpgradeConfig is expected format for the info field to allow auto-download
+type UpgradeConfig struct {
+	Binaries map[string]string `json:"binaries"`
+}
