@@ -3,7 +3,7 @@
 ## Requirements
 
 - [`git`](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- [`golang` 1.14+](https://golang.org/doc/install)
+- [`golang` 1.15+](https://golang.org/doc/install)
 - shell tools [`curl`](https://curl.haxx.se/download.html) and [`jq`](https://stedolan.github.io/jq/download/)
 - building essentials
 
@@ -29,6 +29,7 @@ cd go-node
 Build and install Decimal Go Node from source code
 
 ```bash
+make proto-all
 make all
 ```
 
@@ -40,6 +41,51 @@ deccli --help
 ```
 
 ## Configuring
+
+### Local
+
+***WARNING*** *It will remove your current Decimal blockchain state if exists!*
+```bash
+rm -rf ~/.decimal/daemon/config
+rm -rf ~/.decimal/daemon/data
+```
+
+Create genesis structure with moniker `mynode` and chain id `decimal`.
+```bash
+decd init mynode --chain-id decimal
+```
+
+Generate keys and also create accounts with names `test1` and `test2`.
+```bash
+deccli keys add test1
+deccli keys add test2
+```
+
+Set the initial balance of accounts by their addresses.
+```bash
+decd add-genesis-account $(deccli keys show test1 -a) 1000000000000000000000000del 
+decd add-genesis-account $(deccli keys show test2 -a) 1000000000000000000000000del 
+```
+
+Bind `deccli` to node by chain id `decimal` and set config view as `json` format.
+```bash
+deccli config chain-id decimal
+deccli config output json
+```
+
+Generate genesis transaction with start `stake`.
+```bash
+decd gentx test1 1000000000000000000000000del --chain-id decimal
+```
+
+Collect all genesis transactions to block.
+```bash
+decd collect-gentxs
+```
+
+
+### Testnet
+
 
 First of all, make sure directory at path `"$HOME/.decimal/daemon"` does not exist.
 
@@ -69,6 +115,9 @@ Add proper `persistent_peers` to `config.toml` file
 # Comma separated list of nodes to keep persistent connections to
 persistent_peers = "bf7a6b366e3c451a3c12b3a6c01af7230fb92fc7@139.59.133.148:26656"
 ```
+
+### Mainnet
+
 
 ## Running
 
