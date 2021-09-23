@@ -98,6 +98,22 @@ type UpgradeInfo struct {
 	Height uint   `json:"height"`
 }
 
+// MarkExecutable will try to set the executable bits if not already set
+// Fails if file doesn't exist or we cannot set those bits
+func MarkExecutable(path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("stating binary: %w", err)
+	}
+	// end early if world exec already set
+	if info.Mode()&0001 == 1 {
+		return nil
+	}
+	// now try to set all exec bits
+	newMode := info.Mode().Perm() | 0111
+	return os.Chmod(path, newMode)
+}
+
 // DownloadBinary will grab the binary and place it in the proper directory
 func DownloadBinary(cfg *Config, info UpgradeInfo) error {
 	url, err := GetDownloadURL(info.Info)
