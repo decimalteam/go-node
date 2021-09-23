@@ -1,16 +1,10 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/hashicorp/go-getter"
-	"github.com/otiai10/copy"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -18,6 +12,13 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/hashicorp/go-getter"
+	"github.com/otiai10/copy"
 )
 
 const (
@@ -41,6 +42,13 @@ func (k Keeper) GetUpgradePlan(ctx sdk.Context) (plan types.Plan, havePlan bool)
 	return plan, true
 }
 
+func (k Keeper) setDone(ctx sdk.Context, name string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneByte)
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, uint64(ctx.BlockHeight()))
+	store.Set([]byte(name), bz)
+}
+
 // IsSkipHeight checks if the given height is part of skipUpgradeHeights
 func (k Keeper) IsSkipHeight(height int64) bool {
 	return k.skipUpgradeHeights[height]
@@ -48,8 +56,18 @@ func (k Keeper) IsSkipHeight(height int64) bool {
 
 // ClearUpgradePlan clears any schedule upgrade
 func (k Keeper) ClearUpgradePlan(ctx sdk.Context) {
+	oldPlan, found := k.GetUpgradePlan(ctx)
+	if found {
+		k.ClearIBCState(ctx, oldPlan.Height)
+	}
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.PlanKey())
+}
+func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
+	// delete IBC client and consensus state from store if this is IBC plan
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.UpgradedClientKey(lastHeight))
+	store.Delete(types.UpgradedConsStateKey(lastHeight))
 }
 
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
@@ -72,7 +90,9 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	//
 	//handler(ctx, plan)
 	//
-	//k.ClearUpgradePlan(ctx)
+	k.ClearIBCState(ctx, plan.Height)
+	k.ClearUpgradePlan(ctx)
+	k.setDone(ctx, plan.Name)
 	//k.setDone(ctx, plan.Name)
 	return nil
 }
