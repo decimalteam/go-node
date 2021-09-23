@@ -44,6 +44,7 @@ var (
 	VotesKeyPrefix = []byte{0x10}
 
 	PlanPrefix = []byte{0x20}
+	DoneByte   = []byte{0x21}
 )
 
 // GetProposalIDBytes returns the byte representation of the proposalID

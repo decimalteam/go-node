@@ -2,10 +2,13 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/hashicorp/go-getter"
 	"github.com/otiai10/copy"
 	"io/ioutil"
@@ -218,4 +221,42 @@ func EnsureBinary(path string) error {
 	}
 
 	return nil
+}
+
+// ScheduleUpgrade schedules an upgrade based on the specified plan.
+// If there is another Plan already scheduled, it will overwrite it
+// (implicitly cancelling the current plan)
+func (k Keeper) ScheduleUpgrade(ctx sdk.Context, plan types.Plan) error {
+	if err := plan.ValidateBasic(); err != nil {
+		return err
+	}
+
+	if !plan.Time.IsZero() {
+		if !plan.Time.After(ctx.BlockHeader().Time) {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "upgrade cannot be scheduled in the past")
+		}
+	} else if plan.Height <= ctx.BlockHeight() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "upgrade cannot be scheduled in the past")
+	}
+
+	if k.GetDoneHeight(ctx, plan.Name) != 0 {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "upgrade with name %s has already been completed", plan.Name)
+	}
+
+	bz := k.cdc.MustMarshalBinaryBare(plan)
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.PlanKey(), bz)
+
+	return nil
+}
+
+// GetDoneHeight returns the height at which the given upgrade was executed
+func (k Keeper) GetDoneHeight(ctx sdk.Context, name string) int64 {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneByte)
+	bz := store.Get([]byte(name))
+	if len(bz) == 0 {
+		return 0
+	}
+
+	return int64(binary.BigEndian.Uint64(bz))
 }
