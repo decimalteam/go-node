@@ -17,6 +17,14 @@ import (
 	"time"
 )
 
+const (
+	rootName        = "cosmovisor"
+	genesisDir      = "genesis"
+	upgradesDir     = "upgrades"
+	currentLink     = "current"
+	upgradeFilename = "upgrade-info.json"
+)
+
 // GetUpgradePlan returns the currently scheduled Plan if any, setting havePlan to true if there is a scheduled
 // upgrade or false if there is none
 func (k Keeper) GetUpgradePlan(ctx sdk.Context) (plan types.Plan, havePlan bool) {
@@ -42,12 +50,16 @@ func (k Keeper) ClearUpgradePlan(ctx sdk.Context) {
 }
 
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
-func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan, cfg Config, info UpgradeInfo) error {
+func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
+	cfg := Config{
+		Home: os.Getenv("HOME/.decimal"),
+	}
+
 	_, err := GetDownloadURL(plan.Info)
 	if err != nil {
 		panic(err)
 	}
-	if err := EnsureBinary(cfg.UpgradeBin(info.Name)); err != nil {
+	if err := EnsureBinary(cfg.UpgradeBin(plan.Name)); err != nil {
 		return fmt.Errorf("downloaded binary doesn't check out: %w", err)
 	}
 	//handler := k.upgradeHandlers[plan.Name]
@@ -62,14 +74,6 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan, cfg Config, info 
 	return nil
 }
 
-const (
-	rootName        = "cosmovisor"
-	genesisDir      = "genesis"
-	upgradesDir     = "upgrades"
-	currentLink     = "current"
-	upgradeFilename = "upgrade-info.json"
-)
-
 // Config is the information passed in to control the daemon
 type Config struct {
 	Home                  string
@@ -82,7 +86,7 @@ type Config struct {
 
 // UpgradeBin is the path to the binary for the named upgrade
 func (cfg *Config) UpgradeBin(upgradeName string) string {
-	return filepath.Join(cfg.UpgradeDir(upgradeName), "bin", cfg.Name)
+	return filepath.Join(cfg.UpgradeDir(upgradeName), "bin")
 }
 
 // UpgradeDir is the directory named upgrade
@@ -145,6 +149,10 @@ func DownloadBinary(cfg *Config, info UpgradeInfo) error {
 	// if it is successful, let's ensure the binary is executable
 	return MarkExecutable(binPath)
 }
+
+// {
+// 		"linux/amd64": "https://domain.com/bin"
+//	}
 
 func OSArch() string {
 	return fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
