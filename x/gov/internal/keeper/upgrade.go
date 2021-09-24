@@ -5,13 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"net/url"
-	"net/http"
 	"io"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -23,7 +21,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/hashicorp/go-getter"
-	
 )
 
 const (
@@ -65,65 +62,11 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	bin := os.Args[0]
 
 	syscall.Unlink(bin)
-	err := os.Rename(plan.Name, bin)
+	err := os.Rename(filepath.Dir(bin)+"/update_decd", bin)
 	if err != nil {
 		panic(err)
 	}
 
-	cmd := exec.Command(bin, "start")
-
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-
-	err = cmd.Start()
-	if err != nil {
-		log.Fatalf("cmd.Start() failed with %s\n", err)
-	}
-
-	// sigs := make(chan os.Signal, 1)
-	// signal.Notify(sigs, syscall.SIGQUIT, syscall.SIGTERM)
-
-	// go func() {
-	// 	sig := <-sigs
-	// 	if err := cmd.Process.Signal(sig); err != nil {
-	// 		log.Fatal(bin, "terminated. Error:", err)
-	// 	}
-	// }()
-
-	// sigs := make(chan os.Signal, 1)
-	// signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	// go func() {
-	// 	sig := <-sigs
-	// 	if err := cmd.Process.Signal(sig); err != nil {
-	// 		log.Fatal(bin, "terminated. Error:", err)
-	// 		os.Exit(0)
-	// 	}
-	// }()
-
-	// os.Exit(0)
-
-	// cfg := Config{
-	// 	Home: os.Getenv("HOME/.decimal"),
-	// }
-
-	// _, err := GetDownloadURL(plan.Info)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// if err := EnsureBinary(cfg.UpgradeBin(plan.Name)); err != nil {
-	// 	return fmt.Errorf("downloaded binary doesn't check out: %w", err)
-	// }
-
-	//handler := k.upgradeHandlers[plan.Name]
-	//if handler == nil {
-	//	panic("ApplyUpgrade should never be called without first checking HasHandler")
-	//}
-	//
-	//handler(ctx, plan)
-	//
-	//k.ClearUpgradePlan(ctx)
-	//k.setDone(ctx, plan.Name)
 	return nil
 }
 
@@ -150,10 +93,10 @@ func (cfg *Config) UpgradeDir(upgradeName string) string {
 
 // UpgradeInfo is the update details created by `x/upgrade/keeper.DumpUpgradeInfoToDisk`.
 type UpgradeInfo struct {
-	Name   string `json:"name"`
-	Info   string `json:"info"`
-	Height uint   `json:"height"`
-	ToDownload uint `json:"toDownload"`
+	Name       string `json:"name"`
+	Info       string `json:"info"`
+	Height     uint   `json:"height"`
+	ToDownload uint   `json:"toDownload"`
 }
 
 // MarkExecutable will try to set the executable bits if not already set
@@ -192,7 +135,6 @@ func (k *Keeper) DownloadBinary(filepath string, url string) error {
 	_, err = io.Copy(out, resp.Body)
 	return err
 }
-
 
 // DownloadBinary will grab the binary and place it in the proper directory
 /* func DownloadBinary(cfg *Config, info UpgradeInfo) error {
