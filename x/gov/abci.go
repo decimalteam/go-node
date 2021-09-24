@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -63,7 +64,7 @@ func LoadSkipPlans(planfile string) map[string]bool {
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
 	planfile := filepath.Dir(os.Args[0]) + "/skip_plans.json"
-	fmt.Println("VERSION 2!")
+	fmt.Println("VERSION 777!")
 
 	plan, found := k.GetUpgradePlan(ctx)
 	if !found {
@@ -76,12 +77,9 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
-	if ctx.BlockHeight() >= (plan.Height -  plan.ToDownload)  {
-		
-		if k.EnsureBinary("update_decd") != nil {
-			fmt.Println("Go download")
-			//go k.DownloadBinary("decd2",k.GetUpdateUrl())
-		}
+	if ctx.BlockHeight() == (plan.Height - plan.ToDownload) {
+		fmt.Println("Go download")
+		//go k.DownloadBinary("decd_update","https://test")
 	}
 	// printJson(plan)
 

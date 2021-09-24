@@ -2,21 +2,25 @@ package keeper
 
 import (
 	"encoding/binary"
+	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
-	"net/http"
 	"io"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
-	"os/exec"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
+	"time"
 
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	
-	
+	"github.com/hashicorp/go-getter"
 )
 
 const (
@@ -54,20 +58,6 @@ func (k Keeper) ClearUpgradePlan(ctx sdk.Context) {
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	k.ClearUpgradePlan(ctx)
-	/* workingDir, err := os.Getwd()
-	if err != nil {
-	 panic(err)
-	}
-   
-	bin := workingDir + os.Args[0] */
-
-	if k.EnsureBinary("update_decd") != nil {
-		fmt.Println("Go download")
-		/* err = k.DownloadBinary("decd2",k.GetUpdateUrl())
-		if err != nil {
-			panic(err)
-		} */
-	}
 
 	bin := os.Args[0]
 
@@ -77,22 +67,53 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 		panic(err)
 	}
 
-	cmd := exec.Command(bin, "start")
-
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-
-	err = cmd.Start()
-	if err != nil {
-		log.Fatalf("cmd.Start() failed with %s\n", err)
-	}
-
-	
 	return nil
 }
 
+// Config is the information passed in to control the daemon
+type Config struct {
+	Home                  string
+	Name                  string
+	AllowDownloadBinaries bool
+	RestartAfterUpgrade   bool
+	PollInterval          time.Duration
+	UnsafeSkipBackup      bool
+}
 
+// UpgradeBin is the path to the binary for the named upgrade
+func (cfg *Config) UpgradeBin(upgradeName string) string {
+	return filepath.Join(cfg.UpgradeDir(upgradeName), "bin")
+}
+
+// UpgradeDir is the directory named upgrade
+func (cfg *Config) UpgradeDir(upgradeName string) string {
+	safeName := url.PathEscape(upgradeName)
+	return filepath.Join(cfg.Home, rootName, upgradesDir, safeName)
+}
+
+// UpgradeInfo is the update details created by `x/upgrade/keeper.DumpUpgradeInfoToDisk`.
+type UpgradeInfo struct {
+	Name       string `json:"name"`
+	Info       string `json:"info"`
+	Height     uint   `json:"height"`
+	ToDownload uint   `json:"toDownload"`
+}
+
+// MarkExecutable will try to set the executable bits if not already set
+// Fails if file doesn't exist or we cannot set those bits
+func MarkExecutable(path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("stating binary: %w", err)
+	}
+	// end early if world exec already set
+	if info.Mode()&0001 == 1 {
+		return nil
+	}
+	// now try to set all exec bits
+	newMode := info.Mode().Perm() | 0111
+	return os.Chmod(path, newMode)
+}
 
 func (k *Keeper) DownloadBinary(filepath string, url string) error {
 
@@ -115,6 +136,38 @@ func (k *Keeper) DownloadBinary(filepath string, url string) error {
 	return err
 }
 
+// DownloadBinary will grab the binary and place it in the proper directory
+/* func DownloadBinary(cfg *Config, info UpgradeInfo) error {
+	url, err := GetDownloadURL(info.Info)
+	if err != nil {
+		return err
+	}
+
+	// download into the bin dir (works for one file)
+	binPath := cfg.UpgradeBin(info.Name)
+	err = getter.GetFile(binPath, url)
+
+	// if this fails, let's see if it is a zipped directory
+	if err != nil {
+		dirPath := cfg.UpgradeDir(info.Name)
+		err = getter.Get(dirPath, url)
+		if err != nil {
+			return err
+		}
+		err = EnsureBinary(binPath)
+		// copy binary to binPath from dirPath if zipped directory don't contain bin directory to wrap the binary
+		if err != nil {
+			err = copy.Copy(filepath.Join(dirPath, cfg.Name), binPath)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// if it is successful, let's ensure the binary is executable
+	return MarkExecutable(binPath)
+} */
+
 // {
 // 		"linux/amd64": "https://domain.com/bin"
 //	}
@@ -123,8 +176,50 @@ func OSArch() string {
 	return fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
 }
 
+// GetDownloadURL will check if there is an arch-dependent binary specified in Info
+func GetDownloadURL(info string) (string, error) {
+	doc := strings.TrimSpace(info)
+	// if this is a url, then we download that and try to get a new doc with the real info
+	if _, err := url.Parse(doc); err == nil {
+		tmpDir, err := ioutil.TempDir("", "upgrade-manager-reference")
+		if err != nil {
+			return "", fmt.Errorf("create tempdir for reference file: %w", err)
+		}
+		defer os.RemoveAll(tmpDir)
+
+		refPath := filepath.Join(tmpDir, "ref")
+		if err := getter.GetFile(refPath, doc); err != nil {
+			return "", fmt.Errorf("downloading reference link %s: %w", doc, err)
+		}
+
+		refBytes, err := ioutil.ReadFile(refPath)
+		if err != nil {
+			return "", fmt.Errorf("reading downloaded reference: %w", err)
+		}
+		// if download worked properly, then we use this new file as the binary map to parse
+		doc = string(refBytes)
+	}
+
+	// check if it is the upgrade config
+	var config types.UpgradeConfig
+
+	if err := json.Unmarshal([]byte(doc), &config); err == nil {
+		url, ok := config.Binaries[OSArch()]
+		if !ok {
+			url, ok = config.Binaries["any"]
+		}
+		if !ok {
+			return "", fmt.Errorf("cannot find binary for os/arch: neither %s, nor any", OSArch())
+		}
+
+		return url, nil
+	}
+
+	return "", errors.New("upgrade info doesn't contain binary map")
+}
+
 // EnsureBinary ensures the file exists and is executable, or returns an error
-func (k *Keeper) EnsureBinary(path string) error {
+func EnsureBinary(path string) error {
 	info, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("cannot stat dir %s: %w", path, err)
@@ -141,12 +236,6 @@ func (k *Keeper) EnsureBinary(path string) error {
 	}
 
 	return nil
-}
-
-
-//Function to generate the url to download the update
-func (k *Keeper) GetUpdateUrl() string {
-	return fmt.Sprintf("https://decimal/%s/update_decd",OSArch())
 }
 
 // ScheduleUpgrade schedules an upgrade based on the specified plan.
