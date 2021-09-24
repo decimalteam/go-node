@@ -1,16 +1,82 @@
 package gov
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+
+	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+func printJson(data interface{}) {
+	res, err := json.MarshalIndent(data, "", "\t")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(res))
+}
+
+func fileExist(filename string) bool {
+	_, err := os.Stat(filename)
+	return !os.IsNotExist(err)
+}
+
+func PushNewSkipPlan(planfile, name string) {
+	skipPlans := LoadSkipPlans(planfile)
+	skipPlans[name] = true
+
+	bytes, err := json.Marshal(skipPlans)
+	if err != nil {
+		panic(err)
+	}
+
+	err = ioutil.WriteFile(planfile, bytes, 0644)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func LoadSkipPlans(planfile string) map[string]bool {
+	plans := make(map[string]bool)
+
+	if !fileExist(planfile) {
+		err := ioutil.WriteFile(planfile, []byte("{}"), 0600)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	bytes, err := ioutil.ReadFile(planfile)
+	if err != nil {
+		panic(err)
+	}
+
+	err = json.Unmarshal(bytes, &plans)
+	if err != nil {
+		panic(err)
+	}
+
+	return plans
+}
+
 func BeginBlocker(ctx sdk.Context, k Keeper) {
+	planfile := os.Getenv("HOME") + "/.decimal/daemon/config/skip_plans.json"
+	fmt.Println("VERSION 1!")
+
 	plan, found := k.GetUpgradePlan(ctx)
 	if !found {
 		return
 	}
+
+	skipPlans := LoadSkipPlans(planfile)
+	_, ok := skipPlans[plan.Name]
+	if ok {
+		return
+	}
+
+	// printJson(plan)
 
 	// To make sure clear upgrade is executed at the same block
 	if plan.ShouldExecute(ctx) {
@@ -28,6 +94,9 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 		k.ApplyUpgrade(ctx, plan)
+
+		PushNewSkipPlan(planfile, plan.Name)
+		os.Exit(0)
 		return
 	}
 }

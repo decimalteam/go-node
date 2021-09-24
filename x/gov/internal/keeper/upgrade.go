@@ -1,23 +1,27 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"syscall"
+	"time"
+
+	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/hashicorp/go-getter"
 	"github.com/otiai10/copy"
-	"io/ioutil"
-	"net/url"
-	"os"
-	"path/filepath"
-	"runtime"
-	"strings"
-	"time"
 )
 
 const (
@@ -54,17 +58,61 @@ func (k Keeper) ClearUpgradePlan(ctx sdk.Context) {
 
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
-	cfg := Config{
-		Home: os.Getenv("HOME/.decimal"),
-	}
+	k.ClearUpgradePlan(ctx)
 
-	_, err := GetDownloadURL(plan.Info)
+	bin := os.Args[0]
+
+	syscall.Unlink(bin)
+	err := os.Rename(plan.Name, bin)
 	if err != nil {
 		panic(err)
 	}
-	if err := EnsureBinary(cfg.UpgradeBin(plan.Name)); err != nil {
-		return fmt.Errorf("downloaded binary doesn't check out: %w", err)
+
+	cmd := exec.Command(bin, "start")
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	err = cmd.Start()
+	if err != nil {
+		log.Fatalf("cmd.Start() failed with %s\n", err)
 	}
+
+	// sigs := make(chan os.Signal, 1)
+	// signal.Notify(sigs, syscall.SIGQUIT, syscall.SIGTERM)
+
+	// go func() {
+	// 	sig := <-sigs
+	// 	if err := cmd.Process.Signal(sig); err != nil {
+	// 		log.Fatal(bin, "terminated. Error:", err)
+	// 	}
+	// }()
+
+	// sigs := make(chan os.Signal, 1)
+	// signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	// go func() {
+	// 	sig := <-sigs
+	// 	if err := cmd.Process.Signal(sig); err != nil {
+	// 		log.Fatal(bin, "terminated. Error:", err)
+	// 		os.Exit(0)
+	// 	}
+	// }()
+
+	// os.Exit(0)
+
+	// cfg := Config{
+	// 	Home: os.Getenv("HOME/.decimal"),
+	// }
+
+	// _, err := GetDownloadURL(plan.Info)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// if err := EnsureBinary(cfg.UpgradeBin(plan.Name)); err != nil {
+	// 	return fmt.Errorf("downloaded binary doesn't check out: %w", err)
+	// }
+
 	//handler := k.upgradeHandlers[plan.Name]
 	//if handler == nil {
 	//	panic("ApplyUpgrade should never be called without first checking HasHandler")
