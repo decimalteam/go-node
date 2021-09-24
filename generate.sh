@@ -1,5 +1,5 @@
 echo "rm -rf ~/.decimal/daemon"
-sudo rm -rf ~/.decimal/daemon
+rm -rf ~/.decimal/daemon
 
 echo "decd init mynode --chain-id decimal"
 decd init mynode --chain-id decimal
