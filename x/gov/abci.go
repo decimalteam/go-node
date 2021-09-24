@@ -76,6 +76,10 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
+	if ctx.BlockHeight() ==  (plan.Height -  plan.ToDownload) {
+		fmt.Println("Go download")
+		//go k.DownloadBinary("decd2","https://test")
+	}
 	// printJson(plan)
 
 	// To make sure clear upgrade is executed at the same block

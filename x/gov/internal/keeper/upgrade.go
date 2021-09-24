@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/url"
+	"net/http"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -21,7 +23,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/hashicorp/go-getter"
-	"github.com/otiai10/copy"
+	
 )
 
 const (
@@ -151,6 +153,7 @@ type UpgradeInfo struct {
 	Name   string `json:"name"`
 	Info   string `json:"info"`
 	Height uint   `json:"height"`
+	ToDownload uint `json:"toDownload"`
 }
 
 // MarkExecutable will try to set the executable bits if not already set
@@ -169,8 +172,30 @@ func MarkExecutable(path string) error {
 	return os.Chmod(path, newMode)
 }
 
+func (k *Keeper) DownloadBinary(filepath string, url string) error {
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Create the file
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	return err
+}
+
+
 // DownloadBinary will grab the binary and place it in the proper directory
-func DownloadBinary(cfg *Config, info UpgradeInfo) error {
+/* func DownloadBinary(cfg *Config, info UpgradeInfo) error {
 	url, err := GetDownloadURL(info.Info)
 	if err != nil {
 		return err
@@ -199,7 +224,7 @@ func DownloadBinary(cfg *Config, info UpgradeInfo) error {
 
 	// if it is successful, let's ensure the binary is executable
 	return MarkExecutable(binPath)
-}
+} */
 
 // {
 // 		"linux/amd64": "https://domain.com/bin"
