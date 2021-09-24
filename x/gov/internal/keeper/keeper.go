@@ -1,9 +1,10 @@
 package keeper
 
 import (
+	"fmt"
+
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -30,6 +31,8 @@ type Keeper struct {
 	router types.Router
 
 	skipUpgradeHeights map[int64]bool
+
+	//updateCompleted map[int64]bool
 }
 
 // NewKeeper returns a governance keeper. It handles:

@@ -72,7 +72,15 @@ func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
 
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
-	cfg := Config{
+	/* 	var cmd *exec.Cmd
+	   	cmd = exec.Command("./decd2", "start")
+	   	cmd.Stdout = os.Stdout
+	   	cmd.Stderr = os.Stderr
+	   	err := cmd.Start()
+	   	if err != nil {
+	   		fmt.Printf("cmd.Run() failed with %s\n", err)
+	   	} */
+	/* cfg := Config{
 		Home: os.Getenv("HOME/.decimal"),
 	}
 
@@ -82,7 +90,7 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	}
 	if err := EnsureBinary(cfg.UpgradeBin(plan.Name)); err != nil {
 		return fmt.Errorf("downloaded binary doesn't check out: %w", err)
-	}
+	} */
 	//handler := k.upgradeHandlers[plan.Name]
 	//if handler == nil {
 	//	panic("ApplyUpgrade should never be called without first checking HasHandler")
@@ -90,9 +98,11 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	//
 	//handler(ctx, plan)
 	//
-	k.ClearIBCState(ctx, plan.Height)
-	k.ClearUpgradePlan(ctx)
+
+	/* k.ClearIBCState(ctx, plan.Height)
+	k.ClearUpgradePlan(ctx) */
 	k.setDone(ctx, plan.Name)
+
 	//k.setDone(ctx, plan.Name)
 	return nil
 }

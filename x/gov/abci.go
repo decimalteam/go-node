@@ -1,17 +1,36 @@
 package gov
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"fmt"
+	"os"
+	"os/exec"
+
+	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
+	fmt.Println("Version 1")
 	plan, found := k.GetUpgradePlan(ctx)
+	fmt.Println("GetDoneHeight: ", k.GetDoneHeight(ctx, plan.Name))
+	fmt.Println(plan)
 	if !found {
+		fmt.Println("not exits plan")
 		return
 	}
-
+	if k.GetDoneHeight(ctx, plan.Name) != 0 {
+		k.ClearIBCState(ctx, plan.Height)
+		k.ClearUpgradePlan(ctx)
+		var cmd *exec.Cmd
+		cmd = exec.Command("./decd2", "start")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Start()
+		if err != nil {
+			fmt.Printf("cmd.Run() failed with %s\n", err)
+		}
+		os.Exit(0)
+	}
 	// To make sure clear upgrade is executed at the same block
 	if plan.ShouldExecute(ctx) {
 		// If skip upgrade has been set for current height, we clear the upgrade plan
@@ -28,6 +47,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 		k.ApplyUpgrade(ctx, plan)
+		//os.Exit(0)
 		return
 	}
 }
