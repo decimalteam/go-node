@@ -60,9 +60,11 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	k.ClearUpgradePlan(ctx)
 
 	bin := os.Args[0]
+	baseFile := "/update_" + plan.Name
+	nameFile := filepath.Dir(bin) + baseFile
 
 	syscall.Unlink(bin)
-	err := os.Rename(filepath.Dir(bin)+"/update_decd", bin)
+	err := os.Rename(nameFile, bin)
 	if err != nil {
 		panic(err)
 	}

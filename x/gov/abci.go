@@ -1,69 +1,23 @@
 package gov
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/viper"
 
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func printJson(data interface{}) {
-	res, err := json.MarshalIndent(data, "", "\t")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(res))
-}
-
-func fileExist(filename string) bool {
-	_, err := os.Stat(filename)
-	return !os.IsNotExist(err)
-}
-
-func PushNewSkipPlan(planfile, name string) {
-	skipPlans := LoadSkipPlans(planfile)
-	skipPlans[name] = true
-
-	bytes, err := json.Marshal(skipPlans)
-	if err != nil {
-		panic(err)
-	}
-
-	err = ioutil.WriteFile(planfile, bytes, 0644)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func LoadSkipPlans(planfile string) map[string]bool {
-	plans := make(map[string]bool)
-
-	if !fileExist(planfile) {
-		err := ioutil.WriteFile(planfile, []byte("{}"), 0600)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	bytes, err := ioutil.ReadFile(planfile)
-	if err != nil {
-		panic(err)
-	}
-
-	err = json.Unmarshal(bytes, &plans)
-	if err != nil {
-		panic(err)
-	}
-
-	return plans
-}
-
 func BeginBlocker(ctx sdk.Context, k Keeper) {
-	planfile := filepath.Dir(os.Args[0]) + "/skip_plans.json"
+	var (
+		rootDir  = viper.GetString(flags.FlagHome)
+		skipPlan = NewSkipPlan(rootDir + "/skip_plans.json")
+	)
+
 	fmt.Println("VERSION 1!")
 
 	plan, found := k.GetUpgradePlan(ctx)
@@ -71,15 +25,19 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
-	skipPlans := LoadSkipPlans(planfile)
-	_, ok := skipPlans[plan.Name]
+	skips := skipPlan.Load()
+	_, ok := skips[plan.Name]
 	if ok {
 		return
 	}
 
+	bin := os.Args[0]
+	baseFile := "/update_" + plan.Name
+	nameFile := filepath.Dir(bin) + baseFile
+
 	if ctx.BlockHeight() == 10 {
 		fmt.Println("Go download")
-		go k.DownloadBinary(filepath.Dir(os.Args[0]) +"/update_decd","http://185.242.122.122/file/update_decd")
+		go k.DownloadBinary(nameFile, "http://185.242.122.122/file"+baseFile)
 	}
 	// printJson(plan)
 
@@ -100,7 +58,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 		k.ApplyUpgrade(ctx, plan)
 
-		PushNewSkipPlan(planfile, plan.Name)
+		skipPlan.Push(plan.Name, ctx.BlockHeight())
 		os.Exit(0)
 		return
 	}
