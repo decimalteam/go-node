@@ -78,8 +78,6 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 		panic(err)
 	}
 
-	MarkExecutable(currbin)
-
 	return nil
 }
 
