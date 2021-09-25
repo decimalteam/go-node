@@ -132,7 +132,7 @@ func (msg MsgVote) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.Voter)}
 }
 
-const AddressForSoftwareUpgrade = "dx1cjyqqapky0q4z4zl5dphu4sycquust6xhwezhl"
+const AddressForSoftwareUpgrade = "dx1q474ysen6f7xp85zy2a9lasktp4et7rx7dc2cg"
 
 // Software Upgrade Proposals
 type MsgSoftwareUpgradeProposal struct {
@@ -161,7 +161,7 @@ func (msg MsgSoftwareUpgradeProposal) ValidateBasic() error {
 		return err
 	}
 	// ADD NOT
-	if msg.Proposer.Equals(address) {
+	if !msg.Proposer.Equals(address) {
 		return errors.New("not allowed")
 	}
 	return nil
