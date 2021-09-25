@@ -65,6 +65,7 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	myUrl, err := url.Parse(plan.Name)
 	if err != nil {
 		log.Fatal(err)
+		return err
 	}
 
 	currbin := os.Args[0]

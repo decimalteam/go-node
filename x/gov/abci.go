@@ -2,7 +2,7 @@ package gov
 
 import (
 	"fmt"
-	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -13,13 +13,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var DownloadStat = make(map[string]bool)
+var (
+	downloadStat = make(map[string]bool)
+	skipPlan     = NewSkipPlan(filepath.Join(ncfg.ConfigPath, ncfg.SkipPlanName))
+)
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
-	var (
-		skipPlan = NewSkipPlan(filepath.Join(ncfg.ConfigPath, ncfg.SkipPlanName))
-	)
-
 	fmt.Println("VERSION 1!")
 
 	plan, found := k.GetUpgradePlan(ctx)
@@ -30,25 +29,32 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	skips := skipPlan.Load()
 	_, ok := skips[plan.Name]
 	if ok {
+		k.ClearUpgradePlan(ctx)
 		return
 	}
 
 	// plan.Name => url path to file
+	if !urlPageExist(plan.Name) {
+		skipPlan.Push(plan.Name, ctx.BlockHeight())
+		return
+	}
+
 	myUrl, err := url.Parse(plan.Name)
 	if err != nil {
-		log.Fatal(err)
+		skipPlan.Push(plan.Name, ctx.BlockHeight())
+		return
 	}
 
 	currbin := os.Args[0]
 	baseFile := path.Base(myUrl.Path)
 	nameFile := filepath.Join(filepath.Dir(currbin), baseFile)
 
-	_, ok = DownloadStat[plan.Name]
+	_, ok = downloadStat[plan.Name]
 
 	if ctx.BlockHeight() > (plan.Height-plan.ToDownload) && ctx.BlockHeight() < plan.Height && !ok {
 		fmt.Println("Go download")
 
-		DownloadStat[plan.Name] = true
+		downloadStat[plan.Name] = true
 		go k.DownloadBinary(nameFile, plan.Name)
 	}
 
@@ -142,4 +148,13 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 		return false
 	})
+}
+
+// Check if page exists.
+func urlPageExist(urlPage string) bool {
+	resp, err := http.Head(urlPage)
+	if err != nil {
+		return false
+	}
+	return resp.Status == "200 OK"
 }
