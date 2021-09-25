@@ -154,12 +154,12 @@ func (msg MsgSoftwareUpgradeProposal) Route() string { return RouterKey }
 func (msg MsgSoftwareUpgradeProposal) Type() string { return ProposalTypeSoftwareUpgrade }
 
 // ValidateBasic implements Msg
-func (msg MsgSoftwareUpgradeProposal) ValidateBasic() error {
-	address, err := sdk.AccAddressFromBech32(AddressForSoftwareUpgrade)
+func (msg MsgSoftwareUpgradeProposal) ValidateBasic(addrUpdate string) error {
+	address, err := sdk.AccAddressFromBech32(addrUpdate)
 	if err != nil {
 		return err
 	}
-	if msg.Proposer.Equals(address) {
+	if !msg.Proposer.Equals(address) {
 		return errors.New("not allowed")
 	}
 	return nil

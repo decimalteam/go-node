@@ -3,6 +3,7 @@ package gov
 import (
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"fmt"
+	"github.com/spf13/viper"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"runtime/debug"
@@ -92,8 +93,14 @@ func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types.MsgVote) (*sdk.Resu
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
+var UpdateCfg = LoadUpgradeCFG(viper.GetString(flags.FlagHome)+"/update_cfg.json")
 func handleSoftwareUpgradeProposal(ctx sdk.Context, k Keeper, p types.MsgSoftwareUpgradeProposal) (*sdk.Result, error) {
-	err := k.ScheduleUpgrade(ctx, p.Plan)
+
+	if UpdateCfg == nil {
+		return nil, fmt.Errorf("error: update_cfg.json undefined")
+	}
+
+	err := k.ScheduleUpgrade(ctx, p.Plan , UpdateCfg.Addresses)
 	if err != nil {
 		return nil, err
 	}

@@ -12,11 +12,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+
 func BeginBlocker(ctx sdk.Context, k Keeper) {
+	
 	var (
 		rootDir  = viper.GetString(flags.FlagHome)
 		skipPlan = NewSkipPlan(rootDir + "/skip_plans.json")
 	)
+	
+	
 
 	fmt.Println("VERSION 1!")
 
@@ -37,7 +41,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 
 	if ctx.BlockHeight() == 10 {
 		fmt.Println("Go download")
-		go k.DownloadBinary(nameFile, "http://185.242.122.122/file"+baseFile)
+		go k.DownloadBinary(nameFile, UpdateCfg.Url+baseFile)
 	}
 	// printJson(plan)
 
