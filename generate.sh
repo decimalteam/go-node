@@ -33,3 +33,6 @@ decd gentx --name test1
 
 echo "decd collect-gentxs"
 decd collect-gentxs
+
+echo "decd updater url bech32"
+decd updater http://example.com dx1fpjhs2wlaz6dd95d0lmxj5tfrmncwg437jh0y3

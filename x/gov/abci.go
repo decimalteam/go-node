@@ -3,24 +3,22 @@ package gov
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/viper"
-
+	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-
 func BeginBlocker(ctx sdk.Context, k Keeper) {
-	
 	var (
-		rootDir  = viper.GetString(flags.FlagHome)
-		skipPlan = NewSkipPlan(rootDir + "/skip_plans.json")
+		skipPlan = NewSkipPlan(filepath.Join(ncfg.ConfigPath, ncfg.SkipPlanName))
 	)
-	
-	
+
+	if types.UpdateCFG == nil {
+		return
+	}
 
 	fmt.Println("VERSION 1!")
 
@@ -35,15 +33,14 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
-	bin := os.Args[0]
-	baseFile := "/update_" + plan.Name
-	nameFile := filepath.Dir(bin) + baseFile
+	currbin := os.Args[0]
+	baseFile := fmt.Sprintf("update_%s", plan.Name)
+	nameFile := filepath.Join(filepath.Dir(currbin), baseFile)
 
 	if ctx.BlockHeight() == 10 {
 		fmt.Println("Go download")
-		go k.DownloadBinary(nameFile, UpdateCfg.Url+baseFile)
+		go k.DownloadBinary(nameFile, path.Join(types.UpdateCFG.URL, baseFile))
 	}
-	// printJson(plan)
 
 	// To make sure clear upgrade is executed at./de the same block
 	if plan.ShouldExecute(ctx) {

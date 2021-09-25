@@ -7,6 +7,9 @@ rm -rf ~/.decimal/daemon
 echo "decd init mynode --chain-id decimal"
 decd init mynode --chain-id decimal
 
+echo "decd updater url bech32"
+decd init updater url bech32
+
 echo "deccli keys add test1"
 deccli keys add test1
 

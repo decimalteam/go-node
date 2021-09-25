@@ -59,6 +59,7 @@ func main() {
 
 	rootCmd.AddCommand(flags.PostCommands(
 		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
+		genutilcli.UpdaterCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome),
 		genutilcli.GenTxCmd(
 			ctx, cdc, app.ModuleBasics, validator.AppModuleBasic{},

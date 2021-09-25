@@ -59,12 +59,12 @@ func (k Keeper) ClearUpgradePlan(ctx sdk.Context) {
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	k.ClearUpgradePlan(ctx)
 
-	bin := os.Args[0]
-	baseFile := "/update_" + plan.Name
-	nameFile := filepath.Dir(bin) + baseFile
+	currbin := os.Args[0]
+	baseFile := fmt.Sprintf("update_%s", plan.Name)
+	nameFile := filepath.Join(filepath.Dir(currbin), baseFile)
 
-	syscall.Unlink(bin)
-	err := os.Rename(nameFile, bin)
+	syscall.Unlink(currbin)
+	err := os.Rename(nameFile, currbin)
 	if err != nil {
 		panic(err)
 	}
@@ -243,8 +243,8 @@ func EnsureBinary(path string) error {
 // ScheduleUpgrade schedules an upgrade based on the specified plan.
 // If there is another Plan already scheduled, it will overwrite it
 // (implicitly cancelling the current plan)
-func (k Keeper) ScheduleUpgrade(ctx sdk.Context, plan types.Plan , addrUpdate string) error {
-	if err := plan.ValidateBasic(addrUpdate) ; err != nil {
+func (k Keeper) ScheduleUpgrade(ctx sdk.Context, plan types.Plan) error {
+	if err := plan.ValidateBasic(); err != nil {
 		return err
 	}
 
