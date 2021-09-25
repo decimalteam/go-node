@@ -29,7 +29,6 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	skips := skipPlan.Load()
 	_, ok := skips[plan.Name]
 	if ok {
-		k.ClearUpgradePlan(ctx)
 		return
 	}
 

@@ -72,6 +72,8 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	baseFile := path.Base(myUrl.Path)
 	nameFile := filepath.Join(filepath.Dir(currbin), baseFile)
 
+	MarkExecutable(nameFile)
+
 	syscall.Unlink(currbin)
 	err = os.Rename(nameFile, currbin)
 	if err != nil {
