@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -59,15 +61,23 @@ func (k Keeper) ClearUpgradePlan(ctx sdk.Context) {
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	k.ClearUpgradePlan(ctx)
 
+	// plan.Name => url path to file
+	myUrl, err := url.Parse(plan.Name)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	currbin := os.Args[0]
-	baseFile := plan.Name
+	baseFile := path.Base(myUrl.Path)
 	nameFile := filepath.Join(filepath.Dir(currbin), baseFile)
 
 	syscall.Unlink(currbin)
-	err := os.Rename(nameFile, currbin)
+	err = os.Rename(nameFile, currbin)
 	if err != nil {
 		panic(err)
 	}
+
+	MarkExecutable(currbin)
 
 	return nil
 }
@@ -138,7 +148,6 @@ func (k *Keeper) DownloadBinary(filepath string, url string) error {
 
 	// Write the body to file
 	_, err = io.Copy(out, resp.Body)
-	fmt.Println("3", err)
 	return err
 }
 

@@ -2,7 +2,10 @@ package gov
 
 import (
 	"fmt"
+	"log"
+	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
@@ -17,10 +20,6 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		skipPlan = NewSkipPlan(filepath.Join(ncfg.ConfigPath, ncfg.SkipPlanName))
 	)
 
-	if types.UpdateCFG == nil {
-		return
-	}
-
 	fmt.Println("VERSION 2!")
 
 	plan, found := k.GetUpgradePlan(ctx)
@@ -34,8 +33,14 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
+	// plan.Name => url path to file
+	myUrl, err := url.Parse(plan.Name)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	currbin := os.Args[0]
-	baseFile := plan.Name
+	baseFile := path.Base(myUrl.Path)
 	nameFile := filepath.Join(filepath.Dir(currbin), baseFile)
 
 	_, ok = DownloadStat[plan.Name]
@@ -44,7 +49,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		fmt.Println("Go download")
 
 		DownloadStat[plan.Name] = true
-		go k.DownloadBinary(nameFile, fmt.Sprintf("%s/%s", types.UpdateCFG.URL, baseFile))
+		go k.DownloadBinary(nameFile, plan.Name)
 	}
 
 	// To make sure clear upgrade is executed at./de the same block

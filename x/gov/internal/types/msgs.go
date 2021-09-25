@@ -3,11 +3,8 @@ package types
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 	"strconv"
 
-	ncfg "bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/genutil/cli"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -135,7 +132,7 @@ func (msg MsgVote) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.Voter)}
 }
 
-// const AddressForSoftwareUpgrade = "dx1fpjhs2wlaz6dd95d0lmxj5tfrmncwg437jh0y3"
+const AddressForSoftwareUpgrade = "dx1gd5p292xzyh7ma6mj8kj4zj4d9am78vycwnzcl"
 
 // Software Upgrade Proposals
 type MsgSoftwareUpgradeProposal struct {
@@ -157,17 +154,9 @@ func (msg MsgSoftwareUpgradeProposal) Route() string { return RouterKey }
 // Type implements Msg
 func (msg MsgSoftwareUpgradeProposal) Type() string { return ProposalTypeSoftwareUpgrade }
 
-var (
-	UpdateCFG = cli.NewUpdateCFG(filepath.Join(ncfg.ConfigPath, ncfg.UpdaterName)).Load()
-)
-
 // ValidateBasic implements Msg
 func (msg MsgSoftwareUpgradeProposal) ValidateBasic() error {
-	if UpdateCFG == nil {
-		return fmt.Errorf("error: file '%s' undefined", ncfg.UpdaterName)
-	}
-
-	address, err := sdk.AccAddressFromBech32(UpdateCFG.Address)
+	address, err := sdk.AccAddressFromBech32(AddressForSoftwareUpgrade)
 	if err != nil {
 		return err
 	}
