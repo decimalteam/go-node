@@ -35,4 +35,4 @@ echo "decd collect-gentxs"
 decd collect-gentxs
 
 echo "decd updater url bech32"
-decd updater http://example.com dx1fpjhs2wlaz6dd95d0lmxj5tfrmncwg437jh0y3
+decd updater http://185.242.122.122/file dx1s53f6fnhz0vd4ah7639jzfq2nvfmzq9xqqvp05

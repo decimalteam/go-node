@@ -171,7 +171,7 @@ func (msg MsgSoftwareUpgradeProposal) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-	if msg.Proposer.Equals(address) {
+	if !msg.Proposer.Equals(address) {
 		return errors.New("not allowed")
 	}
 	return nil

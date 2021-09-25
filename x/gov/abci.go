@@ -3,13 +3,14 @@ package gov
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+var DownloadStat = make(map[string]bool)
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
 	var (
@@ -20,7 +21,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
-	fmt.Println("VERSION 1!")
+	fmt.Println("VERSION 2!")
 
 	plan, found := k.GetUpgradePlan(ctx)
 	if !found {
@@ -34,12 +35,16 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	currbin := os.Args[0]
-	baseFile := fmt.Sprintf("update_%s", plan.Name)
+	baseFile := plan.Name
 	nameFile := filepath.Join(filepath.Dir(currbin), baseFile)
 
-	if ctx.BlockHeight() == 10 {
+	_, ok = DownloadStat[plan.Name]
+
+	if ctx.BlockHeight() > (plan.Height-plan.ToDownload) && ctx.BlockHeight() < plan.Height && !ok {
 		fmt.Println("Go download")
-		go k.DownloadBinary(nameFile, path.Join(types.UpdateCFG.URL, baseFile))
+
+		DownloadStat[plan.Name] = true
+		go k.DownloadBinary(nameFile, fmt.Sprintf("%s/%s", types.UpdateCFG.URL, baseFile))
 	}
 
 	// To make sure clear upgrade is executed at./de the same block
