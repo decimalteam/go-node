@@ -20,7 +20,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		skipPlan = NewSkipPlan(filepath.Join(ncfg.ConfigPath, ncfg.SkipPlanName))
 	)
 
-	fmt.Println("VERSION 2!")
+	fmt.Println("VERSION 1!")
 
 	plan, found := k.GetUpgradePlan(ctx)
 	if !found {
