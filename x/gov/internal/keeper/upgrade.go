@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"syscall"
+	"time"
 
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -69,6 +70,7 @@ func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
 
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
+	time.Sleep(60 * time.Second)
 	nameFile := k.GetDownloadName(plan.Name)
 	if nameFile == "" {
 		return fmt.Errorf("error: get download name")
