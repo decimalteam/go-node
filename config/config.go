@@ -49,7 +49,6 @@ const (
 
 const (
 	SkipPlanName = "skip_plans.json"
-	UpdaterName  = "updater.json"
 )
 
 var (
