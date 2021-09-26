@@ -16,7 +16,7 @@ var (
 )
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
-	fmt.Println("VERSION 2!")
+	fmt.Println("VERSION 1!")
 
 	plan, found := k.GetUpgradePlan(ctx)
 	fmt.Println("Plan:", plan)
@@ -25,7 +25,6 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	if ctx.BlockHeight() > plan.Height {
-		fmt.Println("QWERTY")
 		k.ClearUpgradePlan(ctx)
 		return
 	}

@@ -69,8 +69,6 @@ func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
 
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
-	k.ClearUpgradePlan(ctx)
-
 	nameFile := k.GetDownloadName(plan.Name)
 	if nameFile == "" {
 		return fmt.Errorf("error: get download name")
