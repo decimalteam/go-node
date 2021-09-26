@@ -60,6 +60,7 @@ func (k Keeper) ClearUpgradePlan(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.PlanKey())
 }
+
 func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
 	// delete IBC client and consensus state from store if this is IBC plan
 	store := ctx.KVStore(k.storeKey)
@@ -69,7 +70,6 @@ func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
 
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
-	k.ClearUpgradePlan(ctx)
 
 	// plan.Name => url path to file
 	myUrl, err := url.Parse(plan.Name)
@@ -89,6 +89,9 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	if err != nil {
 		panic(err)
 	}
+
+	k.setDone(ctx, plan.Name)
+	k.ClearUpgradePlan(ctx)
 
 	return nil
 }
