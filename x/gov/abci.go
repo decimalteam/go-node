@@ -16,10 +16,7 @@ var (
 )
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
-	fmt.Println("VERSION 1!")
-
 	plan, found := k.GetUpgradePlan(ctx)
-	fmt.Println("Plan:", plan)
 	if !found {
 		return
 	}
@@ -37,8 +34,6 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	_, ok := downloadStat[plan.Name]
 
 	if ctx.BlockHeight() > (plan.Height-plan.ToDownload) && ctx.BlockHeight() < plan.Height && !ok {
-		fmt.Println("Go download")
-
 		if !k.UrlPageExist(plan.Name) {
 			return
 		}
