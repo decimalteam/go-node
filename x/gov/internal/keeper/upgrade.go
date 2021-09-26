@@ -45,10 +45,26 @@ func (k Keeper) IsSkipHeight(height int64) bool {
 	return k.skipUpgradeHeights[height]
 }
 
-// ClearUpgradePlan clears any schedule upgrade
+func (k Keeper) setDone(ctx sdk.Context, name string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneByte)
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, uint64(ctx.BlockHeight()))
+	store.Set([]byte(name), bz)
+}
+
 func (k Keeper) ClearUpgradePlan(ctx sdk.Context) {
+	oldPlan, found := k.GetUpgradePlan(ctx)
+	if found {
+		k.ClearIBCState(ctx, oldPlan.Height)
+	}
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.PlanKey())
+}
+func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
+	// delete IBC client and consensus state from store if this is IBC plan
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.UpgradedClientKey(lastHeight))
+	store.Delete(types.UpgradedConsStateKey(lastHeight))
 }
 
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
