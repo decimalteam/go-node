@@ -24,6 +24,12 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
+	if ctx.BlockHeight() > plan.Height {
+		fmt.Println("QWERTY")
+		k.ClearUpgradePlan(ctx)
+		return
+	}
+
 	skips := skipPlan.Load()
 	if _, ok := skips[plan.Name]; ok {
 		return
