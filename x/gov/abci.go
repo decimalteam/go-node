@@ -22,7 +22,6 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	fmt.Println("VERSION 1!")
 
 	plan, found := k.GetUpgradePlan(ctx)
-	fmt.Println(plan.Name)
 	if !found {
 		return
 	}

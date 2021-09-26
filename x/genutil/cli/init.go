@@ -111,19 +111,15 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 				}
 			}
 
-			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
-
-			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
-
+			// Set pruning from 'syncable' to 'nothing'
 			appConfigFilePath := filepath.Join(config.RootDir, "config", "app.toml")
-
 			appConf, _ := cfgApp.ParseConfig()
 			appConf.Pruning = store.PruningStrategyNothing
-			fmt.Println(appConf)
-			fmt.Println(appConfigFilePath)
 			cfgApp.WriteConfigFile(appConfigFilePath, appConf)
 
-			config.SetRoot(viper.GetString(cli.HomeFlag))
+			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
+			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
+
 			return displayInfo(cdc, toPrint)
 		},
 	}
