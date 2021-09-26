@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	"strconv"
 	"strings"
 	"time"
@@ -15,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	"github.com/spf13/cobra"
 
 	govutils "bitbucket.org/decimalteam/go-node/x/gov/client/utils"
@@ -188,7 +188,6 @@ const (
 	FlagUpgradeHeight = "upgrade-height"
 	FlagUpgradeTime   = "time"
 	FlagUpgradeInfo   = "upgrade-info"
-	FlagToDownload    = "upgrade-to-download"
 )
 
 const (
@@ -233,12 +232,7 @@ func parseArgsToContent(cmd *cobra.Command, name string, proposer sdk.AccAddress
 		return types.MsgSoftwareUpgradeProposal{}, err
 	}
 
-	toDownload, err := cmd.Flags().GetInt64(FlagToDownload)
-	if err != nil {
-		return types.MsgSoftwareUpgradeProposal{}, err
-	}
-
-	plan := types.Plan{Name: name, Time: upgradeTime, Height: height, Info: info, ToDownload: toDownload}
+	plan := types.Plan{Name: name, Time: upgradeTime, Height: height, Info: info}
 	msg := types.NewSoftwareUpgradeProposal(title, description, plan, proposer)
 	return msg, nil
 }
@@ -276,7 +270,6 @@ func GetCmdSubmitUpgradeProposal(cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().Int64(FlagUpgradeHeight, 0, "The height at which the upgrade must happen (not to be used together with --upgrade-time)")
 	cmd.Flags().String(FlagUpgradeTime, "", fmt.Sprintf("The time at which the upgrade must happen (ex. %s) (not to be used together with --upgrade-height)", TimeFormat))
 	cmd.Flags().String(FlagUpgradeInfo, "", "Optional info for the planned upgrade such as commit hash, etc.")
-	cmd.Flags().Int64(FlagToDownload, 0, "How many blocks before the update you need to start downloading the new version")
 
 	return cmd
 }

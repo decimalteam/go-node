@@ -1,12 +1,10 @@
 package types
 
 import (
-	"errors"
 	"fmt"
-	"strconv"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"strconv"
 )
 
 // Governance message types and routes
@@ -132,8 +130,6 @@ func (msg MsgVote) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.Voter)}
 }
 
-const AddressForSoftwareUpgrade = "dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v"
-
 // Software Upgrade Proposals
 type MsgSoftwareUpgradeProposal struct {
 	Title       string         `json:"title" yaml:"title"`
@@ -152,18 +148,10 @@ const ProposalTypeSoftwareUpgrade = "SoftwareUpgrade"
 func (msg MsgSoftwareUpgradeProposal) Route() string { return RouterKey }
 
 // Type implements Msg
-func (msg MsgSoftwareUpgradeProposal) Type() string { return ProposalTypeSoftwareUpgrade }
+func (msg MsgSoftwareUpgradeProposal) Type() string { return TypeMsgSoftwareUpgrade }
 
 // ValidateBasic implements Msg
 func (msg MsgSoftwareUpgradeProposal) ValidateBasic() error {
-	address, err := sdk.AccAddressFromBech32(AddressForSoftwareUpgrade)
-	if err != nil {
-		return err
-	}
-	// ADD NOT
-	if !msg.Proposer.Equals(address) {
-		return errors.New("not allowed")
-	}
 	return nil
 }
 

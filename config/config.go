@@ -1,8 +1,6 @@
 package config
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -45,14 +43,6 @@ const (
 	SymbolTestBaseCoin = "tdel"
 	TitleBaseCoin      = "Decimal coin"
 	SymbolBaseCoin     = "del"
-)
-
-const (
-	SkipPlanName = "skip_plans.json"
-)
-
-var (
-	ConfigPath = fmt.Sprintf("%s/.decimal/daemon/config", os.Getenv("HOME"))
 )
 
 var (

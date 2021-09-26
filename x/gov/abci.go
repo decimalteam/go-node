@@ -1,18 +1,9 @@
 package gov
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
-
-	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-)
-
-var (
-	downloadStat = make(map[string]bool)
-	skipPlan     = NewSkipPlan(filepath.Join(ncfg.ConfigPath, ncfg.SkipPlanName))
 )
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
@@ -21,33 +12,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
-	if ctx.BlockHeight() > plan.Height {
-		k.ClearUpgradePlan(ctx)
-		return
-	}
-
-	skips := skipPlan.Load()
-	if _, ok := skips[plan.Name]; ok {
-		return
-	}
-
-	_, ok := downloadStat[plan.Name]
-
-	if ctx.BlockHeight() > (plan.Height-plan.ToDownload) && ctx.BlockHeight() < plan.Height && !ok {
-		if !k.UrlPageExist(plan.Name) {
-			return
-		}
-
-		nameFile := k.GetDownloadName(plan.Name)
-		if nameFile == "" {
-			return
-		}
-
-		downloadStat[plan.Name] = true
-		go k.DownloadBinary(nameFile, plan.Name)
-	}
-
-	// To make sure clear upgrade is executed at./de the same block
+	// To make sure clear upgrade is executed at the same block
 	if plan.ShouldExecute(ctx) {
 		// If skip upgrade has been set for current height, we clear the upgrade plan
 		if k.IsSkipHeight(ctx.BlockHeight()) {
@@ -63,9 +28,6 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 		k.ApplyUpgrade(ctx, plan)
-
-		skipPlan.Push(plan.Name, ctx.BlockHeight())
-		os.Exit(0)
 		return
 	}
 }

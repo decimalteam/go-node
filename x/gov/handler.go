@@ -93,9 +93,5 @@ func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types.MsgVote) (*sdk.Resu
 }
 
 func handleSoftwareUpgradeProposal(ctx sdk.Context, k Keeper, p types.MsgSoftwareUpgradeProposal) (*sdk.Result, error) {
-	err := k.ScheduleUpgrade(ctx, p.Plan)
-	if err != nil {
-		return nil, err
-	}
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

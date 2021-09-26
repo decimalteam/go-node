@@ -13,8 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
-	cfgApp "github.com/cosmos/cosmos-sdk/server/config"
-	"github.com/cosmos/cosmos-sdk/store"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	cfg "github.com/tendermint/tendermint/config"
@@ -34,6 +32,7 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			config := ctx.Config
+			config.SetRoot(viper.GetString(cli.HomeFlag))
 
 			chainID := viper.GetString(flags.FlagChainID)
 			if chainID == "" {
@@ -111,15 +110,9 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 				}
 			}
 
-			// Set pruning from 'syncable' to 'nothing'
-			appConfigFilePath := filepath.Join(config.RootDir, "config", "app.toml")
-			appConf, _ := cfgApp.ParseConfig()
-			appConf.Pruning = store.PruningStrategyNothing
-			cfgApp.WriteConfigFile(appConfigFilePath, appConf)
-
 			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
-			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 
+			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 			return displayInfo(cdc, toPrint)
 		},
 	}
