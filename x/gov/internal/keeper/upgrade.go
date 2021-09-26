@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -70,30 +69,23 @@ func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
 
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
-
-	// plan.Name => url path to file
-	myUrl, err := url.Parse(plan.Name)
-	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-
-	currbin := os.Args[0]
-	baseFile := path.Base(myUrl.Path)
-	nameFile := filepath.Join(filepath.Dir(currbin), baseFile)
-
-	MarkExecutable(nameFile)
-
-	syscall.Unlink(currbin)
-	err = os.Rename(nameFile, currbin)
-	if err != nil {
-		panic(err)
-	}
-
-	k.setDone(ctx, plan.Name)
 	k.ClearUpgradePlan(ctx)
 
-	return nil
+	nameFile := k.GetDownloadName(plan.Name)
+	if nameFile == "" {
+		return fmt.Errorf("error: get download name")
+	}
+	if _, err := os.Stat(nameFile); os.IsNotExist(err) {
+		return fmt.Errorf("error: file undefined")
+	}
+
+	MarkExecutable(nameFile)
+	currBin := os.Args[0]
+
+	syscall.Unlink(currBin)
+	err := os.Rename(nameFile, currBin)
+
+	return err
 }
 
 // MarkExecutable will try to set the executable bits if not already set
@@ -112,21 +104,37 @@ func MarkExecutable(path string) error {
 	return os.Chmod(path, newMode)
 }
 
-func (k *Keeper) DownloadBinary(filepath string, url string) error {
+// Generate name of download file.
+func (k Keeper) GetDownloadName(urlName string) string {
+	myUrl, err := url.Parse(urlName)
+	if err != nil {
+		return ""
+	}
+	baseFile := path.Base(myUrl.Path)
+	nameFile := filepath.Join(filepath.Dir(os.Args[0]), baseFile)
+	return nameFile
+}
 
+// Check if page exists.
+func (k Keeper) UrlPageExist(urlPage string) bool {
+	resp, err := http.Head(urlPage)
+	if err != nil {
+		return false
+	}
+	return resp.StatusCode == 200
+}
+
+func (k Keeper) DownloadBinary(filepath string, url string) error {
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println("1", err)
 		return err
 	}
-
 	defer resp.Body.Close()
 
 	// Create the file
 	out, err := os.Create(filepath)
 	if err != nil {
-		fmt.Println("2", err)
 		return err
 	}
 	defer out.Close()

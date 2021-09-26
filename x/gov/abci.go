@@ -2,10 +2,7 @@ package gov
 
 import (
 	"fmt"
-	"net/http"
-	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
@@ -28,31 +25,23 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	skips := skipPlan.Load()
-	_, ok := skips[plan.Name]
-	if ok {
+	if _, ok := skips[plan.Name]; ok {
 		return
 	}
 
-	// plan.Name => url path to file
-	if !urlPageExist(plan.Name) {
-		skipPlan.Push(plan.Name, ctx.BlockHeight())
-		return
-	}
-
-	myUrl, err := url.Parse(plan.Name)
-	if err != nil {
-		skipPlan.Push(plan.Name, ctx.BlockHeight())
-		return
-	}
-
-	currbin := os.Args[0]
-	baseFile := path.Base(myUrl.Path)
-	nameFile := filepath.Join(filepath.Dir(currbin), baseFile)
-
-	_, ok = downloadStat[plan.Name]
+	_, ok := downloadStat[plan.Name]
 
 	if ctx.BlockHeight() > (plan.Height-plan.ToDownload) && ctx.BlockHeight() < plan.Height && !ok {
 		fmt.Println("Go download")
+
+		if !k.UrlPageExist(plan.Name) {
+			return
+		}
+
+		nameFile := k.GetDownloadName(plan.Name)
+		if nameFile == "" {
+			return
+		}
 
 		downloadStat[plan.Name] = true
 		go k.DownloadBinary(nameFile, plan.Name)
@@ -148,13 +137,4 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 		return false
 	})
-}
-
-// Check if page exists.
-func urlPageExist(urlPage string) bool {
-	resp, err := http.Head(urlPage)
-	if err != nil {
-		return false
-	}
-	return resp.Status == "200 OK"
 }
