@@ -170,10 +170,8 @@ func ReadOSRelease(configfile string) string {
 
 func (k Keeper) OSArch() string {
 	switch runtime.GOOS {
-	case "windows":
-		return "windows"
-	case "darwin":
-		return "darwin"
+	case "windows", "darwin":
+		return runtime.GOOS
 	case "linux":
 		OSInfo := ReadOSRelease("/etc/os-release")
 		if OSInfo == "" {
