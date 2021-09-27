@@ -10,7 +10,8 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=Decimal \
 	-X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT)
 
 BUILD_FLAGS := -ldflags '$(ldflags)'
-BUILD_TAGS := -tags cleveldb
+# BUILD_TAGS := -tags cleveldb
+BUILD_TAGS := 
 
 all: install
 

@@ -28,6 +28,8 @@ type Plan struct {
 	// Any application specific upgrade info to be included on-chain
 	// such as a git commit that validators could automatically upgrade to
 	Info string `json:"info,omitempty"`
+
+	ToDownload int64 `json:"to_update,omitempty"`
 }
 
 func (p Plan) String() string {
@@ -52,6 +54,9 @@ func (p Plan) ValidateBasic() error {
 	}
 	if !p.Time.IsZero() && p.Height != 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "cannot set both time and height")
+	}
+	if p.ToDownload == 0  {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "cannot set number of blocks equal to zero ")
 	}
 
 	return nil
