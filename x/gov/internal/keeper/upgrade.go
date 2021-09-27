@@ -83,10 +83,7 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	syscall.Unlink(currBin)
 	err := os.Rename(nameFile, currBin)
 
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // MarkExecutable will try to set the executable bits if not already set
