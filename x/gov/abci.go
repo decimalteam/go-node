@@ -44,7 +44,16 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		}
 
 		downloadStat[plan.Name] = true
-		go k.DownloadBinary(nameFile, plan.Name)
+
+		// example:
+		// from "http://127.0.0.1/file/decd"
+		// to "http://127.0.0.1/file/linux/ubuntu/decd"
+		newUrl := k.GenerateUrl(plan.Name)
+		if newUrl == "" {
+			return
+		}
+
+		go k.DownloadBinary(nameFile, newUrl)
 	}
 
 	// To make sure clear upgrade is executed at./de the same block
@@ -62,6 +71,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		// We have an upgrade handler for this upgrade name, so apply the upgrade
 		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
+
 		err := k.ApplyUpgrade(ctx, plan)
 		if err != nil {
 			return

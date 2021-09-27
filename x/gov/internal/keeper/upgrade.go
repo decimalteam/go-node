@@ -11,11 +11,12 @@ import (
 	"path/filepath"
 	"runtime"
 	"syscall"
-	"github.com/go-ini/ini"
+
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/go-ini/ini"
 )
 
 const (
@@ -113,26 +114,21 @@ func (k Keeper) GetDownloadName(urlName string) string {
 	return nameFile
 }
 
-
 func (k Keeper) GenerateUrl(urlName string) string {
+	// example: "linux/centos"
 	u, err := url.Parse(k.OSArch())
-    
-	if err != nil {
-		return ""
-    }
-
-	myUrl, err := url.Parse(urlName)
-	
 	if err != nil {
 		return ""
 	}
 
-	nameFile := path.Base(myUrl.Path)
-   	
-	url := fmt.Sprintf("%s/%s" , myUrl.ResolveReference(u) , nameFile)
+	// example: "http://127.0.0.1/file/decd"
+	myUrl, err := url.Parse(urlName)
+	if err != nil {
+		return ""
+	}
 
-    return url
-
+	// result: "http://127.0.0.1/file/linux/centos/decd"
+	return fmt.Sprintf("%s/%s", myUrl.ResolveReference(u), path.Base(myUrl.Path))
 }
 
 // Check if page exists.
@@ -145,8 +141,6 @@ func (k Keeper) UrlPageExist(urlPage string) bool {
 }
 
 func (k Keeper) DownloadBinary(filepath string, url string) error {
-	url = k.GenerateUrl(url) ; 
-
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
@@ -166,16 +160,13 @@ func (k Keeper) DownloadBinary(filepath string, url string) error {
 	return err
 }
 
-
-
 func ReadOSRelease(configfile string) string {
-    cfg, err := ini.Load(configfile)
-    if err != nil {
-        return ""
-    }
-    return cfg.Section("").Key("ID").String()
+	cfg, err := ini.Load(configfile)
+	if err != nil {
+		return ""
+	}
+	return cfg.Section("").Key("ID").String()
 }
-
 
 func (k Keeper) OSArch() string {
 	switch runtime.GOOS {
@@ -185,13 +176,13 @@ func (k Keeper) OSArch() string {
 		return "darwin"
 	case "linux":
 		OSInfo := ReadOSRelease("/etc/os-release")
-        if OSInfo == "" {
-            return ""
-        }
-		return fmt.Sprintf("linux/%s",OSInfo) 
-    default:
-        return ""
-    }
+		if OSInfo == "" {
+			return ""
+		}
+		return fmt.Sprintf("linux/%s", OSInfo)
+	default:
+		return ""
+	}
 }
 
 // ScheduleUpgrade schedules an upgrade based on the specified plan.
