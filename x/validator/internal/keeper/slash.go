@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -323,13 +324,11 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	return tokensToBurn
 }
 
-const (
-	WithoutSlashPeriod1Start = 1_321_605
-	WithoutSlashPeriod1End   = 1_322_914
-)
+
 
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
+	fmt.Println(ncfg.WithoutSlashPeriod1Start)
 	logger := k.Logger(ctx)
 	height := ctx.BlockHeight()
 	consAddr := sdk.ConsAddress(addr)
@@ -369,10 +368,11 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	missed := !signed
 	switch {
 	case !previous && missed:
-		if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
+		if height >= ncfg.WithoutSlashPeriod1Start && height <= ncfg.WithoutSlashPeriod1End {
 			log.Println(consAddr.String())
 			return
 		}
+		
 		// Array value has changed from not missed to missed, increment counter
 		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 		signInfo.MissedBlocksCounter++

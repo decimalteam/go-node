@@ -60,6 +60,17 @@ var (
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("340000000000000000000000000")
 )
 
+var (
+	WithoutSlashPeriod1Start  int64 
+	WithoutSlashPeriod1End  int64
+)
+
+func (c Config) SetSlashPeriod(start int64) {
+	WithoutSlashPeriod1Start  = start  
+	WithoutSlashPeriod1End = start + 38	
+}
+
+
 type Config struct {
 	TitleBaseCoin         string  `json:"title" yaml:"title"`   // Full coin title (Bitcoin)
 	SymbolBaseCoin        string  `json:"symbol" yaml:"symbol"` // Short coin title (BTC)
