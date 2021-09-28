@@ -73,14 +73,15 @@ func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	nameFile := k.GetDownloadName(plan.Name)
-	if !GetHash(nameFile, plan.Info) {
-		return fmt.Errorf("error: hash does not match")
-	}
+	
 	if nameFile == "" {
 		return fmt.Errorf("error: get download name")
 	}
 	if _, err := os.Stat(nameFile); os.IsNotExist(err) {
 		return fmt.Errorf("error: file undefined")
+	}
+	if !fileHashEqual(nameFile, plan.Info) {
+		return fmt.Errorf("error: hash does not match")
 	}
 
 	MarkExecutable(nameFile)
@@ -230,7 +231,7 @@ func (k Keeper) GetDoneHeight(ctx sdk.Context, name string) int64 {
 }
 
 //Get the hash of the download file, then check what was in the transaction
-func GetHash(nameFile, hash string) bool {
+func fileHashEqual(nameFile, hash string) bool {
 	f, err := os.Open(nameFile)
 	if err != nil {
 		return false
@@ -241,8 +242,5 @@ func GetHash(nameFile, hash string) bool {
 	if _, err := io.Copy(h, f); err != nil {
 		return false
 	}
-	if hash != hex.EncodeToString(h.Sum(nil)) {
-		return false
-	}
-	return true
+	return hash == hex.EncodeToString(h.Sum(nil))
 }
