@@ -34,7 +34,14 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	_, ok := downloadStat[plan.Name]
 
 	if ctx.BlockHeight() > (plan.Height-plan.ToDownload) && ctx.BlockHeight() < plan.Height && !ok {
-		if !k.UrlPageExist(plan.Name) {
+		// example:
+		// from "http://127.0.0.1/file/decd"
+		// to "http://127.0.0.1/file/linux/ubuntu/decd"
+		newUrl := k.GenerateUrl(plan.Name)
+		if newUrl == "" {
+			return
+		}
+		if !k.UrlPageExist(newUrl) {
 			return
 		}
 
@@ -44,14 +51,6 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		}
 
 		downloadStat[plan.Name] = true
-
-		// example:
-		// from "http://127.0.0.1/file/decd"
-		// to "http://127.0.0.1/file/linux/ubuntu/decd"
-		newUrl := k.GenerateUrl(plan.Name)
-		if newUrl == "" {
-			return
-		}
 
 		go k.DownloadBinary(nameFile, newUrl)
 	}

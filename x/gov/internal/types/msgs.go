@@ -132,7 +132,7 @@ func (msg MsgVote) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.Voter)}
 }
 
-const AddressForSoftwareUpgrade = "dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v"
+const AddressForSoftwareUpgrade = "dx10xckjf5r5l2hejpjgvwmzlm7gsfynmv7lu95lm"
 
 // Software Upgrade Proposals
 type MsgSoftwareUpgradeProposal struct {
