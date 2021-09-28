@@ -1,7 +1,9 @@
 package keeper
 
 import (
+	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -71,6 +73,9 @@ func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	nameFile := k.GetDownloadName(plan.Name)
+	if !GetHash(nameFile, plan.Info) {
+		return fmt.Errorf("error: hash does not match")
+	}
 	if nameFile == "" {
 		return fmt.Errorf("error: get download name")
 	}
@@ -140,6 +145,7 @@ func (k Keeper) UrlPageExist(urlPage string) bool {
 	return resp.StatusCode == 200
 }
 
+//Download file by url
 func (k Keeper) DownloadBinary(filepath string, url string) error {
 	// Get the data
 	resp, err := http.Get(url)
@@ -160,6 +166,7 @@ func (k Keeper) DownloadBinary(filepath string, url string) error {
 	return err
 }
 
+//Read the file under /etc/os-release to get the distribution name
 func ReadOSRelease(configfile string) string {
 	cfg, err := ini.Load(configfile)
 	if err != nil {
@@ -168,6 +175,7 @@ func ReadOSRelease(configfile string) string {
 	return cfg.Section("").Key("ID").String()
 }
 
+//Detect OC to create a url
 func (k Keeper) OSArch() string {
 	switch runtime.GOOS {
 	case "windows", "darwin":
@@ -219,4 +227,22 @@ func (k Keeper) GetDoneHeight(ctx sdk.Context, name string) int64 {
 	}
 
 	return int64(binary.BigEndian.Uint64(bz))
+}
+
+//Get the hash of the download file, then check what was in the transaction
+func GetHash(nameFile, hash string) bool {
+	f, err := os.Open(nameFile)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return false
+	}
+	if hash != hex.EncodeToString(h.Sum(nil)) {
+		return false
+	}
+	return true
 }
