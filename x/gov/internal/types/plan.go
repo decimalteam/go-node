@@ -1,11 +1,13 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"strings"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // Plan specifies information about a planned upgrade and when it should occur
@@ -41,6 +43,15 @@ func (p Plan) String() string {
   Info: %s`, p.Name, dueUp, p.Info)
 }
 
+func (p Plan) Mapping() map[string]string {
+	var mapping map[string]string
+	err := json.Unmarshal([]byte(p.Info), &mapping)
+	if err != nil {
+		return nil
+	}
+	return mapping
+}
+
 // ValidateBasic does basic validation of a Plan
 func (p Plan) ValidateBasic() error {
 	if len(p.Name) == 0 {
@@ -55,7 +66,7 @@ func (p Plan) ValidateBasic() error {
 	if !p.Time.IsZero() && p.Height != 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "cannot set both time and height")
 	}
-	if p.ToDownload == 0  {
+	if p.ToDownload == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "cannot set number of blocks equal to zero ")
 	}
 

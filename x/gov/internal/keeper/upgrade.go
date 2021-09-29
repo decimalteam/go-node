@@ -73,14 +73,25 @@ func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	nameFile := k.GetDownloadName(plan.Name)
-	
+
 	if nameFile == "" {
 		return fmt.Errorf("error: get download name")
 	}
 	if _, err := os.Stat(nameFile); os.IsNotExist(err) {
 		return fmt.Errorf("error: file undefined")
 	}
-	if !fileHashEqual(nameFile, plan.Info) {
+
+	mapping := plan.Mapping()
+	if mapping == nil {
+		return fmt.Errorf("error: mapping decode")
+	}
+
+	hashFile, ok := mapping[k.OSArch()]
+	if !ok {
+		return fmt.Errorf("error: mapping[os] undefined")
+	}
+
+	if !fileHashEqual(nameFile, hashFile) {
 		os.Remove(nameFile)
 		return fmt.Errorf("error: hash does not match")
 	}
