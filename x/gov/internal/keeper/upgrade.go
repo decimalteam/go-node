@@ -188,20 +188,9 @@ func ReadOSRelease(configfile string) string {
 	return cfg.Section("").Key("ID").String()
 }
 
-//Detect OC to create a url
+// Detect OS to create a url
 func (k Keeper) OSArch() string {
-	switch runtime.GOOS {
-	case "windows", "darwin":
-		return runtime.GOOS
-	case "linux":
-		OSInfo := ReadOSRelease("/etc/os-release")
-		if OSInfo == "" {
-			return ""
-		}
-		return fmt.Sprintf("linux/%s", OSInfo)
-	default:
-		return ""
-	}
+	return runtime.GOOS
 }
 
 // ScheduleUpgrade schedules an upgrade based on the specified plan.
