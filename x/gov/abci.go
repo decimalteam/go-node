@@ -22,7 +22,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	if ctx.BlockHeight() > plan.Height {
-		ncfg.Config{}.SetSlashPeriod(plan.Height)
+		ncfg.SetSlashPeriod(plan.Height)
 		k.ClearUpgradePlan(ctx)
 		return
 	}
@@ -52,7 +52,6 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		}
 
 		downloadStat[plan.Name] = true
-
 		go k.DownloadBinary(nameFile, newUrl)
 	}
 

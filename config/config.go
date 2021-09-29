@@ -61,15 +61,18 @@ var (
 )
 
 var (
-	WithoutSlashPeriod1Start  int64 
-	WithoutSlashPeriod1End  int64
+	WithoutSlashPeriod1Start int64
+	WithoutSlashPeriod1End   int64
+	// WithoutSlashPeriod1Start = 378030
+	// WithoutSlashPeriod1End   = 401790
 )
 
-func (c Config) SetSlashPeriod(start int64) {
-	WithoutSlashPeriod1Start  = start  
-	WithoutSlashPeriod1End = start + 38	
+// 1hour = 660blocks
+func SetSlashPeriod(start int64) {
+	WithoutSlashPeriod1Start = start
+	WithoutSlashPeriod1End = start + 55 // +5minutes
+	// WithoutSlashPeriod1End = start + 15840 // +24hours
 }
-
 
 type Config struct {
 	TitleBaseCoin         string  `json:"title" yaml:"title"`   // Full coin title (Bitcoin)
