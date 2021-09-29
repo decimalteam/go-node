@@ -328,7 +328,6 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
-	fmt.Println(ncfg.WithoutSlashPeriod1Start)
 	logger := k.Logger(ctx)
 	height := ctx.BlockHeight()
 	consAddr := sdk.ConsAddress(addr)

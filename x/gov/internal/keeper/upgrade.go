@@ -81,6 +81,7 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 		return fmt.Errorf("error: file undefined")
 	}
 	if !fileHashEqual(nameFile, plan.Info) {
+		os.Remove(nameFile)
 		return fmt.Errorf("error: hash does not match")
 	}
 
