@@ -1,14 +1,14 @@
 package coin
 
 import (
+	"strings"
+	"testing"
+
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	keep "bitbucket.org/decimalteam/go-node/x/coin/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
 )
 
 func createCoin(ctx sdk.Context, keeper Keeper) Coin {
@@ -37,7 +37,7 @@ func TestBuyCoinTxBaseToCustom(t *testing.T) {
 	initBalance := helpers.BipToPip(sdk.NewInt(1000000))
 
 	account := accountKeeper.NewAccountWithAddress(ctx, keep.Addrs[0])
-	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(cliUtils.GetBaseCoin(), initBalance)))
+	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(keeper.GetBaseCoin(ctx), initBalance)))
 	require.NoError(t, err)
 	accountKeeper.SetAccount(ctx, account)
 
@@ -45,7 +45,7 @@ func TestBuyCoinTxBaseToCustom(t *testing.T) {
 	maxValToSell, ok := sdk.NewIntFromString("159374246010000000000")
 	require.True(t, ok)
 
-	buyCoinMsg := NewMsgBuyCoin(keep.Addrs[0], sdk.NewCoin(coin.Symbol, toBuy), sdk.NewCoin(cliUtils.GetBaseCoin(), maxValToSell))
+	buyCoinMsg := NewMsgBuyCoin(keep.Addrs[0], sdk.NewCoin(coin.Symbol, toBuy), sdk.NewCoin(keeper.GetBaseCoin(ctx), maxValToSell))
 	_, err = handleMsgBuyCoin(ctx, keeper, buyCoinMsg)
 	require.NoError(t, err)
 
@@ -55,9 +55,9 @@ func TestBuyCoinTxBaseToCustom(t *testing.T) {
 	account = accountKeeper.GetAccount(ctx, keep.Addrs[0])
 	require.NotNil(t, account)
 
-	balance := account.GetCoins().AmountOf(cliUtils.GetBaseCoin())
+	balance := account.GetCoins().AmountOf(keeper.GetBaseCoin(ctx))
 	if !balance.Equal(targetBalance) {
-		t.Fatalf("Target %s initBalance is not correct. Expected %s, got %s", cliUtils.GetBaseCoin(), targetBalance, balance)
+		t.Fatalf("Target %s initBalance is not correct. Expected %s, got %s", keeper.GetBaseCoin(ctx), targetBalance, balance)
 	}
 
 	testBalance := account.GetCoins().AmountOf(coin.Symbol)
@@ -74,7 +74,7 @@ func TestBuyCoinTxInsufficientFunds(t *testing.T) {
 	initBalance := helpers.BipToPip(sdk.NewInt(1))
 
 	account := accountKeeper.NewAccountWithAddress(ctx, keep.Addrs[0])
-	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(cliUtils.GetBaseCoin(), initBalance)))
+	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(keeper.GetBaseCoin(ctx), initBalance)))
 	require.NoError(t, err)
 	accountKeeper.SetAccount(ctx, account)
 
@@ -82,7 +82,7 @@ func TestBuyCoinTxInsufficientFunds(t *testing.T) {
 	maxValToSell, ok := sdk.NewIntFromString("159374246010000000000")
 	require.True(t, ok)
 
-	buyCoinMsg := NewMsgBuyCoin(keep.Addrs[0], sdk.NewCoin(coin.Symbol, toBuy), sdk.NewCoin(cliUtils.GetBaseCoin(), maxValToSell))
+	buyCoinMsg := NewMsgBuyCoin(keep.Addrs[0], sdk.NewCoin(coin.Symbol, toBuy), sdk.NewCoin(keeper.GetBaseCoin(ctx), maxValToSell))
 	_, err = handleMsgBuyCoin(ctx, keeper, buyCoinMsg)
 	require.EqualError(t, err, types.ErrInsufficientFunds("100045012002100252021", "1000000000000000000").Error())
 }
@@ -95,7 +95,7 @@ func TestBuyCoinTxEqualCoins(t *testing.T) {
 	initBalance := helpers.BipToPip(sdk.NewInt(100000))
 
 	account := accountKeeper.NewAccountWithAddress(ctx, keep.Addrs[0])
-	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(cliUtils.GetBaseCoin(), initBalance)))
+	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(keeper.GetBaseCoin(ctx), initBalance)))
 	require.NoError(t, err)
 	accountKeeper.SetAccount(ctx, account)
 
@@ -116,7 +116,7 @@ func TestBuyCoinTxNotExistsBuyCoin(t *testing.T) {
 	initBalance := helpers.BipToPip(sdk.NewInt(1))
 
 	account := accountKeeper.NewAccountWithAddress(ctx, keep.Addrs[0])
-	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(cliUtils.GetBaseCoin(), initBalance)))
+	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(keeper.GetBaseCoin(ctx), initBalance)))
 	require.NoError(t, err)
 	accountKeeper.SetAccount(ctx, account)
 
@@ -137,7 +137,7 @@ func TestBuyCoinTxNotExistsSellCoin(t *testing.T) {
 	initBalance := helpers.BipToPip(sdk.NewInt(1))
 
 	account := accountKeeper.NewAccountWithAddress(ctx, keep.Addrs[0])
-	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(cliUtils.GetBaseCoin(), initBalance)))
+	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(keeper.GetBaseCoin(ctx), initBalance)))
 	require.NoError(t, err)
 	accountKeeper.SetAccount(ctx, account)
 
@@ -166,7 +166,7 @@ func TestBuyCoinTxCustomToBase(t *testing.T) {
 	maxValToSell, ok := sdk.NewIntFromString("159374246010000000000")
 	require.True(t, ok)
 
-	buyCoinMsg := NewMsgBuyCoin(keep.Addrs[0], sdk.NewCoin(cliUtils.GetBaseCoin(), toBuy), sdk.NewCoin(coin.Symbol, maxValToSell))
+	buyCoinMsg := NewMsgBuyCoin(keep.Addrs[0], sdk.NewCoin(keeper.GetBaseCoin(ctx), toBuy), sdk.NewCoin(coin.Symbol, maxValToSell))
 	_, err = handleMsgBuyCoin(ctx, keeper, buyCoinMsg)
 	require.NoError(t, err)
 
@@ -179,8 +179,8 @@ func TestBuyCoinTxCustomToBase(t *testing.T) {
 	balance := account.GetCoins().AmountOf(coin.Symbol)
 	require.Equal(t, balance, targetBalance, "Target %s balance is not correct. Expected %s, got %s", coin.Symbol, targetBalance, balance)
 
-	baseBalance := account.GetCoins().AmountOf(cliUtils.GetBaseCoin())
-	require.Equal(t, baseBalance, toBuy, "Target %s balance is not correct. Expected %s, got %s", cliUtils.GetBaseCoin(), toBuy, baseBalance)
+	baseBalance := account.GetCoins().AmountOf(keeper.GetBaseCoin(ctx))
+	require.Equal(t, baseBalance, toBuy, "Target %s balance is not correct. Expected %s, got %s", keeper.GetBaseCoin(ctx), toBuy, baseBalance)
 
 	coin, err = keeper.GetCoin(ctx, coin.Symbol)
 	require.NoError(t, err)
@@ -202,7 +202,7 @@ func TestBuyCoinReserveUnderflow(t *testing.T) {
 	initBalance := helpers.BipToPip(sdk.NewInt(10000000))
 
 	account := accountKeeper.NewAccountWithAddress(ctx, keep.Addrs[0])
-	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(cliUtils.GetBaseCoin(), initBalance)))
+	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(keeper.GetBaseCoin(ctx), initBalance)))
 	require.NoError(t, err)
 	accountKeeper.SetAccount(ctx, account)
 
@@ -210,7 +210,7 @@ func TestBuyCoinReserveUnderflow(t *testing.T) {
 	maxValToSell, ok := sdk.NewIntFromString("49881276637272773421684")
 	require.True(t, ok)
 
-	buyCoinMsg := NewMsgBuyCoin(keep.Addrs[0], sdk.NewCoin(cliUtils.GetBaseCoin(), toBuy), sdk.NewCoin(coin.Symbol, maxValToSell))
+	buyCoinMsg := NewMsgBuyCoin(keep.Addrs[0], sdk.NewCoin(keeper.GetBaseCoin(ctx), toBuy), sdk.NewCoin(coin.Symbol, maxValToSell))
 	_, err = handleMsgBuyCoin(ctx, keeper, buyCoinMsg)
 	require.EqualError(t, err, types.ErrTxBreaksMinReserveRule(MinCoinReserve(ctx).String(), toBuy.String()).Error())
 }
@@ -223,7 +223,7 @@ func TestSellCoinTxBaseToCustom(t *testing.T) {
 	initBalance := helpers.BipToPip(sdk.NewInt(1000000))
 
 	account := accountKeeper.NewAccountWithAddress(ctx, keep.Addrs[0])
-	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(cliUtils.GetBaseCoin(), initBalance)))
+	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(keeper.GetBaseCoin(ctx), initBalance)))
 	require.NoError(t, err)
 	accountKeeper.SetAccount(ctx, account)
 
@@ -231,7 +231,7 @@ func TestSellCoinTxBaseToCustom(t *testing.T) {
 	minValToBuy, ok := sdk.NewIntFromString("957658277688702625")
 	require.True(t, ok)
 
-	sellCoinMsg := NewMsgSellCoin(keep.Addrs[0], sdk.NewCoin(cliUtils.GetBaseCoin(), valueToSell), sdk.NewCoin(coin.Symbol, minValToBuy))
+	sellCoinMsg := NewMsgSellCoin(keep.Addrs[0], sdk.NewCoin(keeper.GetBaseCoin(ctx), valueToSell), sdk.NewCoin(coin.Symbol, minValToBuy))
 	_, err = handleMsgSellCoin(ctx, keeper, sellCoinMsg, false)
 	require.NoError(t, err)
 
@@ -241,7 +241,7 @@ func TestSellCoinTxBaseToCustom(t *testing.T) {
 	account = accountKeeper.GetAccount(ctx, keep.Addrs[0])
 	require.NotNil(t, account)
 
-	balance := account.GetCoins().AmountOf(cliUtils.GetBaseCoin())
+	balance := account.GetCoins().AmountOf(keeper.GetBaseCoin(ctx))
 	require.Equal(t, balance, targetBalance, "Target %s balance is not correct. Expected %s, got %s", coin.Symbol, targetBalance, balance)
 
 	targetTestBalance, ok := sdk.NewIntFromString("999955002849793446")
@@ -259,21 +259,21 @@ func TestSellAllCoinTx(t *testing.T) {
 	initBalance := helpers.BipToPip(sdk.NewInt(1000000))
 
 	account := accountKeeper.NewAccountWithAddress(ctx, keep.Addrs[0])
-	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(cliUtils.GetBaseCoin(), initBalance)))
+	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(keeper.GetBaseCoin(ctx), initBalance)))
 	require.NoError(t, err)
 	accountKeeper.SetAccount(ctx, account)
 
 	minValToBuy, ok := sdk.NewIntFromString("151191152412701306252")
 	require.True(t, ok)
 
-	sellCoinMsg := types.NewMsgSellCoin(keep.Addrs[0], sdk.NewCoin(cliUtils.GetBaseCoin(), sdk.ZeroInt()), sdk.NewCoin(coin.Symbol, minValToBuy))
+	sellCoinMsg := types.NewMsgSellCoin(keep.Addrs[0], sdk.NewCoin(keeper.GetBaseCoin(ctx), sdk.ZeroInt()), sdk.NewCoin(coin.Symbol, minValToBuy))
 	_, err = handleMsgSellCoin(ctx, keeper, sellCoinMsg, true)
 	require.NoError(t, err)
 
 	account = accountKeeper.GetAccount(ctx, keep.Addrs[0])
 	require.NotNil(t, account)
 
-	balance := account.GetCoins().AmountOf(cliUtils.GetBaseCoin())
+	balance := account.GetCoins().AmountOf(keeper.GetBaseCoin(ctx))
 	require.Equal(t, balance, sdk.ZeroInt(), "Target %s balance is not correct. Expected %s, got %s", coin.Symbol, sdk.ZeroInt(), balance)
 
 	targetTestBalance, ok := sdk.NewIntFromString("27098161521014065552356")
@@ -289,7 +289,7 @@ func TestCreateCoinTx(t *testing.T) {
 	initBalance := helpers.BipToPip(sdk.NewInt(1000000))
 
 	account := accountKeeper.NewAccountWithAddress(ctx, keep.Addrs[0])
-	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(cliUtils.GetBaseCoin(), initBalance)))
+	err := account.SetCoins(sdk.NewCoins(sdk.NewCoin(keeper.GetBaseCoin(ctx), initBalance)))
 	require.NoError(t, err)
 	accountKeeper.SetAccount(ctx, account)
 
@@ -309,8 +309,8 @@ func TestCreateCoinTx(t *testing.T) {
 	targetBalance, ok := sdk.NewIntFromString("989000000000000000000000")
 	require.True(t, ok)
 
-	balance := account.GetCoins().AmountOf(cliUtils.GetBaseCoin())
-	require.Equal(t, balance, targetBalance, "Target %s balance is not correct. Expected %s, got %s", cliUtils.GetBaseCoin(), targetBalance, balance)
+	balance := account.GetCoins().AmountOf(keeper.GetBaseCoin(ctx))
+	require.Equal(t, balance, targetBalance, "Target %s balance is not correct. Expected %s, got %s", keeper.GetBaseCoin(ctx), targetBalance, balance)
 
 	targetTestBalance := volume
 

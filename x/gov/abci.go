@@ -1,6 +1,8 @@
 package gov
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+
 	"fmt"
 	"os"
 	"path/filepath"
@@ -84,6 +86,10 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
+	if ctx.BlockHeight() < updates.Update1Block {
+		return
+	}
+
 	logger := keeper.Logger(ctx)
 
 	// delete inactive proposal from store

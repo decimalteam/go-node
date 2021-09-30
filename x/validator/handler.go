@@ -69,7 +69,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Commission, msg.RewardAddr, msg.Description)
 	err := k.SetValidator(ctx, val)
 	if err != nil {
-		return nil, types.ErrInvalidStruct()
+		return nil, sdkerrors.Wrap(types.ErrInvalidStruct(), err.Error())
 	}
 	k.SetValidatorByConsAddr(ctx, val)
 	k.SetNewValidatorByPowerIndex(ctx, val)

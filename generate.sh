@@ -17,16 +17,16 @@ echo "deccli keys add test2"
 deccli keys add test4
 
 echo "echo \"12345678\" | decd add-genesis-account $(deccli keys show test1 -a) 1000000000000000000000000tdel"
-echo "12345678" | decd add-genesis-account $(deccli keys show test1 -a) 1000000000000000000000000del
+echo "12345678" | decd add-genesis-account $(deccli keys show test1 -a) 1000000000000000000000000tdel
 
 echo "echo \"12345678\" | decd add-genesis-account $(deccli keys show test2 -a) 1000000000000000000000000tdel"
-echo "12345678" | decd add-genesis-account $(deccli keys show test2 -a) 1000000000000000000000000del
+echo "12345678" | decd add-genesis-account $(deccli keys show test2 -a) 1000000000000000000000000tdel
 
 echo "echo \"12345678\" | decd add-genesis-account $(deccli keys show test1 -a) 1000000000000000000000000tdel"
-echo "12345678" | decd add-genesis-account $(deccli keys show test3 -a) 1000000000000000000000000del
+echo "12345678" | decd add-genesis-account $(deccli keys show test3 -a) 1000000000000000000000000tdel
 
 echo "echo \"12345678\" | decd add-genesis-account $(deccli keys show test2 -a) 1000000000000000000000000tdel"
-echo "12345678" | decd add-genesis-account $(deccli keys show test4 -a) 1000000000000000000000000del
+echo "12345678" | decd add-genesis-account $(deccli keys show test4 -a) 1000000000000000000000000tdel
 
 echo "deccli config chain-id decimal"
 deccli config chain-id decimal

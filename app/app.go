@@ -1,9 +1,14 @@
 package app
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
 	"encoding/json"
+	"fmt"
+	tmtypes "github.com/tendermint/tendermint/types"
 	"io"
 	"os"
+	"strings"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -94,11 +99,17 @@ type newApp struct {
 
 	// Module Manager
 	mm *module.Manager
+
+	updated   bool
+	initChain bool
 }
+
+var cfg = &config.Config{}
 
 // Newgo-nodeApp is a constructor function for go-nodeApp
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
+	fmt.Printf("decd version: %s\n", config.DecimalVersion)
 
 	// First define the top level codec that will be shared by the different modules
 	cdc := MakeCodec()
@@ -108,7 +119,6 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	bApp.SetAppVersion(config.DecimalVersion)
 
-	// TODO: Add the keys that module requires
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey,
 		auth.StoreKey,
@@ -117,13 +127,11 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.StoreKey,
 		multisig.StoreKey,
 		validator.StoreKey,
-		gov.StoreKey,
-		swap.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
-	config := config.GetDefaultConfig(config.ChainID)
+	cfg = config.GetDefaultConfig(config.ChainID)
 
 	// Here you initialize your application with the store keys it requires
 	var app = &newApp{
@@ -174,7 +182,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coinSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		config,
+		cfg,
 	)
 
 	app.multisigKeeper = multisig.NewKeeper(
@@ -200,11 +208,10 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		auth.FeeCollectorName,
 	)
 
-	// register the proposal types
 	govRouter := gov.NewRouter()
 	app.govKeeper = gov.NewKeeper(
 		app.cdc,
-		keys[gov.StoreKey],
+		app.keys[gov.StoreKey],
 		govSubspace,
 		app.supplyKeeper,
 		&app.validatorKeeper,
@@ -213,7 +220,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	app.swapKeeper = swap.NewKeeper(
 		app.cdc,
-		keys[swap.StoreKey],
+		app.keys[swap.StoreKey],
 		swapSubspace,
 		app.coinKeeper,
 		app.accountKeeper,
@@ -228,12 +235,12 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		swap.NewAppModule(app.swapKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
 	)
 
-	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
+	app.mm.SetOrderBeginBlockers(coin.ModuleName, validator.ModuleName)
 	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
@@ -247,8 +254,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		supply.ModuleName,
 		multisig.ModuleName,
 		genutil.ModuleName,
-		gov.ModuleName,
 		swap.ModuleName,
+		gov.ModuleName,
 		nft.ModuleName,
 	)
 
@@ -291,6 +298,9 @@ func NewDefaultGenesisState() GenesisState {
 }
 
 func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+	if app.initChain {
+		return abci.ResponseInitChain{}
+	}
 	var genesisState GenesisState
 
 	err := app.cdc.UnmarshalJSON(req.AppStateBytes, &genesisState)
@@ -302,6 +312,44 @@ func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 }
 
 func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	if !cfg.Initialized {
+		config.ChainID = ctx.ChainID()
+		if strings.HasPrefix(config.ChainID, "decimal-testnet") {
+			cfg.TitleBaseCoin = config.TitleTestBaseCoin
+			cfg.SymbolBaseCoin = config.SymbolTestBaseCoin
+			cfg.InitialVolumeBaseCoin = config.InitialVolumeTestBaseCoin
+		} else if strings.HasPrefix(config.ChainID, "decimal") {
+			cfg.TitleBaseCoin = config.TitleBaseCoin
+			cfg.SymbolBaseCoin = config.SymbolBaseCoin
+			cfg.InitialVolumeBaseCoin = config.InitialVolumeBaseCoin
+		}
+		cfg.Initialized = true
+	}
+
+	if ctx.BlockHeight() == updates.Update1Block {
+		govAppModule := app.mm.Modules[gov.ModuleName].(gov.AppModule)
+		swapAppModule := app.mm.Modules[swap.ModuleName].(swap.AppModule)
+
+		genesis := genutilcli.TestNetGenesis
+		var err error
+
+		var genDoc *tmtypes.GenesisDoc
+		if genDoc, err = tmtypes.GenesisDocFromJSON([]byte(genesis)); err != nil {
+			panic(err)
+		}
+
+		var genState map[string]json.RawMessage
+		if err = app.cdc.UnmarshalJSON(genDoc.AppState, &genState); err != nil {
+			panic(err)
+		}
+
+		govAppModule.InitGenesis(ctx, genState[gov.ModuleName])
+		gov.InitGenesis(ctx, app.govKeeper, gov.InitialGenesisState)
+
+		swapAppModule.InitGenesis(ctx, genState[swap.ModuleName])
+		swap.InitGenesis(ctx, app.swapKeeper, app.supplyKeeper, swap.InitialGenesisState)
+	}
+
 	return app.mm.BeginBlock(ctx, req)
 }
 func (app *newApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {

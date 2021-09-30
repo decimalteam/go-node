@@ -11,8 +11,7 @@ import (
 const (
 
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "0.9.39"
-
+	DecimalVersion = "1.3.9"
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
 
@@ -38,9 +37,6 @@ const (
 	// DecimalPrefixConsPub defines the Decimal prefix of a consensus node public key.
 	DecimalPrefixConsPub = DecimalMainPrefix + PrefixValidator + PrefixConsensus + PrefixPublic
 
-	// ChainID is the Decimal chain identifier.
-	ChainID = "decimal-devnet-06-09-16-00"
-
 	TitleTestBaseCoin  = "Test decimal coin"
 	SymbolTestBaseCoin = "tdel"
 	TitleBaseCoin      = "Decimal coin"
@@ -60,11 +56,13 @@ var (
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("340000000000000000000000000")
 )
 
+var ChainID = "decimal-testnet-06-09-13-00"
+
 var (
 	// WithoutSlashPeriod1Start int64
 	// WithoutSlashPeriod1End   int64
-	WithoutSlashPeriod1Start = 378190
-	WithoutSlashPeriod1End   = 401753
+	WithoutSlashPeriod1Start int64 = 378190
+	WithoutSlashPeriod1End   int64 = 401753
 )
 
 // 1hour = 660blocks
@@ -75,6 +73,7 @@ func SetSlashPeriod(start int64) {
 }
 
 type Config struct {
+	Initialized           bool    `json:"initialized" yaml:"initialized"`
 	TitleBaseCoin         string  `json:"title" yaml:"title"`   // Full coin title (Bitcoin)
 	SymbolBaseCoin        string  `json:"symbol" yaml:"symbol"` // Short coin title (BTC)
 	InitialVolumeBaseCoin sdk.Int `json:"initial_volume" yaml:"initial_volume"`

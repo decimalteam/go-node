@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
@@ -108,7 +109,7 @@ func (k Keeper) GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddres
 
 // set a delegation
 func (k Keeper) SetDelegation(ctx sdk.Context, delegation types.Delegation) {
-	if ctx.BlockHeight() < 1_087_900 {
+	if ctx.BlockHeight() < updates.Update1Block {
 		delegation.TokensBase = k.CalcTokensBase(ctx, delegation)
 	}
 	err := k.set(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.Coin.Denom), delegation)
@@ -171,7 +172,7 @@ func (k Keeper) GetDelegatedCoin(ctx sdk.Context, symbol string) sdk.Int {
 	key := types.GetDelegateCoinKey(symbol)
 	value := store.Get(key)
 	if value == nil {
-		if ctx.BlockHeight() >= 1117042 {
+		if ctx.BlockHeight() >= updates.Update1Block {
 			return sdk.ZeroInt()
 		}
 		panic(fmt.Sprintf("coin with symbol %s not exist", symbol))
@@ -537,8 +538,10 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 		validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
 		delegation.TokensBase = bondCoin.Amount
 	} else {
-		k.AddDelegatedCoin(ctx, bondCoin)
-		if ctx.BlockHeight() >= 1116587 {
+		if ctx.BlockHeight() >= updates.Update1Block {
+			k.AddDelegatedCoin(ctx, bondCoin)
+		}
+		if ctx.BlockHeight() >= updates.Update1Block {
 			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
 			validator.Tokens = validator.Tokens.Add(tokenBase)
 			delegation.TokensBase = tokenBase
@@ -693,7 +696,9 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 					if err != nil {
 						return err
 					}
-					k.SubtractDelegatedCoin(ctx, entry.Balance)
+					if ctx.BlockHeight() >= updates.Update1Block {
+						k.SubtractDelegatedCoin(ctx, entry.Balance)
+					}
 				case types.UnbondingDelegationNFTEntry:
 					collection, ok := k.nftKeeper.GetCollection(ctx, entry.Denom)
 					if !ok {

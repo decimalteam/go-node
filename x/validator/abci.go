@@ -2,6 +2,7 @@ package validator
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
@@ -33,7 +34,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		}
 	}
 
-	if ctx.BlockHeight() == 364_754 {
+	if ctx.BlockHeight() == updates.Update1Block {
 		delegations := k.GetAllDelegations(ctx)
 		for _, delegation := range delegations {
 			if delegation.GetCoin().Denom != k.BondDenom(ctx) {
@@ -60,6 +61,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	height := ctx.BlockHeight()
+
 	// Unbond all mature validators from the unbonding queue.
 	k.UnbondAllMatureValidatorQueue(ctx)
 
@@ -73,7 +75,6 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		err := k.CompleteUnbonding(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
 		if err != nil {
 			continue
-			panic(fmt.Sprintf("error = %s. Delegator = %s, validator = %s", err.Error(), dvPair.DelegatorAddress, dvPair.ValidatorAddress))
 		}
 
 		ctxTime := ctx.BlockHeader().Time
@@ -91,6 +92,9 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	denomCoin, err := k.GetCoin(ctx, k.BondDenom(ctx))
 	if err != nil {
 		panic(err)
+	}
+	if ctx.BlockHeight() < updates.Update1Block {
+		coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
 	}
 
 	feeCollector := supplyKeeper.GetModuleAccount(ctx, k.FeeCollectorName)
@@ -111,7 +115,9 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	if err != nil {
 		panic(err)
 	}
-	coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
+	if ctx.BlockHeight() >= updates.Update1Block {
+		coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
+	}
 
 	remainder := sdk.NewIntFromBigInt(rewards.BigInt())
 

@@ -1,6 +1,7 @@
 package gov
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	keep "bitbucket.org/decimalteam/go-node/x/gov/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
@@ -80,7 +81,7 @@ func TestProposalPassedEndBlocker(t *testing.T) {
 	valUpdates := validator.EndBlocker(ctx, input.vk, input.ck, input.sk, false)
 	require.Equal(t, 1, len(valUpdates))
 
-	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, keep.TestProposal.VotingStartBlock, keep.TestProposal.VotingEndBlock)
+	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, updates.Update1Block+keep.TestProposal.VotingStartBlock, updates.Update1Block+keep.TestProposal.VotingEndBlock)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingStartBlock))
@@ -118,7 +119,7 @@ func TestProposalPassedEndBlocker2(t *testing.T) {
 	valUpdates := validator.EndBlocker(ctx, input.vk, input.ck, input.sk, false)
 	require.Equal(t, 2, len(valUpdates))
 
-	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, keep.TestProposal.VotingStartBlock, keep.TestProposal.VotingEndBlock)
+	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, updates.Update1Block+keep.TestProposal.VotingStartBlock, updates.Update1Block+keep.TestProposal.VotingEndBlock)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingStartBlock))
@@ -160,7 +161,7 @@ func TestEndBlockerProposalRejected(t *testing.T) {
 	valUpdates := validator.EndBlocker(ctx, input.vk, input.ck, input.sk, false)
 	require.Equal(t, 1, len(valUpdates))
 
-	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, keep.TestProposal.VotingStartBlock, keep.TestProposal.VotingEndBlock)
+	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, updates.Update1Block+keep.TestProposal.VotingStartBlock, updates.Update1Block+keep.TestProposal.VotingEndBlock)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingStartBlock))
@@ -198,7 +199,7 @@ func TestEndBlockerProposalRejected2(t *testing.T) {
 	valUpdates := validator.EndBlocker(ctx, input.vk, input.ck, input.sk, false)
 	require.Equal(t, 2, len(valUpdates))
 
-	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, keep.TestProposal.VotingStartBlock, keep.TestProposal.VotingEndBlock)
+	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, updates.Update1Block+keep.TestProposal.VotingStartBlock, updates.Update1Block+keep.TestProposal.VotingEndBlock)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingStartBlock))
@@ -241,7 +242,7 @@ func TestEndBlockerProposalRejected3(t *testing.T) {
 	valUpdates := validator.EndBlocker(ctx, input.vk, input.ck, input.sk, false)
 	require.Equal(t, 2, len(valUpdates))
 
-	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, keep.TestProposal.VotingStartBlock, keep.TestProposal.VotingEndBlock)
+	proposal, err := input.keeper.SubmitProposal(ctx, keep.TestProposal.Content, updates.Update1Block+keep.TestProposal.VotingStartBlock, updates.Update1Block+keep.TestProposal.VotingEndBlock)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockHeight(int64(proposal.VotingStartBlock))

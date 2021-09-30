@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/swap"
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -299,6 +301,14 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 				return next(ctx, tx, simulate)
 			}
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
+		case swap.MsgRedeemConst:
+			if msg.(swap.MsgRedeem).From.Equals(swap.SwapServiceAddress()) {
+				return next(ctx, tx, simulate)
+			}
+		case swap.MsgRefundConst:
+			if msg.(swap.MsgRefund).From.Equals(swap.SwapServiceAddress()) {
+				return next(ctx, tx, simulate)
+			}
 		}
 	}
 
@@ -344,14 +354,25 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 			return ctx, err
 		}
 
-		feeInBaseCoin = formulas.CalculateSaleReturn(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
+		if coinInfo.Reserve.LT(commissionInBaseCoin) {
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, fmt.Sprintf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
+				coinInfo.Reserve.String(),
+				commissionInBaseCoin.String()))
+		}
+
+		feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
+
+		if ctx.BlockHeight() < updates.Update1Block {
+			feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
+		} else {
+			feeInBaseCoin = formulas.CalculateSaleReturn(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
+		}
 
 		if coinInfo.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
 			return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, fmt.Sprintf("coin reserve balance is not sufficient for transaction. Has: %s, fee: %s",
 				coinInfo.Reserve.String(),
 				feeInBaseCoin.String()))
 		}
-
 	} else {
 		feeInBaseCoin = f.Amount
 	}
@@ -392,9 +413,11 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "coin not exist: %s", fee.Denom)
 	}
 
-	if !coinKeeper.IsCoinBase(fee.Denom) {
-		if feeCoin.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
-			return coin.ErrTxBreaksMinReserveRule(coin.MinCoinReserve(ctx).String(), feeCoin.Reserve.Sub(fee.Amount).String())
+	if ctx.BlockHeight() >= updates.Update1Block {
+		if !coinKeeper.IsCoinBase(fee.Denom) {
+			if feeCoin.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
+				return coin.ErrTxBreaksMinReserveRule(coin.MinCoinReserve(ctx).String(), feeCoin.Reserve.Sub(feeInBaseCoin).String())
+			}
 		}
 	}
 
@@ -426,11 +449,13 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 	s = s.Inflate(sdk.NewCoins(fee))
 	supplyKeeper.SetSupply(ctx, s)
 
-	// update coin: decrease reserve and volume
-	if !coinKeeper.IsCoinBase(fee.Denom) {
-		coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve.Sub(feeInBaseCoin), feeCoin.Volume.Sub(fee.Amount))
-	} else {
-		coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve, feeCoin.Volume.Sub(fee.Amount))
+	if ctx.BlockHeight() >= updates.Update1Block {
+		// update coin: decrease reserve and volume
+		if !coinKeeper.IsCoinBase(fee.Denom) {
+			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve.Sub(feeInBaseCoin), feeCoin.Volume.Sub(fee.Amount))
+		} else {
+			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve, feeCoin.Volume.Sub(fee.Amount))
+		}
 	}
 
 	return nil

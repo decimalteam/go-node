@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -9,6 +10,12 @@ import (
 func (keeper Keeper) GetTallyParams(ctx sdk.Context) types.TallyParams {
 	var tallyParams types.TallyParams
 	keeper.paramSpace.Get(ctx, types.ParamStoreKeyTallyParams, &tallyParams)
+	if ctx.BlockHeight() >= updates.Update1Block {
+		tallyParams.Quorum = sdk.NewDec(2).QuoInt64(3)
+	}
+	if ctx.BlockHeight() >= updates.Update1Block {
+		tallyParams.Quorum = sdk.NewDecWithPrec(667, 3)
+	}
 	return tallyParams
 }
 
