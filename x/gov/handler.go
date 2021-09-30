@@ -1,12 +1,13 @@
 package gov
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"runtime/debug"
 	"strconv"
+
+	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewHandler creates an sdk.Handler for all the gov type messages

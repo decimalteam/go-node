@@ -5,9 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-
 	ncfg "bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

@@ -3,10 +3,11 @@ package gov
 // DONTCOVER
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/gov/client/cli"
-	"bitbucket.org/decimalteam/go-node/x/gov/client/rest"
 	"encoding/json"
 	"fmt"
+
+	"bitbucket.org/decimalteam/go-node/x/gov/client/cli"
+	"bitbucket.org/decimalteam/go-node/x/gov/client/rest"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
