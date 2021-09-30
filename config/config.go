@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+	"os"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,8 +11,7 @@ import (
 const (
 
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "1.3.8"
-
+	DecimalVersion = "1.3.9"
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
 
@@ -42,12 +43,34 @@ const (
 	SymbolBaseCoin     = "del"
 )
 
+const (
+	SkipPlanName = "skip_plans.json"
+)
+
+var (
+	ConfigPath = fmt.Sprintf("%s/.decimal/daemon/config", os.Getenv("HOME"))
+)
+
 var (
 	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("340000000000000000000000000")
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("340000000000000000000000000")
 )
 
 var ChainID = "decimal-testnet-06-09-13-00"
+
+var (
+	// WithoutSlashPeriod1Start int64
+	// WithoutSlashPeriod1End   int64
+	WithoutSlashPeriod1Start int64 = 378190
+	WithoutSlashPeriod1End   int64 = 401753
+)
+
+// 1hour = 660blocks
+func SetSlashPeriod(start int64) {
+	WithoutSlashPeriod1Start = start
+	// WithoutSlashPeriod1End = start + 55 // +5minutes
+	WithoutSlashPeriod1End = start + 15840 // +24hours
+}
 
 type Config struct {
 	Initialized           bool    `json:"initialized" yaml:"initialized"`

@@ -1,10 +1,11 @@
 package nft
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"fmt"
 	"runtime/debug"
 	"strconv"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"

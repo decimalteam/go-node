@@ -1,12 +1,13 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"

@@ -28,6 +28,8 @@ type Keeper struct {
 
 	// Proposal router
 	router types.Router
+
+	skipUpgradeHeights map[int64]bool
 }
 
 // NewKeeper returns a governance keeper. It handles:

@@ -1,11 +1,13 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/helpers"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"regexp"
 	"strings"
+
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 /* --------------------------------------------------------------------------- */
@@ -40,6 +42,7 @@ func NewMsgMintNFT(sender, recipient sdk.AccAddress, id, denom, tokenURI string,
 const regName = "^[a-zA-Z0-9_-]{1,255}$"
 
 var MinReserve = sdk.NewInt(100)
+
 var NewMinReserve = helpers.BipToPip(sdk.NewInt(100))
 var NewMinReserve2 = helpers.BipToPip(sdk.NewInt(1))
 
