@@ -1,11 +1,11 @@
 package gov
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
