@@ -13,6 +13,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
+	ncfg "bitbucket.org/decimalteam/go-node/config"
 )
 
 // Slash a validator for an infraction committed at a known height
@@ -327,12 +328,6 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	return tokensToBurn
 }
 
-const (
-	WithoutSlashPeriod1Start = 5_000
-	WithoutSlashPeriod1End   = 30_540
-	WithoutSlashPeriod2Start = 35_106
-	WithoutSlashPeriod2End   = 60_184
-)
 
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
@@ -375,14 +370,11 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	missed := !signed
 	switch {
 	case !previous && missed:
-		if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
+		if height >= ncfg.WithoutSlashPeriod1Start && height <= ncfg.WithoutSlashPeriod1End {
 			log.Println(consAddr.String())
 			return
 		}
-		if height >= WithoutSlashPeriod2Start && height <= WithoutSlashPeriod2End {
-			log.Println(consAddr.String())
-			return
-		}
+		
 		// Array value has changed from not missed to missed, increment counter
 		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 		signInfo.MissedBlocksCounter++
@@ -395,6 +387,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	}
 
 	if missed {
+		log.Println(fmt.Sprintf("Missed blocks: %d", signInfo.MissedBlocksCounter), signInfo.Address.String())
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeLiveness,

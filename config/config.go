@@ -5,8 +5,39 @@ import (
 	"os"
 	"strings"
 
+	
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+type Keeper struct {
+	
+	// The (unexposed) keys used to access the stores from the Context.
+	storeKey sdk.StoreKey
+
+	// The codec codec for binary encoding/decoding.
+	cdc *codec.Codec
+
+
+}
+func (k Keeper) Get(ctx sdk.Context, key []byte, value interface{}) error {
+	store := ctx.KVStore(k.storeKey)
+	err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(key), &value)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k Keeper) Set(ctx sdk.Context, key []byte, value interface{}) error {
+	store := ctx.KVStore(k.storeKey)
+	bz, err := k.cdc.MarshalBinaryLengthPrefixed(value)
+	if err != nil {
+		return err
+	}
+	store.Set(key, bz)
+	return nil
+}
 
 const (
 
