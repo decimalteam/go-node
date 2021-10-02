@@ -81,8 +81,7 @@ definitions:
                 - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/centos/8/${REPO_UPDATE_BLOCK}/
                 - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/centos/8/${REPO_UPDATE_BLOCK}/
               artifacts:
-                - build/linux/centos/8/${REPO_UPDATE_BLOCK}/deccli
-                - build/linux/centos/8/${REPO_UPDATE_BLOCK}/decd
+                - build/**
 
           - step:
               name: Build on Centos 7 (latest)
@@ -106,8 +105,7 @@ definitions:
                 - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/${REPO_UPDATE_BLOCK}/
                 - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/${REPO_UPDATE_BLOCK}/
               artifacts:
-                - build/linux/centos/7/${REPO_UPDATE_BLOCK}/deccli
-                - build/linux/centos/7/${REPO_UPDATE_BLOCK}/decd
+                - build/**
 
 
           - step:
@@ -132,8 +130,7 @@ definitions:
                 - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/20.04/${REPO_UPDATE_BLOCK}/
                 - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/20.04/${REPO_UPDATE_BLOCK}/
               artifacts:
-                - build/linux/ubuntu/20.04/${REPO_UPDATE_BLOCK}/deccli
-                - build/linux/ubuntu/20.04/${REPO_UPDATE_BLOCK}/decd
+                - build/**
 
           - step:
               name: Build on Ubuntu 18.04
@@ -164,8 +161,7 @@ definitions:
                 - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/18.04/${REPO_UPDATE_BLOCK}/
                 - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/18.04/${REPO_UPDATE_BLOCK}/
               artifacts:
-                - build/linux/ubuntu/18.04/${REPO_UPDATE_BLOCK}/deccli
-                - build/linux/ubuntu/18.04/${REPO_UPDATE_BLOCK}/decd
+                - build/**
 
           - step:
               name: Build on Ubuntu 16.04
@@ -197,9 +193,9 @@ definitions:
                 - make all
                 - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/${REPO_UPDATE_BLOCK}/
                 - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/${REPO_UPDATE_BLOCK}/
+                - ls -la ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/${REPO_UPDATE_BLOCK}/
               artifacts:
-                - build/linux/ubuntu/16.04/${REPO_UPDATE_BLOCK}/deccli
-                - build/linux/ubuntu/16.04/${REPO_UPDATE_BLOCK}/decd
+                - build/**                
 
   caches:
     pip: ~/.cache/pip
@@ -235,7 +231,7 @@ pipelines:
               variables:
                   USER: $REPO_USER
                   SERVER: $REPO_HOST                  
-                  LOCAL_PATH: 'build/'
+                  LOCAL_PATH: 'build'
                   REMOTE_PATH: $REPO_REMOTE_PATH
                   DELETE_FLAG: 'false'
                   DEBUG: 'true'
@@ -250,7 +246,7 @@ pipelines:
               variables:
                   USER: $REPO_USER
                   SERVER: $REPO_HOST                  
-                  LOCAL_PATH: 'build/'
+                  LOCAL_PATH: 'build'
                   REMOTE_PATH: $REPO_REMOTE_PATH
                   DELETE_FLAG: 'false'
                   DEBUG: 'true'
@@ -265,7 +261,7 @@ pipelines:
               variables:
                   USER: $REPO_USER
                   SERVER: $REPO_HOST                  
-                  LOCAL_PATH: 'build/'
+                  LOCAL_PATH: 'build'
                   REMOTE_PATH: $REPO_REMOTE_PATH
                   DELETE_FLAG: 'false'
                   DEBUG: 'true'
