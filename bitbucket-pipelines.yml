@@ -84,8 +84,8 @@ pipelines:
     build-and-deploy-binary-files-to-repo:
       - parallel:
           - step:
-              name: Build on Centos 8.4.2105
-              image: centos:centos8.4.2105
+              name: Build on Centos 8 (latest)
+              image: centos:centos8
               caches:
                 - go-src
                 - go-pkg
@@ -102,11 +102,37 @@ pipelines:
                 - go get ./...
                 - go test ./...
                 - make all
-                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/centos8.4/
-                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/centos8.4/
+                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/centos/8/
+                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/centos/8/
               artifacts:
-                - build/centos8.4/deccli
-                - build/centos8.4/decd
+                - build/centos/8/deccli
+                - build/centos/8/decd
+
+          - step:
+              name: Build on Centos 7 (latest)
+              image: centos:centos7
+              caches:
+                - go-src
+                - go-pkg
+              script:
+                - yum install -y epel-release
+                - yum install -y golang leveldb leveldb-devel snappy
+                - yum groupinstall -y "Development Tools"
+                - export GOPATH=~/go
+                - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
+                - mkdir -pv "${PACKAGE_PATH}"
+                - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
+                - export GO111MODULE=on
+                - cd "${PACKAGE_PATH}"
+                - go get ./...
+                - go test ./...
+                - make all
+                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/centos/7/
+                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/centos/7/
+              artifacts:
+                - build/centos/7/deccli
+                - build/centos/7/decd
+
 
           - step:
               name: Build on Ubuntu 20.04
@@ -117,7 +143,7 @@ pipelines:
               script:
                 - apt-get update -y
                 - apt-get install -y build-essential
-                - apt-get install -y golang libsnappy-dev libleveldb-dev
+                - apt-get install -y --no-install-recommends golang libsnappy-dev libleveldb-dev
                 - export GOPATH=~/go
                 - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
                 - mkdir -pv "${PACKAGE_PATH}"
@@ -127,11 +153,58 @@ pipelines:
                 - go get ./...
                 - go test ./...
                 - make all
-                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/ubuntu20.04/
-                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/ubuntu20.04/
+                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/ubuntu/20.04/
+                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/ubuntu/20.04/
               artifacts:
-                - build/ubuntu20.04/deccli
-                - build/ubuntu20.04/decd
+                - build/ubuntu/20.04/deccli
+                - build/ubuntu/20.04/decd
 
+          - step:
+              name: Build on Ubuntu 18.04
+              image: ubuntu:18.04
+              caches:
+                - go-src
+                - go-pkg
+              script:
+                - apt-get update -y
+                - apt-get install -y build-essential
+                - apt-get install -y --no-install-recommends golang libsnappy-dev libleveldb-dev
+                - export GOPATH=~/go
+                - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
+                - mkdir -pv "${PACKAGE_PATH}"
+                - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
+                - export GO111MODULE=on
+                - cd "${PACKAGE_PATH}"
+                - go get ./...
+                - go test ./...
+                - make all
+                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/ubuntu/18.04/
+                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/ubuntu/18.04/
+              artifacts:
+                - build/ubuntu/18.04/deccli
+                - build/ubuntu/18.04/decd
 
-
+          - step:
+              name: Build on Ubuntu 16.04
+              image: ubuntu:16.04
+              caches:
+                - go-src
+                - go-pkg
+              script:
+                - apt-get update -y
+                - apt-get install -y build-essential
+                - apt-get install -y --no-install-recommends golang libsnappy-dev libleveldb-dev
+                - export GOPATH=~/go
+                - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
+                - mkdir -pv "${PACKAGE_PATH}"
+                - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
+                - export GO111MODULE=on
+                - cd "${PACKAGE_PATH}"
+                - go get ./...
+                - go test ./...
+                - make all
+                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/ubuntu/16.04/
+                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/ubuntu/16.04/
+              artifacts:
+                - build/ubuntu/16.04/deccli
+                - build/ubuntu/16.04/decd
