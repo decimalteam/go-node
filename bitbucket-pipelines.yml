@@ -168,7 +168,7 @@ pipelines:
               script:
                 - apt-get update -y
                 - apt-get install -y build-essential
-                - apt-get install -y --no-install-recommends golang libsnappy-dev libleveldb-dev git
+                - apt-get install -y --no-install-recommends golang libsnappy-dev libleveldb-dev git ca-certificates
                 - export GOPATH=~/go
                 - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
                 - mkdir -pv "${PACKAGE_PATH}"
@@ -193,7 +193,7 @@ pipelines:
               script:
                 - apt-get update -y
                 - apt-get install -y build-essential
-                - apt-get install -y --no-install-recommends golang libsnappy-dev libleveldb-dev git
+                - apt-get install -y --no-install-recommends golang libsnappy-dev libleveldb-dev git ca-certificates
                 - export GOPATH=~/go
                 - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
                 - mkdir -pv "${PACKAGE_PATH}"
