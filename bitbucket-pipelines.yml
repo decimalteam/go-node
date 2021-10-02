@@ -1,31 +1,29 @@
 image: python:3.8.2
 
 definitions:
-  steps:
-    - step: &build
-        name: Build
-          image: centos:centos8
-          caches:
-            - go-src
-            - go-pkg
-          script:
-            - dnf install -y epel-release
-            - dnf install -y golang leveldb leveldb-devel snappy
-            - dnf groupinstall -y "Development Tools"
-            - export GOPATH=~/go
-            - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
-            - mkdir -pv "${PACKAGE_PATH}"
-            - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
-            - export GO111MODULE=on
-            - cd "${PACKAGE_PATH}"
-            - go get ./...
-            - go test ./...
-            - make all
-            - mkdir ${BITBUCKET_CLONE_DIR}/build
-            - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
-          artifacts:
-            - build/deccli
-            - build/decd
+  build-script: &build
+    image: centos:centos8
+    caches:
+      - go-src
+      - go-pkg
+    script:
+      - dnf install -y epel-release
+      - dnf install -y golang leveldb leveldb-devel snappy
+      - dnf groupinstall -y "Development Tools"
+      - export GOPATH=~/go
+      - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
+      - mkdir -pv "${PACKAGE_PATH}"
+      - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
+      - export GO111MODULE=on
+      - cd "${PACKAGE_PATH}"
+      - go get ./...
+      - go test ./...
+      - make all
+      - mkdir ${BITBUCKET_CLONE_DIR}/build
+      - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
+    artifacts:
+      - build/deccli
+      - build/decd
 
   deploy-script: &deploy
     caches:
@@ -66,6 +64,7 @@ pipelines:
   branches:
     staging:
       - step:
+          name: Build
           <<: *build
       - step:
           name: Deploy
@@ -74,6 +73,7 @@ pipelines:
 
     develop:
       - step:
+          name: Build
           <<: *build
       - step:
           name: Deploy
