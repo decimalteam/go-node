@@ -1,6 +1,6 @@
 PACKAGES=$(shell go list ./... | grep -v '/simulation')
 
-VERSION := '1.3.9'
+VERSION := '1.3.11'
 COMMIT = $(shell git rev-parse --short=8 HEAD)
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=Decimal \
@@ -10,7 +10,8 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=Decimal \
 	-X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT)
 
 BUILD_FLAGS := -ldflags '$(ldflags)'
-BUILD_TAGS := -tags cleveldb
+# BUILD_TAGS := -tags cleveldb
+BUILD_TAGS := 
 
 all: install
 

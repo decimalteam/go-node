@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
+	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -327,13 +328,6 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	return tokensToBurn
 }
 
-const (
-	WithoutSlashPeriod1Start = 5_000
-	WithoutSlashPeriod1End   = 30_540
-	WithoutSlashPeriod2Start = 35_106
-	WithoutSlashPeriod2End   = 60_184
-)
-
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
@@ -373,13 +367,14 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	// That way we avoid needing to read/write the whole array each time
 	previous := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
 	missed := !signed
+
+	var gracePeriodStart int64
+	k.Get(ctx, ncfg.WithoutSlashPeriodPrefix, &gracePeriodStart)
+	gracePeriodEnd := gracePeriodStart + (24 * ncfg.OneHour)
+
 	switch {
 	case !previous && missed:
-		if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
-			log.Println(consAddr.String())
-			return
-		}
-		if height >= WithoutSlashPeriod2Start && height <= WithoutSlashPeriod2End {
+		if height >= gracePeriodStart && height <= gracePeriodEnd {
 			log.Println(consAddr.String())
 			return
 		}

@@ -1,9 +1,10 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
 	"encoding/binary"
 	"fmt"
+
+	"bitbucket.org/decimalteam/go-node/x/coin"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -53,6 +54,8 @@ var (
 
 	PlanPrefix = []byte{0x20}
 	DoneByte   = []byte{0x21}
+
+	SlashPeriodPrefix = []byte{0x60}
 )
 
 // GetProposalIDBytes returns the byte representation of the proposalID
