@@ -54,8 +54,6 @@ var (
 
 	PlanPrefix = []byte{0x20}
 	DoneByte   = []byte{0x21}
-
-	SlashPeriodPrefix = []byte{0x60}
 )
 
 // GetProposalIDBytes returns the byte representation of the proposalID
