@@ -225,7 +225,7 @@ pipelines:
           <<: *deploy
 
   custom:
-    build-and-deploy-binary-files-to-repo-devnet:
+    build-and-deploy-binary-files-to-repo-DEVnet:
       - parallel: *repo_build
       - step:
           name: Deploy
@@ -235,7 +235,37 @@ pipelines:
               variables:
                   USER: $REPO_USER
                   SERVER: $REPO_HOST                  
-                  LOCAL_PATH: build/'
+                  LOCAL_PATH: 'build/'
+                  REMOTE_PATH: $REPO_REMOTE_PATH
+                  DELETE_FLAG: 'false'
+                  DEBUG: 'true'
+
+    build-and-deploy-binary-files-to-repo-TESTnet:
+      - parallel: *repo_build
+      - step:
+          name: Deploy
+          deployment: Staging
+          script:
+            - pipe: atlassian/rsync-deploy:0.6.0
+              variables:
+                  USER: $REPO_USER
+                  SERVER: $REPO_HOST                  
+                  LOCAL_PATH: 'build/'
+                  REMOTE_PATH: $REPO_REMOTE_PATH
+                  DELETE_FLAG: 'false'
+                  DEBUG: 'true'
+
+    build-and-deploy-binary-files-to-repo-MAINnet:
+      - parallel: *repo_build
+      - step:
+          name: Deploy
+          deployment: Production
+          script:
+            - pipe: atlassian/rsync-deploy:0.6.0
+              variables:
+                  USER: $REPO_USER
+                  SERVER: $REPO_HOST                  
+                  LOCAL_PATH: 'build/'
                   REMOTE_PATH: $REPO_REMOTE_PATH
                   DELETE_FLAG: 'false'
                   DEBUG: 'true'
