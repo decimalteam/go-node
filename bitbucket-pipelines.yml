@@ -221,7 +221,9 @@ pipelines:
 
   custom:
     build-and-deploy-binary-files-to-repo-DEVnet:
-      - parallel: *repo_build
+      - parallel: 
+          deployment: Test
+          <<: *repo_build
       - step:
           name: Deploy
           deployment: Test
