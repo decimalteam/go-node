@@ -102,11 +102,11 @@ pipelines:
                 - go get ./...
                 - go test ./...
                 - make all
-                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/centos/8/
-                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/centos/8/
+                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/centos/8/${REPO_UPDATE_BLOCK}/
+                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/centos/8/${REPO_UPDATE_BLOCK}/
               artifacts:
-                - build/centos/8/deccli
-                - build/centos/8/decd
+                - build/linux/centos/8/${REPO_UPDATE_BLOCK}/deccli
+                - build/linux/centos/8/${REPO_UPDATE_BLOCK}/decd
 
           - step:
               name: Build on Centos 7 (latest)
@@ -127,11 +127,11 @@ pipelines:
                 - go get ./...
                 - go test ./...
                 - make all
-                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/centos/7/
-                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/centos/7/
+                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/${REPO_UPDATE_BLOCK}/
+                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/${REPO_UPDATE_BLOCK}/
               artifacts:
-                - build/centos/7/deccli
-                - build/centos/7/decd
+                - build/linux/centos/7/${REPO_UPDATE_BLOCK}/deccli
+                - build/linux/centos/7/${REPO_UPDATE_BLOCK}/decd
 
 
           - step:
@@ -153,11 +153,11 @@ pipelines:
                 - go get ./...
                 - go test ./...
                 - make all
-                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/ubuntu/20.04/
-                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/ubuntu/20.04/
+                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/20.04/${REPO_UPDATE_BLOCK}/
+                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/20.04/${REPO_UPDATE_BLOCK}/
               artifacts:
-                - build/ubuntu/20.04/deccli
-                - build/ubuntu/20.04/decd
+                - build/linux/ubuntu/20.04/${REPO_UPDATE_BLOCK}/deccli
+                - build/linux/ubuntu/20.04/${REPO_UPDATE_BLOCK}/decd
 
           - step:
               name: Build on Ubuntu 18.04
@@ -178,11 +178,11 @@ pipelines:
                 - go get ./...
                 - go test ./...
                 - make all
-                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/ubuntu/18.04/
-                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/ubuntu/18.04/
+                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/18.04/${REPO_UPDATE_BLOCK}/
+                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/18.04/${REPO_UPDATE_BLOCK}/
               artifacts:
-                - build/ubuntu/18.04/deccli
-                - build/ubuntu/18.04/decd
+                - build/linux/ubuntu/18.04/${REPO_UPDATE_BLOCK}/deccli
+                - build/linux/ubuntu/18.04/${REPO_UPDATE_BLOCK}/decd
 
           - step:
               name: Build on Ubuntu 16.04
@@ -203,8 +203,20 @@ pipelines:
                 - go get ./...
                 - go test ./...
                 - make all
-                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/ubuntu/16.04/
-                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/ubuntu/16.04/
+                - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/${REPO_UPDATE_BLOCK}/
+                - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/${REPO_UPDATE_BLOCK}/
               artifacts:
-                - build/ubuntu/16.04/deccli
-                - build/ubuntu/16.04/decd
+                - build/linux/ubuntu/16.04/${REPO_UPDATE_BLOCK}/deccli
+                - build/linux/ubuntu/16.04/${REPO_UPDATE_BLOCK}/decd
+
+      - step:
+          name: Deploy
+          script:
+            - pipe: atlassian/rsync-deploy:0.6.0
+              variables:
+                  USER: $REPO_USER
+                  SERVER: $REPO_HOST                  
+                  LOCAL_PATH: build/'
+                  REMOTE_PATH: $REPO_REMOTE_PATH
+                  DELETE_FLAG: 'false'
+                  DEBUG: 'true'
