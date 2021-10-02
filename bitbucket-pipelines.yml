@@ -193,7 +193,6 @@ definitions:
                 - make all
                 - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/${REPO_UPDATE_BLOCK}/
                 - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/${REPO_UPDATE_BLOCK}/
-                - ls -la ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/${REPO_UPDATE_BLOCK}/
               artifacts:
                 - build/**                
 
@@ -231,7 +230,7 @@ pipelines:
               variables:
                   USER: $REPO_USER
                   SERVER: $REPO_HOST                  
-                  LOCAL_PATH: 'build'
+                  LOCAL_PATH: 'build/'
                   REMOTE_PATH: $REPO_REMOTE_PATH
                   DELETE_FLAG: 'false'
                   DEBUG: 'true'
@@ -246,7 +245,7 @@ pipelines:
               variables:
                   USER: $REPO_USER
                   SERVER: $REPO_HOST                  
-                  LOCAL_PATH: 'build'
+                  LOCAL_PATH: 'build/'
                   REMOTE_PATH: $REPO_REMOTE_PATH
                   DELETE_FLAG: 'false'
                   DEBUG: 'true'
@@ -261,7 +260,7 @@ pipelines:
               variables:
                   USER: $REPO_USER
                   SERVER: $REPO_HOST                  
-                  LOCAL_PATH: 'build'
+                  LOCAL_PATH: 'build/'
                   REMOTE_PATH: $REPO_REMOTE_PATH
                   DELETE_FLAG: 'false'
                   DEBUG: 'true'
