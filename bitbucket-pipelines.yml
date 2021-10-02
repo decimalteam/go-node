@@ -57,33 +57,6 @@ definitions:
         ansible-playbook -i "$SLAVE_HOSTS" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
         else echo 0; fi
 
-  deploy-to-repo-script: &deploy_to_repo
-    - parallel:
-        - step:
-          name: Build on Centos 8 (latest)
-          image: centos:centos8
-          caches:
-            - go-src
-            - go-pkg
-          script:
-            - dnf install -y epel-release
-            - dnf install -y golang leveldb leveldb-devel snappy
-            - dnf groupinstall -y "Development Tools"
-            - export GOPATH=~/go
-            - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
-            - mkdir -pv "${PACKAGE_PATH}"
-            - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
-            - export GO111MODULE=on
-            - cd "${PACKAGE_PATH}"
-            - go get ./...
-            - go test ./...
-            - make all
-            - mkdir ${BITBUCKET_CLONE_DIR}/build
-            - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
-          artifacts:
-            - build/deccli
-            - build/decd
-
   caches:
     pip: ~/.cache/pip
     go-src: ~/go/src
@@ -106,9 +79,57 @@ pipelines:
           name: Deploy
           deployment: Test
           <<: *deploy
-      - step:
-          trigger: manual
-          name: Deploy binary files to repo
-          deployment: Test
-          <<: *deploy_to_repo     
+
+  custom:
+    - parallel:
+        - step:
+          name: Build on Centos 8.4.2105
+          image: centos:centos8.4.2105
+          caches:
+            - go-src
+            - go-pkg
+          script:
+            - dnf install -y epel-release
+            - dnf install -y golang leveldb leveldb-devel snappy
+            - dnf groupinstall -y "Development Tools"
+            - export GOPATH=~/go
+            - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
+            - mkdir -pv "${PACKAGE_PATH}"
+            - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
+            - export GO111MODULE=on
+            - cd "${PACKAGE_PATH}"
+            - go get ./...
+            - go test ./...
+            - make all
+            - mkdir -p ${BITBUCKET_CLONE_DIR}/build/centos8.4/
+            - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/centos8.4/
+          artifacts:
+            - build/centos8.4/deccli
+            - build/centos8.4/decd
+
+        - step:
+          name: Build on Ubuntu 20.04
+          image: ubuntu:20.04
+          caches:
+            - go-src
+            - go-pkg
+          script:
+            - sudo apt-get install -y build-essential
+            - sudo apt-get install -y golang libsnappy-dev libleveldb-dev
+            - export GOPATH=~/go
+            - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
+            - mkdir -pv "${PACKAGE_PATH}"
+            - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
+            - export GO111MODULE=on
+            - cd "${PACKAGE_PATH}"
+            - go get ./...
+            - go test ./...
+            - make all
+            - mkdir -p ${BITBUCKET_CLONE_DIR}/build/ubuntu20.04/
+            - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/ubuntu20.04/
+          artifacts:
+            - build/ubuntu20.04/deccli
+            - build/ubuntu20.04/decd
+
+
 
