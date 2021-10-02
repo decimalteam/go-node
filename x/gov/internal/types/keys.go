@@ -1,9 +1,10 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
 	"encoding/binary"
 	"fmt"
+
+	"bitbucket.org/decimalteam/go-node/x/coin"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

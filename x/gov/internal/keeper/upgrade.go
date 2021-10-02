@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
@@ -96,29 +97,37 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 		return fmt.Errorf("error: hash does not match")
 	}
 
-	MarkExecutable(nameFile)
 	currBin := os.Args[0]
+	mode, err := getMode(currBin)
+	if err != nil {
+		os.Remove(nameFile)
+		return fmt.Errorf("error: mark executable")
+	}
+
+	err = MarkExecutableWithMode(nameFile, mode)
+	if err != nil {
+		os.Remove(nameFile)
+		return fmt.Errorf("error: mark executable")
+	}
 
 	syscall.Unlink(currBin)
-	err := os.Rename(nameFile, currBin)
+	err = os.Rename(nameFile, currBin)
 
 	return err
 }
 
 // MarkExecutable will try to set the executable bits if not already set
 // Fails if file doesn't exist or we cannot set those bits
-func MarkExecutable(path string) error {
+func MarkExecutableWithMode(path string, mode fs.FileMode) error {
+	return os.Chmod(path, mode|0111)
+}
+
+func getMode(path string) (fs.FileMode, error) {
 	info, err := os.Stat(path)
 	if err != nil {
-		return fmt.Errorf("stating binary: %w", err)
+		return 0, fmt.Errorf("stating binary: %w", err)
 	}
-	// end early if world exec already set
-	if info.Mode()&0001 == 1 {
-		return nil
-	}
-	// now try to set all exec bits
-	newMode := info.Mode().Perm() | 0111
-	return os.Chmod(path, newMode)
+	return info.Mode().Perm(), nil
 }
 
 // Generate name of download file.

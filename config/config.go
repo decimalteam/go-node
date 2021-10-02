@@ -11,7 +11,7 @@ import (
 const (
 
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "1.3.9"
+	DecimalVersion = "1.3.11"
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
 
@@ -45,6 +45,7 @@ const (
 
 const (
 	SkipPlanName = "skip_plans.json"
+	OneHour      = 660 // blocks
 )
 
 var (
@@ -56,21 +57,10 @@ var (
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("340000000000000000000000000")
 )
 
-var ChainID = "decimal-testnet-06-09-13-00"
-
 var (
-	// WithoutSlashPeriod1Start int64
-	// WithoutSlashPeriod1End   int64
-	WithoutSlashPeriod1Start int64 = 378190
-	WithoutSlashPeriod1End   int64 = 401753
+	ChainID                  = "decimal-testnet-06-09-13-00"
+	WithoutSlashPeriodPrefix = []byte{0x60}
 )
-
-// 1hour = 660blocks
-func SetSlashPeriod(start int64) {
-	WithoutSlashPeriod1Start = start
-	// WithoutSlashPeriod1End = start + 55 // +5minutes
-	WithoutSlashPeriod1End = start + 15840 // +24hours
-}
 
 type Config struct {
 	Initialized           bool    `json:"initialized" yaml:"initialized"`

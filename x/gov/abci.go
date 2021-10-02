@@ -23,7 +23,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	if ctx.BlockHeight() > plan.Height {
-		ncfg.SetSlashPeriod(plan.Height)
+		k.Set(ctx, ncfg.WithoutSlashPeriodPrefix, &plan.Height)
 		k.ClearUpgradePlan(ctx)
 		return
 	}
