@@ -168,7 +168,12 @@ pipelines:
               script:
                 - apt-get update -y
                 - apt-get install -y build-essential
-                - apt-get install -y --no-install-recommends golang libsnappy-dev libleveldb-dev git ca-certificates
+                - apt-get install -y --no-install-recommends libsnappy-dev libleveldb-dev git ca-certificates wget
+                - wget https://golang.org/dl/go1.13.15.linux-amd64.tar.gz
+                - tar -xvf go1.13.15.linux-amd64.tar.gz
+                - mv go /usr/local 
+                - export GOROOT=/usr/local/go 
+                - export GOPATH=~/go
                 - export GOPATH=~/go
                 - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
                 - mkdir -pv "${PACKAGE_PATH}"
@@ -187,13 +192,19 @@ pipelines:
           - step:
               name: Build on Ubuntu 16.04
               image: ubuntu:16.04
+              variables:   
+                - name: deployment
               caches:
                 - go-src
                 - go-pkg
               script:
                 - apt-get update -y
                 - apt-get install -y build-essential
-                - apt-get install -y --no-install-recommends golang libsnappy-dev libleveldb-dev git ca-certificates
+                - apt-get install -y --no-install-recommends libsnappy-dev libleveldb-dev git ca-certificates wget
+                - wget https://golang.org/dl/go1.13.15.linux-amd64.tar.gz
+                - tar -xvf go1.13.15.linux-amd64.tar.gz
+                - mv go /usr/local 
+                - export GOROOT=/usr/local/go 
                 - export GOPATH=~/go
                 - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
                 - mkdir -pv "${PACKAGE_PATH}"
