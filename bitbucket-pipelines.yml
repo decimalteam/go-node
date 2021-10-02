@@ -277,7 +277,7 @@ pipelines:
                 SERVER: $REPO_HOST
                 LOCAL_PATH: "build/"
                 REMOTE_PATH: $REPO_REMOTE_PATH/$REPO_UPDATE_BLOCK
-                DELETE_FLAG: "false"
+                DELETE_FLAG: "true"
                 DEBUG: "true"
 
     build-and-deploy-binary-files-to-repo-MAINnet:
@@ -292,5 +292,5 @@ pipelines:
                 SERVER: $REPO_HOST
                 LOCAL_PATH: "build/"
                 REMOTE_PATH: $REPO_REMOTE_PATH/$REPO_UPDATE_BLOCK
-                DELETE_FLAG: "false"
+                DELETE_FLAG: "true"
                 DEBUG: "true"
