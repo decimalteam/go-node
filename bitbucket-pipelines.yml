@@ -221,8 +221,8 @@ definitions:
               - go get ./...
               - go test ./...
               - make all
-              - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/debian/10.10/
-              - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/debian/10.10/
+              - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/debian/10/
+              - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/debian/10/
             artifacts:
               - build/**
 
@@ -236,6 +236,9 @@ options:
 
 pipelines:
   branches:
+    master:
+      - step: *build
+      
     staging:
       - step: *build
       - step:
@@ -243,8 +246,7 @@ pipelines:
           <<: *deploy
 
     develop:
-      - step:
-          name: *build
+      - step: *build
       - step:
           deployment: Test
           <<: *deploy
