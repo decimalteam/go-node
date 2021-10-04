@@ -226,31 +226,6 @@ definitions:
             artifacts:
               - build/**
 
-        - step:
-            name: Build on Alpine 3.14.2
-            image: alpine:3.14.2
-            caches:
-              - go-src
-              - go-pkg
-            script:
-              - apk --no-cache --update add build-base              
-              - apk --no-cache add snappy-dev leveldb-dev git ca-certificates wget make
-              - apk --no-cache add go gcc bash musl-dev openssl-dev ca-certificates && update-ca-certificates
-              - go version
-              - go env
-              - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
-              - mkdir -pv "${PACKAGE_PATH}"
-              - tar -cO --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
-              - export GO111MODULE=on
-              - cd "${PACKAGE_PATH}"
-              - go get ./...
-              - go test ./...
-              - make all
-              - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/alpine/3.14.2/
-              - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/alpine/3.14.2/
-            artifacts:
-              - build/**
-
   caches:
     pip: ~/.cache/pip
     go-src: ~/go/src
