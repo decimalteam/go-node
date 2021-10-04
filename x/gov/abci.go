@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -22,6 +23,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	if ctx.BlockHeight() > plan.Height {
+		k.Set(ctx, ncfg.WithoutSlashPeriodPrefix, &plan.Height)
 		k.ClearUpgradePlan(ctx)
 		return
 	}
@@ -34,17 +36,22 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	_, ok := downloadStat[plan.Name]
 
 	if ctx.BlockHeight() > (plan.Height-plan.ToDownload) && ctx.BlockHeight() < plan.Height && !ok {
-		if !k.UrlPageExist(plan.Name) {
-			return
-		}
+		for _, name := range ncfg.NameFiles {
+			// example:
+			// from "http://127.0.0.1/95000/decd"
+			// to "http://127.0.0.1/95000/linux/ubuntu/20.04/decd"
+			newUrl := k.GenerateUrl(fmt.Sprintf("%s/%s", plan.Name, name))
+			if newUrl == "" {
+				return
+			}
 
-		nameFile := k.GetDownloadName(plan.Name)
-		if nameFile == "" {
-			return
-		}
+			if !k.UrlPageExist(newUrl) {
+				return
+			}
 
-		downloadStat[plan.Name] = true
-		go k.DownloadBinary(nameFile, plan.Name)
+			downloadStat[plan.Name] = true
+			go k.DownloadBinary(k.GetDownloadName(name), newUrl)
+		}
 	}
 
 	// To make sure clear upgrade is executed at./de the same block
@@ -62,7 +69,11 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		// We have an upgrade handler for this upgrade name, so apply the upgrade
 		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
-		k.ApplyUpgrade(ctx, plan)
+
+		err := k.ApplyUpgrade(ctx, plan)
+		if err != nil {
+			return
+		}
 
 		skipPlan.Push(plan.Name, ctx.BlockHeight())
 		os.Exit(0)
@@ -72,6 +83,10 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
+	if ctx.BlockHeight() < updates.Update1Block {
+		return
+	}
+
 	logger := keeper.Logger(ctx)
 
 	// delete inactive proposal from store

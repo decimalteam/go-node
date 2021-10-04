@@ -38,9 +38,6 @@ const (
 	// DecimalPrefixConsPub defines the Decimal prefix of a consensus node public key.
 	DecimalPrefixConsPub = DecimalMainPrefix + PrefixValidator + PrefixConsensus + PrefixPublic
 
-	// ChainID is the Decimal chain identifier.
-	ChainID = "decimal-devnet-06-09-16-00"
-
 	TitleTestBaseCoin  = "Test decimal coin"
 	SymbolTestBaseCoin = "tdel"
 	TitleBaseCoin      = "Decimal coin"
@@ -49,10 +46,18 @@ const (
 
 const (
 	SkipPlanName = "skip_plans.json"
+	OneHour      = 660 // blocks
+)
+
+var (
+	// ChainID is the Decimal chain identifier.
+	ChainID                  = "decimal-devnet-06-09-16-00"
+	WithoutSlashPeriodPrefix = []byte{0x60}
 )
 
 var (
 	ConfigPath = fmt.Sprintf("%s/.decimal/daemon/config", os.Getenv("HOME"))
+	NameFiles  = []string{"decd", "deccli"}
 )
 
 var (

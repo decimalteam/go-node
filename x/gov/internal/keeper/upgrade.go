@@ -1,7 +1,9 @@
 package keeper
 
 import (
+	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,10 +14,12 @@ import (
 	"runtime"
 	"syscall"
 
+	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/go-ini/ini"
 )
 
 const (
@@ -69,48 +73,88 @@ func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
 
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
-	nameFile := k.GetDownloadName(plan.Name)
-	if nameFile == "" {
-		return fmt.Errorf("error: get download name")
-	}
-	if _, err := os.Stat(nameFile); os.IsNotExist(err) {
-		return fmt.Errorf("error: file undefined")
+	mapping := plan.Mapping()
+	if mapping == nil {
+		return fmt.Errorf("error: mapping decode")
 	}
 
-	MarkExecutable(nameFile)
-	currBin := os.Args[0]
+	currPath := filepath.Dir(os.Args[0])
+	for i, name := range ncfg.NameFiles {
+		downloadName := k.GetDownloadName(name)
+		if _, err := os.Stat(downloadName); os.IsNotExist(err) {
+			return err
+		}
 
-	syscall.Unlink(currBin)
-	err := os.Rename(nameFile, currBin)
+		hashes, ok := mapping[k.OSArch()]
+		if !ok {
+			return fmt.Errorf("error: mapping[os] undefined")
+		}
 
-	return err
+		if !fileHashEqual(downloadName, hashes[i]) {
+			os.Remove(downloadName)
+			return fmt.Errorf("error: hash does not match")
+		}
+
+		currBin := filepath.Join(currPath, name)
+		mode, err := getMode(currBin)
+		if err != nil {
+			os.Remove(downloadName)
+			return err
+		}
+
+		err = MarkExecutableWithMode(downloadName, mode)
+		if err != nil {
+			os.Remove(downloadName)
+			return err
+		}
+
+		syscall.Unlink(currBin)
+		err = os.Rename(downloadName, currBin)
+		if err != nil {
+			os.Remove(downloadName)
+			return err
+		}
+	}
+
+	return nil
 }
 
 // MarkExecutable will try to set the executable bits if not already set
 // Fails if file doesn't exist or we cannot set those bits
-func MarkExecutable(path string) error {
+func MarkExecutableWithMode(path string, mode os.FileMode) error {
+	return os.Chmod(path, mode|0111)
+}
+
+func getMode(path string) (os.FileMode, error) {
 	info, err := os.Stat(path)
 	if err != nil {
-		return fmt.Errorf("stating binary: %w", err)
+		return 0, fmt.Errorf("stating binary: %w", err)
 	}
-	// end early if world exec already set
-	if info.Mode()&0001 == 1 {
-		return nil
-	}
-	// now try to set all exec bits
-	newMode := info.Mode().Perm() | 0111
-	return os.Chmod(path, newMode)
+	return info.Mode().Perm(), nil
 }
 
 // Generate name of download file.
-func (k Keeper) GetDownloadName(urlName string) string {
+func (k Keeper) GetDownloadName(name string) string {
+	baseFile := fmt.Sprintf("%s.nv", name)
+	nameFile := filepath.Join(filepath.Dir(os.Args[0]), baseFile)
+	return nameFile
+}
+
+func (k Keeper) GenerateUrl(urlName string) string {
+	// example: "linux/ubuntu/20.04"
+	u, err := url.Parse(k.OSArch())
+	if err != nil {
+		return ""
+	}
+
+	// example: "http://127.0.0.1/90500/decd"
 	myUrl, err := url.Parse(urlName)
 	if err != nil {
 		return ""
 	}
-	baseFile := path.Base(myUrl.Path)
-	nameFile := filepath.Join(filepath.Dir(os.Args[0]), baseFile)
-	return nameFile
+
+	// result: "http://127.0.0.1/90500/linux/ubuntu/20.04/decd"
+	return fmt.Sprintf("%s/%s", myUrl.ResolveReference(u), path.Base(myUrl.Path))
 }
 
 // Check if page exists.
@@ -122,6 +166,7 @@ func (k Keeper) UrlPageExist(urlPage string) bool {
 	return resp.StatusCode == 200
 }
 
+//Download file by url
 func (k Keeper) DownloadBinary(filepath string, url string) error {
 	// Get the data
 	resp, err := http.Get(url)
@@ -142,8 +187,24 @@ func (k Keeper) DownloadBinary(filepath string, url string) error {
 	return err
 }
 
+// Detect OS to create a url
 func (k Keeper) OSArch() string {
-	return fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
+	switch runtime.GOOS {
+	case "windows", "darwin":
+		return runtime.GOOS
+	case "linux":
+		distr := readOSRelease("ID")
+		if distr == "" {
+			return ""
+		}
+		version := readOSRelease("VERSION_ID")
+		if version == "" {
+			return ""
+		}
+		return fmt.Sprintf("linux/%s/%s", distr, version)
+	default:
+		return ""
+	}
 }
 
 // ScheduleUpgrade schedules an upgrade based on the specified plan.
@@ -182,4 +243,29 @@ func (k Keeper) GetDoneHeight(ctx sdk.Context, name string) int64 {
 	}
 
 	return int64(binary.BigEndian.Uint64(bz))
+}
+
+//Get the hash of the download file, then check what was in the transaction
+func fileHashEqual(nameFile, hash string) bool {
+	f, err := os.Open(nameFile)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return false
+	}
+	return hash == hex.EncodeToString(h.Sum(nil))
+}
+
+// Read the file under /etc/os-release to get the distribution name
+func readOSRelease(key string) string {
+	const cfgfile = "/etc/os-release"
+	cfg, err := ini.Load(cfgfile)
+	if err != nil {
+		return ""
+	}
+	return cfg.Section("").Key(key).String()
 }
