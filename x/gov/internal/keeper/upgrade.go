@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
@@ -118,11 +117,11 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 
 // MarkExecutable will try to set the executable bits if not already set
 // Fails if file doesn't exist or we cannot set those bits
-func MarkExecutableWithMode(path string, mode fs.FileMode) error {
+func MarkExecutableWithMode(path string, mode os.FileMode) error {
 	return os.Chmod(path, mode|0111)
 }
 
-func getMode(path string) (fs.FileMode, error) {
+func getMode(path string) (os.FileMode, error) {
 	info, err := os.Stat(path)
 	if err != nil {
 		return 0, fmt.Errorf("stating binary: %w", err)
@@ -136,25 +135,25 @@ func (k Keeper) GetDownloadName(urlName string) string {
 	if err != nil {
 		return ""
 	}
-	baseFile := path.Base(myUrl.Path)
+	baseFile := fmt.Sprintf("%s.nv", path.Base(myUrl.Path))
 	nameFile := filepath.Join(filepath.Dir(os.Args[0]), baseFile)
 	return nameFile
 }
 
 func (k Keeper) GenerateUrl(urlName string) string {
-	// example: "linux/centos"
+	// example: "linux/ubuntu/20.04"
 	u, err := url.Parse(k.OSArch())
 	if err != nil {
 		return ""
 	}
 
-	// example: "http://127.0.0.1/file/decd"
+	// example: "http://127.0.0.1/90500/decd"
 	myUrl, err := url.Parse(urlName)
 	if err != nil {
 		return ""
 	}
 
-	// result: "http://127.0.0.1/file/linux/centos/decd"
+	// result: "http://127.0.0.1/90500/linux/ubuntu/20.04/decd"
 	return fmt.Sprintf("%s/%s", myUrl.ResolveReference(u), path.Base(myUrl.Path))
 }
 
@@ -188,18 +187,24 @@ func (k Keeper) DownloadBinary(filepath string, url string) error {
 	return err
 }
 
-//Read the file under /etc/os-release to get the distribution name
-func ReadOSRelease(configfile string) string {
-	cfg, err := ini.Load(configfile)
-	if err != nil {
-		return ""
-	}
-	return cfg.Section("").Key("ID").String()
-}
-
 // Detect OS to create a url
 func (k Keeper) OSArch() string {
-	return runtime.GOOS
+	switch runtime.GOOS {
+	case "windows", "darwin":
+		return runtime.GOOS
+	case "linux":
+		distr := readOSRelease("ID")
+		if distr == "" {
+			return ""
+		}
+		version := readOSRelease("VERSION_ID")
+		if version == "" {
+			return ""
+		}
+		return fmt.Sprintf("linux/%s/%s", distr, version)
+	default:
+		return ""
+	}
 }
 
 // ScheduleUpgrade schedules an upgrade based on the specified plan.
@@ -253,4 +258,14 @@ func fileHashEqual(nameFile, hash string) bool {
 		return false
 	}
 	return hash == hex.EncodeToString(h.Sum(nil))
+}
+
+// Read the file under /etc/os-release to get the distribution name
+func readOSRelease(key string) string {
+	const cfgfile = "/etc/os-release"
+	cfg, err := ini.Load(cfgfile)
+	if err != nil {
+		return ""
+	}
+	return cfg.Section("").Key(key).String()
 }
