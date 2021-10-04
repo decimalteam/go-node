@@ -221,8 +221,8 @@ definitions:
               - go get ./...
               - go test ./...
               - make all
-              - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/debian/10/
-              - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/debian/10/
+              - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/debian/10.10/
+              - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/debian/10.10/
             artifacts:
               - build/**
 
