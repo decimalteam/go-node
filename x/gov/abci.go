@@ -49,13 +49,8 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 				return
 			}
 
-			nameFile := k.GetDownloadName(name)
-			if nameFile == "" {
-				return
-			}
-
 			downloadStat[plan.Name] = true
-			go k.DownloadBinary(nameFile, newUrl)
+			go k.DownloadBinary(k.GetDownloadName(name), newUrl)
 		}
 	}
 
