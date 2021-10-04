@@ -36,24 +36,27 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	_, ok := downloadStat[plan.Name]
 
 	if ctx.BlockHeight() > (plan.Height-plan.ToDownload) && ctx.BlockHeight() < plan.Height && !ok {
-		// example:
-		// from "http://127.0.0.1/file/decd"
-		// to "http://127.0.0.1/file/linux/ubuntu/decd"
-		newUrl := k.GenerateUrl(plan.Name)
-		if newUrl == "" {
-			return
-		}
-		if !k.UrlPageExist(newUrl) {
-			return
-		}
+		for _, name := range ncfg.NameFiles {
+			// example:
+			// from "http://127.0.0.1/95000/decd"
+			// to "http://127.0.0.1/95000/linux/ubuntu/20.04/decd"
+			newUrl := k.GenerateUrl(fmt.Sprintf("%s/%s", plan.Name, name))
+			if newUrl == "" {
+				return
+			}
 
-		nameFile := k.GetDownloadName(plan.Name)
-		if nameFile == "" {
-			return
-		}
+			if !k.UrlPageExist(newUrl) {
+				return
+			}
 
-		downloadStat[plan.Name] = true
-		go k.DownloadBinary(nameFile, newUrl)
+			nameFile := k.GetDownloadName(name)
+			if nameFile == "" {
+				return
+			}
+
+			downloadStat[plan.Name] = true
+			go k.DownloadBinary(nameFile, newUrl)
+		}
 	}
 
 	// To make sure clear upgrade is executed at./de the same block

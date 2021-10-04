@@ -14,6 +14,7 @@ import (
 	"runtime"
 	"syscall"
 
+	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -72,47 +73,49 @@ func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
 
 // ApplyUpgrade will execute the handler associated with the Plan and mark the plan as done.
 func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
-	nameFile := k.GetDownloadName(plan.Name)
-
-	if nameFile == "" {
-		return fmt.Errorf("error: get download name")
-	}
-	if _, err := os.Stat(nameFile); os.IsNotExist(err) {
-		return fmt.Errorf("error: file undefined")
-	}
-
 	mapping := plan.Mapping()
 	if mapping == nil {
 		return fmt.Errorf("error: mapping decode")
 	}
 
-	hashFile, ok := mapping[k.OSArch()]
-	if !ok {
-		return fmt.Errorf("error: mapping[os] undefined")
+	for i, name := range ncfg.NameFiles {
+		downloadName := k.GetDownloadName(name)
+		if _, err := os.Stat(downloadName); os.IsNotExist(err) {
+			return err
+		}
+
+		hashes, ok := mapping[k.OSArch()]
+		if !ok {
+			return fmt.Errorf("error: mapping[os] undefined")
+		}
+
+		if !fileHashEqual(downloadName, hashes[i]) {
+			os.Remove(downloadName)
+			return fmt.Errorf("error: hash does not match")
+		}
+
+		currBin := filepath.Join(filepath.Dir(os.Args[0]), name)
+		mode, err := getMode(currBin)
+		if err != nil {
+			os.Remove(downloadName)
+			return err
+		}
+
+		err = MarkExecutableWithMode(downloadName, mode)
+		if err != nil {
+			os.Remove(downloadName)
+			return err
+		}
+
+		syscall.Unlink(currBin)
+		err = os.Rename(downloadName, currBin)
+		if err != nil {
+			os.Remove(downloadName)
+			return err
+		}
 	}
 
-	if !fileHashEqual(nameFile, hashFile) {
-		os.Remove(nameFile)
-		return fmt.Errorf("error: hash does not match")
-	}
-
-	currBin := os.Args[0]
-	mode, err := getMode(currBin)
-	if err != nil {
-		os.Remove(nameFile)
-		return fmt.Errorf("error: mark executable")
-	}
-
-	err = MarkExecutableWithMode(nameFile, mode)
-	if err != nil {
-		os.Remove(nameFile)
-		return fmt.Errorf("error: mark executable")
-	}
-
-	syscall.Unlink(currBin)
-	err = os.Rename(nameFile, currBin)
-
-	return err
+	return nil
 }
 
 // MarkExecutable will try to set the executable bits if not already set
@@ -130,12 +133,8 @@ func getMode(path string) (os.FileMode, error) {
 }
 
 // Generate name of download file.
-func (k Keeper) GetDownloadName(urlName string) string {
-	myUrl, err := url.Parse(urlName)
-	if err != nil {
-		return ""
-	}
-	baseFile := fmt.Sprintf("%s.nv", path.Base(myUrl.Path))
+func (k Keeper) GetDownloadName(name string) string {
+	baseFile := fmt.Sprintf("%s.nv", name)
 	nameFile := filepath.Join(filepath.Dir(os.Args[0]), baseFile)
 	return nameFile
 }

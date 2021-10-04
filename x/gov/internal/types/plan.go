@@ -43,8 +43,8 @@ func (p Plan) String() string {
   Info: %s`, p.Name, dueUp, p.Info)
 }
 
-func (p Plan) Mapping() map[string]string {
-	var mapping map[string]string
+func (p Plan) Mapping() map[string][]string {
+	var mapping map[string][]string
 	err := json.Unmarshal([]byte(p.Info), &mapping)
 	if err != nil {
 		return nil
