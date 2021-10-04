@@ -221,8 +221,8 @@ definitions:
               - go get ./...
               - go test ./...
               - make all
-              - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/debian/10.10/
-              - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/debian/10.10/
+              - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/debian/10/
+              - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/debian/10/
             artifacts:
               - build/**
 
@@ -277,7 +277,7 @@ pipelines:
                 SERVER: $REPO_HOST
                 LOCAL_PATH: "build/"
                 REMOTE_PATH: $REPO_REMOTE_PATH/$REPO_UPDATE_BLOCK
-                DELETE_FLAG: "true"
+                DELETE_FLAG: "false"
                 DEBUG: "true"
 
     build-and-deploy-binary-files-to-repo-MAINnet:
@@ -292,5 +292,5 @@ pipelines:
                 SERVER: $REPO_HOST
                 LOCAL_PATH: "build/"
                 REMOTE_PATH: $REPO_REMOTE_PATH/$REPO_UPDATE_BLOCK
-                DELETE_FLAG: "true"
+                DELETE_FLAG: "false"
                 DEBUG: "true"
