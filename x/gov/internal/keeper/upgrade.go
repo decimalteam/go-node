@@ -78,6 +78,7 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 		return fmt.Errorf("error: mapping decode")
 	}
 
+	currPath := filepath.Dir(os.Args[0])
 	for i, name := range ncfg.NameFiles {
 		downloadName := k.GetDownloadName(name)
 		if _, err := os.Stat(downloadName); os.IsNotExist(err) {
@@ -94,7 +95,7 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 			return fmt.Errorf("error: hash does not match")
 		}
 
-		currBin := filepath.Join(filepath.Dir(os.Args[0]), name)
+		currBin := filepath.Join(currPath, name)
 		mode, err := getMode(currBin)
 		if err != nil {
 			os.Remove(downloadName)
