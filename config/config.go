@@ -3,13 +3,13 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
-
 	// DecimalVersion is integer version of the Decimal app.
 	DecimalVersion = "1.3.9"
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
@@ -44,23 +44,23 @@ const (
 )
 
 const (
-	SkipPlanName = "skip_plans.json"
-	OneHour      = 660 // blocks
+	OneHour     = 660 // blocks
+	UpdatesName = "updates.json"
 )
 
 var (
-	ConfigPath = fmt.Sprintf("%s/.decimal/daemon/config", os.Getenv("HOME"))
-	NameFiles  = []string{"decd", "deccli"}
+	DataPath  = fmt.Sprintf("%s/.decimal/daemon/data", os.Getenv("HOME"))
+	NameFiles = []string{"decd", "deccli"}
+)
+
+var (
+	ChainID     = "decimal-testnet-06-09-13-00"
+	UpdatesInfo = NewUpdatesInfo(filepath.Join(DataPath, UpdatesName))
 )
 
 var (
 	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("340000000000000000000000000")
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("340000000000000000000000000")
-)
-
-var (
-	ChainID                  = "decimal-testnet-06-09-13-00"
-	WithoutSlashPeriodPrefix = []byte{0x60}
 )
 
 type Config struct {

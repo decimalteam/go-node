@@ -368,8 +368,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	previous := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
 	missed := !signed
 
-	var gracePeriodStart int64
-	k.Get(ctx, ncfg.WithoutSlashPeriodPrefix, &gracePeriodStart)
+	gracePeriodStart := ncfg.UpdatesInfo.LastBlock
 	gracePeriodEnd := gracePeriodStart + (24 * ncfg.OneHour)
 
 	switch {
