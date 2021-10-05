@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -108,6 +109,12 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 			return err
 		}
 
+		ok = runIsSuccess(downloadName)
+		if !ok {
+			os.Remove(downloadName)
+			return fmt.Errorf("error: file not running")
+		}
+
 		syscall.Unlink(currBin)
 		err = os.Rename(downloadName, currBin)
 		if err != nil {
@@ -131,6 +138,12 @@ func getMode(path string) (os.FileMode, error) {
 		return 0, fmt.Errorf("stating binary: %w", err)
 	}
 	return info.Mode().Perm(), nil
+}
+
+func runIsSuccess(nameFile string) bool {
+	cmd := exec.Command(nameFile, "version")
+	err := cmd.Run()
+	return err == nil
 }
 
 // Generate name of download file.
