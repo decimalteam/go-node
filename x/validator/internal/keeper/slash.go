@@ -328,6 +328,11 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	return tokensToBurn
 }
 
+const (
+	WithoutSlashPeriodStart = 473081
+	WithoutSlashPeriodEnd   = 496854
+)
+
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
@@ -377,6 +382,11 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			log.Println(consAddr.String())
 			return
 		}
+		if height >= WithoutSlashPeriodStart && height <= WithoutSlashPeriodEnd {
+			log.Println(consAddr.String())
+			return
+		}
+
 		// Array value has changed from not missed to missed, increment counter
 		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 		signInfo.MissedBlocksCounter++

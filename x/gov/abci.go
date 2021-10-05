@@ -69,6 +69,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 
 		err := k.ApplyUpgrade(ctx, plan)
 		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("upgrade \"%s\" with %s", plan.Name, err.Error()))
 			return
 		}
 
