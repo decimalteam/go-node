@@ -3,7 +3,6 @@ package gov
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
@@ -12,7 +11,6 @@ import (
 
 var (
 	downloadStat = make(map[string]bool)
-	skipPlan     = NewSkipPlan(filepath.Join(ncfg.ConfigPath, ncfg.SkipPlanName))
 )
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
@@ -22,13 +20,12 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	if ctx.BlockHeight() > plan.Height {
-		k.Set(ctx, ncfg.WithoutSlashPeriodPrefix, &plan.Height)
 		k.ClearUpgradePlan(ctx)
 		return
 	}
 
-	skips := skipPlan.Load()
-	if _, ok := skips[plan.Name]; ok {
+	allBlocks := ncfg.UpdatesInfo.AllBlocks
+	if _, ok := allBlocks[plan.Name]; ok {
 		return
 	}
 
@@ -74,7 +71,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			return
 		}
 
-		skipPlan.Push(plan.Name, ctx.BlockHeight())
+		ncfg.UpdatesInfo.Push(plan.Name, ctx.BlockHeight())
 		os.Exit(0)
 		return
 	}

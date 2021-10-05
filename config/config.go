@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -45,19 +46,19 @@ const (
 )
 
 const (
-	SkipPlanName = "skip_plans.json"
-	OneHour      = 660 // blocks
-)
-
-var (
 	// ChainID is the Decimal chain identifier.
-	ChainID                  = "decimal-devnet-06-09-16-00"
-	WithoutSlashPeriodPrefix = []byte{0x60}
+	ChainID = "decimal-devnet-06-09-16-00"
+	OneHour = 660 // blocks
 )
 
 var (
 	ConfigPath = fmt.Sprintf("%s/.decimal/daemon/config", os.Getenv("HOME"))
 	NameFiles  = []string{"decd", "deccli"}
+)
+
+var (
+	UpdatesName = "updates.json"
+	UpdatesInfo = NewUpdatesInfo(filepath.Join(ConfigPath, UpdatesName))
 )
 
 var (

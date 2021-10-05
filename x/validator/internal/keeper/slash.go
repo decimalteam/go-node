@@ -325,11 +325,6 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	return tokensToBurn
 }
 
-const (
-	WithoutSlashPeriod1Start = 1_321_605
-	WithoutSlashPeriod1End   = 1_322_914
-)
-
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
@@ -364,8 +359,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	index := signInfo.IndexOffset % types.SignedBlocksWindow
 	signInfo.IndexOffset++
 
-	var gracePeriodStart int64
-	k.Get(ctx, ncfg.WithoutSlashPeriodPrefix, &gracePeriodStart)
+	gracePeriodStart := ncfg.UpdatesInfo.LastBlock
 	gracePeriodEnd := gracePeriodStart + (24 * ncfg.OneHour)
 
 	// Update signed block bit array & counter

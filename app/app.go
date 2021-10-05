@@ -106,6 +106,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 
+	config.UpdatesInfo.Load()
 	bApp.SetAppVersion(config.DecimalVersion)
 
 	// TODO: Add the keys that module requires
