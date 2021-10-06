@@ -1,12 +1,13 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
@@ -337,6 +338,9 @@ const WithoutSlashPeriod4End = WithoutSlashPeriod4Start + 2600
 const WithoutSlashPeriod5Start = updates.Update10Block
 const WithoutSlashPeriod5End = WithoutSlashPeriod5Start + 2600
 
+const WithoutSlashPeriod6Start = updates.Update12Block
+const WithoutSlashPeriod6End = WithoutSlashPeriod6Start + 15840
+
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
@@ -355,6 +359,9 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		return
 	}
 	if height >= WithoutSlashPeriod5Start && height <= WithoutSlashPeriod5End {
+		return
+	}
+	if height >= WithoutSlashPeriod6Start && height <= WithoutSlashPeriod6End {
 		return
 	}
 

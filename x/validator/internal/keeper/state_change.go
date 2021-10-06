@@ -1,12 +1,13 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"errors"
 	"fmt"
 	"runtime/debug"
 	"sort"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
