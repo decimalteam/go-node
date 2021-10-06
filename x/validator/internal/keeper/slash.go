@@ -329,8 +329,8 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 }
 
 const (
-	WithoutSlashPeriodStart = 473081
-	WithoutSlashPeriodEnd   = 496854
+	WithoutSlashPeriodStart = 489341
+	WithoutSlashPeriodEnd   = 513101
 )
 
 // handle a validator signature, must be called once per validator per block
