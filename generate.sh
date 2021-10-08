@@ -13,7 +13,7 @@ deccli keys add test2
 echo "deccli keys add test2"
 deccli keys add test3
 
-echo "deccli keys add test2"
+echo "deccli keys add test2 "
 deccli keys add test4
 
 echo "echo \"12345678\" | decd add-genesis-account $(deccli keys show test1 -a) 1000000000000000000000000del"
