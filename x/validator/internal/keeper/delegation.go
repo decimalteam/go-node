@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"time"
-
+	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
@@ -535,7 +535,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 	if bondCoin.Denom == k.BondDenom(ctx) {
 		fmt.Println(delegation.GetCoin().Denom)
-		if ctx.BlockHeight() >= 49626 && delegation.GetCoin().Denom != "DEL" {
+		if ctx.BlockHeight() >= 49626 && delegation.GetCoin().Denom != ncfg.SymbolBaseCoin {
 			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
 			validator.Tokens = validator.Tokens.Add(tokenBase)
 			delegation.TokensBase = tokenBase
