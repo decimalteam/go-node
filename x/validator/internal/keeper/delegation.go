@@ -501,6 +501,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 
 		err := k.supplyKeeper.DelegateCoinsFromAccountToModule(ctx, delegation.DelegatorAddress, sendName, sdk.NewCoins(bondCoin))
 		if err != nil {
+			fmt.Println(err)
 			return sdk.Int{}, err
 		}
 	} else {
@@ -554,6 +555,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 		} else {
 			coin, err := k.GetCoin(ctx, bondCoin.Denom)
 			if err != nil {
+				fmt.Println(err)
 				return sdk.Int{}, err
 			}
 			validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
@@ -563,6 +565,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	k.SetDelegation(ctx, delegation)
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
+		fmt.Println(err)
 		return sdk.Int{}, err
 	}
 	k.SetValidatorByPowerIndexWithoutCalc(ctx, validator)
