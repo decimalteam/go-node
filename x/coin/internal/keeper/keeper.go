@@ -59,10 +59,12 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (types.Coin, error) {
 	key := []byte(types.CoinPrefix + strings.ToLower(symbol))
 	value := store.Get(key)
 	if value == nil {
+		fmt.Println("Error value")
 		return coin, fmt.Errorf("coin %s is not found in the key-value store", strings.ToLower(symbol))
 	}
 	err := k.cdc.UnmarshalBinaryLengthPrefixed(value, &coin)
 	if err != nil {
+		fmt.Println("Error unmarshal")
 		return coin, err
 	}
 	return coin, nil
