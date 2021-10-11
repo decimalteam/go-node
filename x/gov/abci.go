@@ -15,6 +15,17 @@ var (
 
 func BeginBlocker(ctx sdk.Context, keeper Keeper) {
 	// pass
+	plan, found := keeper.GetUpgradePlan(ctx)
+	if !found {
+		return
+	}
+
+	if ctx.BlockHeight() > plan.Height {
+		keeper.ClearUpgradePlan(ctx)
+		return
+	}
+
+	go checkUpdate(ctx, keeper, plan)
 }
 
 // EndBlocker called every block, process inflation, update validator set.
@@ -88,21 +99,9 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 		return false
 	})
-
-	checkUpdate(ctx, keeper)
 }
 
-func checkUpdate(ctx sdk.Context, k Keeper) {
-	plan, found := k.GetUpgradePlan(ctx)
-	if !found {
-		return
-	}
-
-	if ctx.BlockHeight() > plan.Height {
-		k.ClearUpgradePlan(ctx)
-		return
-	}
-
+func checkUpdate(ctx sdk.Context, k Keeper, plan types.Plan) {
 	allBlocks := ncfg.UpdatesInfo.AllBlocks
 	if _, ok := allBlocks[plan.Name]; ok {
 		return
