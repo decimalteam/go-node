@@ -14,7 +14,6 @@ var (
 )
 
 func BeginBlocker(ctx sdk.Context, keeper Keeper) {
-	checkUpdate(ctx, keeper)
 	// pass
 }
 
@@ -89,6 +88,8 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 		return false
 	})
+
+	checkUpdate(ctx, keeper)
 }
 
 func checkUpdate(ctx sdk.Context, k Keeper) {
