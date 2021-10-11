@@ -1,10 +1,11 @@
 package nft
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"fmt"
 	"runtime/debug"
 	"strconv"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -30,6 +31,8 @@ func GenericHandler(k keeper.Keeper) sdk.Handler {
 			return HandleMsgMintNFT(ctx, msg, k)
 		case types.MsgBurnNFT:
 			return HandleMsgBurnNFT(ctx, msg, k)
+		case types.MsgUpdateReservNFT:
+			return HandleMsgUpdateReservNFT(ctx,msg,k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unrecognized nft message type: %T", msg))
 		}
@@ -176,6 +179,38 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeBurnNFT,
+			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
+			sdk.NewAttribute(types.AttributeKeyNFTID, msg.ID),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func HandleMsgUpdateReservNFT(ctx sdk.Context, msg types.MsgUpdateReservNFT, k keeper.Keeper,
+) (*sdk.Result, error) {
+	nft, err := k.GetNFT(ctx, msg.Denom, msg.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !nft.GetCreator().Equals(msg.Sender) {
+		return nil, ErrNotAllowedBurn()
+	}
+
+	// remove NFT
+	err = k.UpdateNFTReserv(ctx, msg.Sender , msg.Denom, msg.ID, msg.SubTokenIDs, msg.NewReservNFT)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateReservNFT,
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
 			sdk.NewAttribute(types.AttributeKeyNFTID, msg.ID),
 		),

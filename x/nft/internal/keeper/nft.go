@@ -52,6 +52,13 @@ func (k Keeper) SetSubToken(ctx sdk.Context, denom, id string, subTokenID int64,
 	store.Set(subTokenKey, bz)
 }
 
+func (k Keeper) SetReserveToken(ctx sdk.Context, denom, id string, subTokenID int64, reserve sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	subTokenKey := types.GetSubTokenKey(denom, id, subTokenID)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reserve)
+	store.Set(subTokenKey, bz)
+}
+
 func (k Keeper) RemoveSubToken(ctx sdk.Context, denom, id string, subTokenID int64) {
 	store := ctx.KVStore(k.storeKey)
 	subTokenKey := types.GetSubTokenKey(denom, id, subTokenID)
@@ -232,5 +239,28 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 		return err
 	}
 
+	return nil
+}
+
+func (k Keeper) UpdateNFTReserv(ctx sdk.Context, ownerAddress sdk.AccAddress, denom, id string, subTokenIDs []int64, tokenReserve sdk.Int) error {
+	collection, found := k.GetCollection(ctx, denom)
+	if !found {
+		return types.ErrUnknownCollection(denom)
+	}
+	nft, err := collection.GetNFT(id)
+	if err != nil {
+		return err
+	}
+
+	owner := nft.GetOwners().GetOwner(ownerAddress)
+	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
+	for _, subTokenID := range subTokenIDs {
+		if ownerSubTokenIDs.Find(subTokenID) == -1 {
+			return sdkerrors.Wrap(types.ErrNotAllowedBurn(),
+				fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(),
+					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
+		}
+		k.SetReserveToken(ctx, denom, id, subTokenID, tokenReserve)
+	}
 	return nil
 }

@@ -6,8 +6,8 @@ var (
 	EventTypeEditNFTMetadata = "edit_nft_metadata"
 	EventTypeMintNFT         = "mint_nft"
 	EventTypeBurnNFT         = "burn_nft"
-
-	AttributeValueCategory = ModuleName
+	EventTypeUpdateReservNFT = "update_reserv_nft"
+	AttributeValueCategory   = ModuleName
 
 	AttributeKeySender               = "sender"
 	AttributeKeyRecipient            = "recipient"

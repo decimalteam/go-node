@@ -1,11 +1,12 @@
 package types
 
 import (
+	"regexp"
+	"strings"
+
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"regexp"
-	"strings"
 )
 
 /* --------------------------------------------------------------------------- */
@@ -142,6 +143,67 @@ func (msg MsgBurnNFT) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg MsgBurnNFT) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Sender}
+}
+
+/* --------------------------------------------------------------------------- */
+// MsgUpdateReservNFT
+/* --------------------------------------------------------------------------- */
+type MsgUpdateReservNFT struct {
+	Sender       sdk.AccAddress `json:"sender"`
+	ID           string         `json:"id"`
+	Denom        string         `json:"denom"`
+	SubTokenIDs  []int64        `json:"sub_token_ids"`
+	NewReservNFT sdk.Int        `json:"new_reserv"`
+}
+
+// NewUpdateReservNFT is a constructor function for MsgUpdateReservNFT
+func NewMsgUpdateReservNFT(sender sdk.AccAddress, id string, denom string, subTokenIDs []int64, newReservNFT sdk.Int) MsgUpdateReservNFT {
+	return MsgUpdateReservNFT{
+		Sender:       sender,
+		ID:           strings.TrimSpace(id),
+		Denom:        strings.TrimSpace(denom),
+		SubTokenIDs:  subTokenIDs,
+		NewReservNFT: newReservNFT,
+	}
+}
+
+// Route Implements Msg
+func (msg MsgUpdateReservNFT) Route() string { return RouterKey }
+
+// Type Implements Msg
+func (msg MsgUpdateReservNFT) Type() string { return "burn_nft" }
+
+// ValidateBasic Implements Msg.
+func (msg MsgUpdateReservNFT) ValidateBasic() error {
+	if strings.TrimSpace(msg.Denom) == "" {
+		return ErrInvalidDenom(msg.Denom)
+	}
+	if strings.TrimSpace(msg.ID) == "" {
+		return ErrInvalidNFT(msg.ID)
+	}
+	if msg.Sender.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
+	}
+	if !CheckUnique(msg.SubTokenIDs) {
+		return ErrNotUniqueSubTokenIDs()
+	}
+
+	if msg.NewReservNFT.IsZero() {
+		return ErrInvalidReserve("Reserv can not be equal to zero")
+	}
+
+	return nil
+}
+
+// GetSignBytes Implements Msg.
+func (msg MsgUpdateReservNFT) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners Implements Msg.
+func (msg MsgUpdateReservNFT) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
