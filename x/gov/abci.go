@@ -3,6 +3,7 @@ package gov
 import (
 	"fmt"
 	"os"
+	"time"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
@@ -14,6 +15,8 @@ var (
 )
 
 func BeginBlocker(ctx sdk.Context, keeper Keeper) {
+	time.Sleep(time.Second * 30)
+	checkUpdate(ctx, keeper)
 	// pass
 }
 
@@ -88,8 +91,6 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 		return false
 	})
-
-	checkUpdate(ctx, keeper)
 }
 
 func checkUpdate(ctx sdk.Context, k Keeper) {
