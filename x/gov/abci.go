@@ -3,7 +3,6 @@ package gov
 import (
 	"fmt"
 	"os"
-	"time"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
@@ -144,8 +143,6 @@ func checkUpdate(ctx sdk.Context, k Keeper) {
 		// We have an upgrade handler for this upgrade name, so apply the upgrade
 		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
-
-		time.Sleep(time.Second * 30)
 
 		err := k.ApplyUpgrade(ctx, plan)
 		if err != nil {
