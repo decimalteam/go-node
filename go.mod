@@ -9,7 +9,7 @@ require (
 	github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
 	github.com/cosmos/cosmos-sdk v0.38.4
 	github.com/ethereum/go-ethereum v1.9.11
-	github.com/go-ini/ini v1.63.2 // indirect
+	github.com/go-ini/ini v1.63.2
 	github.com/gorilla/mux v1.7.3
 	github.com/hashicorp/go-getter v1.5.8
 	github.com/onsi/ginkgo v1.10.1 // indirect
