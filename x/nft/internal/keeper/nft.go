@@ -242,7 +242,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 	return nil
 }
 
-func (k Keeper) UpdateNFTReserv(ctx sdk.Context, ownerAddress sdk.AccAddress, denom, id string, subTokenIDs []int64, tokenReserve sdk.Int) error {
+func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, denom, id string, subTokenIDs []int64, tokenReserve sdk.Int) error {
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
 		return types.ErrUnknownCollection(denom)

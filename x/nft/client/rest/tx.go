@@ -44,7 +44,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router,
 	//Update Reserv NFT
 	r.HandleFunc(
 		"/nfts/collection/{denom}/nft/{id}/updateReserv",
-		updateReservNFTHandler(cdc, cliCtx),
+		updateReserveNFTHandler(cdc, cliCtx),
 	).Methods("PUT")
 }
 
@@ -218,7 +218,7 @@ type MsgUpdateReservNFTq struct {
 	NewReservNFT string       `json:"new_reserv"`
 }
 
-func updateReservNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
+func updateReserveNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req MsgUpdateReservNFTq
 		if !rest.ReadRESTReq(w, r, cdc, &req) {
@@ -252,7 +252,7 @@ func updateReservNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.Ha
 			return
 		}
 		// create the message
-		msg := types.NewMsgUpdateReservNFT(fromAddr, req.ID, req.Denom, subTokenIDs, newReserv)
+		msg := types.NewMsgUpdateReserveNFT(fromAddr, req.ID, req.Denom, subTokenIDs, newReserv)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
 }

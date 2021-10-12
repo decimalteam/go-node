@@ -149,33 +149,33 @@ func (msg MsgBurnNFT) GetSigners() []sdk.AccAddress {
 /* --------------------------------------------------------------------------- */
 // MsgUpdateReservNFT
 /* --------------------------------------------------------------------------- */
-type MsgUpdateReservNFT struct {
+type MsgUpdateReserveNFT struct {
 	Sender       sdk.AccAddress `json:"sender"`
 	ID           string         `json:"id"`
 	Denom        string         `json:"denom"`
 	SubTokenIDs  []int64        `json:"sub_token_ids"`
-	NewReservNFT sdk.Int        `json:"new_reserv"`
+	NewReserveNFT sdk.Int        `json:"new_reserve"`
 }
 
 // NewUpdateReservNFT is a constructor function for MsgUpdateReservNFT
-func NewMsgUpdateReservNFT(sender sdk.AccAddress, id string, denom string, subTokenIDs []int64, newReservNFT sdk.Int) MsgUpdateReservNFT {
-	return MsgUpdateReservNFT{
+func NewMsgUpdateReserveNFT(sender sdk.AccAddress, id string, denom string, subTokenIDs []int64, newReserveNFT sdk.Int) MsgUpdateReserveNFT {
+	return MsgUpdateReserveNFT{
 		Sender:       sender,
 		ID:           strings.TrimSpace(id),
 		Denom:        strings.TrimSpace(denom),
 		SubTokenIDs:  subTokenIDs,
-		NewReservNFT: newReservNFT,
+		NewReserveNFT: newReserveNFT,
 	}
 }
 
 // Route Implements Msg
-func (msg MsgUpdateReservNFT) Route() string { return RouterKey }
+func (msg MsgUpdateReserveNFT) Route() string { return RouterKey }
 
 // Type Implements Msg
-func (msg MsgUpdateReservNFT) Type() string { return "burn_nft" }
+func (msg MsgUpdateReserveNFT) Type() string { return "burn_nft" }
 
 // ValidateBasic Implements Msg.
-func (msg MsgUpdateReservNFT) ValidateBasic() error {
+func (msg MsgUpdateReserveNFT) ValidateBasic() error {
 	if strings.TrimSpace(msg.Denom) == "" {
 		return ErrInvalidDenom(msg.Denom)
 	}
@@ -189,7 +189,7 @@ func (msg MsgUpdateReservNFT) ValidateBasic() error {
 		return ErrNotUniqueSubTokenIDs()
 	}
 
-	if msg.NewReservNFT.IsZero() {
+	if msg.NewReserveNFT.IsZero() {
 		return ErrInvalidReserve("Reserv can not be equal to zero")
 	}
 
@@ -197,13 +197,13 @@ func (msg MsgUpdateReservNFT) ValidateBasic() error {
 }
 
 // GetSignBytes Implements Msg.
-func (msg MsgUpdateReservNFT) GetSignBytes() []byte {
+func (msg MsgUpdateReserveNFT) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners Implements Msg.
-func (msg MsgUpdateReservNFT) GetSigners() []sdk.AccAddress {
+func (msg MsgUpdateReserveNFT) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 

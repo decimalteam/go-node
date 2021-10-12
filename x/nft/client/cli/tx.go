@@ -39,7 +39,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 		GetCmdEditNFTMetadata(cdc),
 		GetCmdMintNFT(cdc),
 		GetCmdBurnNFT(cdc),
-		GetCmdUpdateReservNFT(cdc),
+		GetCmdUpdateReserveNFT(cdc),
 	)...)
 
 	return nftTxCmd
@@ -232,7 +232,7 @@ $ %s tx %s burn crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65
 }
 
 // GetCmdBurnNFT is the CLI command for sending a BurnNFT transaction
-func GetCmdUpdateReservNFT(cdc *codec.Codec) *cobra.Command {
+func GetCmdUpdateReserveNFT(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "update-reserv [denom] [tokenID] [new-reserv]",
 		Short: "update reserv NFT",
@@ -241,7 +241,7 @@ func GetCmdUpdateReservNFT(cdc *codec.Codec) *cobra.Command {
 			specific id (SHA-256 hex hash).
 
 Example:
-$ %s tx %s update-reserv crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa 1000 \
+$ %s tx %s update-reserv crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa 1,2 1000 \
 --from mykey
 `,
 				version.ClientName, types.ModuleName,
@@ -269,7 +269,7 @@ $ %s tx %s update-reserv crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd42
 			if !ok {
 				return types.ErrInvalidQuantity(args[2])
 			}
-			msg := types.NewMsgUpdateReservNFT(cliCtx.GetFromAddress(), tokenID, denom, subTokenIDs, newReserve)
+			msg := types.NewMsgUpdateReserveNFT(cliCtx.GetFromAddress(), tokenID, denom, subTokenIDs, newReserve)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

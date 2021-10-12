@@ -53,7 +53,7 @@ var (
 	NewNFTs                 = types.NewNFTs
 	NewMsgMintNFT           = types.NewMsgMintNFT
 	NewMsgBurnNFT           = types.NewMsgBurnNFT
-	NewMsgUpdateReservNFT   = types.NewMsgUpdateReservNFT
+	NewMsgUpdateReserveNFT   = types.NewMsgUpdateReserveNFT
 	NewMsgTranfserNFT       = types.NewMsgTransferNFT
 	NewMsgEditNFTMetadata   = types.NewMsgEditNFTMetadata
 
