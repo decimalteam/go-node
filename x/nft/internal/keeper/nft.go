@@ -52,15 +52,6 @@ func (k Keeper) SetSubToken(ctx sdk.Context, denom, id string, subTokenID int64,
 	store.Set(subTokenKey, bz)
 }
 
-func (k Keeper) SetReserveToken(ctx sdk.Context, denom, id string, subTokenID int64, reserve sdk.Int) []byte {
-	store := ctx.KVStore(k.storeKey)
-	subTokenKey := types.GetSubTokenKey(denom, id, subTokenID)
-	fmt.Println("Key store do : " , store.Get(subTokenKey))
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reserve)
-	store.Set(subTokenKey, bz)
-	fmt.Println("Key store after : " , store.Get(subTokenKey))
-	return subTokenKey
-}
 
 func (k Keeper) RemoveSubToken(ctx sdk.Context, denom, id string, subTokenID int64) {
 	store := ctx.KVStore(k.storeKey)
@@ -198,7 +189,6 @@ func (k Keeper) UpdateNFT(ctx sdk.Context, denom string, nft exported.NFT) (err 
 
 // DeleteNFT deletes an existing NFT from store
 func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64) error {
-	fmt.Println("BUUUUURRRRNNNN2222222")
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
 		return types.ErrUnknownCollection(denom)
@@ -256,28 +246,15 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, d
 		return err
 	}
 	owner := nft.GetOwners().GetOwner(nft.GetCreator())
-	fmt.Println(owner.GetSubTokenIDs())
-	fmt.Println("do:"  , nft.GetReserve())
 	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
 	for _, subTokenID := range subTokenIDs {
 		if ownerSubTokenIDs.Find(subTokenID) == -1 {
-			fmt.Println("error")
 			return sdkerrors.Wrap(types.ErrNotAllowedUpdateReserve(),
 				fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(),
 					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
 		}
-
+		k.SetSubToken(ctx, denom, id  , subTokenID, tokenReserve)
 	}
 
-	nft = nft.SetReserve(tokenReserve)
-	collection, err = collection.UpdateNFT(nft)
-	if err != nil {
-		return err
-	}
-
-	k.SetCollection(ctx, denom, collection)
-
-	fmt.Println("afer:" , nft.GetReserve())
-	fmt.Println(owner.GetSubTokenIDs())
 	return nil
 }

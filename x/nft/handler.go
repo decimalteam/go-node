@@ -161,7 +161,6 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 // HandleMsgBurnNFT handles MsgBurnNFT
 func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 ) (*sdk.Result, error) {
-	fmt.Println("BUUURRRNNNN")
 	nft, err := k.GetNFT(ctx, msg.Denom, msg.ID)
 	if err != nil {
 		return nil, err
