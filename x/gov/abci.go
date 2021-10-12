@@ -11,16 +11,16 @@ import (
 )
 
 var (
-	updateStart = make(chan bool)
-	// blockerStop  = make(chan bool)
+	updateStart  = make(chan bool)
+	blockerStop  = make(chan bool)
 	downloadStat = make(map[string]bool)
 )
 
 func BeginBlocker(ctx sdk.Context, keeper Keeper) {
 	select {
 	case <-updateStart:
-		// blockerStop <- true
-		time.Sleep(10 * time.Second)
+		blockerStop <- true
+		time.Sleep(5 * time.Second)
 	default:
 	}
 }
@@ -154,13 +154,13 @@ func checkUpdate(ctx sdk.Context, k Keeper, plan types.Plan) {
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 
 		updateStart <- true
-		// <-blockerStop
 		err := k.ApplyUpgrade(ctx, plan)
 		if err != nil {
 			ctx.Logger().Error(fmt.Sprintf("upgrade \"%s\" with %s", plan.Name, err.Error()))
 			return
 		}
 
+		<-blockerStop
 		ncfg.UpdatesInfo.Push(plan.Name, ctx.BlockHeight())
 		os.Exit(0)
 		return
