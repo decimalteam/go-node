@@ -3,7 +3,6 @@ package gov
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"sync/atomic"
 	"time"
 
@@ -166,20 +165,14 @@ func checkUpdate(ctx sdk.Context, k Keeper, plan types.Plan) {
 			return
 		}
 
-		ctx.Logger().Info(fmt.Sprintf("[POST] applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
 		ncfg.UpdatesInfo.Push(plan.Name, ctx.BlockHeight())
-
-		pid := os.Getpid()
-		fmt.Println("Plan A")
-
-		pr, _ := os.FindProcess(pid)
+		pr, _ := os.FindProcess(os.Getpid())
 		err = pr.Kill()
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("kill \"%s\" with %s", plan.Name, err.Error()))
+			return
+		}
 
-		fmt.Println("Plan B")
-		err = exec.Command("kill", fmt.Sprintf("%d", pid)).Run()
-
-		fmt.Println("Plan C")
-		os.Exit(0)
 		return
 	}
 }
