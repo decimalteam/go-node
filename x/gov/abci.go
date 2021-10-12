@@ -11,15 +11,15 @@ import (
 )
 
 var (
-	updateStart  = make(chan bool)
-	blockerStop  = make(chan bool)
+	updateStart = make(chan bool)
+	// blockerStop  = make(chan bool)
 	downloadStat = make(map[string]bool)
 )
 
 func BeginBlocker(ctx sdk.Context, keeper Keeper) {
 	select {
 	case <-updateStart:
-		blockerStop <- true
+		// blockerStop <- true
 		time.Sleep(5 * time.Second)
 	default:
 	}
@@ -160,7 +160,7 @@ func checkUpdate(ctx sdk.Context, k Keeper, plan types.Plan) {
 			return
 		}
 
-		<-blockerStop
+		// <-blockerStop
 		ncfg.UpdatesInfo.Push(plan.Name, ctx.BlockHeight())
 		os.Exit(0)
 		return
