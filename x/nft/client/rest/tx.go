@@ -210,17 +210,17 @@ func burnNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFun
 	}
 }
 
-type MsgUpdateReservNFTq struct {
+type MsgUpdateReserveNFTq struct {
 	BaseReq      rest.BaseReq `json:"base_req"`
 	ID           string       `json:"id"`
 	Denom        string       `json:"denom"`
 	SubTokenIDs  []string     `json:"sub_token_ids"`
-	NewReservNFT string       `json:"new_reserv"`
+	NewReserveNFT string       `json:"new_reserve"`
 }
 
 func updateReserveNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req MsgUpdateReservNFTq
+		var req MsgUpdateReserveNFTq
 		if !rest.ReadRESTReq(w, r, cdc, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
@@ -246,13 +246,13 @@ func updateReserveNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.H
 			subTokenIDs[i] = subTokenID
 		}
 
-		newReserv, ok := sdk.NewIntFromString(req.NewReservNFT)
+		newReserve, ok := sdk.NewIntFromString(req.NewReserveNFT)
 		if !ok {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid quantity")
 			return
 		}
 		// create the message
-		msg := types.NewMsgUpdateReserveNFT(fromAddr, req.ID, req.Denom, subTokenIDs, newReserv)
+		msg := types.NewMsgUpdateReserveNFT(fromAddr, req.ID, req.Denom, subTokenIDs, newReserve)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
 }
