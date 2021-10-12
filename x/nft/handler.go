@@ -199,10 +199,10 @@ func HandleMsgUpdateReserveNFT(ctx sdk.Context, msg types.MsgUpdateReserveNFT, k
 	}
 
 	if !nft.GetCreator().Equals(msg.Sender) {
-		return nil, ErrNotAllowedBurn()
+		return nil, ErrNotAllowedUpdateRes()
 	}
 
-	// remove NFT
+	// update reserve nft
 	err = k.UpdateNFTReserve(ctx, msg.Sender , msg.Denom, msg.ID, msg.SubTokenIDs, msg.NewReserveNFT)
 	if err != nil {
 		return nil, err

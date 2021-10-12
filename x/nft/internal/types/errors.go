@@ -113,6 +113,15 @@ func ErrNotAllowedBurn() *sdkerrors.Error {
 	)
 }
 
+func ErrNotAllowedUpdateReserve() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeNotAllowedBurn,
+		"only the creator can update reserve a token",
+	)
+}
+
+
 func ErrNotAllowedMint() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,

@@ -256,7 +256,7 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, d
 	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
 	for _, subTokenID := range subTokenIDs {
 		if ownerSubTokenIDs.Find(subTokenID) == -1 {
-			return sdkerrors.Wrap(types.ErrNotAllowedBurn(),
+			return sdkerrors.Wrap(types.ErrNotAllowedUpdateReserve(),
 				fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(),
 					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
 		}
