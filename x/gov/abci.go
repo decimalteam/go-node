@@ -18,8 +18,7 @@ var (
 )
 
 func BeginBlocker(ctx sdk.Context, keeper Keeper) {
-	val := atomic.LoadInt64(&updateExists)
-	if val != 0 && val < ctx.BlockHeight() {
+	if atomic.LoadInt64(&updateExists) == 1 {
 		atomic.StoreInt64(&updateExists, 0)
 		time.Sleep(10 * time.Second)
 	}
@@ -153,7 +152,7 @@ func checkUpdate(ctx sdk.Context, k Keeper, plan types.Plan) {
 		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 
-		atomic.StoreInt64(&updateExists, ctx.BlockHeight()+2)
+		atomic.StoreInt64(&updateExists, 1)
 		for {
 			if atomic.LoadInt64(&updateExists) == 0 {
 				break
