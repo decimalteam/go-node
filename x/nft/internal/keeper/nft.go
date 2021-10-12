@@ -198,6 +198,7 @@ func (k Keeper) UpdateNFT(ctx sdk.Context, denom string, nft exported.NFT) (err 
 
 // DeleteNFT deletes an existing NFT from store
 func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64) error {
+	fmt.Println("BUUUUURRRRNNNN2222222")
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
 		return types.ErrUnknownCollection(denom)
@@ -254,6 +255,8 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, d
 	if err != nil {
 		return err
 	}
+	owner := nft.GetOwners().GetOwner(nft.GetCreator())
+	fmt.Println(owner.GetSubTokenIDs())
 	//store := ctx.KVStore(k.storeKey)
 	fmt.Println("do:"  , nft.GetReserve())/*
 	owner := nft.GetOwners().GetOwner(ownerAddress)
@@ -278,5 +281,6 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, d
 	k.SetCollection(ctx, denom, collection)
 
 	fmt.Println("afer:" , nft.GetReserve())
+	fmt.Println(owner.GetSubTokenIDs())
 	return nil
 }

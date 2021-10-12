@@ -192,6 +192,7 @@ dx1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p --from mykey
 
 // GetCmdBurnNFT is the CLI command for sending a BurnNFT transaction
 func GetCmdBurnNFT(cdc *codec.Codec) *cobra.Command {
+	fmt.Println("BBBBUUURRRNNN")
 	return &cobra.Command{
 		Use:   "burn [denom] [tokenID] [quantity]",
 		Short: "burn an NFT",
