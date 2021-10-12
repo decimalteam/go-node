@@ -43,7 +43,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router,
 
 	//Update Reserv NFT
 	r.HandleFunc(
-		"/nfts/collection/{denom}/nft/{id}/updateReserv",
+		"/nfts/collection/{denom}/nft/{id}/updateReserve",
 		updateReserveNFTHandler(cdc, cliCtx),
 	).Methods("PUT")
 }

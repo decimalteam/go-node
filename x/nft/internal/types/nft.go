@@ -40,6 +40,11 @@ func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, reser
 }
 
 // GetID returns the ID of the token
+func (bnft BaseNFT) SetReserve(newReserve sdk.Int) exported.NFT  {
+	bnft.Reserve = newReserve
+	return  bnft
+}
+
 func (bnft BaseNFT) GetID() string { return bnft.ID }
 
 // GetOwner returns the account address that owns the NFT

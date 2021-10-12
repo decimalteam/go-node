@@ -13,6 +13,7 @@ type NFT interface {
 	GetTokenURI() string
 	EditMetadata(tokenURI string) NFT
 	GetReserve() sdk.Int
+	SetReserve(newReserve sdk.Int) NFT
 	GetAllowMint() bool
 	String() string
 }
