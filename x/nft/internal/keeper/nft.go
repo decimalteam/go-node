@@ -52,7 +52,7 @@ func (k Keeper) SetSubToken(ctx sdk.Context, denom, id string, subTokenID int64,
 	store.Set(subTokenKey, bz)
 }
 
-/*func (k Keeper) SetReserveToken(ctx sdk.Context, denom, id string, subTokenID int64, reserve sdk.Int) []byte {
+func (k Keeper) SetReserveToken(ctx sdk.Context, denom, id string, subTokenID int64, reserve sdk.Int) []byte {
 	store := ctx.KVStore(k.storeKey)
 	subTokenKey := types.GetSubTokenKey(denom, id, subTokenID)
 	fmt.Println("Key store do : " , store.Get(subTokenKey))
@@ -60,7 +60,7 @@ func (k Keeper) SetSubToken(ctx sdk.Context, denom, id string, subTokenID int64,
 	store.Set(subTokenKey, bz)
 	fmt.Println("Key store after : " , store.Get(subTokenKey))
 	return subTokenKey
-}*/
+}
 
 func (k Keeper) RemoveSubToken(ctx sdk.Context, denom, id string, subTokenID int64) {
 	store := ctx.KVStore(k.storeKey)
@@ -257,9 +257,7 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, d
 	}
 	owner := nft.GetOwners().GetOwner(nft.GetCreator())
 	fmt.Println(owner.GetSubTokenIDs())
-	//store := ctx.KVStore(k.storeKey)
-	fmt.Println("do:"  , nft.GetReserve())/*
-	owner := nft.GetOwners().GetOwner(ownerAddress)
+	fmt.Println("do:"  , nft.GetReserve())
 	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
 	for _, subTokenID := range subTokenIDs {
 		if ownerSubTokenIDs.Find(subTokenID) == -1 {
@@ -268,9 +266,8 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, d
 				fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(),
 					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
 		}
-		a := k.SetReserveToken(ctx, denom, id, subTokenID, tokenReserve)
-		fmt.Println("in func" , store.Get(a))
-	}*/
+
+	}
 
 	nft = nft.SetReserve(tokenReserve)
 	collection, err = collection.UpdateNFT(nft)
