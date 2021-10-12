@@ -166,7 +166,11 @@ func checkUpdate(ctx sdk.Context, k Keeper, plan types.Plan) {
 		}
 
 		ncfg.UpdatesInfo.Push(plan.Name, ctx.BlockHeight())
-		pr, _ := os.FindProcess(os.Getpid())
+		pr, err := os.FindProcess(os.Getpid())
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("find process \"%s\" with %s", plan.Name, err.Error()))
+			return
+		}
 		err = pr.Kill()
 		if err != nil {
 			ctx.Logger().Error(fmt.Sprintf("kill \"%s\" with %s", plan.Name, err.Error()))
