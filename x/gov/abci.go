@@ -3,6 +3,7 @@ package gov
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"sync/atomic"
 	"time"
 
@@ -12,13 +13,14 @@ import (
 )
 
 var (
-	updateExists = uint32(0)
+	updateExists = int64(0)
 	downloadStat = make(map[string]bool)
 )
 
 func BeginBlocker(ctx sdk.Context, keeper Keeper) {
-	if atomic.LoadUint32(&updateExists) == 1 {
-		atomic.StoreUint32(&updateExists, 0)
+	val := atomic.LoadInt64(&updateExists)
+	if val != 0 && val < ctx.BlockHeight() {
+		atomic.StoreInt64(&updateExists, 0)
 		time.Sleep(10 * time.Second)
 	}
 }
@@ -151,20 +153,33 @@ func checkUpdate(ctx sdk.Context, k Keeper, plan types.Plan) {
 		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 
-		atomic.StoreUint32(&updateExists, 1)
+		atomic.StoreInt64(&updateExists, ctx.BlockHeight()+2)
 		for {
-			if atomic.LoadUint32(&updateExists) == 0 {
+			if atomic.LoadInt64(&updateExists) == 0 {
 				break
 			}
 			time.Sleep(100 * time.Millisecond)
 		}
+
 		err := k.ApplyUpgrade(ctx, plan)
 		if err != nil {
 			ctx.Logger().Error(fmt.Sprintf("upgrade \"%s\" with %s", plan.Name, err.Error()))
 			return
 		}
 
+		ctx.Logger().Info(fmt.Sprintf("[POST] applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
 		ncfg.UpdatesInfo.Push(plan.Name, ctx.BlockHeight())
+
+		pid := os.Getpid()
+		fmt.Println("Plan A")
+
+		pr, _ := os.FindProcess(pid)
+		err = pr.Kill()
+
+		fmt.Println("Plan B")
+		err = exec.Command("kill", fmt.Sprintf("%d", pid)).Run()
+
+		fmt.Println("Plan C")
 		os.Exit(0)
 		return
 	}
