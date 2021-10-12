@@ -3,7 +3,6 @@ package gov
 import (
 	"fmt"
 	"os"
-	"time"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
@@ -11,18 +10,11 @@ import (
 )
 
 var (
-	updateStart = make(chan bool)
-	// blockerStop  = make(chan bool)
 	downloadStat = make(map[string]bool)
 )
 
 func BeginBlocker(ctx sdk.Context, keeper Keeper) {
-	select {
-	case <-updateStart:
-		// blockerStop <- true
-		time.Sleep(5 * time.Second)
-	default:
-	}
+
 }
 
 // EndBlocker called every block, process inflation, update validator set.
@@ -153,14 +145,12 @@ func checkUpdate(ctx sdk.Context, k Keeper, plan types.Plan) {
 		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 
-		updateStart <- true
 		err := k.ApplyUpgrade(ctx, plan)
 		if err != nil {
 			ctx.Logger().Error(fmt.Sprintf("upgrade \"%s\" with %s", plan.Name, err.Error()))
 			return
 		}
 
-		// <-blockerStop
 		ncfg.UpdatesInfo.Push(plan.Name, ctx.BlockHeight())
 		os.Exit(0)
 		return
