@@ -374,7 +374,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	missed := !signed
 
 	gracePeriodStart := ncfg.UpdatesInfo.LastBlock
-	gracePeriodEnd := gracePeriodStart + (24 * ncfg.OneHour)
+	gracePeriodEnd := gracePeriodStart + (ncfg.OneHour / 4)
 
 	switch {
 	case !previous && missed:
