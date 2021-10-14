@@ -234,8 +234,8 @@ $ %s tx %s burn crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65
 // GetCmdBurnNFT is the CLI command for sending a BurnNFT transaction
 func GetCmdUpdateReserveNFT(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "update-reserv [denom] [tokenID] [new-reserv]",
-		Short: "update reserv NFT",
+		Use:   "update-reserve [denom] [tokenID] [new-reserve]",
+		Short: "update reserve NFT",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`NFT Reserve Update  an NFT from a given collection that has a 
 			specific id (SHA-256 hex hash).
