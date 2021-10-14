@@ -20,6 +20,10 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	if ctx.BlockHeight() > plan.Height {
+		if ncfg.UpdatesInfo.LastBlock != plan.Height {
+			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
+			os.Exit(2)
+		}
 		k.ClearUpgradePlan(ctx)
 		return
 	}
