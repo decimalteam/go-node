@@ -21,7 +21,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	if ctx.BlockHeight() > plan.Height {
-		if ncfg.UpdatesInfo.LastBlock != plan.Height {
+		if ncfg.DecimalVersion != "1.3.14"{
 			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
 			os.Exit(1)
 		}
