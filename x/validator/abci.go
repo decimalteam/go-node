@@ -15,11 +15,35 @@ import (
 // BeginBlocker check for infraction evidence or downtime of validators
 // on every begin block
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
+	if ctx.BlockHeight() >= updates.Update10Block {
+		k.SetNFTBaseDenom(ctx)
+	}
+
 	// Iterate over all the validators which *should* have signed this block
 	// store whether or not they have actually signed it and slash/unbond any
 	// which have missed too many blocks in a row (downtime slashing)
 	for _, voteInfo := range req.LastCommitInfo.GetVotes() {
 		k.HandleValidatorSignature(ctx, voteInfo.Validator.Address, voteInfo.Validator.Power, voteInfo.SignedLastBlock)
+	}
+
+	if ctx.BlockHeight() == updates.Update6Block {
+		validators := k.GetAllValidatorsByPowerIndex(ctx)
+		last := make(map[string]bool)
+		for _, validator := range validators {
+			last[validator.ValAddress.String()] = true
+			if validator.Online {
+				for _, info := range req.LastCommitInfo.GetVotes() {
+					if validator.ValAddress.Equals(k.GetValidatorAddrByConsAddr(ctx, info.Validator.Address)) {
+						delete(last, k.GetValidatorAddrByConsAddr(ctx, info.Validator.Address).String())
+					}
+				}
+			}
+		}
+
+		for validator := range last {
+			valAddr, _ := sdk.ValAddressFromBech32(validator)
+			k.DeleteLastValidatorPower(ctx, valAddr)
+		}
 	}
 
 	// Iterate through any newly discovered evidence of infraction
@@ -31,6 +55,15 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 			k.HandleDoubleSign(ctx, evidence.Validator.Address, evidence.Height, evidence.Time, evidence.Validator.Power)
 		default:
 			k.Logger(ctx).Error(fmt.Sprintf("ignored unknown evidence type: %s", evidence.Type))
+		}
+	}
+
+	if ctx.BlockHeight() == updates.Update11Block {
+		delegations := k.GetAllDelegations(ctx)
+		for _, delegation := range delegations {
+			if delegation.GetCoin().Denom != k.BondDenom(ctx) {
+				k.AddDelegatedCoin(ctx, delegation.GetCoin())
+			}
 		}
 	}
 }
@@ -49,6 +82,16 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	validatorUpdates, err := k.ApplyAndReturnValidatorSetUpdates(ctx)
 	if err != nil {
 		panic(err)
+	}
+
+	if ctx.BlockHeight() == updates.Update7Block {
+		SyncPools(ctx, k, supplyKeeper)
+		SyncValidators(ctx, k)
+	}
+
+	if ctx.BlockHeight() == updates.Update8Block {
+		SyncPools2(ctx, k, supplyKeeper)
+		SyncUnbondingDelegations(ctx, k)
 	}
 
 	height := ctx.BlockHeight()
@@ -70,18 +113,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 
 		ctxTime := ctx.BlockHeader().Time
 
-		for _, entry := range delegation.Entries {
-			if entry.IsMature(ctxTime) {
-				ctx.EventManager().EmitEvent(
-					sdk.NewEvent(
-						types.EventTypeCompleteUnbonding,
-						sdk.NewAttribute(types.AttributeKeyValidator, dvPair.ValidatorAddress.String()),
-						sdk.NewAttribute(types.AttributeKeyDelegator, dvPair.DelegatorAddress.String()),
-						sdk.NewAttribute(types.AttributeKeyCoin, entry.Balance.String()),
-					),
-				)
-			}
-		}
+		ctx.EventManager().EmitEvents(delegation.GetEvents(ctxTime))
 	}
 
 	rewards := types.GetRewardForBlock(uint64(height))
@@ -158,4 +190,115 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	return validatorUpdates
+}
+
+func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
+	bondedTokens, notBondedTokens := sdk.NewCoins(), sdk.NewCoins()
+
+	validators := k.GetAllValidators(ctx)
+	for _, val := range validators {
+		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
+		for _, delegation := range delegations {
+			if val.Status == Bonded {
+				bondedTokens = bondedTokens.Add(delegation.GetCoin())
+			} else {
+				notBondedTokens = notBondedTokens.Add(delegation.GetCoin())
+			}
+		}
+	}
+
+	bondedPool := supplyKeeper.GetModuleAccount(ctx, BondedPoolName)
+
+	err := bondedPool.SetCoins(bondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, bondedPool)
+
+	notBondedPool := supplyKeeper.GetModuleAccount(ctx, NotBondedPoolName)
+
+	err = notBondedPool.SetCoins(notBondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
+}
+
+func SyncValidators(ctx sdk.Context, k Keeper) {
+	validators := k.GetAllValidators(ctx)
+	for _, validator := range validators {
+		if validator.Status.Equal(Unbonding) {
+			validator.Status = Bonded
+			err := k.SetValidator(ctx, validator)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+}
+
+func SyncPools2(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
+	bondedTokens, notBondedTokens := sdk.NewCoins(), sdk.NewCoins()
+
+	validators := k.GetAllValidators(ctx)
+	for _, val := range validators {
+		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
+		for _, delegation := range delegations {
+			if val.Status == Bonded {
+				bondedTokens = bondedTokens.Add(delegation.GetCoin())
+			} else {
+				notBondedTokens = notBondedTokens.Add(delegation.GetCoin())
+			}
+		}
+	}
+
+	unbondingDelegations := k.GetAllUnbondingDelegations(ctx)
+	for _, delegation := range unbondingDelegations {
+		for _, entry := range delegation.Entries {
+			notBondedTokens = notBondedTokens.Add(entry.GetBalance())
+		}
+	}
+
+	bondedPool := supplyKeeper.GetModuleAccount(ctx, BondedPoolName)
+
+	err := bondedPool.SetCoins(bondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, bondedPool)
+
+	notBondedPool := supplyKeeper.GetModuleAccount(ctx, NotBondedPoolName)
+
+	err = notBondedPool.SetCoins(notBondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
+}
+
+func SyncUnbondingDelegations(ctx sdk.Context, k Keeper) {
+	unbondingDelegations := k.GetAllUnbondingDelegations(ctx)
+	for _, delegation := range unbondingDelegations {
+		err := k.CompleteUnbonding(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+		if err != nil {
+			panic(err)
+		}
+
+		for _, entry := range delegation.Entries {
+			if entry.IsMature(ctx.BlockTime()) {
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EventTypeCompleteUnbonding,
+						sdk.NewAttribute(types.AttributeKeyValidator, delegation.ValidatorAddress.String()),
+						sdk.NewAttribute(types.AttributeKeyDelegator, delegation.DelegatorAddress.String()),
+						sdk.NewAttribute(types.AttributeKeyCoin, entry.GetBalance().String()),
+					),
+				)
+			}
+		}
+	}
 }

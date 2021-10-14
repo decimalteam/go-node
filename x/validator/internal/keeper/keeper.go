@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/multisig"
-	"container/list"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"strings"
@@ -14,6 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -28,15 +28,13 @@ type Keeper struct {
 	AccountKeeper    auth.AccountKeeper
 	supplyKeeper     supply.Keeper
 	multisigKeeper   multisig.Keeper
+	nftKeeper        nft.Keeper
 	hooks            types.ValidatorHooks
 	FeeCollectorName string
-
-	validatorCache     map[string]cachedValidator
-	validatorCacheList *list.List
 }
 
 // NewKeeper creates a validator keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper, accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper, multisigKeeper multisig.Keeper, feeCollectorName string) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace, coinKeeper coin.Keeper, accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper, multisigKeeper multisig.Keeper, nftKeeper nft.Keeper, feeCollectorName string) Keeper {
 
 	// ensure bonded and not bonded module accounts are set
 	if addr := supplyKeeper.GetModuleAddress(types.BondedPoolName); addr == nil {
@@ -48,16 +46,15 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace types.ParamSubspac
 	}
 
 	keeper := Keeper{
-		storeKey:           key,
-		cdc:                cdc,
-		paramSpace:         paramSpace.WithKeyTable(ParamKeyTable()),
-		CoinKeeper:         coinKeeper,
-		AccountKeeper:      accountKeeper,
-		supplyKeeper:       supplyKeeper,
-		multisigKeeper:     multisigKeeper,
-		validatorCache:     make(map[string]cachedValidator, aminoCacheSize),
-		validatorCacheList: list.New(),
-		FeeCollectorName:   feeCollectorName,
+		storeKey:         key,
+		cdc:              cdc,
+		paramSpace:       paramSpace.WithKeyTable(ParamKeyTable()),
+		CoinKeeper:       coinKeeper,
+		AccountKeeper:    accountKeeper,
+		supplyKeeper:     supplyKeeper,
+		multisigKeeper:   multisigKeeper,
+		nftKeeper:        nftKeeper,
+		FeeCollectorName: feeCollectorName,
 	}
 	return keeper
 }
@@ -118,4 +115,8 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (coin.Coin, error) {
 		symbol = strings.ToUpper(symbol)
 	}
 	return k.CoinKeeper.GetCoin(ctx, symbol)
+}
+
+func (k Keeper) SetNFTBaseDenom(ctx sdk.Context) {
+	*k.nftKeeper.BaseDenom = k.BondDenom(ctx)
 }

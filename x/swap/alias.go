@@ -37,4 +37,8 @@ var (
 	ServiceAddress    = types.ServiceAddress
 
 	NewKeeper = keeper.NewKeeper
+
+	NewMsgRedeem = types.NewMsgRedeem
+	NewMsgHTLT   = types.NewMsgHTLT
+	NewMsgRefund = types.NewMsgRefund
 )

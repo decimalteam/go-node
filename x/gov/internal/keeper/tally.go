@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,9 +20,12 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 
 	// fetch all the bonded validators, insert them into currValidators
 	keeper.vk.IterateBondedValidatorsByPower(ctx, func(index int64, validator exported.ValidatorI) (stop bool) {
-		if index == 9 {
-			return true
+		if ctx.BlockHeight() >= updates.Update1Block {
+			if index == 9 {
+				return true
+			}
 		}
+
 		currValidators[validator.GetOperator().String()] = types.NewValidatorGovInfo(
 			validator.GetOperator(),
 			validator.GetBondedTokens(),
@@ -46,7 +50,11 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 	// iterate over the validators again to tally their voting power
 	for _, val := range currValidators {
 		if val.Vote == types.OptionEmpty {
-			val.Vote = types.OptionAbstain
+			if ctx.BlockHeight() >= updates.Update1Block {
+				val.Vote = types.OptionAbstain
+			} else {
+				continue
+			}
 		}
 
 		votingPower := val.BondedTokens
@@ -64,14 +72,29 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 		return false, tallyResults, totalVotingPower
 	}
 
-	// If no one votes (everyone abstains), proposal fails
-	if totalVotingPower.Sub(results[types.OptionAbstain]).Equal(sdk.ZeroDec()) {
-		return false, tallyResults, totalVotingPower
-	}
+	if ctx.BlockHeight() >= updates.Update1Block {
+		// If no one votes (everyone abstains), proposal fails
+		if totalVotingPower.Sub(results[types.OptionAbstain]).Equal(sdk.ZeroDec()) {
+			return false, tallyResults, totalVotingPower
+		}
 
-	if results[types.OptionYes].Quo(totalVotingPower).GT(tallyParams.Quorum) {
+		if results[types.OptionYes].Quo(totalVotingPower).GT(tallyParams.Quorum) {
+			return true, tallyResults, totalVotingPower
+		}
+
+		return false, tallyResults, totalVotingPower
+	} else {
+		// If there is not enough quorum of votes, the proposal fails
+		percentVoting := totalVotingPower.Quo(keeper.vk.TotalBondedTokens(ctx).ToDec())
+		if percentVoting.LT(tallyParams.Quorum) {
+			return false, tallyResults, totalVotingPower
+		}
+
+		// If no one votes (everyone abstains), proposal fails
+		if totalVotingPower.Sub(results[types.OptionAbstain]).Equal(sdk.ZeroDec()) {
+			return false, tallyResults, totalVotingPower
+		}
+
 		return true, tallyResults, totalVotingPower
 	}
-
-	return false, tallyResults, totalVotingPower
 }

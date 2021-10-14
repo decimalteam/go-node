@@ -1,6 +1,6 @@
 PACKAGES=$(shell go list ./... | grep -v '/simulation')
 
-VERSION := '1.1.2'
+VERSION := '1.1.15'
 COMMIT = $(shell git rev-parse --short=8 HEAD)
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=Decimal \
@@ -20,7 +20,7 @@ install: go.sum
 
 go.sum: go.mod
 		@echo "--> Ensure dependencies have not been modified"
-		GO111MODULE=on go mod verify
+		#GO111MODULE=on go mod verify
 
 # Uncomment when you have some tests
 # test:
@@ -30,4 +30,4 @@ go.sum: go.mod
 lint:
 	@echo "--> Running linter"
 	@golangci-lint run
-	@go mod verify
+#	@go mod verify

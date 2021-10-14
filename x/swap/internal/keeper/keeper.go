@@ -73,3 +73,12 @@ func (k Keeper) CheckPoolFunds(ctx sdk.Context, coins sdk.Coins) (bool, error) {
 
 	return true, nil
 }
+
+func (k Keeper) GetLockedFunds(ctx sdk.Context) sdk.Coins {
+	account := k.supplyKeeper.GetModuleAccount(ctx, types.PoolName)
+	if account == nil {
+		panic("account not found")
+	}
+
+	return account.GetCoins()
+}

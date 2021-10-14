@@ -37,10 +37,10 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Check if coin exists
-			existsCoin, _ := cliUtils.ExistsCoin(cliCtx, coin)
-			if !existsCoin {
-				return types.ErrCoinDoesNotExist(coin)
-			}
+			//existsCoin, _ := cliUtils.ExistsCoin(cliCtx, coin)
+			//if !existsCoin {
+			//	return types.ErrCoinDoesNotExist(coin)
+			//}
 
 			// Check if enough balance
 			acc, err := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())

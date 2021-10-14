@@ -4,29 +4,19 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
-
-// Cache the amino decoding of validators, as it can be the case that repeated slashing calls
-// cause many calls to GetValidator, which were shown to throttle the state machine in our
-// simulation. Note this is quite biased though, as the simulator does more slashes than a
-// live chain should, however we require the slashing to be fast as noone pays gas for it.
-type cachedValidator struct {
-	val        types.Validator
-	marshalled string // marshalled amino bytes for the validator object (not operator address)
-}
-
-func newCachedValidator(val types.Validator, marshalled string) cachedValidator {
-	return cachedValidator{
-		val:        val,
-		marshalled: marshalled,
-	}
-}
 
 // get a single validator
 func (k Keeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (types.Validator, error) {
@@ -36,28 +26,10 @@ func (k Keeper) GetValidator(ctx sdk.Context, addr sdk.ValAddress) (types.Valida
 		return types.Validator{}, errors.New("not found validator ")
 	}
 
-	// If these amino encoded bytes are in the cache, return the cached validator
-	strValue := string(value)
-	if val, ok := k.validatorCache[strValue]; ok {
-		valToReturn := val.val
-		// Doesn't mutate the cache's value
-		valToReturn.ValAddress = addr
-		return valToReturn, nil
-	}
-
 	// amino bytes weren't found in cache, so amino unmarshal and add it to the cache
 	validator, err := types.UnmarshalValidator(k.cdc, value)
 	if err != nil {
 		return types.Validator{}, errors.New("error unmarshal validator ")
-	}
-	cachedVal := newCachedValidator(validator, strValue)
-	k.validatorCache[strValue] = newCachedValidator(validator, strValue)
-	k.validatorCacheList.PushBack(cachedVal)
-
-	// if the cache is too big, pop off the last element from it
-	if k.validatorCacheList.Len() > aminoCacheSize {
-		valToRemove := k.validatorCacheList.Remove(k.validatorCacheList.Front()).(cachedValidator)
-		delete(k.validatorCache, valToRemove.marshalled)
 	}
 
 	return validator, nil
@@ -103,6 +75,11 @@ func (k Keeper) GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress
 		return types.Validator{}, errors.New("not found validator ")
 	}
 	return k.GetValidator(ctx, valAddr)
+}
+
+func (k Keeper) GetValidatorAddrByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) sdk.ValAddress {
+	store := ctx.KVStore(k.storeKey)
+	return store.Get(types.GetValidatorByConsAddrKey(consAddr))
 }
 
 // validator index
@@ -174,26 +151,52 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	wg := sync.WaitGroup{}
 	wg.Add(len(delegations))
 	for _, del := range delegations {
-		go func(del types.Delegation) {
+		go func(del exported.DelegationI) {
 			defer wg.Done()
-			if k.CoinKeeper.GetCoinCache(del.Coin.Denom) {
-				coin, err := k.GetCoin(ctx, del.Coin.Denom)
+			if ctx.BlockHeight() >= updates.Update12Block {
+				defer func() {
+					if r := recover(); r != nil {
+						ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
+					}
+				}()
+			}
+			if ctx.BlockHeight() >= updates.Update7Block {
+				if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
+					del = del.SetTokensBase(del.GetCoin().Amount)
+				}
+			}
+			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
+				coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
 				if err != nil {
 					panic(err)
 				}
-				del.TokensBase = formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.Coin.Amount)
+				if ctx.BlockHeight() >= updates.Update11Block {
+					delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
+					totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
+					del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount.ToDec().Quo(delegatedCoin.ToDec()).TruncateInt()))
+				} else {
+					del = del.SetTokensBase(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount))
+				}
 				eventMutex.Lock()
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
 					types.EventTypeCalcStake,
 					sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
-					sdk.NewAttribute(types.AttributeKeyDelegator, del.DelegatorAddress.String()),
-					sdk.NewAttribute(types.AttributeKeyCoin, del.Coin.String()),
-					sdk.NewAttribute(types.AttributeKeyStake, del.TokensBase.String()),
+					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
+					sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
+					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
 				))
 				eventMutex.Unlock()
+				if ctx.BlockHeight() > updates.Update7Block {
+					switch del := del.(type) {
+					case types.Delegation:
+						k.SetDelegation(ctx, del)
+					case types.DelegationNFT:
+						k.SetDelegationNFT(ctx, del)
+					}
+				}
 			}
 			mutex.Lock()
-			total = total.Add(del.TokensBase)
+			total = total.Add(del.GetTokensBase())
 			mutex.Unlock()
 		}(del)
 	}
@@ -496,7 +499,7 @@ func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Vali
 	}
 
 	for _, delegation := range delegations {
-		if delegation.Coin.Amount.LT(stakeValue) || (delAddr.Equals(delegation.DelegatorAddress) && stake.Denom == delegation.Coin.Denom) {
+		if delegation.GetCoin().Amount.LT(stakeValue) || (delAddr.Equals(delegation.GetDelegatorAddr()) && stake.Denom == delegation.GetCoin().Denom) {
 			return true, nil
 		}
 	}
@@ -519,8 +522,8 @@ func (k Keeper) CalculateBipValue(ctx sdk.Context, value sdk.Coin, includeSelf b
 	for _, validator := range validators {
 		stakes := k.GetValidatorDelegations(ctx, validator.ValAddress)
 		for _, stake := range stakes {
-			if stake.Coin.Denom == value.Denom {
-				totalAmount = totalAmount.Add(stake.Coin.Amount)
+			if stake.GetCoin().Denom == value.Denom {
+				totalAmount = totalAmount.Add(stake.GetCoin().Amount)
 			}
 		}
 	}

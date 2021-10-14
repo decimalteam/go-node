@@ -80,6 +80,22 @@ func (k Keeper) GetCoinsIterator(ctx sdk.Context) sdk.Iterator {
 	return sdk.KVStorePrefixIterator(store, []byte(types.CoinPrefix))
 }
 
+func (k Keeper) GetAllCoins(ctx sdk.Context) []types.Coin {
+	var coins []types.Coin
+	iterator := k.GetCoinsIterator(ctx)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var coin types.Coin
+		err := k.cdc.UnmarshalBinaryLengthPrefixed(iterator.Value(), &coin)
+		if err != nil {
+			panic(err)
+		}
+		coins = append(coins, coin)
+	}
+	return coins
+}
+
 // Returns integer abs
 func Abs(x sdk.Int) sdk.Int {
 	if x.IsNegative() {

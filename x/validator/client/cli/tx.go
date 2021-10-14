@@ -2,6 +2,8 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -34,6 +36,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	validatorTxCmd.AddCommand(flags.PostCommands(
 		GetCmdDeclareCandidate(cdc),
 		GetDelegate(cdc),
+		GetDelegateNFT(cdc),
+		GetUnbondNFT(cdc),
 		GetSetOnline(cdc),
 		GetSetOffline(cdc),
 		GetUnbond(cdc),
@@ -243,6 +247,41 @@ func GetDelegate(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+func GetDelegateNFT(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Short: "Delegate NFT",
+		Use:   "delegate-nft [validator_address] [tokenID] [denom] [sub_token_ids] --from name/address",
+		Args:  cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			delAddress := cliCtx.GetFromAddress()
+
+			subTokenIDsStr := strings.Split(args[3], ",")
+			subTokenIDs := make([]int64, len(subTokenIDsStr))
+			for i, d := range subTokenIDsStr {
+				subTokenID, err := strconv.ParseInt(d, 10, 64)
+				if err != nil {
+					return fmt.Errorf("invalid quantity")
+				}
+				subTokenIDs[i] = subTokenID
+			}
+
+			valAddress, err := sdk.ValAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			tokenID := args[1]
+			denom := args[2]
+
+			msg := types.NewMsgDelegateNFT(valAddress, delAddress, tokenID, denom, subTokenIDs)
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
 // GetSetOnline .
 func GetSetOnline(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
@@ -302,6 +341,42 @@ func GetUnbond(cdc *codec.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgUnbond(valAddress, delAddress, coin)
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+// GetUnbondNFT .
+func GetUnbondNFT(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Short: "Unbond-nft delegation",
+		Use:   "unbond-nft [validator-address] [tokenID] [denom] [sub_token_ids] --from name/address",
+		Args:  cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			valAddress, err := sdk.ValAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			delAddress := cliCtx.GetFromAddress()
+
+			subTokenIDsStr := strings.Split(args[3], ",")
+			subTokenIDs := make([]int64, len(subTokenIDsStr))
+			for i, d := range subTokenIDsStr {
+				subTokenID, err := strconv.ParseInt(d, 10, 64)
+				if err != nil {
+					return fmt.Errorf("invalid quantity")
+				}
+				subTokenIDs[i] = subTokenID
+			}
+
+			tokenID := args[1]
+			denom := args[2]
+
+			msg := types.NewMsgUnbondNFT(valAddress, delAddress, tokenID, denom, subTokenIDs)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

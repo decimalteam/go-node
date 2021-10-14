@@ -21,6 +21,7 @@ import (
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
@@ -47,6 +48,8 @@ func NewHandler(k Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgCreateCoin:
 			return handleMsgCreateCoin(ctx, k, msg)
+		case types.MsgUpdateCoin:
+			return handleMsgUpdateCoin(ctx, k, msg)
 		case types.MsgSendCoin:
 			return handleMsgSendCoin(ctx, k, msg)
 		case types.MsgMultiSendCoin:
@@ -91,7 +94,7 @@ func getCreateCoinCommission(symbol string) sdk.Int {
 
 func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*sdk.Result, error) {
 	if msg.InitialReserve.LT(MinCoinReserve(ctx)) {
-		return nil, types.ErrInvalidCoinInitialReserve(ctx)
+		return nil, types.ErrInvalidCoinInitialReserve(MinCoinReserve(ctx).String())
 	}
 
 	var coin = types.Coin{
@@ -108,9 +111,17 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		return nil, types.ErrCoinAlreadyExist(msg.Symbol)
 	}
 
+	if ctx.BlockHeight() >= updates.Update6Block {
+		coin.Creator = msg.Sender
+	}
+
+	if ctx.BlockHeight() >= updates.Update6Block {
+		coin.Identity = msg.Identity
+	}
+
 	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(coin.Symbol)))
 	if err != nil {
-		return nil, types.ErrCalculateCommission(err)
+		return nil, types.ErrCalculateCommission(err.Error())
 	}
 
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)
@@ -162,6 +173,32 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 }
 
 ////////////////////////////////////////////////////////////////
+// Updating coin handler
+////////////////////////////////////////////////////////////////
+
+func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types.MsgUpdateCoin) (*sdk.Result, error) {
+	coin, err := k.GetCoin(ctx, strings.ToLower(msg.Symbol))
+	if err != nil {
+		return nil, types.ErrCoinAlreadyExist(msg.Symbol)
+	}
+
+	if !coin.Creator.Equals(msg.Sender) {
+		return nil, types.ErrUpdateOnlyForCreator()
+	}
+
+	if coin.Volume.GT(msg.LimitVolume) {
+		return nil, types.ErrLimitVolumeBroken(coin.Volume.String(), msg.LimitVolume.String())
+	}
+
+	coin.LimitVolume = msg.LimitVolume
+	coin.Identity = msg.Identity
+
+	k.SetCoin(ctx, coin)
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+////////////////////////////////////////////////////////////////
 // Transfer coins handlers
 ////////////////////////////////////////////////////////////////
 
@@ -186,7 +223,7 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 	for i := range msg.Sends {
 		err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Sends[i].Receiver, sdk.Coins{msg.Sends[i].Coin})
 		if err != nil {
-			return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
+			return nil, types.ErrInternal(err.Error())
 		}
 
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -269,7 +306,7 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 	// Ensure reserve of the coin to sell does not underflow
 	if !coinToSell.IsBase() {
 		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types.MinCoinReserve(ctx)) {
-			return nil, types.ErrTxBreaksMinReserveRule(ctx, amountInBaseCoin.String())
+			return nil, types.ErrTxBreaksMinReserveRule(MinCoinReserve(ctx).String(), amountInBaseCoin.String())
 		}
 	}
 
@@ -367,7 +404,7 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 	// Ensure reserve of the coin to sell does not underflow
 	if !coinToSell.IsBase() {
 		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types.MinCoinReserve(ctx)) {
-			return nil, types.ErrTxBreaksMinReserveRule(ctx, amountInBaseCoin.String())
+			return nil, types.ErrTxBreaksMinReserveRule(MinCoinReserve(ctx).String(), amountInBaseCoin.String())
 		}
 	}
 
@@ -421,29 +458,25 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	// Decode provided check from base58 format to raw bytes
 	checkBytes := base58.Decode(msg.Check)
 	if len(checkBytes) == 0 {
-		msgError := "unable to decode check from base58"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+		return nil, types.ErrUnableDecodeCheck(msg.Check)
 	}
 
 	// Parse provided check from raw bytes to ensure it is valid
 	check, err := types.ParseCheck(checkBytes)
 	if err != nil {
-		msgError := fmt.Sprintf("unable to parse check: %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+		return nil, types.ErrInvalidCheck(err.Error())
 	}
 
 	// Decode provided proof from base64 format to raw bytes
 	proof, err := base64.StdEncoding.DecodeString(msg.Proof)
 	if err != nil {
-		msgError := "unable to decode proof from base64"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidProof, msgError)
+		return nil, types.ErrUnableDecodeProof()
 	}
 
 	// Recover issuer address from check signature
 	issuer, err := check.Sender()
 	if err != nil {
-		errMsg := fmt.Sprintf("unable to recover check issuer address: %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, errMsg)
+		return nil, types.ErrUnableRecoverAddress(err.Error())
 	}
 
 	account := k.AccountKeeper.GetAccount(ctx, issuer)
@@ -482,33 +515,29 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 
 	// Ensure the proper chain ID is specified in the check
 	if check.ChainID != ctx.ChainID() {
-		errMsg := fmt.Sprintf("wanted chain ID %s, but check is issued for chain with ID %s", ctx.ChainID(), check.ChainID)
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidChainID, errMsg)
+		return nil, types.ErrInvalidChainID(ctx.ChainID(), check.ChainID)
 	}
 
 	// Ensure nonce length
 	if len(check.Nonce) > 16 {
-		errMsg := "nonce is too big (should be up to 16 bytes)"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidNonce, errMsg)
+		return nil, types.ErrInvalidNonce()
 	}
 
 	// Check block number
 	if check.DueBlock < uint64(ctx.BlockHeight()) {
-		errMsg := fmt.Sprintf("check was expired at block %d", check.DueBlock)
-		return nil, sdkerrors.New(types.DefaultCodespace, types.CheckExpired, errMsg)
+		return nil, types.ErrCheckExpired(
+			strconv.FormatInt(int64(check.DueBlock), 10))
 	}
 
 	// Ensure check is not redeemed yet
 	if k.IsCheckRedeemed(ctx, check) {
-		errMsg := "check was redeemed already"
-		return nil, sdkerrors.New(types.DefaultCodespace, types.CheckRedeemed, errMsg)
+		return nil, types.ErrCheckRedeemed()
 	}
 
 	// Recover public key from check lock
 	publicKeyA, err := check.LockPubKey()
 	if err != nil {
-		msgError := fmt.Sprintf("unable to recover lock public key from check: %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+		return nil, types.ErrUnableRecoverLockPkey(err.Error())
 	}
 
 	// Prepare bytes used to recover public key from provided proof
@@ -518,8 +547,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		msg.Sender,
 	})
 	if err != nil {
-		msgError := fmt.Sprintf("unable to RLP encode check sender address: %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+		return nil, types.ErrUnableRPLEncodeCheck(err.Error())
 	}
 	hw.Sum(senderAddressHash[:0])
 
@@ -528,8 +556,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 
 	// Compare both public keys to ensure provided proof is correct
 	if !bytes.Equal(publicKeyA, publicKeyB) {
-		msgError := fmt.Sprintf("provided proof is invalid %s", err.Error())
-		return nil, sdkerrors.New(types.DefaultCodespace, types.InvalidProof, msgError)
+		return nil, types.ErrInvalidProof(err.Error())
 	}
 
 	// Set check redeemed
@@ -542,7 +569,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	}
 	err = k.BankKeeper.SendCoins(ctx, issuer, msg.Sender, sdk.Coins{sdk.NewCoin(coin.Symbol, amount)})
 	if err != nil {
-		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
+		return nil, types.ErrInternal(err.Error())
 	}
 
 	// Emit event

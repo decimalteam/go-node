@@ -36,7 +36,7 @@ func DefaultGenesisState() GenesisState {
 func ValidateGenesis(data GenesisState) error {
 	// Check coin title maximum length
 	if len(data.Title) > maxCoinNameBytes {
-		return ErrInvalidCoinTitle()
+		return ErrInvalidCoinTitle(data.Title)
 	}
 	// Check coin symbol for correct regexp
 	if match, _ := regexp.MatchString(allowedCoinSymbols, data.Symbol); !match {

@@ -3,6 +3,7 @@ package types
 import (
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"regexp"
+	"strconv"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,9 +22,10 @@ type MsgCreateCoin struct {
 	InitialVolume        sdk.Int        `json:"initial_volume" yaml:"initial_volume"`
 	InitialReserve       sdk.Int        `json:"initial_reserve" yaml:"initial_reserve"`
 	LimitVolume          sdk.Int        `json:"limit_volume" yaml:"limit_volume"` // How many coins can be issued
+	Identity             string         `json:"identity" yaml:"identity"`
 }
 
-func NewMsgCreateCoin(sender sdk.AccAddress, title string, symbol string, crr uint, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int) MsgCreateCoin {
+func NewMsgCreateCoin(sender sdk.AccAddress, title string, symbol string, crr uint, initVolume sdk.Int, initReserve sdk.Int, limitVolume sdk.Int, identity string) MsgCreateCoin {
 	return MsgCreateCoin{
 		Sender:               sender,
 		Title:                title,
@@ -32,6 +34,7 @@ func NewMsgCreateCoin(sender sdk.AccAddress, title string, symbol string, crr ui
 		InitialVolume:        initVolume,
 		InitialReserve:       initReserve,
 		LimitVolume:          limitVolume,
+		Identity:             identity,
 	}
 }
 
@@ -64,7 +67,7 @@ func (msg MsgCreateCoin) GetSignBytes() []byte {
 func (msg MsgCreateCoin) ValidateBasic() error {
 	// Validate coin title
 	if len(msg.Title) > maxCoinNameBytes {
-		return ErrInvalidCoinTitle()
+		return ErrInvalidCoinTitle(msg.Title)
 	}
 	// Validate coin symbol
 	if match, _ := regexp.MatchString(allowedCoinSymbols, msg.Symbol); !match {
@@ -78,7 +81,7 @@ func (msg MsgCreateCoin) ValidateBasic() error {
 	}
 	// Validate coin CRR
 	if msg.ConstantReserveRatio < 10 || msg.ConstantReserveRatio > 100 {
-		return ErrInvalidCRR()
+		return ErrInvalidCRR(strconv.FormatUint(uint64(msg.ConstantReserveRatio), 10))
 	}
 	// Check coin initial volume to be correct
 	if msg.InitialVolume.LT(minCoinSupply) || msg.InitialVolume.GT(maxCoinSupply) {

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -92,25 +93,30 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
 		for _, del := range delegations {
 			reward := sdk.NewIntFromBigInt(rewards.BigInt())
-			if del.Coin.Denom != k.BondDenom(ctx) {
-				coinDel, err := k.GetCoin(ctx, del.Coin.Denom)
-				if err != nil {
-					return err
+			if del.GetCoin().Denom != k.BondDenom(ctx) {
+				var defAmount sdk.Int
+				if ctx.BlockHeight() >= updates.Update11Block {
+					defAmount = del.GetTokensBase()
+				} else {
+					coinDel, err := k.GetCoin(ctx, del.GetCoin().Denom)
+					if err != nil {
+						return err
+					}
+					defAmount = formulas.CalculateSaleReturn(coinDel.Volume, coinDel.Reserve, coinDel.CRR, del.GetCoin().Amount)
 				}
-				defAmount := formulas.CalculateSaleReturn(coinDel.Volume, coinDel.Reserve, coinDel.CRR, del.Coin.Amount)
 
 				reward = reward.Mul(defAmount).Quo(totalStake)
 				if reward.LT(sdk.NewInt(1)) {
 					continue
 				}
 			} else {
-				reward = reward.Mul(del.Coin.Amount).Quo(totalStake)
+				reward = reward.Mul(del.GetCoin().Amount).Quo(totalStake)
 				if reward.LT(sdk.NewInt(1)) {
 					continue
 				}
 			}
 
-			err := k.CoinKeeper.UpdateBalance(ctx, k.BondDenom(ctx), reward, del.DelegatorAddress)
+			err := k.CoinKeeper.UpdateBalance(ctx, k.BondDenom(ctx), reward, del.GetDelegatorAddr())
 			if err != nil {
 				continue
 			}
@@ -121,7 +127,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 					types.EventTypeProposerReward,
 					sdk.NewAttribute(sdk.AttributeKeyAmount, reward.String()),
 					sdk.NewAttribute(types.AttributeKeyValidator, val.ValAddress.String()),
-					sdk.NewAttribute(types.AttributeKeyDelegator, del.DelegatorAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
 				),
 			)
 		}

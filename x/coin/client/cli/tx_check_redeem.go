@@ -3,8 +3,6 @@ package cli
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
-
 	"golang.org/x/crypto/sha3"
 
 	"github.com/spf13/cobra"
@@ -17,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
@@ -39,23 +36,20 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 			// Decode provided check from base58 format to raw bytes
 			checkBytes := base58.Decode(checkBase58)
 			if len(checkBytes) == 0 {
-				msgError := "unable to decode check from base58"
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+				return types.ErrUnableDecodeCheck(checkBase58)
 			}
 
 			// Parse provided check from raw bytes to ensure it is valid
 			_, err := types.ParseCheck(checkBytes)
 			if err != nil {
-				msgError := fmt.Sprintf("unable to parse check: %s", err.Error())
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidCheck, msgError)
+				return types.ErrInvalidCheck(err.Error())
 			}
 
 			// Prepare private key from passphrase
 			passphraseHash := sha256.Sum256([]byte(passphrase))
 			passphrasePrivKey, err := crypto.ToECDSA(passphraseHash[:])
 			if err != nil {
-				msgError := fmt.Sprintf("unable to create private key from passphrase: %s", err.Error())
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidPassphrase, msgError)
+				return types.ErrInvalidPassphrase(err.Error())
 			}
 
 			// Prepare bytes to sign by private key generated from passphrase
@@ -65,16 +59,14 @@ func GetCmdRedeemCheck(cdc *codec.Codec) *cobra.Command {
 				cliCtx.FromAddress,
 			})
 			if err != nil {
-				msgError := fmt.Sprintf("unable to RLP encode check receiver address: %s", err.Error())
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidPassphrase, msgError)
+				return types.ErrUnableRPLEncodeCheck(err.Error())
 			}
 			hw.Sum(receiverAddressHash[:0])
 
 			// Sign receiver address by private key generated from passphrase
 			signature, err := crypto.Sign(receiverAddressHash[:], passphrasePrivKey)
 			if err != nil {
-				msgError := fmt.Sprintf("unable to sign check receiver address by private key generated from passphrase: %s", err.Error())
-				return sdkerrors.New(types.DefaultCodespace, types.InvalidPassphrase, msgError)
+				return types.ErrUnableSignCheck(err.Error())
 			}
 			proofBase64 := base64.StdEncoding.EncodeToString(signature)
 

@@ -40,6 +40,7 @@ var (
 	NewMsgSellAllCoin   = types.NewMsgSellAllCoin
 	NewMsgMultiSendCoin = types.NewMsgMultiSendCoin
 	NewMsgRedeemCheck   = types.NewMsgRedeemCheck
+	NewMsgUpdateCoin    = types.NewMsgUpdateCoin
 
 	MinCoinReserve = types.MinCoinReserve
 
@@ -63,5 +64,6 @@ type (
 	MsgSellAllCoin   = types.MsgSellAllCoin
 	MsgMultiSendCoin = types.MsgMultiSendCoin
 	MsgRedeemCheck   = types.MsgRedeemCheck
+	MsgUpdateCoin    = types.MsgUpdateCoin
 	Send             = types.Send
 )

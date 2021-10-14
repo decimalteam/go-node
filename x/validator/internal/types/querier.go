@@ -8,9 +8,7 @@ const (
 	QueryValidator                     = "validator"
 	QueryDelegatorDelegations          = "delegatorDelegations"
 	QueryDelegatorUnbondingDelegations = "delegatorUnbondingDelegations"
-	QueryRedelegations                 = "redelegations"
 	QueryValidatorDelegations          = "validatorDelegations"
-	QueryValidatorRedelegations        = "validatorRedelegations"
 	QueryValidatorUnbondingDelegations = "validatorUnbondingDelegations"
 	QueryDelegation                    = "delegation"
 	QueryUnbondingDelegation           = "unbondingDelegation"
@@ -19,9 +17,10 @@ const (
 	QueryPool                          = "pool"
 	QueryParameters                    = "parameters"
 	QueryHistoricalInfo                = "historicalInfo"
+	QueryDelegatedCoins                = "delegatedCoins"
 )
 
-// defines the params for the following queries:
+// QueryDelegatorParams defines the params for the following queries:
 // - 'custom/validator/delegatorDelegations'
 // - 'custom/validator/delegatorUnbondingDelegations'
 // - 'custom/validator/delegatorRedelegations'
@@ -36,7 +35,7 @@ func NewQueryDelegatorParams(delegatorAddr sdk.AccAddress) QueryDelegatorParams 
 	}
 }
 
-// defines the params for the following queries:
+// QueryValidatorParams defines the params for the following queries:
 // - 'custom/validator/validator'
 // - 'custom/validator/validatorDelegations'
 // - 'custom/validator/validatorUnbondingDelegations'
@@ -51,7 +50,7 @@ func NewQueryValidatorParams(validatorAddr sdk.ValAddress) QueryValidatorParams 
 	}
 }
 
-// defines the params for the following queries:
+// QueryBondsParams defines the params for the following queries:
 // - 'custom/validator/delegation'
 // - 'custom/validator/unbondingDelegation'
 // - 'custom/validator/delegatorValidator'
@@ -66,24 +65,6 @@ func NewQueryBondsParams(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddr
 		DelegatorAddr: delegatorAddr,
 		ValidatorAddr: validatorAddr,
 		Coin:          coin,
-	}
-}
-
-// defines the params for the following queries:
-// - 'custom/validator/redelegation'
-type QueryRedelegationParams struct {
-	DelegatorAddr    sdk.AccAddress
-	SrcValidatorAddr sdk.ValAddress
-	DstValidatorAddr sdk.ValAddress
-}
-
-func NewQueryRedelegationParams(delegatorAddr sdk.AccAddress,
-	srcValidatorAddr, dstValidatorAddr sdk.ValAddress) QueryRedelegationParams {
-
-	return QueryRedelegationParams{
-		DelegatorAddr:    delegatorAddr,
-		SrcValidatorAddr: srcValidatorAddr,
-		DstValidatorAddr: dstValidatorAddr,
 	}
 }
 

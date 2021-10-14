@@ -6,6 +6,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bytes"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -20,7 +21,6 @@ import (
 	keep "bitbucket.org/decimalteam/go-node/x/gov/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -67,6 +67,7 @@ func getTestInput(t *testing.T, numGenAccs int, genState types.GenesisState, gen
 	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
 	keyParams := sdk.NewKVStoreKey(params.StoreKey)
 	tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
+	keyNFT := sdk.NewKVStoreKey(nft.StoreKey)
 
 	db := dbm.NewMemDB()
 	ms := store.NewCommitMultiStore(db)
@@ -143,8 +144,10 @@ func getTestInput(t *testing.T, numGenAccs int, genState types.GenesisState, gen
 		Volume: coinConfig.InitialVolumeBaseCoin,
 	})
 
+	nftKeeper := nft.NewKeeper(cdc, keyNFT, supplyKeeper, validator.DefaultBondDenom)
+
 	multisigKeeper := multisig.NewKeeper(cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), accountKeeper, coinKeeper, bk)
-	sk := validator.NewKeeper(cdc, keyValidator, pk.Subspace(validator.DefaultParamSpace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, auth.FeeCollectorName)
+	sk := validator.NewKeeper(cdc, keyValidator, pk.Subspace(validator.DefaultParamSpace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, nftKeeper, auth.FeeCollectorName)
 	sk.SetParams(ctx, validator.DefaultParams())
 
 	keeper := keep.NewKeeper(

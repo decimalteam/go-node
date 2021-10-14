@@ -206,13 +206,13 @@ func TestBuyCoinReserveUnderflow(t *testing.T) {
 	require.NoError(t, err)
 	accountKeeper.SetAccount(ctx, account)
 
-	toBuy := helpers.BipToPip(sdk.NewInt(99000))
-	maxValToSell, ok := sdk.NewIntFromString("36904896537720035723223")
+	toBuy := helpers.BipToPip(sdk.NewInt(99900))
+	maxValToSell, ok := sdk.NewIntFromString("49881276637272773421684")
 	require.True(t, ok)
 
 	buyCoinMsg := NewMsgBuyCoin(keep.Addrs[0], sdk.NewCoin(keeper.GetBaseCoin(ctx), toBuy), sdk.NewCoin(coin.Symbol, maxValToSell))
 	_, err = handleMsgBuyCoin(ctx, keeper, buyCoinMsg)
-	require.EqualError(t, err, types.ErrTxBreaksMinReserveRule(ctx, toBuy.String()).Error())
+	require.EqualError(t, err, types.ErrTxBreaksMinReserveRule(MinCoinReserve(ctx).String(), toBuy.String()).Error())
 }
 
 func TestSellCoinTxBaseToCustom(t *testing.T) {
@@ -299,7 +299,7 @@ func TestCreateCoinTx(t *testing.T) {
 	title := "My Test Coin"
 	symbol := "ABCDEF"
 
-	sellCoinMsg := types.NewMsgCreateCoin(keep.Addrs[0], title, symbol, crr, volume, reserve, volume.MulRaw(10))
+	sellCoinMsg := types.NewMsgCreateCoin(keep.Addrs[0], title, symbol, crr, volume, reserve, volume.MulRaw(10), "")
 	_, err = handleMsgCreateCoin(ctx, keeper, sellCoinMsg)
 	require.NoError(t, err)
 

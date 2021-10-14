@@ -7,10 +7,13 @@ import (
 	"runtime/debug"
 	"sort"
 
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	updts "bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -83,7 +86,9 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 				}
 				delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
 				for _, delegation := range delegations {
-					amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(delegation.Coin)
+					if _, ok := delegation.(types.Delegation); ok {
+						amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(delegation.GetCoin())
+					}
 				}
 			}
 		case validator.IsBonded():
@@ -138,7 +143,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		// fetch the validator
 		validator, err := k.GetValidator(ctx, valAddrBytes)
 		if err != nil {
-			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
+			panic(err)
 		}
 
 		if validator.Jailed {
@@ -165,13 +170,29 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 
 		delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
 		for _, delegation := range delegations {
-			amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(delegation.Coin)
+			if _, ok := delegation.(types.Delegation); ok {
+				amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(delegation.GetCoin())
+			}
 		}
 
 		if validator.Tokens.IsZero() {
-			validator, err = k.bondedToUnbonding(ctx, validator)
-			if err != nil {
-				panic(err)
+			if ctx.BlockHeight() >= updts.Update6Block {
+				if validator.IsBonded() {
+					validator, err = k.bondedToUnbonding(ctx, validator)
+					if err != nil {
+						panic(err)
+					}
+				} else {
+					err = k.RemoveValidator(ctx, validator.ValAddress)
+					if err != nil {
+						panic(err)
+					}
+				}
+			} else {
+				validator, err = k.bondedToUnbonding(ctx, validator)
+				if err != nil {
+					panic(err)
+				}
 			}
 		} else {
 			validator = validator.UpdateStatus(types.Unbonded)
@@ -302,35 +323,37 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator) {
 
 	}
 
-	delegationsInBase := types.Delegations{}
+	var delegationsInBase []exported.DelegationI
 
 	for _, delegation := range delegations {
-		if _, ok := k.CoinKeeper.GetCoinsCache()[delegation.Coin.Denom]; ok {
-			delegation = k.CalcTokensBase(ctx, delegation)
+		if ctx.BlockHeight() < updts.Update11Block {
+			if _, ok := k.CoinKeeper.GetCoinsCache()[delegation.GetCoin().Denom]; ok {
+				delegation = delegation.SetTokensBase(k.CalcTokensBase(ctx, delegation))
+			}
 		}
 		delegationsInBase = append(delegationsInBase, delegation)
 	}
 
 	sort.SliceStable(delegations, func(i, j int) bool {
-		amountI := delegations[i].TokensBase
-		amountJ := delegations[j].TokensBase
+		amountI := delegations[i].GetTokensBase()
+		amountJ := delegations[j].GetTokensBase()
 		return amountI.GT(amountJ)
 	})
 
 	for i := int(k.MaxDelegations(ctx)); i < len(delegations); i++ {
 		switch validator.Status {
 		case types.Bonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegations[i].DelegatorAddress, sdk.NewCoins(delegations[i].Coin))
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
 			if err != nil {
 				panic(err)
 			}
 		case types.Unbonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegations[i].DelegatorAddress, sdk.NewCoins(delegations[i].Coin))
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
 			if err != nil {
 				panic(err)
 			}
 		}
-		err := k.unbond(ctx, delegations[i].DelegatorAddress, delegations[i].ValidatorAddress, delegations[i].Coin)
+		err := k.unbond(ctx, delegations[i].GetDelegatorAddr(), delegations[i].GetValidatorAddr(), delegations[i].GetCoin())
 		if err != nil {
 			panic(err)
 		}

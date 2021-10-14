@@ -6,6 +6,7 @@ import (
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/swap"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
@@ -80,6 +81,7 @@ type SimApp struct {
 	ParamsKeeper    params.Keeper
 	CoinKeeper      coin.Keeper
 	MultisigKeeper  multisig.Keeper
+	NFTKeeper       nft.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -118,6 +120,7 @@ func NewSimApp(
 		coin.StoreKey,
 		multisig.StoreKey,
 		validator.StoreKey,
+		nft.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
@@ -154,9 +157,11 @@ func NewSimApp(
 		app.cdc, keys[coin.StoreKey], app.subspaces[coin.ModuleName], app.AccountKeeper, app.BankKeeper, config.GetDefaultConfig(config.ChainID),
 	)
 	app.ValidatorKeeper = validator.NewKeeper(
-		app.cdc, keys[validator.StoreKey], app.subspaces[validator.ModuleName], app.CoinKeeper, app.AccountKeeper, app.SupplyKeeper, app.MultisigKeeper, auth.FeeCollectorName,
+		app.cdc, keys[validator.StoreKey], app.subspaces[validator.ModuleName], app.CoinKeeper, app.AccountKeeper, app.SupplyKeeper, app.MultisigKeeper, app.NFTKeeper,
+		auth.FeeCollectorName,
 	)
-
+	app.NFTKeeper = nft.NewKeeper(
+		app.cdc, keys[nft.StoreKey], app.SupplyKeeper, validator.DefaultBondDenom)
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(
@@ -166,6 +171,7 @@ func NewSimApp(
 		supply.NewAppModule(app.SupplyKeeper, app.AccountKeeper),
 		gov.NewAppModule(app.GovKeeper, app.AccountKeeper, app.SupplyKeeper),
 		validator.NewAppModule(app.ValidatorKeeper, app.SupplyKeeper, app.CoinKeeper),
+		nft.NewAppModule(app.NFTKeeper, app.AccountKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that

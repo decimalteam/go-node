@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -14,7 +15,7 @@ import (
 // setup helper function - creates two validators
 func setupHelper(t *testing.T, power int64) (sdk.Context, Keeper, types.Params) {
 	// setup
-	ctx, _, keeper, _, _ := CreateTestInput(t, false, power)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, power)
 
 	params := keeper.GetParams(ctx)
 	numVals := int64(3)
@@ -68,6 +69,59 @@ func TestRevocation(t *testing.T) {
 	require.False(t, val.IsJailed())
 }
 
+func TestSlashBondedDelegationNFT(t *testing.T) {
+	ctx, _, keeper, _, _, nftKeeper := CreateTestInput(t, false, 1000)
+
+	valAddr := addrVals[0]
+	delAddr := sdk.AccAddress(addrVals[0])
+	amt := types.TokensFromConsensusPower(100)
+
+	// NFT params
+	const denom = "denom1"
+	const tokenID = "token1"
+	quantity := sdk.NewInt(5)
+	reserve := helpers.BipToPip(sdk.NewInt(100))
+
+	// create nft
+	_, err := nftKeeper.MintNFT(ctx,
+		denom,
+		tokenID,
+		reserve,
+		quantity,
+		delAddr,
+		delAddr,
+		"",
+		true,
+	)
+	require.NoError(t, err)
+
+	bondedCoins := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), amt))
+
+	bondedPool := keeper.GetBondedPool(ctx)
+	err = bondedPool.SetCoins(bondedCoins)
+	require.NoError(t, err)
+	keeper.supplyKeeper.SetModuleAccount(ctx, bondedPool)
+
+	// set validator
+	validator := types.NewValidator(addrVals[0], PKs[0], sdk.ZeroDec(), delAddr, types.Description{})
+	validator.Online = true
+	del := types.NewDelegation(delAddr, validator.ValAddress, sdk.NewCoin(keeper.BondDenom(ctx), amt))
+	keeper.SetDelegation(ctx, del)
+	validator = TestingUpdateValidator(keeper, ctx, validator, true)
+	keeper.SetValidatorByConsAddr(ctx, validator)
+
+	// set nft delegation
+	delegationNFT := types.NewDelegationNFT(delAddr, valAddr, tokenID, denom, []int64{1, 2, 3},
+		sdk.NewCoin(keeper.BondDenom(ctx), quantity.Mul(reserve)))
+	keeper.SetDelegationNFT(ctx, delegationNFT)
+
+	keeper.Slash(ctx, validator.GetConsAddr(), ctx.BlockHeight(), types.SlashFractionDowntime)
+
+	delegationNFT, ok := keeper.GetDelegationNFT(ctx, valAddr, delAddr, tokenID, denom)
+	require.True(t, ok)
+	require.Equal(t, []int64{1, 2, 3}, delegationNFT.SubTokenIDs)
+}
+
 // tests slashUnbondingDelegation
 func TestSlashUnbondingDelegation(t *testing.T) {
 	ctx, keeper, _ := setupHelper(t, 10)
@@ -75,8 +129,8 @@ func TestSlashUnbondingDelegation(t *testing.T) {
 
 	// set an unbonding delegation with expiration timestamp (beyond which the
 	// unbonding delegation shouldn't be slashed)
-	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], 0,
-		time.Unix(5, 0), sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(10)))
+	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], types.NewUnbondingDelegationEntry(0,
+		time.Unix(5, 0), sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(10))))
 
 	keeper.SetUnbondingDelegation(ctx, ubd)
 
@@ -101,10 +155,10 @@ func TestSlashUnbondingDelegation(t *testing.T) {
 	require.Len(t, ubd.Entries, 1)
 
 	// initial balance unchanged
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(10)), ubd.Entries[0].InitialBalance)
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(10)), ubd.Entries[0].GetInitialBalance())
 
 	// balance decreased
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(5)), ubd.Entries[0].Balance)
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(5)), ubd.Entries[0].GetBalance())
 	newUnbondedPool := keeper.GetNotBondedPool(ctx)
 	diffTokens := oldUnbondedPool.GetCoins().Sub(newUnbondedPool.GetCoins()).AmountOf(keeper.BondDenom(ctx))
 	require.Equal(t, int64(5), diffTokens.Int64())
@@ -191,20 +245,19 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	// set an unbonding delegation with expiration timestamp beyond which the
 	// unbonding delegation shouldn't be slashed
 	ubdTokens := sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(4))
-	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], 11,
-		time.Unix(0, 0), ubdTokens)
+	ubd := types.NewUnbondingDelegation(addrDels[0], addrVals[0], types.NewUnbondingDelegationEntry(11,
+		time.Unix(0, 0), ubdTokens))
 	keeper.SetUnbondingDelegation(ctx, ubd)
 
 	// slash validator for the first time
-	ctx = ctx.WithBlockHeight(12)
+	ctx = ctx.WithBlockHeight(4)
 	oldBondedPool := keeper.GetBondedPool(ctx)
 	validator, err := keeper.GetValidatorByConsAddr(ctx, consAddr)
 	require.NoError(t, err)
-	keeper.Slash(ctx, consAddr, 10, fraction)
+	keeper.Slash(ctx, consAddr, 3, fraction)
 
 	// end block
 	updates, err := keeper.ApplyAndReturnValidatorSetUpdates(ctx)
-	log.Println(updates)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(updates))
 
@@ -213,7 +266,7 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
 	// balance decreased
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(2)), ubd.Entries[0].Balance)
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(2)), ubd.Entries[0].GetBalance())
 	// read updated pool
 	newBondedPool := keeper.GetBondedPool(ctx)
 	// bonded tokens burned
@@ -229,13 +282,13 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	require.Equal(t, int64(5), validator.ConsensusPower())
 
 	// slash validator again
-	ctx = ctx.WithBlockHeight(13)
-	keeper.Slash(ctx, consAddr, 9, fraction)
+	ctx = ctx.WithBlockHeight(6)
+	keeper.Slash(ctx, consAddr, 5, fraction)
 	ubd, found = keeper.GetUnbondingDelegation(ctx, addrDels[0], addrVals[0])
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
 	// balance decreased again
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt()), ubd.Entries[0].Balance)
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt()), ubd.Entries[0].GetBalance())
 	// read updated pool
 	newBondedPool = keeper.GetBondedPool(ctx)
 	// bonded tokens burned again
@@ -251,13 +304,13 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	// all originally bonded stake has been slashed, so this will have no effect
 	// on the unbonding delegation, but it will slash stake bonded since the infraction
 	// this may not be the desirable behaviour, ref https://github.com/cosmos/cosmos-sdk/issues/1440
-	ctx = ctx.WithBlockHeight(13)
-	keeper.Slash(ctx, consAddr, 9, fraction)
+	ctx = ctx.WithBlockHeight(6)
+	keeper.Slash(ctx, consAddr, 5, fraction)
 	ubd, found = keeper.GetUnbondingDelegation(ctx, addrDels[0], addrVals[0])
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
 	// balance unchanged
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(0)), ubd.Entries[0].Balance)
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(0)), ubd.Entries[0].GetBalance())
 	// read updated pool
 	newBondedPool = keeper.GetBondedPool(ctx)
 	// bonded tokens burned again
@@ -273,13 +326,13 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	// all originally bonded stake has been slashed, so this will have no effect
 	// on the unbonding delegation, but it will slash stake bonded since the infraction
 	// this may not be the desirable behaviour, ref https://github.com/cosmos/cosmos-sdk/issues/1440
-	ctx = ctx.WithBlockHeight(13)
-	keeper.Slash(ctx, consAddr, 9, fraction)
+	ctx = ctx.WithBlockHeight(6)
+	keeper.Slash(ctx, consAddr, 5, fraction)
 	ubd, found = keeper.GetUnbondingDelegation(ctx, addrDels[0], addrVals[0])
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
 	// balance unchanged
-	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(0)), ubd.Entries[0].Balance)
+	require.Equal(t, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(0)), ubd.Entries[0].GetBalance())
 	// read updated pool
 	newBondedPool = keeper.GetBondedPool(ctx)
 	// just 1 bonded token burned again since that's all the validator now has

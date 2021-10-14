@@ -13,6 +13,8 @@ const (
 )
 
 const ServiceAddress = "dx1p844kydt9eljvuef4nk52dm6lcgj5c42q4zmvd"
+const ChainActivatorAddress = "dx16aeq4ypsx5ar4076v507ch5z8ryd6usx32tnru"
+const CheckingAddress = "d2d9207a88982ecffec424709ff2b02f6c95a9ba"
 
 var ServiceAccAddress, _ = sdk.AccAddressFromBech32("dx1jqx7chw0faswfmw78cdejzzery5akzmk5zc5x5")
 

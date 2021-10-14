@@ -7,6 +7,7 @@ import (
 // RegisterCodec registers concrete types on codec
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgCreateCoin{}, "coin/create_coin", nil)
+	cdc.RegisterConcrete(MsgUpdateCoin{}, "coin/update_coin", nil)
 	cdc.RegisterConcrete(MsgBuyCoin{}, "coin/buy_coin", nil)
 	cdc.RegisterConcrete(MsgSellCoin{}, "coin/sell_coin", nil)
 	cdc.RegisterConcrete(MsgSellAllCoin{}, "coin/sell_all_coin", nil)
