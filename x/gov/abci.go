@@ -2,7 +2,12 @@ package gov
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/updates"
@@ -21,7 +26,8 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	if ctx.BlockHeight() > plan.Height {
-		if ncfg.DecimalVersion != ncfg.DecimalNextVersion {
+		nextVersion := loadVersion(plan.Name)
+		if ncfg.DecimalVersion != nextVersion {
 			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
 			os.Exit(1)
 		}
@@ -154,4 +160,33 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 		return false
 	})
+}
+
+func loadVersion(urlPath string) string {
+	const fileVersion = "version.txt"
+
+	// example: "version.txt"
+	u, err := url.Parse(fileVersion)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// example: "https://testnet-repo.decimalchain.com/95000"
+	base, err := u.Parse(urlPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// result: "https://testnet-repo.decimalchain.com/version.txt"
+	resp, err := http.Get(base.ResolveReference(u).String())
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return strings.TrimSpace(string(body))
 }
