@@ -1,12 +1,13 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
 	"encoding/hex"
-	ethcmn "github.com/ethereum/go-ethereum/common"
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	ethcmn "github.com/ethereum/go-ethereum/common"
+	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

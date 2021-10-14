@@ -2,8 +2,10 @@ package types
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"testing"
+
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/stretchr/testify/require"
 )
@@ -23,19 +25,19 @@ func TestNewMsgTransferNFT(t *testing.T) {
 }
 
 func TestMsgTransferNFTValidateBasicMethod(t *testing.T) {
-	newMsgTransferNFT := NewMsgTransferNFT(Addrs[0], Addrs[1], "", ID1, []int64{1, 2})
+	newMsgTransferNFT := NewMsgTransferNFT(Addrs[0], Addrs[1], "", ID1, []int64{})
 	err := newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, "", []int64{1, 2})
+	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, "", []int64{})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgTransferNFT = NewMsgTransferNFT(nil, Addrs[1], Denom1, "", []int64{1, 2})
+	newMsgTransferNFT = NewMsgTransferNFT(nil, Addrs[1], Denom1, "", []int64{})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], nil, Denom1, "", []int64{1, 2})
+	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], nil, Denom1, "", []int64{})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
@@ -43,7 +45,7 @@ func TestMsgTransferNFTValidateBasicMethod(t *testing.T) {
 	err = newMsgTransferNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, ID1, []int64{1, 2})
+	newMsgTransferNFT = NewMsgTransferNFT(Addrs[0], Addrs[1], Denom1, ID1, []int64{})
 	err = newMsgTransferNFT.ValidateBasic()
 	require.NoError(t, err)
 }
@@ -128,33 +130,33 @@ func TestNewMsgMintNFT(t *testing.T) {
 }
 
 func TestMsgMsgMintNFTValidateBasicMethod(t *testing.T) {
-	newMsgMintNFT := NewMsgMintNFT(nil, Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), minReserve, true)
+	newMsgMintNFT := NewMsgMintNFT(nil, Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), helpers.BipToPip(sdk.NewInt(100)), true)
 	err := newMsgMintNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgMintNFT = NewMsgMintNFT(Addrs[0], nil, ID1, Denom1, TokenURI1, sdk.NewInt(1), minReserve, true)
+	newMsgMintNFT = NewMsgMintNFT(Addrs[0], nil, ID1, Denom1, TokenURI1, sdk.NewInt(1), helpers.BipToPip(sdk.NewInt(100)), true)
 	err = newMsgMintNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], "", Denom1, TokenURI1, sdk.NewInt(1), minReserve, true)
+	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], "", Denom1, TokenURI1, sdk.NewInt(1), helpers.BipToPip(sdk.NewInt(100)), true)
 	err = newMsgMintNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], ID1, "", TokenURI1, sdk.NewInt(1), minReserve, true)
+	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], ID1, "", TokenURI1, sdk.NewInt(1), helpers.BipToPip(sdk.NewInt(100)), true)
 	err = newMsgMintNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), minReserve.Sub(sdk.NewInt(1)), true)
+	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), sdk.NewInt(99), true)
 	err = newMsgMintNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), minReserve, true)
+	newMsgMintNFT = NewMsgMintNFT(Addrs[0], Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), helpers.BipToPip(sdk.NewInt(100)), true)
 	err = newMsgMintNFT.ValidateBasic()
 	require.NoError(t, err)
 }
 
 func TestMsgMintNFTGetSignBytesMethod(t *testing.T) {
-	newMsgMintNFT := NewMsgMintNFT(Addrs[0], Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), minReserve, true)
+	newMsgMintNFT := NewMsgMintNFT(Addrs[0], Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), sdk.NewInt(100), true)
 	sortedBytes := newMsgMintNFT.GetSignBytes()
 	require.Equal(t, string(sortedBytes), fmt.Sprintf(`{"type":"nft/msg_mint","value":{"allow_mint":%t,"denom":"%s","id":"%s","quantity":"%v","recipient":"%s","reserve":"%v","sender":"%s","token_uri":"%s"}}`,
 		newMsgMintNFT.AllowMint, Denom1, ID1, newMsgMintNFT.Quantity, Addrs[1].String(), newMsgMintNFT.Reserve, Addrs[0].String(), TokenURI1,
@@ -162,7 +164,7 @@ func TestMsgMintNFTGetSignBytesMethod(t *testing.T) {
 }
 
 func TestMsgMintNFTGetSignersMethod(t *testing.T) {
-	newMsgMintNFT := NewMsgMintNFT(Addrs[0], Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), minReserve, true)
+	newMsgMintNFT := NewMsgMintNFT(Addrs[0], Addrs[1], ID1, Denom1, TokenURI1, sdk.NewInt(1), sdk.NewInt(100), true)
 	signers := newMsgMintNFT.GetSigners()
 	require.Equal(t, 1, len(signers))
 	require.Equal(t, Addrs[0].String(), signers[0].String())
@@ -193,7 +195,7 @@ func TestMsgMsgBurnNFTValidateBasicMethod(t *testing.T) {
 	err = newMsgBurnNFT.ValidateBasic()
 	require.Error(t, err)
 
-	newMsgBurnNFT = NewMsgBurnNFT(Addrs[0], ID1, Denom1, []int64{1, 2, 3})
+	newMsgBurnNFT = NewMsgBurnNFT(Addrs[0], ID1, Denom1, []int64{})
 	err = newMsgBurnNFT.ValidateBasic()
 	require.NoError(t, err)
 }

@@ -1,9 +1,12 @@
 package utils
 
 import (
+	"fmt"
+
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/swap"
-	"fmt"
+
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -13,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"strings"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/helpers"

@@ -1,10 +1,12 @@
 package keeper
 
 import (
+	"fmt"
+
 	"bitbucket.org/decimalteam/go-node/utils/updates"
+
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -29,6 +31,8 @@ type Keeper struct {
 
 	// Proposal router
 	router types.Router
+
+	skipUpgradeHeights map[int64]bool
 }
 
 // NewKeeper returns a governance keeper. It handles:
@@ -224,5 +228,24 @@ func (keeper Keeper) CheckValidator(ctx sdk.Context, address sdk.ValAddress) err
 		return fmt.Errorf("voter doesn't have enough power voting")
 	}
 
+	return nil
+}
+
+func (k Keeper) Get(ctx sdk.Context, key []byte, value *int64) error {
+	store := ctx.KVStore(k.storeKey)
+	err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(key), value)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k Keeper) Set(ctx sdk.Context, key []byte, value *int64) error {
+	store := ctx.KVStore(k.storeKey)
+	bz, err := k.cdc.MarshalBinaryLengthPrefixed(value)
+	if err != nil {
+		return err
+	}
+	store.Set(key, bz)
 	return nil
 }

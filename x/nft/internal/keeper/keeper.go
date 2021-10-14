@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/tendermint/tendermint/libs/log"

@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"math/big"
+	"testing"
+
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
@@ -18,8 +21,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	types3 "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
-	"math/big"
-	"testing"
 )
 
 var PowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))

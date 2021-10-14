@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"encoding/binary"
 	"fmt"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"

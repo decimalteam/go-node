@@ -1,11 +1,12 @@
 package keeper
 
 import (
+	"testing"
+
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestMintNFT(t *testing.T) {

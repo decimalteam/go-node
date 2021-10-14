@@ -1,14 +1,15 @@
 package keeper
 
 import (
+	"strconv"
+	"strings"
+
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"strconv"
-	"strings"
 )
 
 // NewQuerier creates a querier for staking REST endpoints
@@ -43,6 +44,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryParameters(ctx, k)
 		case types.QueryDelegatedCoins:
 			return queryDelegatedCoins(ctx, k)
+		case types.QueryDelegatedCoin:
+			return queryDelegatedCoin(ctx, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown validator query endpoint")
 		}
@@ -422,6 +425,17 @@ func queryParameters(ctx sdk.Context, k Keeper) ([]byte, error) {
 
 func queryDelegatedCoins(ctx sdk.Context, k Keeper) ([]byte, error) {
 	delegatedCoins := k.GetAllDelegatedCoins(ctx)
+
+	res, err := codec.MarshalJSONIndent(types.ModuleCdc, delegatedCoins)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return res, nil
+}
+
+func queryDelegatedCoin(ctx sdk.Context, k Keeper) ([]byte, error) {
+	delegatedCoins := k.GetDelegatedCoin(ctx, "del")
 
 	res, err := codec.MarshalJSONIndent(types.ModuleCdc, delegatedCoins)
 	if err != nil {

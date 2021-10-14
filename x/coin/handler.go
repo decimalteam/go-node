@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+
 	"golang.org/x/crypto/sha3"
 
 	"github.com/btcsuite/btcutil/base58"
@@ -21,7 +23,6 @@ import (
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
@@ -205,7 +206,7 @@ func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types.MsgUpdateCoin) (*s
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
 	err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
 	if err != nil {
-		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
+		return nil, types.ErrInternal(err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -347,6 +348,7 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 }
 
 func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll bool) (*sdk.Result, error) {
+
 	// Retrieve seller account and it's balance of selling coins
 	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell.Denom))
