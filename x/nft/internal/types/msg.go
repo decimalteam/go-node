@@ -172,7 +172,7 @@ func NewMsgUpdateReserveNFT(sender sdk.AccAddress, id string, denom string, subT
 func (msg MsgUpdateReserveNFT) Route() string { return RouterKey }
 
 // Type Implements Msg
-func (msg MsgUpdateReserveNFT) Type() string { return "update_reserve_nft" }
+func (msg MsgUpdateReserveNFT) Type() string { return "update_nft_reserve" }
 
 // ValidateBasic Implements Msg.
 func (msg MsgUpdateReserveNFT) ValidateBasic() error {
