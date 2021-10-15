@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -212,10 +213,10 @@ func burnNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFun
 
 type MsgUpdateReserveNFTq struct {
 	BaseReq      rest.BaseReq `json:"base_req"`
-	ID           string       `json:"id"`
-	Denom        string       `json:"denom"`
+	ID           string       `json:"nftId"`
+	Denom        string       `json:"nftCollection"`
 	SubTokenIDs  []string     `json:"sub_token_ids"`
-	NewReserveNFT string       `json:"new_reserve"`
+	NewReserveNFT string       `json:"reserve"`
 }
 
 func updateReserveNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
@@ -252,6 +253,11 @@ func updateReserveNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.H
 			return
 		}
 		// create the message
+		fmt.Println("req : " ,req)
+		fmt.Print("req.Id" , req.ID)
+		fmt.Print("req.Denom" , req.Denom)
+		fmt.Print("req.SubToken" , req.SubTokenIDs)
+		fmt.Print("req.NewReserve",newReserve)
 		msg := types.NewMsgUpdateReserveNFT(fromAddr, req.ID, req.Denom, subTokenIDs, newReserve)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}

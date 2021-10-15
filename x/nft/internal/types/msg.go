@@ -180,6 +180,7 @@ func (msg MsgUpdateReserveNFT) ValidateBasic() error {
 	fmt.Println("Denom: " , msg.Denom)
 	fmt.Println("ID: " , msg.ID)
 	fmt.Println("SUBID: " , msg.SubTokenIDs)
+	fmt.Println("New reserve: : " , msg.NewReserveNFT)
 
 	if strings.TrimSpace(msg.Denom) == "" {
 
