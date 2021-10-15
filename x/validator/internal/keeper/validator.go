@@ -1,13 +1,15 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bytes"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -151,6 +153,13 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	for _, del := range delegations {
 		go func(del exported.DelegationI) {
 			defer wg.Done()
+			if ctx.BlockHeight() >= updates.Update12Block {
+				defer func() {
+					if r := recover(); r != nil {
+						ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
+					}
+				}()
+			}
 			if ctx.BlockHeight() >= updates.Update7Block {
 				if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
 					del = del.SetTokensBase(del.GetCoin().Amount)

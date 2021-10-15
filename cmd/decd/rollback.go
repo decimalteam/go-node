@@ -102,7 +102,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			st.AppHash = block.AppHash
 			st.LastResultsHash = block.LastResultsHash
 			st.LastBlockTime = time.Unix(0, block.Time.UnixNano()-time.Second.Nanoseconds()*5)
-			st.LastHeightValidatorsChanged = 5321767
+			st.LastHeightValidatorsChanged = valInfo.LastHeightChanged
 			st.LastValidators = valInfo.ValidatorSet
 			st.Validators = valInfo.ValidatorSet
 			st.NextValidators = valInfo.ValidatorSet
