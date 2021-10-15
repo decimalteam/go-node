@@ -120,6 +120,7 @@ func (msg MsgBurnNFT) Type() string { return "burn_nft" }
 
 // ValidateBasic Implements Msg.
 func (msg MsgBurnNFT) ValidateBasic() error {
+	fmt.Println("sender: " , msg.Sender)
 	if strings.TrimSpace(msg.Denom) == "" {
 		return ErrInvalidDenom(msg.Denom)
 	}
@@ -151,7 +152,7 @@ func (msg MsgBurnNFT) GetSigners() []sdk.AccAddress {
 // MsgUpdateReservNFT
 /* --------------------------------------------------------------------------- */
 type MsgUpdateReserveNFT struct {
-	Sender       sdk.AccAddress `json:"creator"`
+	Sender       sdk.AccAddress `json:"sender"`
 	ID           string         `json:"nftId"`
 	Denom        string         `json:"nftCollection"`
 	SubTokenIDs  []int64        `json:"sub_token_ids"`
@@ -181,7 +182,7 @@ func (msg MsgUpdateReserveNFT) ValidateBasic() error {
 	fmt.Println("ID: " , msg.ID)
 	fmt.Println("SUBID: " , msg.SubTokenIDs)
 	fmt.Println("New reserve: : " , msg.NewReserveNFT)
-
+	fmt.Println("sender: "  , msg.Sender)
 	if strings.TrimSpace(msg.Denom) == "" {
 
 		return ErrInvalidDenom(msg.Denom)
