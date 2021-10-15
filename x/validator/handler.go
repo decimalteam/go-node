@@ -1,16 +1,18 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"errors"
 	"fmt"
+	"runtime/debug"
+	"strings"
+	"time"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"runtime/debug"
-	"strings"
-	"time"
 )
 
 // NewHandler creates an sdk.Handler for all the validator type messages
@@ -76,7 +78,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 
 	k.AfterValidatorCreated(ctx, val.ValAddress)
 
-	err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
+	_, err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
 	if err != nil {
 		e := sdkerrors.Error{}
 		if errors.As(err, &e) {
@@ -118,23 +120,44 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, types.ErrDelegatorStakeIsTooLow()
 	}
 
-	err = k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)
-	if err != nil {
-		e := sdkerrors.Error{}
-		if errors.As(err, &e) {
-			return nil, e
-		} else {
-			return nil, types.ErrInternal(err.Error())
+	if ctx.BlockHeight() >= updates.Update13Block {
+		priceDelCustom, err := k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)
+		if err != nil {
+			e := sdkerrors.Error{}
+			if errors.As(err, &e) {
+				return nil, e
+			} else {
+				return nil, types.ErrInternal(err.Error())
+			}
 		}
-	}
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
-		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
-		sdk.NewAttribute(types.AttributeKeyCoin, msg.Coin.String()),
-	))
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyCoin, msg.Coin.String()),
+			sdk.NewAttribute(types.AttributeDelPrice, priceDelCustom.String()),
+		))
+	} else {
+		_, err := k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)
+		if err != nil {
+			e := sdkerrors.Error{}
+			if errors.As(err, &e) {
+				return nil, e
+			} else {
+				return nil, types.ErrInternal(err.Error())
+			}
+		}
+
+		ctx.EventManager().EmitEvent(sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyCoin, msg.Coin.String()),
+		))
+	}
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
