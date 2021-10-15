@@ -1,19 +1,18 @@
 package swap
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"math/big"
 	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
-
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewHandler creates an sdk.Handler for all the validator type messages

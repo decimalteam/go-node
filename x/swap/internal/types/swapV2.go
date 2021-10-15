@@ -4,12 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"math/big"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethcmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"math/big"
 )
 
 func GetHash(transactionNumber sdk.Int, tokenSymbol string, amount sdk.Int, recipient sdk.AccAddress, fromChain, destChain int) (Hash, error) {

@@ -5,8 +5,6 @@ import (
 	"runtime/debug"
 	"strconv"
 
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -125,19 +123,6 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 		}
 		if k.ExistTokenID(ctx, msg.ID) {
 			return nil, ErrNotUniqueTokenID()
-		}
-		if ctx.BlockHeight() >= updates.Update13Block {
-			if msg.Reserve.LT(types.NewMinReserve2) {
-				return nil, types.ErrInvalidReserve(msg.Reserve.String())
-			}
-		} else if ctx.BlockHeight() >= updates.Update1Block {
-			if msg.Reserve.LT(types.NewMinReserve) {
-				return nil, types.ErrInvalidReserve(msg.Reserve.String())
-			}
-		} else {
-			if msg.Reserve.LT(types.MinReserve) {
-				return nil, types.ErrInvalidReserve(msg.Reserve.String())
-			}
 		}
 	}
 

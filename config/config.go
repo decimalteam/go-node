@@ -1,15 +1,13 @@
 package config
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
+
 	// DecimalVersion is integer version of the Decimal app.
 	DecimalVersion = "1.1.15"
 
@@ -42,20 +40,6 @@ const (
 	SymbolTestBaseCoin = "tdel"
 	TitleBaseCoin      = "Decimal coin"
 	SymbolBaseCoin     = "del"
-)
-
-const (
-	OneHour     = 660 // blocks
-	UpdatesName = "updates.json"
-)
-
-var (
-	DataPath  = fmt.Sprintf("%s/.decimal/daemon/data", os.Getenv("HOME"))
-	NameFiles = []string{"decd", "deccli"}
-)
-
-var (
-	UpdatesInfo = NewUpdatesInfo(filepath.Join(DataPath, UpdatesName))
 )
 
 var (

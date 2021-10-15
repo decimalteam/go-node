@@ -330,7 +330,6 @@ const TestNetGenesis = `
       "initial_volume": "340000000000000000000000000"
     },
     "check": {},
-    "multisig": {},
     "gov": {
       "starting_proposal_id": "1",
       "votes": null,
@@ -342,10 +341,10 @@ const TestNetGenesis = `
     },
     "swap": {
       "params":
-        {
-          "locked_time_in": "43200000000000",
-          "locked_time_out": "86400000000000"
-        },
+      {
+        "locked_time_in": "43200000000000",
+        "locked_time_out": "86400000000000"
+      },
       "swaps": null
     }
   }

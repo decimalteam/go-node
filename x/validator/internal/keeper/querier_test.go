@@ -397,7 +397,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 
 	// delegate
 	delAmount := types.TokensFromConsensusPower(100)
-	_, err = keeper.Delegate(ctx, addrAcc1, sdk.NewCoin(keeper.BondDenom(ctx), delAmount), types.Unbonded, val1, true)
+	err = keeper.Delegate(ctx, addrAcc1, sdk.NewCoin(keeper.BondDenom(ctx), delAmount), types.Unbonded, val1, true)
 	require.NoError(t, err)
 	_, err = keeper.ApplyAndReturnValidatorSetUpdates(ctx)
 	require.NoError(t, err)

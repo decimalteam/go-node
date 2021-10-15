@@ -1,12 +1,11 @@
 package validator
 
 import (
-	"fmt"
-
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	abci "github.com/tendermint/tendermint/abci/types"

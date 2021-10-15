@@ -1,11 +1,9 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/coin"
 	"encoding/binary"
 	"fmt"
-
-	"bitbucket.org/decimalteam/go-node/x/coin"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -24,12 +22,6 @@ const (
 
 	// DefaultParamspace default name for parameter store
 	DefaultParamspace = ModuleName
-
-	KeyUpgradedIBCState = "upgradedIBCState"
-
-	KeyUpgradedClient = "upgradedClient"
-
-	KeyUpgradedConsState = "upgradedConsState"
 )
 
 // Keys for governance store
@@ -51,9 +43,6 @@ var (
 	ProposalIDKey               = []byte{0x03}
 
 	VotesKeyPrefix = []byte{0x10}
-
-	PlanPrefix = []byte{0x20}
-	DoneByte   = []byte{0x21}
 )
 
 // GetProposalIDBytes returns the byte representation of the proposalID
@@ -165,21 +154,4 @@ func splitKeyWithAddress(key []byte) (proposalID uint64, addr sdk.AccAddress) {
 	proposalID = GetProposalIDFromBytes(key[1:9])
 	addr = key[9:]
 	return
-}
-
-// PlanKey is the key under which the current plan is saved
-// We store PlanByte as a const to keep it immutable (unlike a []byte)
-func PlanKey() []byte {
-	return PlanPrefix
-}
-
-func UpgradedClientKey(height int64) []byte {
-	return []byte(fmt.Sprintf("%s/%d/%s", KeyUpgradedIBCState, height, KeyUpgradedClient))
-}
-
-// UpgradedConsStateKey is the key under which the upgraded consensus state is saved
-// Connecting IBC chains can verify against the upgraded consensus state in this path before
-// upgrading their clients.
-func UpgradedConsStateKey(height int64) []byte {
-	return []byte(fmt.Sprintf("%s/%d/%s", KeyUpgradedIBCState, height, KeyUpgradedConsState))
 }

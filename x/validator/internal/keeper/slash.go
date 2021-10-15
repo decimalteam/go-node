@@ -9,7 +9,6 @@ import (
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
-	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -189,7 +188,6 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 			}
 			ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, unbondingSlashAmount)
 			k.CoinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(unbondingSlashAmount))
-			k.SubtractDelegatedCoin(ctx, sdk.NewCoin(entry.Balance.Denom, unbondingSlashAmount))
 		}
 	}
 
@@ -250,9 +248,6 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 				ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondSlashAmount)
 				k.CoinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(bondSlashAmount))
 				validator.Tokens = validator.Tokens.Sub(ret)
-				if ctx.BlockHeight() >= updates.Update13Block {
-					k.SubtractDelegatedCoin(ctx, sdk.NewCoin(delegation.GetCoin().Denom, bondSlashAmount))
-				}
 			} else {
 				validator.Tokens = validator.Tokens.Sub(bondSlashAmount)
 			}
@@ -346,9 +341,6 @@ const WithoutSlashPeriod5End = WithoutSlashPeriod5Start + 2600
 const WithoutSlashPeriod6Start = updates.Update12Block
 const WithoutSlashPeriod6End = WithoutSlashPeriod6Start + 15840
 
-const WithoutSlashPeriod7Start = updates.Update13Block
-const WithoutSlashPeriod7End = WithoutSlashPeriod7Start + 15840
-
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
@@ -370,9 +362,6 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		return
 	}
 	if height >= WithoutSlashPeriod6Start && height <= WithoutSlashPeriod6End {
-		return
-	}
-	if height >= WithoutSlashPeriod7Start && height <= WithoutSlashPeriod7End {
 		return
 	}
 
@@ -411,17 +400,8 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	// That way we avoid needing to read/write the whole array each time
 	previous := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
 	missed := !signed
-
-	gracePeriodStart := ncfg.UpdatesInfo.LastBlock
-	gracePeriodEnd := gracePeriodStart + (ncfg.OneHour * 24)
-
 	switch {
 	case !previous && missed:
-		if height >= gracePeriodStart && height <= gracePeriodEnd {
-			log.Println(consAddr.String())
-			return
-		}
-
 		// Array value has changed from not missed to missed, increment counter
 		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 		signInfo.MissedBlocksCounter++
@@ -434,6 +414,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	}
 
 	if missed {
+		log.Println(fmt.Sprintf("Missed blocks: %d", signInfo.MissedBlocksCounter), signInfo.Address.String())
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeLiveness,

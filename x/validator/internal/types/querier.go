@@ -18,7 +18,6 @@ const (
 	QueryParameters                    = "parameters"
 	QueryHistoricalInfo                = "historicalInfo"
 	QueryDelegatedCoins                = "delegatedCoins"
-	QueryDelegatedCoin                 = "delegatedCoin"
 )
 
 // QueryDelegatorParams defines the params for the following queries:

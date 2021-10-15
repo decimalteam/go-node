@@ -1,10 +1,9 @@
 package nft
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"fmt"
 	"testing"
-
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 
 	"github.com/stretchr/testify/require"
 

@@ -3,11 +3,10 @@ package gov
 // DONTCOVER
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"bitbucket.org/decimalteam/go-node/x/gov/client/cli"
 	"bitbucket.org/decimalteam/go-node/x/gov/client/rest"
+	"encoding/json"
+	"fmt"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -138,9 +137,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 }
 
 // BeginBlock performs a no-op.
-func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
-	BeginBlocker(ctx, am.keeper)
-}
+func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 
 // EndBlock returns the end blocker for the gov module. It returns no validator
 // updates.

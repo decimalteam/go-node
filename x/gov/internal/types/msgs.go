@@ -1,19 +1,16 @@
 package types
 
 import (
-	"errors"
 	"fmt"
-	"strconv"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"strconv"
 )
 
 // Governance message types and routes
 const (
-	TypeMsgVote            = "vote"
-	TypeMsgSubmitProposal  = "submit_proposal"
-	TypeMsgSoftwareUpgrade = "software_upgrade"
+	TypeMsgVote           = "vote"
+	TypeMsgSubmitProposal = "submit_proposal"
 )
 
 var _, _ sdk.Msg = MsgSubmitProposal{}, MsgVote{}
@@ -130,58 +127,4 @@ func (msg MsgVote) GetSignBytes() []byte {
 // GetSigners implements Msg
 func (msg MsgVote) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.Voter)}
-}
-
-const AddressForSoftwareUpgrade = "dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v"
-
-// Software Upgrade Proposals
-type MsgSoftwareUpgradeProposal struct {
-	Title       string         `json:"title" yaml:"title"`
-	Description string         `json:"description" yaml:"description"`
-	Plan        Plan           `json:"plan" yaml:"plan"`
-	Proposer    sdk.AccAddress `json:"proposer" yaml:"proposer"` //  Address of the proposer
-}
-
-func NewSoftwareUpgradeProposal(title, description string, plan Plan, proposer sdk.AccAddress) MsgSoftwareUpgradeProposal {
-	return MsgSoftwareUpgradeProposal{title, description, plan, proposer}
-}
-
-const ProposalTypeSoftwareUpgrade = "SoftwareUpgrade"
-
-// Route implements Msg
-func (msg MsgSoftwareUpgradeProposal) Route() string { return RouterKey }
-
-// Type implements Msg
-func (msg MsgSoftwareUpgradeProposal) Type() string { return ProposalTypeSoftwareUpgrade }
-
-// ValidateBasic implements Msg
-func (msg MsgSoftwareUpgradeProposal) ValidateBasic() error {
-	address, err := sdk.AccAddressFromBech32(AddressForSoftwareUpgrade)
-	if err != nil {
-		return err
-	}
-	// ADD NOT
-	if !msg.Proposer.Equals(address) {
-		return errors.New("not allowed")
-	}
-	return nil
-}
-
-// String implements the Stringer interface
-func (msg MsgSoftwareUpgradeProposal) String() string {
-	return fmt.Sprintf(`Submit Proposal Message:
-  Title:          %s
-  Description:    %s
-`, msg.Title, msg.Description)
-}
-
-// GetSignBytes implements Msg
-func (msg MsgSoftwareUpgradeProposal) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// GetSigners implements Msg
-func (msg MsgSoftwareUpgradeProposal) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Proposer}
 }

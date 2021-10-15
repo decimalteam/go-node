@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"bitbucket.org/decimalteam/go-node/utils/updates"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -199,20 +200,8 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 			mutex.Unlock()
 		}(del)
 	}
-
 	wg.Wait()
-
 	return total
-}
-
-func (k Keeper) TokenBaseOfDelegation(ctx sdk.Context, del exported.DelegationI) sdk.Int {
-	coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
-	if err != nil {
-		panic(err)
-	}
-	delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
-	totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
-	return totalAmountCoin.Mul(del.GetCoin().Amount).Quo(delegatedCoin)
 }
 
 //_______________________________________________________________________
