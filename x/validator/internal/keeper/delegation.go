@@ -170,6 +170,9 @@ func (k Keeper) GetDelegatedCoin(ctx sdk.Context, symbol string) sdk.Int {
 	key := types.GetDelegateCoinKey(symbol)
 	value := store.Get(key)
 	if value == nil {
+		if ctx.BlockHeight() >= updates.Update13Block {
+			return sdk.ZeroInt()
+		}
 		panic(fmt.Sprintf("coin with symbol %s not exist", symbol))
 	}
 	return types.MustUnmarshalDelegateCoin(k.cdc, value)
@@ -462,7 +465,7 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
 
 // Perform a delegation, set/update everything necessary within the store.
 // tokenSrc indicates the bond status of the incoming funds.
-func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.Coin, tokenSrc types.BondStatus, validator types.Validator, subtractAccount bool) error {
+func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.Coin, tokenSrc types.BondStatus, validator types.Validator, subtractAccount bool) ( sdk.Int ,  error) {
 	// Get or create the delegation object
 	delegation, found := k.GetDelegation(ctx, delAddr, validator.ValAddress, bondCoin.Denom)
 	if !found {
@@ -496,7 +499,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 
 		err := k.supplyKeeper.DelegateCoinsFromAccountToModule(ctx, delegation.DelegatorAddress, sendName, sdk.NewCoins(bondCoin))
 		if err != nil {
-			return err
+			return sdk.Int{}, err
 		}
 	} else {
 
@@ -529,30 +532,58 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	}
 
 	k.SetDelegation(ctx, delegation)
-
-	k.DeleteValidatorByPowerIndex(ctx, validator)
 	if bondCoin.Denom == k.BondDenom(ctx) {
 		validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
 	} else {
 		coin, err := k.GetCoin(ctx, bondCoin.Denom)
 		if err != nil {
-			return err
+			return sdk.Int{} , err
 		}
 		validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
-		if ctx.BlockHeight() >= updates.Update11Block {
+		if ctx.BlockHeight() >= updates.Update2Block {
 			k.AddDelegatedCoin(ctx, bondCoin)
 		}
 	}
+	k.DeleteValidatorByPowerIndex(ctx, validator)
+	if bondCoin.Denom == k.BondDenom(ctx) {
+		if ctx.BlockHeight() >= updates.Update13Block && delegation.GetCoin().Denom != k.BondDenom(ctx) {
+			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
+			validator.Tokens = validator.Tokens.Add(tokenBase)
+			delegation.TokensBase = tokenBase
+		} else {
+			validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
+		}
+	} else {
+		if ctx.BlockHeight() >= updates.Update13Block {
+			k.AddDelegatedCoin(ctx, bondCoin)
+		}
+		if ctx.BlockHeight() >= updates.Update13Block {
+			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
+			validator.Tokens = validator.Tokens.Add(tokenBase)
+			delegation.TokensBase = tokenBase
+			k.CoinKeeper.SetCachedCoin(bondCoin.Denom)
+		} else {
+			coin, err := k.GetCoin(ctx, bondCoin.Denom)
+			if err != nil {
+				return sdk.Int{}, err
+			}
+			validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
+			if ctx.BlockHeight() >= updates.Update2Block {
+				k.AddDelegatedCoin(ctx, bondCoin)
+			}
+		}
+
+	}
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
-		return err
+		return sdk.Int{}, err
 	}
 	k.SetValidatorByPowerIndexWithoutCalc(ctx, validator)
 
 	// Call the after-modification hook
 	k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 
-	return nil
+	return  delegation.TokensBase , nil
 }
 
 func (k Keeper) CheckTotalStake(ctx sdk.Context, validator types.Validator) bool {

@@ -118,6 +118,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 
+	config.UpdatesInfo.Load()
 	bApp.SetAppVersion(config.DecimalVersion)
 
 	keys := sdk.NewKVStoreKeys(
@@ -241,7 +242,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
 	)
 
-	app.mm.SetOrderBeginBlockers(nft.ModuleName, coin.ModuleName, validator.ModuleName)
+	// app.mm.SetOrderBeginBlockers(coin.ModuleName, validator.ModuleName)
 	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last

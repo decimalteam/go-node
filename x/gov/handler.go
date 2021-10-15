@@ -1,12 +1,13 @@
 package gov
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"runtime/debug"
 	"strconv"
+
+	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewHandler creates an sdk.Handler for all the gov type messages
@@ -26,6 +27,9 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 		case types.MsgVote:
 			return handleMsgVote(ctx, keeper, msg)
+
+		case types.MsgSoftwareUpgradeProposal:
+			return handleSoftwareUpgradeProposal(ctx, keeper, msg)
 
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
@@ -86,5 +90,13 @@ func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types.MsgVote) (*sdk.Resu
 		),
 	)
 
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleSoftwareUpgradeProposal(ctx sdk.Context, k Keeper, p types.MsgSoftwareUpgradeProposal) (*sdk.Result, error) {
+	err := k.ScheduleUpgrade(ctx, p.Plan)
+	if err != nil {
+		return nil, err
+	}
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
