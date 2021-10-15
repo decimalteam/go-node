@@ -213,8 +213,8 @@ func burnNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFun
 
 type MsgUpdateReserveNFTq struct {
 	BaseReq      rest.BaseReq `json:"base_req"`
-	ID           string       `json:"nftId"`
-	Denom        string       `json:"nftCollection"`
+	ID           string       `json:"id"`
+	Denom        string       `json:"denom"`
 	SubTokenIDs  []string     `json:"sub_token_ids"`
 	NewReserveNFT string       `json:"reserve"`
 }

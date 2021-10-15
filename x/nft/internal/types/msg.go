@@ -153,8 +153,8 @@ func (msg MsgBurnNFT) GetSigners() []sdk.AccAddress {
 /* --------------------------------------------------------------------------- */
 type MsgUpdateReserveNFT struct {
 	Sender       sdk.AccAddress `json:"sender"`
-	ID           string         `json:"nftId"`
-	Denom        string         `json:"nftCollection"`
+	ID           string         `json:"id"`
+	Denom        string         `json:"denom"`
 	SubTokenIDs  []int64        `json:"sub_token_ids"`
 	NewReserveNFT sdk.Int        `json:"reserve"`
 }
