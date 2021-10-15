@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -248,11 +247,6 @@ func updateReserveNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.H
 		}
 
 		newReserve, ok := sdk.NewIntFromString(req.NewReserveNFT)
-		fmt.Println("req : " ,req)
-		fmt.Print("req.Id" , req.ID)
-		fmt.Print("req.Denom" , req.Denom)
-		fmt.Print("req.SubToken" , req.SubTokenIDs)
-		fmt.Print("req.NewReserve",newReserve)
 		if !ok {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid quantity")
 			return

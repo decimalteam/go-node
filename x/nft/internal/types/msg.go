@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -120,7 +119,6 @@ func (msg MsgBurnNFT) Type() string { return "burn_nft" }
 
 // ValidateBasic Implements Msg.
 func (msg MsgBurnNFT) ValidateBasic() error {
-	fmt.Println("sender: " , msg.Sender)
 	if strings.TrimSpace(msg.Denom) == "" {
 		return ErrInvalidDenom(msg.Denom)
 	}
@@ -178,11 +176,6 @@ func (msg MsgUpdateReserveNFT) Type() string { return "update_nft_reserve" }
 
 // ValidateBasic Implements Msg.
 func (msg MsgUpdateReserveNFT) ValidateBasic() error {
-	fmt.Println("Denom: " , msg.Denom)
-	fmt.Println("ID: " , msg.ID)
-	fmt.Println("SUBID: " , msg.SubTokenIDs)
-	fmt.Println("New reserve: : " , msg.NewReserveNFT)
-	fmt.Println("sender: "  , msg.Sender)
 	if strings.TrimSpace(msg.Denom) == "" {
 
 		return ErrInvalidDenom(msg.Denom)
