@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -254,8 +253,6 @@ func updateReserveNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.H
 		}
 		// create the message
 		msg := types.NewMsgUpdateReserveNFT(fromAddr, req.ID, req.Denom, subTokenIDs, newReserve)
-		fmt.Println(req.Denom)
-		fmt.Println(msg.Denom)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
 }

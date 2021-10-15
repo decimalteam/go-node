@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -176,7 +177,12 @@ func (msg MsgUpdateReserveNFT) Type() string { return "update_nft_reserve" }
 
 // ValidateBasic Implements Msg.
 func (msg MsgUpdateReserveNFT) ValidateBasic() error {
+	fmt.Println("Denom: " , msg.Denom)
+	fmt.Println("ID: " , msg.ID)
+	fmt.Println("SUBID: " , msg.SubTokenIDs)
+
 	if strings.TrimSpace(msg.Denom) == "" {
+
 		return ErrInvalidDenom(msg.Denom)
 	}
 	if strings.TrimSpace(msg.ID) == "" {
