@@ -248,6 +248,8 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, d
 
 	owner := nft.GetOwners().GetOwner(nft.GetCreator())
 	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
+	status := false
+	reserveForReturn := sdk.Int{}
 
 	for _, subTokenID := range subTokenIDs {
 		if ownerSubTokenIDs.Find(subTokenID) == -1 {
@@ -260,19 +262,26 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, d
 			return fmt.Errorf("subToken with ID = %d not found", subTokenID)
 		}
 		if reserve.GT(newReserve) {
-			err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ReservedPool, owner.GetAddress(), sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserve.Sub(newReserve))))
-			if err != nil {
-				return err
-			}
+			status = true
+			reserveForReturn = reserveForReturn.Add(reserve.Sub(newReserve))
 
 		} else {
-			err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool ,  sdk.NewCoins(sdk.NewCoin(k.baseDenom, newReserve.Sub(reserve))))
-			if err != nil {
-				return err
-			}
+			status = false
+			reserveForReturn  = reserveForReturn.Add(newReserve.Sub(reserve))
 		}
 		k.SetSubToken(ctx, denom, id  , subTokenID, newReserve)
 	}
+	if status {
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ReservedPool, owner.GetAddress(), sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForReturn)))
+		if err != nil {
+			return err
+		}
 
+	} else {
+		err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool ,  sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForReturn)))
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
