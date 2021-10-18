@@ -236,7 +236,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 	return nil
 }
 
-func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, denom, id string, subTokenIDs []int64, tokenReserve sdk.Int) error {
+func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, denom, id string, subTokenIDs []int64, newReserve sdk.Int) error {
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
 		return types.ErrUnknownCollection(denom)
@@ -245,15 +245,33 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, d
 	if err != nil {
 		return err
 	}
+
 	owner := nft.GetOwners().GetOwner(nft.GetCreator())
 	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
+
 	for _, subTokenID := range subTokenIDs {
 		if ownerSubTokenIDs.Find(subTokenID) == -1 {
 			return sdkerrors.Wrap(types.ErrNotAllowedUpdateReserve(),
 				fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(),
 					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
 		}
-		k.SetSubToken(ctx, denom, id  , subTokenID, tokenReserve)
+		reserve, ok := k.GetSubToken(ctx, denom, id, subTokenID)
+		if !ok {
+			return fmt.Errorf("subToken with ID = %d not found", subTokenID)
+		}
+		if reserve.GT(newReserve) {
+			err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ReservedPool, owner.GetAddress(), sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserve.Sub(newReserve))))
+			if err != nil {
+				return err
+			}
+
+		} else {
+			err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.RefillPool ,  sdk.NewCoins(sdk.NewCoin(k.baseDenom, newReserve.Sub(reserve))))
+			if err != nil {
+				return err
+			}
+		}
+		k.SetSubToken(ctx, denom, id  , subTokenID, newReserve)
 	}
 
 	return nil
