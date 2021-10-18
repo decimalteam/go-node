@@ -236,7 +236,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 	return nil
 }
 
-func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, denom, id string, subTokenIDs []int64, newReserve sdk.Int) error {
+func (k Keeper) UpdateNFTReserve(ctx sdk.Context, denom, id string, subTokenIDs []int64, newReserve sdk.Int) error {
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
 		return types.ErrUnknownCollection(denom)
@@ -273,15 +273,9 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, d
 	}
 	if status {
 		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ReservedPool, owner.GetAddress(), sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForReturn)))
-		if err != nil {
-			return err
-		}
 
 	} else {
 		err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool ,  sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForReturn)))
-		if err != nil {
-			return err
-		}
 	}
-	return nil
+	return err
 }

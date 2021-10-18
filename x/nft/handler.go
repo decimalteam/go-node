@@ -203,7 +203,7 @@ func HandleMsgUpdateReserveNFT(ctx sdk.Context, msg types.MsgUpdateReserveNFT, k
 	}
 
 	// update reserve nft
-	err = k.UpdateNFTReserve(ctx, msg.Sender , msg.Denom, msg.ID, msg.SubTokenIDs, msg.NewReserveNFT)
+	err = k.UpdateNFTReserve(ctx, msg.Denom, msg.ID, msg.SubTokenIDs, msg.NewReserveNFT)
 	if err != nil {
 		return nil, err
 	}

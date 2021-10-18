@@ -117,7 +117,7 @@ func ErrNotAllowedUpdateReserve() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeNotAllowedBurn,
-		"only the creator can update reserve a token",
+		"only the owner can update reserve a token",
 	)
 }
 
