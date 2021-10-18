@@ -266,7 +266,7 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, ownerAddress sdk.AccAddress, d
 			}
 
 		} else {
-			err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.RefillPool ,  sdk.NewCoins(sdk.NewCoin(k.baseDenom, newReserve.Sub(reserve))))
+			err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool ,  sdk.NewCoins(sdk.NewCoin(k.baseDenom, newReserve.Sub(reserve))))
 			if err != nil {
 				return err
 			}
