@@ -265,13 +265,16 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, denom, id string, subTokenIDs 
 		if reserve.GT(newReserve) {
 			return types.ErrNotSetValueLowerNow()
 
-		} else {
-			reserveForRefill  = reserveForRefill.Add(newReserve.Sub(reserve))
 		}
+
+		reserveForRefill  = reserveForRefill.Add(newReserve.Sub(reserve))
+
 		k.SetSubToken(ctx, denom, id  , subTokenID, newReserve)
 	}
 
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool ,  sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForRefill)))
-
+	if err!= nil {
+		return types.ErrNotEnoughFunds(reserveForRefill.String())
+	}
 	return err
 }
