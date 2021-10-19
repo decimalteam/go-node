@@ -259,7 +259,9 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, denom, id string, subTokenIDs 
 					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
 		}
 		reserve, _ := k.GetSubToken(ctx, denom, id, subTokenID)
-
+		if reserve.Equal(newReserve) {
+			return types.ErrNotSetValueLowerNow()
+		}
 		if reserve.GT(newReserve) {
 			return types.ErrNotSetValueLowerNow()
 
