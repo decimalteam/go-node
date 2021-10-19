@@ -31,6 +31,8 @@ const (
 	CodeInvalidRecipientAddress       CodeType = 117
 	CodeForbiddenToTransferToYourself CodeType = 118
 	CodeNotUniqueTokenID              CodeType = 119
+	CodeNotAllowedUpdateNFTReserve    CodeType = 120
+	CodeNotSetValueLowerNow			  CodeType = 121
 )
 
 func ErrInvalidCollection(denom string) *sdkerrors.Error {
@@ -108,8 +110,16 @@ func ErrInvalidReserve(reserve string) *sdkerrors.Error {
 func ErrNotAllowedBurn() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
-		CodeNotAllowedBurn,
+		CodeNotAllowedUpdateNFTReserve,
 		"only the creator can burn a token",
+	)
+}
+
+func ErrNotSetValueLowerNow() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeNotSetValueLowerNow,
+		"Invalid new reserve",
 	)
 }
 

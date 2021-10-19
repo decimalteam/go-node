@@ -236,6 +236,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 	return nil
 }
 
+//UpdateNFTReserve function to increase the minimum reserve of the NFT token
 func (k Keeper) UpdateNFTReserve(ctx sdk.Context, denom, id string, subTokenIDs []int64, newReserve sdk.Int) error {
 	collection, found := k.GetCollection(ctx, denom)
 	if !found {
@@ -248,8 +249,8 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, denom, id string, subTokenIDs 
 
 	owner := nft.GetOwners().GetOwner(nft.GetCreator())
 	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
-	status := false
-	reserveForReturn := sdk.NewInt(0)
+
+	reserveForRefill := sdk.NewInt(0)
 
 	for _, subTokenID := range subTokenIDs {
 		if ownerSubTokenIDs.Find(subTokenID) == -1 {
@@ -257,25 +258,18 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, denom, id string, subTokenIDs 
 				fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(),
 					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
 		}
-		reserve, ok := k.GetSubToken(ctx, denom, id, subTokenID)
-		if !ok {
-			return fmt.Errorf("subToken with ID = %d not found", subTokenID)
-		}
+		reserve, _ := k.GetSubToken(ctx, denom, id, subTokenID)
+
 		if reserve.GT(newReserve) {
-			status = true
-			reserveForReturn = reserveForReturn.Add(reserve.Sub(newReserve))
+			return types.ErrNotSetValueLowerNow()
 
 		} else {
-			status = false
-			reserveForReturn  = reserveForReturn.Add(newReserve.Sub(reserve))
+			reserveForRefill  = reserveForRefill.Add(newReserve.Sub(reserve))
 		}
 		k.SetSubToken(ctx, denom, id  , subTokenID, newReserve)
 	}
-	if status {
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ReservedPool, owner.GetAddress(), sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForReturn)))
 
-	} else {
-		err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool ,  sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForReturn)))
-	}
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool ,  sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForRefill)))
+
 	return err
 }
