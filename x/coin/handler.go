@@ -1,6 +1,7 @@
 package coin
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bytes"
 	"encoding/base64"
 	"fmt"
@@ -8,8 +9,6 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
-
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 
 	"golang.org/x/crypto/sha3"
 
@@ -204,10 +203,10 @@ func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types.MsgUpdateCoin) (*s
 ////////////////////////////////////////////////////////////////
 
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
+
 	err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
 	if err != nil {
 		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
-		// return nil, types.ErrInternal(err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(

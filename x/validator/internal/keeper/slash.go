@@ -1,19 +1,19 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
-	"fmt"
-	"log"
-	"strconv"
-	"time"
-
 	"bitbucket.org/decimalteam/go-node/utils/updates"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
+	"log"
+	"strconv"
+	"time"
 )
 
 // Slash a validator for an infraction committed at a known height
@@ -417,7 +417,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	missed := !signed
 
 	gracePeriodStart := ncfg.UpdatesInfo.LastBlock
-	gracePeriodEnd := gracePeriodStart + (ncfg.OneHour / 4)
+	gracePeriodEnd := gracePeriodStart + (ncfg.OneHour * 24)
 
 	switch {
 	case !previous && missed:

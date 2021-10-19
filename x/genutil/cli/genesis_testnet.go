@@ -2,8 +2,8 @@ package cli
 
 const TestNetGenesis = `
 {
-  "genesis_time": "2021-09-06T09:00:00.000000Z",
-  "chain_id": "decimal-testnet-06-09-13-00",
+  "genesis_time": "2020-05-28T18:00:00.000000Z",
+  "chain_id": "decimal-testnet-29-05-02-00",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -76,7 +76,7 @@ const TestNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "Ann34HTQiiPi/Ht/2eSaDWVwoov2ycuYjpL2eMMpNQl0"
                 },
-                "signature": "0HAeEAv0tHaM/C9uFOiIiEQhSIL9roguOXvwniUf8UMa6ID/U6kxvB3qOJjraLGo7uLVKzBQxbjJRsunaVbeYA=="
+                "signature": "2gGeppvyJwK/xoXXNNjp0t6WcWlTi4842iWVZcYQCbps1r5ucwncBSdKGPAf5t1dNMdoUoC/i8KkG/OMu/CzGA=="
               }
             ],
             "memo": ""
@@ -120,7 +120,7 @@ const TestNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A+0Sm90CYEkcknXu/cvYx9eKpau17Yyd54mzDdtSG9bZ"
                 },
-                "signature": "PInR1CCXhX85+yV6AK3I3hQmhv2ekcPrJBPS4x6wxBwhixLfqDU8KqOxKfJ4jOa81rmJOvp8bXWaUV+KSYTp3A=="
+                "signature": "Ftl+41UHHmfe0dyw8r+y8nR8Wp5rOmgQV9TZ1vTdC3QV1Owpaz0271Qs/MG5xwb7oI9qMl0FtaI31pdurjTzwg=="
               }
             ],
             "memo": ""
@@ -164,7 +164,7 @@ const TestNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "Ax72b3e3Tz8Wx7Iq9FXaM1sbTit+1AujjKHRsTafhrtE"
                 },
-                "signature": "xqZNR8t0RZQ/lUa2PsfEH3F7oE/0EwlZRMeXWO3ssocG7fzXao2WDEd1YxYydLkvRojPQ1OlZeuJ/jREWPGrBA=="
+                "signature": "RT4hEIXBrtCXB6VP4NF1Tm4mJ7JGXrwXZzRfLyH1zKowrWFWlAaV/iwDKpkAmX/miLcJZiFx73f93NYRS0fgzQ=="
               }
             ],
             "memo": ""
@@ -208,7 +208,7 @@ const TestNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AtKn3ANbRqsIg8zpF0/03t9kvEuUtd7ZS9VnPu/8zF5z"
                 },
-                "signature": "hkpFhMUxqdSY6kVvgwzQXPu3hHkW7yj9y+Kiwt+Fe94U8XvIZZCES4+rqGisNkaPU/BcaKMQkyhF0RftG3L9SQ=="
+                "signature": "fut+fJMzX4ZeyKX4FfjgNHiq6YxhmcJpBz1sDWuzXHpXzxZAyZGiNRX6xvBMCK0fWlfoeZ7tWVyTRy82xVYWlg=="
               }
             ],
             "memo": ""
@@ -343,8 +343,8 @@ const TestNetGenesis = `
     "swap": {
       "params":
         {
-          "locked_time_in": "43200000000000",
-          "locked_time_out": "86400000000000"
+         "locked_time_in": "43200000000000",
+         "locked_time_out": "86400000000000"
         },
       "swaps": null
     }

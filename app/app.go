@@ -351,6 +351,7 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 		swapAppModule.InitGenesis(ctx, genState[swap.ModuleName])
 		swap.InitGenesis(ctx, app.swapKeeper, app.supplyKeeper, swap.InitialGenesisState)
 
+
 		moduleAddress := app.supplyKeeper.GetModuleAddress(swap.PoolName)
 		moduleAccount := app.accountKeeper.GetAccount(ctx, moduleAddress)
 

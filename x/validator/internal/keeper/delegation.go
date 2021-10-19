@@ -1,14 +1,13 @@
 package keeper
 
 import (
-	"fmt"
-	"log"
-	"time"
-
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
+	"fmt"
+	"log"
+	"time"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -580,7 +579,6 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	k.SetValidatorByPowerIndexWithoutCalc(ctx, validator)
 
 	k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
-	// MERGE
 
 	return delegation.TokensBase, nil
 }

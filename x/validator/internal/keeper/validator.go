@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bytes"
 	"errors"
 	"fmt"
@@ -9,6 +8,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
