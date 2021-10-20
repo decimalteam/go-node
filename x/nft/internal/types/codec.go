@@ -23,6 +23,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgEditNFTMetadata{}, "nft/msg_edit_metadata", nil)
 	cdc.RegisterConcrete(MsgMintNFT{}, "nft/msg_mint", nil)
 	cdc.RegisterConcrete(MsgBurnNFT{}, "nft/msg_burn", nil)
+	cdc.RegisterConcrete(MsgUpdateReserveNFT{}, "nft/update_reserve", nil)
 }
 
 // ModuleCdc generic sealed codec to be used throughout this module

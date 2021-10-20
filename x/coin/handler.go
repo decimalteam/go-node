@@ -204,7 +204,11 @@ func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types.MsgUpdateCoin) (*s
 ////////////////////////////////////////////////////////////////
 
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
-	err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
+	_, err := k.GetCoin(ctx, msg.Coin.Denom)
+	if err != nil {
+		return nil, types.ErrCoinDoesNotExist(msg.Coin.Denom)
+	}
+	err = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
 	if err != nil {
 		return nil, types.ErrInternal(err.Error())
 	}
@@ -222,7 +226,11 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.R
 
 func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoin) (*sdk.Result, error) {
 	for i := range msg.Sends {
-		err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Sends[i].Receiver, sdk.Coins{msg.Sends[i].Coin})
+		_, err := k.GetCoin(ctx, msg.Sends[i].Coin.Denom)
+		if err != nil {
+			return nil, types.ErrCoinDoesNotExist(msg.Sends[i].Coin.Denom)
+		}
+		err = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Sends[i].Receiver, sdk.Coins{msg.Sends[i].Coin})
 		if err != nil {
 			return nil, types.ErrInternal(err.Error())
 		}

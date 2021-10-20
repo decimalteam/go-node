@@ -196,3 +196,36 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
+
+//HandleMsgUpdateReserveNFT handles MsgUpdateReserveNFT
+func HandleMsgUpdateReserveNFT(ctx sdk.Context, msg types.MsgUpdateReserveNFT, k keeper.Keeper,
+) (*sdk.Result, error) {
+	nft, err := k.GetNFT(ctx, msg.Denom, msg.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !nft.GetCreator().Equals(msg.Sender) {
+		return nil, ErrNotAllowedUpdateRes()
+	}
+
+	// update reserve nft
+	err = k.UpdateNFTReserve(ctx, msg.Denom, msg.ID, msg.SubTokenIDs, msg.NewReserveNFT)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateReserveNFT,
+			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
+			sdk.NewAttribute(types.AttributeKeyNFTID, msg.ID),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}

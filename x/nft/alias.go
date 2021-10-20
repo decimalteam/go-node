@@ -42,6 +42,7 @@ var (
 	ErrUnknownNFT           = types.ErrUnknownNFT
 	ErrEmptyMetadata        = types.ErrEmptyMetadata
 	ErrNotAllowedBurn       = types.ErrNotAllowedBurn
+	ErrNotAllowedUpdateRes  = types.ErrNotAllowedUpdateReserve
 	ErrNotAllowedMint       = types.ErrNotAllowedMint
 	ErrNotUniqueSubTokenIDs = types.ErrNotUniqueSubTokenIDs
 	ErrNotUniqueTokenURI    = types.ErrNotUniqueTokenURI
@@ -53,6 +54,7 @@ var (
 	NewNFTs                 = types.NewNFTs
 	NewMsgMintNFT           = types.NewMsgMintNFT
 	NewMsgBurnNFT           = types.NewMsgBurnNFT
+	NewMsgUpdateReserveNFT   = types.NewMsgUpdateReserveNFT
 	NewMsgTranfserNFT       = types.NewMsgTransferNFT
 	NewMsgEditNFTMetadata   = types.NewMsgEditNFTMetadata
 

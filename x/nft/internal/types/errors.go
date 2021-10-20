@@ -31,6 +31,9 @@ const (
 	CodeInvalidRecipientAddress       CodeType = 117
 	CodeForbiddenToTransferToYourself CodeType = 118
 	CodeNotUniqueTokenID              CodeType = 119
+	CodeNotAllowedUpdateNFTReserve    CodeType = 120
+	CodeNotSetValueLowerNow			  CodeType = 121
+	CodeNotEnoughFunds				  CodeType = 122
 )
 
 func ErrInvalidCollection(denom string) *sdkerrors.Error {
@@ -112,6 +115,23 @@ func ErrNotAllowedBurn() *sdkerrors.Error {
 		"only the creator can burn a token",
 	)
 }
+
+func ErrNotSetValueLowerNow() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeNotSetValueLowerNow,
+		"Invalid new reserve",
+	)
+}
+
+func ErrNotAllowedUpdateReserve() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeNotAllowedUpdateNFTReserve,
+		"only the creator can update reserve a token",
+	)
+}
+
 
 func ErrNotAllowedMint() *sdkerrors.Error {
 	return errors.Encode(
@@ -196,5 +216,14 @@ func ErrForbiddenToTransferToYourself() *sdkerrors.Error {
 		DefaultCodespace,
 		CodeForbiddenToTransferToYourself,
 		"Forbidden to transfer to yourself",
+	)
+}
+
+func ErrNotEnoughFunds(reserve string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeNotEnoughFunds,
+		fmt.Sprintf("Insufficient funds are required: %s",reserve),
+		errors.NewParam("reserve", reserve),
 	)
 }
