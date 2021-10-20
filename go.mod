@@ -11,10 +11,10 @@ require (
 	github.com/ethereum/go-ethereum v1.9.11
 	github.com/go-ini/ini v1.63.2
 	github.com/gorilla/mux v1.7.3
-	github.com/hashicorp/go-getter v1.5.8
+	github.com/hashicorp/go-getter v1.5.8 // indirect
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
-	github.com/otiai10/copy v1.6.0
+	github.com/otiai10/copy v1.6.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/rcrowley/go-metrics v0.0.0-20190704165056-9c2d0518ed81 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
