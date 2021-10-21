@@ -10,7 +10,7 @@ decd gen-declare-candidate-tx \
     --website decimalchain.com \
     --node-id bf7a6b366e3c451a3c12b3a6c01af7230fb92fc7 \
     --ip 139.59.133.148 \
-    --chain-id decimal-testnet-06-09-13-00 \
+    --chain-id decimal-testnet-11-07-18-00 \
     --keyring-backend test \
     --home ~/.decimal-test-node-fra1-01/daemon | jq '.value.signatures[0].signature'
 
@@ -24,7 +24,7 @@ decd gen-declare-candidate-tx \
     --website decimalchain.com \
     --node-id c0b9b6c9a0f95e3d2f4aed890806739fc77faefd \
     --ip 64.225.110.228 \
-    --chain-id decimal-testnet-06-09-13-00 \
+    --chain-id decimal-testnet-11-07-18-00 \
     --keyring-backend test \
     --home ~/.decimal-test-node-fra1-02/daemon | jq '.value.signatures[0].signature'
 
@@ -38,7 +38,7 @@ decd gen-declare-candidate-tx \
     --website decimalchain.com \
     --node-id 76b81a4b817b39d63a3afe1f3a294f2a8f5c55b0 \
     --ip 64.225.56.107 \
-    --chain-id decimal-testnet-06-09-13-00 \
+    --chain-id decimal-testnet-11-07-18-00 \
     --keyring-backend test \
     --home ~/.decimal-test-node-nyc3-01/daemon | jq '.value.signatures[0].signature'
 
@@ -52,7 +52,7 @@ decd gen-declare-candidate-tx \
     --website decimalchain.com \
     --node-id 29e566c41d51be90fa53340ba4edccefbebe8cb2 \
     --ip 167.99.182.218 \
-    --chain-id decimal-testnet-06-09-13-00 \
+    --chain-id decimal-testnet-11-07-18-00 \
     --keyring-backend test \
     --home ~/.decimal-test-node-sgp1-01/daemon | jq '.value.signatures[0].signature'
 

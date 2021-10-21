@@ -1,7 +1,6 @@
 package keeper
 
 import (
-
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
@@ -10,6 +9,7 @@ import (
 	"log"
 	"strconv"
 	"time"
+
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
@@ -191,7 +191,7 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 			ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, unbondingSlashAmount)
 
 			k.CoinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(unbondingSlashAmount))
-			if  ctx.BlockHeight() >= updates.Update13Block {
+			if ctx.BlockHeight() >= updates.Update13Block {
 				k.SubtractDelegatedCoin(ctx, sdk.NewCoin(entry.Balance.Denom, unbondingSlashAmount))
 			}
 		}
@@ -351,9 +351,8 @@ const WithoutSlashPeriod5End = WithoutSlashPeriod5Start + 2600
 const WithoutSlashPeriod6Start = updates.Update12Block
 const WithoutSlashPeriod6End = WithoutSlashPeriod6Start + 15840
 
-
-const WithoutSlashPeriod7Start = updates.Update13Block
-const WithoutSlashPeriod7End = WithoutSlashPeriod7Start + 15840
+const WithoutSlashPeriod7Start = updates.Update13Block - 7920 // update_block - 12hours
+const WithoutSlashPeriod7End = updates.Update13Block + 14992  // update_block + 24hours
 
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
@@ -418,7 +417,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	missed := !signed
 
 	gracePeriodStart := ncfg.UpdatesInfo.LastBlock
-	gracePeriodEnd := gracePeriodStart + (ncfg.OneHour / 4)
+	gracePeriodEnd := gracePeriodStart + (ncfg.OneHour * 24)
 
 	switch {
 	case !previous && missed:
@@ -426,7 +425,6 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			log.Println(consAddr.String())
 			return
 		}
-
 
 		// Array value has changed from not missed to missed, increment counter
 		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
