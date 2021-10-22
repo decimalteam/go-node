@@ -1,12 +1,13 @@
 package gov
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"runtime/debug"
 	"strconv"
+
+	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewHandler creates an sdk.Handler for all the gov type messages
@@ -97,5 +98,15 @@ func handleSoftwareUpgradeProposal(ctx sdk.Context, k Keeper, p types.MsgSoftwar
 	if err != nil {
 		return nil, err
 	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, p.Proposer.String()),
+			sdk.NewAttribute(types.AttributeKeyUpgradeHeight, strconv.FormatInt(p.Plan.Height, 10)),
+		),
+	)
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

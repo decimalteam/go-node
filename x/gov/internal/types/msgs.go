@@ -146,7 +146,7 @@ func NewSoftwareUpgradeProposal(title, description string, plan Plan, proposer s
 	return MsgSoftwareUpgradeProposal{title, description, plan, proposer}
 }
 
-const ProposalTypeSoftwareUpgrade = "SoftwareUpgrade"
+const ProposalTypeSoftwareUpgrade = "software_upgrade"
 
 // Route implements Msg
 func (msg MsgSoftwareUpgradeProposal) Route() string { return RouterKey }
@@ -160,7 +160,6 @@ func (msg MsgSoftwareUpgradeProposal) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-	// ADD NOT
 	if !msg.Proposer.Equals(address) {
 		return errors.New("not allowed")
 	}
