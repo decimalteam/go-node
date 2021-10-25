@@ -3,7 +3,6 @@ package types
 import (
 	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -28,50 +27,50 @@ const (
 	CodeUnableToFindCreatedAccount     CodeType = 112
 )
 
-func ErrFeePayerAddressDoesNotExist(feePayer types.AccAddress) *sdkerrors.Error {
+func ErrFeePayerAddressDoesNotExist(feePayer string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultRootCodespace,
 		CodeFeePayerAddressDoesNotExist,
 		fmt.Sprintf("fee payer address: %s does not exist", feePayer),
-		errors.NewParam("feePayer", fmt.Sprintf("%s", feePayer)),
+		errors.NewParam("feePayer", feePayer),
 	)
 }
 
-func ErrFeeLessThanCommission(feeInBaseCoin, commissionInBaseCoin types.Int) *sdkerrors.Error {
+func ErrFeeLessThanCommission(feeInBaseCoin, commissionInBaseCoin string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultRootCodespace,
 		CodeFeeLessThanCommission,
 		fmt.Sprintf("insufficient funds to pay for fees; %s < %s", feeInBaseCoin, commissionInBaseCoin),
-		errors.NewParam("feeInBaseCoin", fmt.Sprintf("%s", feeInBaseCoin)),
-		errors.NewParam("commissionInBaseCoin", fmt.Sprintf("%s", commissionInBaseCoin)),
+		errors.NewParam("feeInBaseCoin", feeInBaseCoin),
+		errors.NewParam("commissionInBaseCoin", commissionInBaseCoin),
 	)
 }
 
-func ErrFailedToSendCoins(err error) *sdkerrors.Error {
+func ErrFailedToSendCoins(err string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultRootCodespace,
 		CodeFailedToSendCoins,
-		fmt.Sprintf("failed to send coins: %s", err.Error()),
-		errors.NewParam("error", err.Error()),
+		fmt.Sprintf("failed to send coins: %s", err),
+		errors.NewParam("error", err),
 	)
 }
 
-func ErrInsufficientFundsToPayFee(coins types.Coins, fee types.Coin) *sdkerrors.Error {
+func ErrInsufficientFundsToPayFee(coins, fee string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultRootCodespace,
 		CodeInsufficientFundsToPayFee,
 		fmt.Sprintf("insufficient funds to pay for fee; %s < %s", coins, fee),
-		errors.NewParam("coins", fmt.Sprintf("%s", coins)),
-		errors.NewParam("fee", fmt.Sprintf("%s", fee)),
+		errors.NewParam("coins", coins),
+		errors.NewParam("fee", fee),
 	)
 }
 
-func ErrInvalidFeeAmount(fee types.Coin) *sdkerrors.Error {
+func ErrInvalidFeeAmount(fee string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultRootCodespace,
 		CodeInvalidFeeAmount,
 		"invalid fee amount",
-		errors.NewParam("fee", fmt.Sprintf("%s", fee)),
+		errors.NewParam("fee", fee),
 	)
 }
 
@@ -108,14 +107,14 @@ func ErrNotGasTxType() *sdkerrors.Error {
 	)
 }
 
-func ErrOutOfGas(location string, gasWanted, gasUsed uint64) *sdkerrors.Error {
+func ErrOutOfGas(location, gasWanted, gasUsed string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultRootCodespace,
 		CodeOutOfGas,
-		fmt.Sprintf("out of gas in location: %v; gasWanted: %d, gasUsed: %d", location, gasWanted, gasUsed),
+		fmt.Sprintf("out of gas in location: %v; gasWanted: %s, gasUsed: %s", location, gasWanted, gasUsed),
 		errors.NewParam("location", location),
-		errors.NewParam("gasWanted", fmt.Sprintf("%d", gasWanted)),
-		errors.NewParam("gasUsed", fmt.Sprintf("%d", gasUsed)),
+		errors.NewParam("gasWanted", gasWanted),
+		errors.NewParam("gasUsed", gasUsed),
 	)
 }
 

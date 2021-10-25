@@ -164,7 +164,11 @@ func (sud SetUpContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate
 		if r := recover(); r != nil {
 			switch rType := r.(type) {
 			case sdk.ErrorOutOfGas:
-				err = types.ErrOutOfGas(rType.Descriptor, gasTx.GetGas(), newCtx.GasMeter().GasConsumed())
+				err = types.ErrOutOfGas(
+					rType.Descriptor,
+					fmt.Sprintf("%d", gasTx.GetGas()),
+					fmt.Sprintf("%d", newCtx.GasMeter().GasConsumed()),
+				)
 			default:
 				panic(r)
 			}
@@ -307,7 +311,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	feePayerAcc := fd.ak.GetAccount(ctx, feePayer)
 
 	if feePayerAcc == nil {
-		return ctx, types.ErrFeePayerAddressDoesNotExist(feePayer)
+		return ctx, types.ErrFeePayerAddressDoesNotExist(feePayer.String())
 	}
 
 	if feeTx.GetFee().IsZero() {
@@ -355,7 +359,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	}
 
 	if feeInBaseCoin.LT(commissionInBaseCoin) {
-		return ctx, types.ErrFeeLessThanCommission(feeInBaseCoin, commissionInBaseCoin)
+		return ctx, types.ErrFeeLessThanCommission(feeInBaseCoin.String(), commissionInBaseCoin.String())
 	}
 
 	// deduct the fees
@@ -396,25 +400,25 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 	}
 
 	if !fee.IsValid() {
-		return types.ErrInvalidFeeAmount(fee)
+		return types.ErrInvalidFeeAmount(fee.String())
 	}
 
 	// verify the account has enough funds to pay for fee
 	_, hasNeg := coins.SafeSub(sdk.NewCoins(fee))
 	if hasNeg {
-		return types.ErrInsufficientFundsToPayFee(coins, fee)
+		return types.ErrInsufficientFundsToPayFee(coins.String(), fee.String())
 	}
 
 	// Validate the account has enough "spendable" coins as this will cover cases
 	// such as vesting accounts.
 	spendableCoins := acc.SpendableCoins(blockTime)
 	if _, hasNeg := spendableCoins.SafeSub(sdk.NewCoins(fee)); hasNeg {
-		return types.ErrInsufficientFundsToPayFee(spendableCoins, fee)
+		return types.ErrInsufficientFundsToPayFee(spendableCoins.String(), fee.String())
 	}
 
 	err = supplyKeeper.SendCoinsFromAccountToModule(ctx, acc.GetAddress(), authtypes.FeeCollectorName, sdk.NewCoins(fee))
 	if err != nil {
-		return types.ErrFailedToSendCoins(err)
+		return types.ErrFailedToSendCoins(err.Error())
 	}
 
 	s := supplyKeeper.GetSupply(ctx)
