@@ -1,6 +1,5 @@
 package keeper
 
-/*
 import (
 	"fmt"
 	"io"
@@ -81,6 +80,14 @@ func testDownloadBinary(t *testing.T) (string, string) {
 	err := Keeper{}.DownloadBinary(downloadName, newUrl)
 	if err != nil {
 		os.Remove(downloadName)
+		require.NoError(t, err)
+	}
+
+	mode, err := getMode(downloadName)
+	require.NoError(t, err)
+
+	if mode.Perm() != os.FileMode(0644) {
+		err = os.Chmod(downloadName, os.FileMode(0644))
 		require.NoError(t, err)
 	}
 
@@ -214,5 +221,3 @@ func copyFile(src, dst string) error {
 	}
 	return out.Close()
 }
-
-*/
