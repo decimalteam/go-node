@@ -26,6 +26,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	planURL := ""
+	nextVersion := ""
 
 	if ctx.BlockHeight() >= updates.Update3Block {
 		// "http://127.0.0.1/95000@v1.2.1"
@@ -34,28 +35,20 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			k.ClearUpgradePlan(ctx)
 			return
 		}
-
 		planURL = splited[0]
-		nextVersion := splited[1]
-		if ctx.BlockHeight() > plan.Height {
-			if ncfg.DecimalVersion != nextVersion {
-				ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
-				os.Exit(1)
-			}
-			k.ClearUpgradePlan(ctx)
-			return
-		}
+		nextVersion = splited[1]
 	} else {
 		planURL = plan.Name
-		if ctx.BlockHeight() > plan.Height {
-			nextVersion := loadVersion(plan.Name)
-			if ncfg.DecimalVersion != nextVersion {
-				ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
-				os.Exit(1)
-			}
-			k.ClearUpgradePlan(ctx)
-			return
+		nextVersion = loadVersion(plan.Name)
+	}
+
+	if ctx.BlockHeight() > plan.Height {
+		if ncfg.DecimalVersion != nextVersion {
+			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
+			os.Exit(1)
 		}
+		k.ClearUpgradePlan(ctx)
+		return
 	}
 
 	allBlocks := ncfg.UpdatesInfo.AllBlocks
