@@ -25,10 +25,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
-	var (
-		planURL = ""
-		version = ""
-	)
+	planURL := ""
 
 	if ctx.BlockHeight() >= updates.Update3Block {
 		// "http://127.0.0.1/95000@v1.2.1"
@@ -39,10 +36,9 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		}
 
 		planURL = splited[0]
-		version = splited[1]
-
+		nextVersion := splited[1]
 		if ctx.BlockHeight() > plan.Height {
-			if ncfg.DecimalVersion != version {
+			if ncfg.DecimalVersion != nextVersion {
 				ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
 				os.Exit(1)
 			}
