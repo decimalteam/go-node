@@ -31,7 +31,7 @@ func ErrFeePayerAddressDoesNotExist(feePayer string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultRootCodespace,
 		CodeFeePayerAddressDoesNotExist,
-		fmt.Sprintf("fee payer address: %s does not exist", feePayer),
+		fmt.Sprintf("fee payer address does not exist: %s", feePayer),
 		errors.NewParam("feePayer", feePayer),
 	)
 }
