@@ -146,13 +146,11 @@ func NewSoftwareUpgradeProposal(title, description string, plan Plan, proposer s
 	return MsgSoftwareUpgradeProposal{title, description, plan, proposer}
 }
 
-const ProposalTypeSoftwareUpgrade = "software_upgrade"
-
 // Route implements Msg
 func (msg MsgSoftwareUpgradeProposal) Route() string { return RouterKey }
 
 // Type implements Msg
-func (msg MsgSoftwareUpgradeProposal) Type() string { return ProposalTypeSoftwareUpgrade }
+func (msg MsgSoftwareUpgradeProposal) Type() string { return TypeMsgSoftwareUpgrade }
 
 // ValidateBasic implements Msg
 func (msg MsgSoftwareUpgradeProposal) ValidateBasic() error {
