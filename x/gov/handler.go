@@ -98,5 +98,15 @@ func handleSoftwareUpgradeProposal(ctx sdk.Context, k Keeper, p types.MsgSoftwar
 	if err != nil {
 		return nil, err
 	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, p.Proposer.String()),
+			sdk.NewAttribute(types.AttributeKeyUpgradeHeight, strconv.FormatInt(p.Plan.Height, 10)),
+		),
+	)
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
