@@ -1,6 +1,8 @@
-package utils
+package ante
 
 import (
+	"bitbucket.org/decimalteam/go-node/utils"
+	"bitbucket.org/decimalteam/go-node/utils/ante/internal/types"
 	"fmt"
 	"strings"
 
@@ -11,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -42,7 +44,7 @@ func NewAnteHandler(ak keeper.AccountKeeper, vk validator.Keeper, ck coin.Keeper
 }
 
 var (
-	_ GasTx = (*types.StdTx)(nil) // assert StdTx implements GasTx
+	_ GasTx = (*authtypes.StdTx)(nil) // assert StdTx implements GasTx
 )
 
 // GasTx defines a Tx with a GetGas() method which is needed to use SetUpContextDecorator
@@ -115,11 +117,11 @@ func (cad PostCreateAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 		ctx = ctx.WithValue("created_account_number", nil)
 		accAddr, err := sdk.AccAddressFromBech32(accAddress.(string))
 		if err != nil {
-			return ctx, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "invalid address of created accout")
+			return ctx, types.ErrInvalidAddressOfCreatedAccount()
 		}
 		acc := cad.ak.GetAccount(ctx, accAddr)
 		if acc == nil {
-			return ctx, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "unable to find created accout")
+			return ctx, types.ErrUnableToFindCreatedAccount()
 		}
 		acc.SetAccountNumber(accNumber.(uint64))
 		cad.ak.SetAccount(ctx, acc)
@@ -148,7 +150,7 @@ func (sud SetUpContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate
 		// Set a gas meter with limit 0 as to prevent an infinite gas meter attack
 		// during runTx.
 		newCtx = SetGasMeter(simulate, ctx, 0)
-		return newCtx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be GasTx")
+		return newCtx, types.ErrNotGasTxType()
 	}
 
 	newCtx = SetGasMeter(simulate, ctx, gasTx.GetGas())
@@ -162,11 +164,11 @@ func (sud SetUpContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate
 		if r := recover(); r != nil {
 			switch rType := r.(type) {
 			case sdk.ErrorOutOfGas:
-				logStr := fmt.Sprintf(
-					"out of gas in location: %v; gasWanted: %d, gasUsed: %d",
-					rType.Descriptor, gasTx.GetGas(), newCtx.GasMeter().GasConsumed())
-
-				err = sdkerrors.Wrap(sdkerrors.ErrOutOfGas, logStr)
+				err = types.ErrOutOfGas(
+					rType.Descriptor,
+					fmt.Sprintf("%d", gasTx.GetGas()),
+					fmt.Sprintf("%d", newCtx.GasMeter().GasConsumed()),
+				)
 			default:
 				panic(r)
 			}
@@ -184,7 +186,7 @@ func SetGasMeter(simulate bool, ctx sdk.Context, gasLimit uint64) sdk.Context {
 		return ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	}
 
-	return ctx.WithGasMeter(NewGasMeter(gasLimit))
+	return ctx.WithGasMeter(utils.NewGasMeter(gasLimit))
 }
 
 type FeeDecorator struct {
@@ -241,17 +243,17 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 
 	feeTx, ok := tx.(FeeTx)
 	if !ok {
-		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
+		return ctx, types.ErrNotFeeTxType()
 	}
 
-	if addr := fd.sk.GetModuleAddress(types.FeeCollectorName); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.FeeCollectorName))
+	if addr := fd.sk.GetModuleAddress(authtypes.FeeCollectorName); addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", authtypes.FeeCollectorName))
 	}
 
 	// all transactions must implement GasTx
 	stdTx, ok := tx.(auth.StdTx)
 	if !ok {
-		return newCtx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be StdTx")
+		return newCtx, types.ErrNotStdTxType()
 	}
 
 	commissionInBaseCoin := sdk.ZeroInt()
@@ -309,7 +311,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	feePayerAcc := fd.ak.GetAccount(ctx, feePayer)
 
 	if feePayerAcc == nil {
-		return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "fee payer address: %s does not exist", feePayer)
+		return ctx, types.ErrFeePayerAddressDoesNotExist(feePayer.String())
 	}
 
 	if feeTx.GetFee().IsZero() {
@@ -357,8 +359,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	}
 
 	if feeInBaseCoin.LT(commissionInBaseCoin) {
-		return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds,
-			"insufficient funds to pay for fees; %s < %s", feeInBaseCoin, commissionInBaseCoin)
+		return ctx, types.ErrFeeLessThanCommission(feeInBaseCoin.String(), commissionInBaseCoin.String())
 	}
 
 	// deduct the fees
@@ -389,7 +390,7 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 
 	feeCoin, err := coinKeeper.GetCoin(ctx, strings.ToLower(fee.Denom))
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "coin not exist: %s", fee.Denom)
+		return types.ErrCoinDoesNotExist(fee.Denom)
 	}
 
 	if !coinKeeper.IsCoinBase(fee.Denom) {
@@ -399,27 +400,25 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 	}
 
 	if !fee.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "invalid fee amount: %s", fee)
+		return types.ErrInvalidFeeAmount(fee.String())
 	}
 
 	// verify the account has enough funds to pay for fee
 	_, hasNeg := coins.SafeSub(sdk.NewCoins(fee))
 	if hasNeg {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds,
-			"insufficient funds to pay for fee; %s < %s", coins, fee)
+		return types.ErrInsufficientFundsToPayFee(coins.String(), fee.String())
 	}
 
 	// Validate the account has enough "spendable" coins as this will cover cases
 	// such as vesting accounts.
 	spendableCoins := acc.SpendableCoins(blockTime)
 	if _, hasNeg := spendableCoins.SafeSub(sdk.NewCoins(fee)); hasNeg {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds,
-			"insufficient funds to pay for fee; %s < %s", spendableCoins, fee)
+		return types.ErrInsufficientFundsToPayFee(spendableCoins.String(), fee.String())
 	}
 
-	err = supplyKeeper.SendCoinsFromAccountToModule(ctx, acc.GetAddress(), types.FeeCollectorName, sdk.NewCoins(fee))
+	err = supplyKeeper.SendCoinsFromAccountToModule(ctx, acc.GetAddress(), authtypes.FeeCollectorName, sdk.NewCoins(fee))
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, err.Error())
+		return types.ErrFailedToSendCoins(err.Error())
 	}
 
 	s := supplyKeeper.GetSupply(ctx)
