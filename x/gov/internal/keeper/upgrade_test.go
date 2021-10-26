@@ -1,6 +1,5 @@
 package keeper
 
-/*
 import (
 	"fmt"
 	"io"
@@ -214,5 +213,3 @@ func copyFile(src, dst string) error {
 	}
 	return out.Close()
 }
-
-*/

@@ -195,6 +195,18 @@ func (k Keeper) DownloadBinary(filepath string, url string) error {
 	}
 	defer out.Close()
 
+	mode, err := getMode(filepath)
+	if err != nil {
+		return err
+	}
+
+	if mode.Perm() != os.FileMode(0644) {
+		err = os.Chmod(filepath, os.FileMode(0644))
+		if err != nil {
+			return err
+		}
+	}
+
 	// Write the body to file
 	_, err = io.Copy(out, resp.Body)
 	return err
