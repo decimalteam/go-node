@@ -159,11 +159,12 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 		go func(del exported.DelegationI) {
 			defer wg.Done()
 			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
-				coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
+				del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
+				/*coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
 				if err != nil {
 					panic(err)
 				}
-				del = del.SetTokensBase(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount))
+				del = del.SetTokensBase(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount))*/
 				eventMutex.Lock()
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
 					types.EventTypeCalcStake,
@@ -495,6 +496,10 @@ func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validatorAddr sdk.Va
 	}
 
 	for _, delegation := range delegations {
+		_ , err  = k.GetCoin(ctx , delegation.GetCoin().Denom )
+		if err!= nil {
+			return  false , err
+		}
 		if delegation.GetCoin().Amount.LT(stakeValue) || (delAddr.Equals(delegation.GetDelegatorAddr()) && stake.Denom == delegation.GetCoin().Denom) {
 			return true, nil
 		}
@@ -549,4 +554,14 @@ func (k Keeper) DecreaseValidatorTokens(ctx sdk.Context, valAddr sdk.ValAddress,
 		ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), valAddr)
 	}
 	return validator.Tokens
+}
+
+func (k Keeper) TokenBaseOfDelegation(ctx sdk.Context, del exported.DelegationI) sdk.Int {
+	coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
+	if err != nil {
+		panic(err)
+	}
+	delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
+	totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
+	return totalAmountCoin.Mul(del.GetCoin().Amount).Quo(delegatedCoin)
 }

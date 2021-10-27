@@ -28,6 +28,9 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		case *types.MsgVote:
 			return handleMsgVote(ctx, keeper, *msg)
 
+		case *types.MsgSoftwareUpgradeProposal:
+			return handleSoftwareUpgradeProposal(ctx, keeper, *msg)
+
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -89,6 +92,24 @@ func handleMsgVote(ctx sdk.Context, keeper Keeper, msg types.MsgVote) (*sdk.Resu
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter),
 			sdk.NewAttribute(types.AttributeKeyProposalID, strconv.FormatUint(msg.ProposalID, 10)),
 			sdk.NewAttribute(types.AttributeKeyOption, msg.Option.String()),
+		),
+	)
+
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
+}
+
+func handleSoftwareUpgradeProposal(ctx sdk.Context, k Keeper, msg types.MsgSoftwareUpgradeProposal) (*sdk.Result, error) {
+	err := k.ScheduleUpgrade(ctx, msg.Plan)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Proposer),
+			sdk.NewAttribute(types.AttributeKeyUpgradeHeight, strconv.FormatInt(msg.Plan.Height, 10)),
 		),
 	)
 

@@ -38,6 +38,7 @@ const (
 	AddrPubkeyRelationKey            = 0x12
 	HistoricalInfoKey                = 0x13
 	DelegationNFTKey                 = 0x14
+	DelegatedCoinKey                    = 0x18
 )
 
 func GetValidatorKey(addr sdk.ValAddress) []byte {
@@ -225,4 +226,8 @@ func ParseValidatorPowerRankKey(key []byte) (operAddr []byte) {
 // GetHistoricalInfoKey gets the key for the historical info
 func GetHistoricalInfoKey(height int64) []byte {
 	return append([]byte{HistoricalInfoKey}, []byte(strconv.FormatInt(height, 10))...)
+}
+
+func GetDelegateCoinKey(symbol string) []byte {
+	return append([]byte{DelegatedCoinKey}, []byte(symbol)...)
 }

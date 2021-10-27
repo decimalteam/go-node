@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -316,6 +317,8 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	index := signInfo.IndexOffset % types.SignedBlocksWindow
 	signInfo.IndexOffset++
 
+	gracePeriodStart := ncfg.UpdatesInfo.LastBlock
+	gracePeriodEnd := gracePeriodStart + (24 * ncfg.OneHour)
 	// Update signed block bit array & counter
 	// This counter just tracks the sum of the bit array
 	// That way we avoid needing to read/write the whole array each time
@@ -323,6 +326,11 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	missed := !signed
 	switch {
 	case !previous && missed:
+		if height >= gracePeriodStart && height <= gracePeriodEnd {
+			log.Println(consAddr.String())
+			return
+		}
+
 		// Array value has changed from not missed to missed, increment counter
 		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 		signInfo.MissedBlocksCounter++

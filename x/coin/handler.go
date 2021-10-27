@@ -1,8 +1,8 @@
 package coin
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin/keeper"
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/types"
 	"bytes"
 	"encoding/base64"
 	"fmt"
@@ -38,7 +38,7 @@ func floatFromInt(amount sdk.Int) float64 {
 
 // NewHandler creates an sdk.Handler for all the coin type messages
 func NewHandler(k Keeper) sdk.Handler {
-	msgServer := keeper.NewMsgServerImpl(k)
+	//msgServer := keeper.NewMsgServerImpl(k)
 
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		defer func() {
@@ -53,8 +53,7 @@ func NewHandler(k Keeper) sdk.Handler {
 		case *MsgUpdateCoin:
 			return handleMsgUpdateCoin(ctx, k, *msg)
 		case *MsgSendCoin:
-			res, err := msgServer.SendCoin(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
+			return handleMsgSendCoin(ctx, k, *msg)
 		case *MsgMultiSendCoin:
 			return handleMsgMultiSendCoin(ctx, k, *msg)
 		case *MsgBuyCoin:
@@ -209,7 +208,11 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgSendCoin) (*sdk.
 	senderaddr, _ := sdk.AccAddressFromBech32(msg.Sender)
 	receiveraddr, _ := sdk.AccAddressFromBech32(msg.Receiver)
 
-	err := k.BankKeeper.SendCoins(ctx, senderaddr, receiveraddr, sdk.Coins{msg.Coin})
+	_, err := k.GetCoin(ctx, msg.Coin.Denom)
+	if err != nil {
+		return nil, types.ErrCoinDoesNotExist(msg.Coin.Denom)
+	}
+	err = k.BankKeeper.SendCoins(ctx, senderaddr, receiveraddr, sdk.Coins{msg.Coin})
 	if err != nil {
 		return nil, sdkerrors.New(types2.DefaultCodespace, 6, err.Error())
 	}
@@ -230,8 +233,11 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgMultiSendCo
 
 	for i := range msg.Sends {
 		receiveraddr, _ := sdk.AccAddressFromBech32(msg.Sends[i].Receiver)
-
-		err := k.BankKeeper.SendCoins(ctx, senderaddr, receiveraddr, sdk.Coins{msg.Sends[i].Coin})
+		_, err := k.GetCoin(ctx, msg.Sends[i].Coin.Denom)
+		if err != nil {
+			return nil, types.ErrCoinDoesNotExist(msg.Sends[i].Coin.Denom)
+		}
+		err = k.BankKeeper.SendCoins(ctx, senderaddr, receiveraddr, sdk.Coins{msg.Sends[i].Coin})
 		if err != nil {
 			return nil, sdkerrors.New(types2.DefaultCodespace, 6, err.Error())
 		}

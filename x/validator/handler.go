@@ -90,7 +90,7 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 
 	k.AfterValidatorCreated(ctx, validatorAddr)
 
-	err = k.Delegate(ctx, sdk.AccAddress(validatorAddr), msg.Stake, types.Unbonded, val, true)
+	_, err = k.Delegate(ctx, sdk.AccAddress(validatorAddr), msg.Stake, types.Unbonded, val, true)
 	if err != nil {
 		e := sdkerrors.Error{}
 		if errors.As(err, &e) {
@@ -141,7 +141,7 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, types.ErrDelegatorStakeIsTooLow()
 	}
 
-	err = k.Delegate(ctx, delegatoraddr, msg.Coin, types.Unbonded, val, true)
+	priceDelCustom , err := k.Delegate(ctx, delegatoraddr, msg.Coin, types.Unbonded, val, true)
 	if err != nil {
 		e := sdkerrors.Error{}
 		if errors.As(err, &e) {
@@ -157,6 +157,7 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		sdk.NewAttribute(sdk.AttributeKeySender, delegatoraddr.String()),
 		sdk.NewAttribute(types.AttributeKeyValidator, validatoraddr.String()),
 		sdk.NewAttribute(types.AttributeKeyCoin, msg.Coin.String()),
+		sdk.NewAttribute(types.AttributeDelPrice, priceDelCustom.String()),
 	))
 
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil

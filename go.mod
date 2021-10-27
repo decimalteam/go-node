@@ -11,6 +11,7 @@ require (
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/cosmos/cosmos-sdk v0.42.8
 	github.com/ethereum/go-ethereum v1.10.4
+	github.com/go-ini/ini v1.63.2 // indirect
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect

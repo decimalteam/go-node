@@ -63,6 +63,15 @@ func MustUnmarshalDelegation(cdc *codec.LegacyAmino, value []byte) Delegation {
 	return delegation
 }
 
+func MustUnmarshalDelegateCoin(cdc *codec.LegacyAmino, value []byte) sdk.Int {
+	amount := sdk.ZeroInt()
+	err := cdc.UnmarshalBinaryLengthPrefixed(value, &amount)
+	if err != nil {
+		panic(err)
+	}
+	return amount
+}
+
 // return the delegation
 func UnmarshalDelegation(cdc *codec.LegacyAmino, value []byte) (delegation Delegation, err error) {
 	err = cdc.UnmarshalBinaryLengthPrefixed(value, &delegation)

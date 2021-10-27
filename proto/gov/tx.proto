@@ -9,6 +9,7 @@ import "gov/gov.proto";
 service Msg {
   rpc SubmitProposal(MsgSubmitProposal) returns (MsgSubmitProposalResponse);
   rpc Vote(MsgVote) returns (MsgVoteResponse);
+  rpc SoftwareUpgradeProposal(MsgSoftwareUpgradeProposal) returns (MsgSoftwareUpgradeProposalResponse);
 }
 
 message MsgSubmitProposal {
@@ -60,3 +61,31 @@ message MsgVote {
 }
 
 message MsgVoteResponse {}
+
+
+message MsgSoftwareUpgradeProposal {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  string Proposer = 1 [
+    (gogoproto.jsontag) = "proposer",
+    (gogoproto.moretags) = "yaml:\"proposer\""
+  ];
+  string Title = 2 [
+    (gogoproto.jsontag) = "title",
+    (gogoproto.moretags) = "yaml:\"title\""
+  ];
+  string Description = 3 [
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\""
+  ];
+  Plan Plan = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "plan",
+    (gogoproto.moretags) = "yaml:\"plan\""
+  ];
+
+}
+
+message MsgSoftwareUpgradeProposalResponse {}
