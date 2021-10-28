@@ -29,7 +29,7 @@ go.sum: go.mod
 
 # look into .golangci.yml for enabling / disabling linters
 lint:
-	@echo "--> Running linter"
+	@echo "--> Running linter "
 	@golangci-lint run
 	@go mod verify
 
