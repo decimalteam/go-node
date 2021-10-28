@@ -40,6 +40,7 @@ const (
 	CodeLimitVolumeBroken          CodeType = 207
 	// Send coin
 	CodeInvalidAmount CodeType = 300
+	CodeInvalidReceiverAddress CodeType = 301
 	// Redeem check
 	CodeInvalidCheck          CodeType = 400
 	CodeInvalidProof          CodeType = 401
@@ -278,6 +279,14 @@ func ErrInvalidAmount() *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidAmount,
 		"amount should be greater than 0",
+	)
+}
+
+func ErrReceiverEmpty() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidReceiverAddress,
+		"Receiver cannot be empty ",
 	)
 }
 
