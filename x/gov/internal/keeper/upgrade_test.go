@@ -98,7 +98,7 @@ func testGetMode(t *testing.T) (string, os.FileMode) {
 	mode, err := getMode(downloadName)
 	require.NoError(t, err)
 
-	require.Equal(t, os.FileMode(0664), mode)
+	require.Equal(t, os.FileMode(0644), mode)
 	return downloadName, mode
 }
 

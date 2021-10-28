@@ -1,11 +1,12 @@
 package types
 
 import (
+	"regexp"
+	"strings"
+
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"regexp"
-	"strings"
 )
 
 /* --------------------------------------------------------------------------- */

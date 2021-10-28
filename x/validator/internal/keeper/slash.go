@@ -351,8 +351,8 @@ const WithoutSlashPeriod5End = WithoutSlashPeriod5Start + 2600
 const WithoutSlashPeriod6Start = updates.Update12Block
 const WithoutSlashPeriod6End = WithoutSlashPeriod6Start + 15840
 
-const WithoutSlashPeriod7Start = updates.Update13Block - 7920 // update_block - 12hours
-const WithoutSlashPeriod7End = updates.Update13Block + 14992  // update_block + 24hours
+const WithoutSlashPeriod7Start = updates.Update13Block
+const WithoutSlashPeriod7End = updates.Update13Block + 14992
 
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
