@@ -1,8 +1,9 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
+
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -12,6 +13,7 @@ type CodeType = uint32
 const (
 	// Default coin codespace
 	DefaultCodespace string = ModuleName
+
 	// Create coin
 	CodeInvalidCRR                      CodeType = 100
 	CodeCoinDoesNotExist                CodeType = 101
@@ -38,8 +40,11 @@ const (
 	CodeMinimumValueToBuyReached   CodeType = 205
 	CodeUpdateBalance              CodeType = 206
 	CodeLimitVolumeBroken          CodeType = 207
+
 	// Send coin
-	CodeInvalidAmount CodeType = 300
+	CodeInvalidAmount          CodeType = 300
+	CodeInvalidReceiverAddress CodeType = 301
+
 	// Redeem check
 	CodeInvalidCheck          CodeType = 400
 	CodeInvalidProof          CodeType = 401
@@ -54,6 +59,7 @@ const (
 	CodeUnableDecodeProof     CodeType = 410
 	CodeUnableRecoverAddress  CodeType = 411
 	CodeUnableRecoverLockPkey CodeType = 412
+
 	// AccountKeys
 	CodeInvalidPkey              CodeType = 500
 	CodeUnableRetriveArmoredPkey CodeType = 501
@@ -278,6 +284,14 @@ func ErrInvalidAmount() *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidAmount,
 		"amount should be greater than 0",
+	)
+}
+
+func ErrReceiverEmpty() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidReceiverAddress,
+		"Receiver cannot be empty ",
 	)
 }
 
