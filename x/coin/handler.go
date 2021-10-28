@@ -1,7 +1,6 @@
 package coin
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bytes"
 	"encoding/base64"
 	"fmt"
@@ -10,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 
 	"golang.org/x/crypto/sha3"
 
@@ -94,6 +94,8 @@ func getCreateCoinCommission(symbol string) sdk.Int {
 }
 
 func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*sdk.Result, error) {
+	return nil, types.ErrInternal("test: failed create coin")
+
 	if msg.InitialReserve.LT(MinCoinReserve(ctx)) {
 		return nil, types.ErrInvalidCoinInitialReserve(MinCoinReserve(ctx).String())
 	}
