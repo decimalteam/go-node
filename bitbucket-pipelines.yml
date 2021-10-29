@@ -18,6 +18,7 @@ definitions:
           - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
           - export GO111MODULE=on
           - cd "${PACKAGE_PATH}"
+          - go clean -cache -modcache
           - go get ./...
           - go test ./...
           - make all
