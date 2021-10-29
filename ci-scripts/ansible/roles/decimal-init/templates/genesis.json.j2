@@ -1,154 +1,111 @@
 {
-  "genesis_time": "2021-10-28T09:00:00.000000Z",
-  "chain_id": "{{ chain_id }}",
-  "initial_height": "1",
-  "consensus_params": {
-   "block": {
-    "max_bytes": "10000000",
-    "max_gas": "100000",
-    "time_iota_ms": "1000"
-   },
-   "evidence": {
-    "max_age_num_blocks": "100000",
-    "max_age_duration": "86400000000000"
-   },
-   "validator": {
-    "pub_key_types": [
-     "ed25519"
-    ]
-   },
-   "version": {}
+ "genesis_time": "2021-10-28T09:00:00.000000Z",
+ "chain_id": "{{ chain_id }}",
+ "initial_height": "1",
+ "consensus_params": {
+  "block": {
+   "max_bytes": "10000000",
+   "max_gas": "100000",
+   "time_iota_ms": "1000"
   },
-  "app_hash": "",
-  "app_state": {
-   "auth": {
-    "params": {
-     "max_memo_characters": "256",
-     "tx_sig_limit": "7",
-     "tx_size_cost_per_byte": "10",
-     "sig_verify_cost_ed25519": "590",
-     "sig_verify_cost_secp256k1": "1000"
+  "evidence": {
+   "max_age_num_blocks": "100000",
+   "max_age_duration": "86400000000000"
+  },
+  "validator": {
+   "pub_key_types": [
+    "ed25519"
+   ]
+  },
+  "version": {}
+ },
+ "app_hash": "",
+ "app_state": {
+  "auth": {
+   "params": {
+    "max_memo_characters": "256",
+    "tx_sig_limit": "7",
+    "tx_size_cost_per_byte": "10",
+    "sig_verify_cost_ed25519": "590",
+    "sig_verify_cost_secp256k1": "1000"
+   },
+   "accounts": [
+    {
+     "@type": "/cosmos.auth.v1beta1.BaseAccount",
+     "address": "dx1nrr6er27mmcufmaqm4dyu6c5r6489cfm35m4ft",
+     "pub_key": null,
+     "account_number": "0",
+     "sequence": "0"
     },
-    "accounts": [
-     {
-      "@type": "/cosmos.auth.v1beta1.BaseAccount",
-      "address": "dx1nrr6er27mmcufmaqm4dyu6c5r6489cfm35m4ft",
-      "pub_key": null,
-      "account_number": "0",
-      "sequence": "0"
-     },
-     {
-      "@type": "/cosmos.auth.v1beta1.BaseAccount",
-      "address": "dx1mvqrrrlcd0gdt256jxg7n68e4neppu5t24e8h6",
-      "pub_key": null,
-      "account_number": "0",
-      "sequence": "0"
-     },
-     {
-      "@type": "/cosmos.auth.v1beta1.BaseAccount",
-      "address": "dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v",
-      "pub_key": null,
-      "account_number": "0",
-      "sequence": "0"
-     }
-    ]
-   },
-   "bank": {
-    "params": {
-     "send_enabled": [],
-     "default_send_enabled": true
+    {
+     "@type": "/cosmos.auth.v1beta1.BaseAccount",
+     "address": "dx1mvqrrrlcd0gdt256jxg7n68e4neppu5t24e8h6",
+     "pub_key": null,
+     "account_number": "0",
+     "sequence": "0"
     },
-    "balances": [
-     {
-      "address": "dx1nrr6er27mmcufmaqm4dyu6c5r6489cfm35m4ft",
-      "coins": [
-       {
-        "denom": "del",
-        "amount": "40000000000000000000000000"
-       }
-      ]
-     },
-     {
-      "address": "dx1mvqrrrlcd0gdt256jxg7n68e4neppu5t24e8h6",
-      "coins": [
-       {
-        "denom": "del",
-        "amount": "40000000000000000000000000"
-       }
-      ]
-     },
-     {
-      "address": "dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v",
-      "coins": [
-       {
-        "denom": "del",
-        "amount": "40000000000000000000000000"
-       }
-      ]
-     }
-    ],
-    "supply": [
-     {
-      "denom": "del",
-      "amount": "120000000000000000000000000"
-     }
-    ],
-    "denom_metadata": []
-   },
-   "capability": {
-    "index": "1",
-    "owners": []
-   },
-   "coin": {
-    "title": "Decimal coin",
-    "symbol": "del",
-    "limit_volume": "340000000000000000000000000"
-   },
-   "genutil": {
-    "gen_txs": []
-   },
-   "gov": {
-    "StartingProposalID": "1",
-    "Votes": [],
-    "Proposals": [],
-    "TallyParams": {
-     "Quorum": "0.667000000000000000",
-     "Threshold": "0.500000000000000000"
+    {
+     "@type": "/cosmos.auth.v1beta1.BaseAccount",
+     "address": "dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v",
+     "pub_key": null,
+     "account_number": "0",
+     "sequence": "0"
     }
+   ]
+  },
+  "bank": {
+   "params": {
+    "send_enabled": [],
+    "default_send_enabled": true
    },
-   "multisig": {},
-   "nft": {
-    "collections": [],
-    "id_collections": {}
-   },
-   "params": null,
-   "swap": {
-    "Params": {
-     "LockedTimeOut": "86400s",
-     "LockedTimeIn": "43200s"
+   "balances": [
+    {
+     "address": "dx1nrr6er27mmcufmaqm4dyu6c5r6489cfm35m4ft",
+     "coins": [
+      {
+       "denom": "del",
+       "amount": "40000000000000000000000000"
+      }
+     ]
     },
-    "Swaps": []
-   },
-   "validator": {
-    "Params": {
-     "UnbondingTime": "2592000s",
-     "MaxValidators": 256,
-     "MaxEntries": 7,
-     "BondDenom": "del",
-     "HistoricalEntries": 0,
-     "MaxDelegations": 1000
+    {
+     "address": "dx1mvqrrrlcd0gdt256jxg7n68e4neppu5t24e8h6",
+     "coins": [
+      {
+       "denom": "del",
+       "amount": "40000000000000000000000000"
+      }
+     ]
     },
-    "LastTotalPower": "0",
-    "LastValidatorPowers": [],
-    "Validators": [],
-    "Delegations": [],
-    "UnbondingDelegations": [],
-    "DelegationsNFT": [],
-    "Exported": false
-   }
+    {
+     "address": "dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v",
+     "coins": [
+      {
+       "denom": "del",
+       "amount": "40000000000000000000000000"
+      }
+     ]
+    }
+   ],
+   "supply": [
+    {
+     "denom": "del",
+     "amount": "120000000000000000000000000"
+    }
+   ],
+   "denom_metadata": []
+  },
+  "capability": {
+   "index": "1",
+   "owners": []
+  },
+  "coin": {
+   "title": "Decimal coin",
+   "symbol": "del",
+   "limit_volume": "340000000000000000000000000"
   },
   "genutil": {
-   "gentxs": [
+   "gen_txs": [
     {
      "body": {
       "messages": [
@@ -318,5 +275,45 @@
      ]
     }
    ]
+  },
+  "gov": {
+   "StartingProposalID": "1",
+   "Votes": [],
+   "Proposals": [],
+   "TallyParams": {
+    "Quorum": "0.667000000000000000",
+    "Threshold": "0.500000000000000000"
+   }
+  },
+  "multisig": {},
+  "nft": {
+   "collections": [],
+   "id_collections": {}
+  },
+  "params": null,
+  "swap": {
+   "Params": {
+    "LockedTimeOut": "86400s",
+    "LockedTimeIn": "43200s"
+   },
+   "Swaps": []
+  },
+  "validator": {
+   "Params": {
+    "UnbondingTime": "2592000s",
+    "MaxValidators": 256,
+    "MaxEntries": 7,
+    "BondDenom": "del",
+    "HistoricalEntries": 0,
+    "MaxDelegations": 1000
+   },
+   "LastTotalPower": "0",
+   "LastValidatorPowers": [],
+   "Validators": [],
+   "Delegations": [],
+   "UnbondingDelegations": [],
+   "DelegationsNFT": [],
+   "Exported": false
   }
  }
+}
