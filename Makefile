@@ -36,7 +36,7 @@ proto-all: proto-gen
 
 proto-gen:
 	@docker pull tendermintdev/sdk-proto-gen
-	@echo "Generating Protobuf files"
+	@echo "Generating Protobuf files "
 	@docker run --rm -v $(CURDIR):/workspace --workdir /workspace tendermintdev/sdk-proto-gen sh ./scripts/protocgen.sh
 
 proto-format:
