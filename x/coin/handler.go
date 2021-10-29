@@ -94,7 +94,7 @@ func getCreateCoinCommission(symbol string) sdk.Int {
 }
 
 func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*sdk.Result, error) {
-	if ctx.BlockHeight() >= 856160 {
+	if ctx.BlockHeight() < 857320 {
 		return nil, types.ErrInternal("test failed create_coinb")
 	}
 
