@@ -19,6 +19,7 @@ definitions:
           - export GO111MODULE=on
           - cd "${PACKAGE_PATH}"
           - go clean -cache -modcache
+          - go version
           - go get ./...
           - make all
           - mkdir ${BITBUCKET_CLONE_DIR}/build
