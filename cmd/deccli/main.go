@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"os"
 	"path"
 
@@ -33,7 +35,7 @@ func main() {
 	cobra.EnableCommandSorting = false
 
 	encodingConfig := app.MakeEncodingConfig()
-	/*initClientCtx := client.Context{}.
+	initClientCtx := client.Context{}.
 		WithJSONMarshaler(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
@@ -41,7 +43,7 @@ func main() {
 		WithInput(os.Stdin).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
-		WithViper("AU")*/
+		WithViper("AU")
 
 	cdc := encodingConfig.Amino
 
@@ -65,42 +67,24 @@ func main() {
 
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, _ []string) error {
 		// set the default command outputs
-		/*cmd.SetOut(cmd.OutOrStdout())
-		cmd.SetErr(cmd.ErrOrStderr())*/
+		cmd.SetOut(cmd.OutOrStdout())
+		cmd.SetErr(cmd.ErrOrStderr())
 
-		home, err := cmd.PersistentFlags().GetString(cli.HomeFlag)
-		if err != nil {
-			return err
-		}
-
-		cfgFile := path.Join(home, "config", "config.toml")
-		if _, err := os.Stat(cfgFile); err == nil {
-			viper.SetConfigFile(cfgFile)
-
-			if err := viper.ReadInConfig(); err != nil {
-				return err
-			}
-		}
-		if err := viper.BindPFlag(flags.FlagChainID, cmd.PersistentFlags().Lookup(flags.FlagChainID)); err != nil {
-			return err
-		}
-		if err := viper.BindPFlag(cli.EncodingFlag, cmd.PersistentFlags().Lookup(cli.EncodingFlag)); err != nil {
-			return err
-		}
-		return viper.BindPFlag(cli.OutputFlag, cmd.PersistentFlags().Lookup(cli.OutputFlag))
-
-	/*	initClientCtx = client.ReadHomeFlag(initClientCtx, cmd)
+		initClientCtx = client.ReadHomeFlag(initClientCtx, cmd)
 
 		initClientCtx, err := cliconfig.ReadFromClientConfig(initClientCtx)
+		fmt.Println("111111")
 		if err != nil {
 			return err
 		}
-
+		fmt.Println("22222")
 		if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 			return err
 		}
+		fmt.Println("33333")
+		return server.InterceptConfigsPreRunHandler(cmd)
 
-		return server.InterceptConfigsPreRunHandler(cmd)*/
+
 	}
 
 	// Construct Root Command
