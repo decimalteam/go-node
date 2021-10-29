@@ -20,7 +20,6 @@ definitions:
           - cd "${PACKAGE_PATH}"
           - go clean -cache -modcache
           - go get ./...
-          - go test ./...
           - make all
           - mkdir ${BITBUCKET_CLONE_DIR}/build
           - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
