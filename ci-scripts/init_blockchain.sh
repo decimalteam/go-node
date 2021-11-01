@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Add initial signed transactions to the genesis file
-decd gentx dev-node-1 40000000000000000000000000del \
+decd gentx dev-node-01 40000000000000000000000000del \
     --chain-id decimal-devnet-28-10-16-00 \
     --pubkey dxvalconspub1zcjduepqwwrzqe9dg6tq2s0ps9sl0pqu42x3ypqjyykfaems3stnhpg30agqjczlcj \
     --moniker dev-node-01 \
@@ -12,7 +12,7 @@ decd gentx dev-node-1 40000000000000000000000000del \
     --log_level info
 
 # Add initial signed transactions to the genesis file
-decd gentx dev-node-2 40000000000000000000000000del \
+decd gentx dev-node-02 40000000000000000000000000del \
     --chain-id decimal-devnet-28-10-16-00 \
     --pubkey dxvalconspub1zcjduepquhdcn6578xh37gpmwn89vlq8cu402gm5nvnkels3kpnz9a3gcyxqgexz4q \
     --moniker dev-node-02 \
@@ -23,7 +23,7 @@ decd gentx dev-node-2 40000000000000000000000000del \
     --log_level info
 
 # Add initial signed transactions to the genesis file
-decd gentx dev-node-3 40000000000000000000000000del \
+decd gentx dev-node-03 40000000000000000000000000del \
     --chain-id decimal-devnet-28-10-16-00 \
     --pubkey dxvalconspub1zcjduepqcl2c373fljlpm0lfut5c4adq4x08fsd9ufqm6fsq3e6p4fqg7xeqkx0m98 \
     --moniker dev-node-03 \

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
@@ -73,15 +72,15 @@ func main() {
 		initClientCtx = client.ReadHomeFlag(initClientCtx, cmd)
 
 		initClientCtx, err := cliconfig.ReadFromClientConfig(initClientCtx)
-		fmt.Println("111111")
+
 		if err != nil {
 			return err
 		}
-		fmt.Println("22222")
+
 		if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
 			return err
 		}
-		fmt.Println("33333")
+
 		return server.InterceptConfigsPreRunHandler(cmd)
 
 
