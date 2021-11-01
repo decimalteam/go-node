@@ -31,3 +31,5 @@ decd gentx dev-node-03 40000000000000000000000000del \
     --node-id e0e7a88de0b39bd2adceb3516d353582ff94ec15 \
     --ip "185.242.122.124" \
     --log_level info
+
+    # Comma separated list of nodes to keep persistent connections to

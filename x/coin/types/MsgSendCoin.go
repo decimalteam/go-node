@@ -43,5 +43,13 @@ func ValidateSend(msg MsgSendCoin) error {
 	if msg.Coin.Amount.LTE(sdk.NewInt(0)) {
 		return ErrInvalidAmount()
 	}
+	receiver , err := sdk.AccAddressFromBech32(msg.Receiver)
+	if err!= nil {
+		return err
+	}
+
+	if receiver.Empty() {
+		return ErrReceiverEmpty()
+	}
 	return nil
 }

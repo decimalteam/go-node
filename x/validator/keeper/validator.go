@@ -495,6 +495,10 @@ func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validatorAddr sdk.Va
 	}
 
 	for _, delegation := range delegations {
+		_ , err  = k.GetCoin(ctx , delegation.GetCoin().Denom )
+		if err!= nil {
+			return  false , err
+		}
 		if delegation.GetCoin().Amount.LT(stakeValue) || (delAddr.Equals(delegation.GetDelegatorAddr()) && stake.Denom == delegation.GetCoin().Denom) {
 			return true, nil
 		}

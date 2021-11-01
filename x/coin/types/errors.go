@@ -42,6 +42,7 @@ const (
 	CodeLimitVolumeBroken          CodeType = 207
 	// Send coin
 	CodeInvalidAmount CodeType = 300
+	CodeInvalidReceiverAddress CodeType = 301
 	// Redeem check
 	InvalidCheck      CodeType = 400
 	InvalidProof      CodeType = 401
@@ -148,4 +149,9 @@ func ErrMinimumValueToBuyReached(amount, min string) *sdkerrors.Error {
 
 func ErrInvalidAmount() *sdkerrors.Error {
 	return sdkerrors.New(DefaultCodespace, CodeInvalidAmount, "amount should be greater than 0")
+}
+
+func ErrReceiverEmpty() *sdkerrors.Error {
+	return sdkerrors.New(DefaultCodespace, CodeInvalidReceiverAddress, "Receiver cannot be empty")
+
 }
