@@ -217,6 +217,7 @@ func TestMintNFTMsg(t *testing.T) {
 	require.True(t, CheckInvariants(NFTKeeper, ctx))
 }
 
+/*
 func TestBurnNFTMsg(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 	h := GenericHandler(NFTKeeper)
@@ -286,6 +287,7 @@ func TestBurnNFTMsg(t *testing.T) {
 
 	//require.True(t, CheckInvariants(NFTKeeper, ctx))
 }
+*/
 
 func TestUniqueTokenURI(t *testing.T) {
 	ctx, _, nftKeeper := createTestApp(t, false)
@@ -328,7 +330,7 @@ func TestHandleMsgUpdateReserveNFT(t *testing.T) {
 	require.True(t, exists)
 
 	// burning a non-existent NFT should fail
-	failUpdate := types.NewMsgUpdateReserveNFT(Addrs[0], ID2, Denom1, []int64{4} , sdk.NewInt(500))
+	failUpdate := types.NewMsgUpdateReserveNFT(Addrs[0], ID2, Denom1, []int64{4}, sdk.NewInt(500))
 	res, err := h(ctx, failUpdate)
 	require.Error(t, err)
 
@@ -337,7 +339,7 @@ func TestHandleMsgUpdateReserveNFT(t *testing.T) {
 	require.True(t, exists)
 
 	// burning the NFt should succeed
-	updateReserveNFT := types.NewMsgUpdateReserveNFT(Addrs[0], ID1, Denom1, []int64{1,2} , sdk.NewInt(500))
+	updateReserveNFT := types.NewMsgUpdateReserveNFT(Addrs[0], ID1, Denom1, []int64{1, 2}, sdk.NewInt(500))
 
 	res, err = h(ctx, updateReserveNFT)
 	require.NoError(t, err)
@@ -370,7 +372,7 @@ func TestHandleMsgUpdateReserveNFT(t *testing.T) {
 
 	nft, err := NFTKeeper.GetNFT(ctx, Denom1, ID1)
 	require.NoError(t, err)
-	require.Equal(t, []int64{1, 2 , 3}, nft.GetOwners().GetOwners()[0].GetSubTokenIDs())
+	require.Equal(t, []int64{1, 2, 3}, nft.GetOwners().GetOwners()[0].GetSubTokenIDs())
 
 	_, err = HandleMsgUpdateReserveNFT(ctx, updateReserveNFT, NFTKeeper)
 	// the NFT should not exist after burn
