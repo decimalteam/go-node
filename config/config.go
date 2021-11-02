@@ -1,6 +1,9 @@
 package config
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,7 +12,7 @@ import (
 const (
 
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "0.9.24"
+	DecimalVersion = "0.9.25"
 
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
@@ -43,18 +46,29 @@ const (
 	SymbolTestBaseCoin = "tdel"
 	TitleBaseCoin      = "Decimal coin"
 	SymbolBaseCoin     = "del"
+
+	OneHour = 660 // blocks
 )
 
 var (
 	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("340000000000000000000000000")
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("340000000000000000000000000")
 )
+var (
+	DataPath  = fmt.Sprintf("%s/.decimal/daemon/data", os.Getenv("HOME"))
+	NameFiles = []string{"decd", "deccli"}
+)
 
+var (
+	UpdatesName = "updates.json"
+	UpdatesInfo = NewUpdatesInfo(filepath.Join(DataPath, UpdatesName))
+)
 type Config struct {
 	TitleBaseCoin         string  `json:"title" yaml:"title"`   // Full coin title (Bitcoin)
 	SymbolBaseCoin        string  `json:"symbol" yaml:"symbol"` // Short coin title (BTC)
 	InitialVolumeBaseCoin sdk.Int `json:"initial_volume" yaml:"initial_volume"`
 }
+
 
 func GetDefaultConfig(chainId string) *Config {
 	cnf := Config{}

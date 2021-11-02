@@ -10,9 +10,10 @@ import (
 const (
 	TypeMsgVote           = "vote"
 	TypeMsgSubmitProposal = "submit_proposal"
+	TypeMsgSoftwareUpgrade = "software_upgrade"
 )
 
-var _, _ sdk.Msg = &MsgSubmitProposal{}, &MsgVote{}
+var _, _ , _ sdk.Msg = &MsgSubmitProposal{}, &MsgVote{} , &MsgSoftwareUpgradeProposal{}
 
 // MsgSubmitProposal defines a message to create a governance proposal with a
 // given content and initial deposit
@@ -130,4 +131,74 @@ func (msg *MsgVote) GetSignBytes() []byte {
 // GetSigners implements Msg
 func (msg *MsgVote) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.Voter)}
+}
+
+/*
+type MsgSoftwareUpgradeProposal struct {
+	Title       string         `json:"title" yaml:"title"`
+	Description string         `json:"description" yaml:"description"`
+	Plan        Plan           `json:"plan" yaml:"plan"`
+	Proposer    sdk.AccAddress `json:"proposer" yaml:"proposer"` //  Address of the proposer
+}*/
+
+const AddressForSoftwareUpgrade = "dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v"
+
+// Software Upgrade Proposals
+func NewSoftwareUpgradeProposal(title, description string, plan Plan, proposer sdk.AccAddress) MsgSoftwareUpgradeProposal {
+	return MsgSoftwareUpgradeProposal{
+		Title:			title,
+		Proposer:		proposer.String(),
+		Description:	description,
+		Plan:   plan,
+	}
+}
+
+// Route implements Msg
+func (msg MsgSoftwareUpgradeProposal) Route() string { return RouterKey }
+
+// Type implements Msg
+func (msg MsgSoftwareUpgradeProposal) Type() string { return TypeMsgSoftwareUpgrade }
+// ValidateBasic implements Msg
+
+func (msg MsgSoftwareUpgradeProposal) ValidateBasic() error {
+	address, err := sdk.AccAddressFromBech32(AddressForSoftwareUpgrade)
+	if err != nil {
+		return err
+	}
+
+	sender, err := sdk.AccAddressFromBech32(msg.Proposer)
+	if err != nil {
+		return err
+	}
+
+	if len(msg.Proposer) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Proposer)
+	}
+
+	if !sender.Equals(address) {
+		return sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, msg.Proposer)
+	}
+	return nil
+}
+
+func (msg MsgSoftwareUpgradeProposal) String() string {
+	return fmt.Sprintf(`Submit Proposal Message:
+  Title:          %s
+  Description:    %s
+`, msg.Title, msg.Description)
+}
+
+// GetSignBytes implements Msg
+func (msg MsgSoftwareUpgradeProposal) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners implements Msg
+func (msg MsgSoftwareUpgradeProposal) GetSigners() []sdk.AccAddress {
+	proposerAddr, err := sdk.AccAddressFromBech32(msg.Proposer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{proposerAddr}
 }

@@ -4,6 +4,35 @@ package gov;
 option go_package = "bitbucket.org/decimalteam/go-node/x/gov/types";
 
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+message Plan {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string Name = 1 [
+    (gogoproto.jsontag) = "name"
+  ];
+
+  google.protobuf.Timestamp Time = 2 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "time"
+  ];
+
+  int64 Height = 3 [
+    (gogoproto.jsontag) = "height"
+  ];
+
+  string Info = 4 [
+    (gogoproto.jsontag) = "info"
+  ];
+
+  int64 ToDownload = 5 [
+    (gogoproto.jsontag) = "to_update"
+  ];
+}
+
 
 message Vote {
   option (gogoproto.equal) = false;

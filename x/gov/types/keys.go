@@ -21,6 +21,12 @@ const (
 
 	// DefaultParamspace default name for parameter store
 	DefaultParamspace = ModuleName
+
+	KeyUpgradedIBCState = "upgradedIBCState"
+
+	KeyUpgradedClient = "upgradedClient"
+
+	KeyUpgradedConsState = "upgradedConsState"
 )
 
 // Keys for governance store
@@ -42,6 +48,9 @@ var (
 	ProposalIDKey               = []byte{0x03}
 
 	VotesKeyPrefix = []byte{0x10}
+
+	PlanPrefix = []byte{0x20}
+	DoneByte   = []byte{0x21}
 )
 
 // GetProposalIDBytes returns the byte representation of the proposalID
@@ -154,3 +163,4 @@ func splitKeyWithAddress(key []byte) (proposalID uint64, addr sdk.AccAddress) {
 	addr = key[9:]
 	return
 }
+
