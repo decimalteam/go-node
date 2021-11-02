@@ -30,7 +30,7 @@ func GenericHandler(k keeper.Keeper) sdk.Handler {
 		case types.MsgBurnNFT:
 			return HandleMsgBurnNFT(ctx, msg, k)
 		case types.MsgUpdateReserveNFT:
-			return HandleMsgUpdateReserveNFT(ctx,msg,k)
+			return HandleMsgUpdateReserveNFT(ctx, msg, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unrecognized nft message type: %T", msg))
 		}
@@ -127,9 +127,8 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 			return nil, ErrNotUniqueTokenID()
 		}
 		if msg.Reserve.LT(types.MinReserve) {
-				return nil, types.ErrInvalidReserve(msg.Reserve.String())
-			}
-
+			return nil, types.ErrInvalidReserve(msg.Reserve.String())
+		}
 	}
 
 	lastSubTokenID, err := k.MintNFT(ctx, msg.Denom, msg.ID, msg.Reserve, msg.Quantity, msg.Sender, msg.Recipient, msg.TokenURI, msg.AllowMint)
@@ -158,6 +157,8 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 // HandleMsgBurnNFT handles MsgBurnNFT
 func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 ) (*sdk.Result, error) {
+	return nil, ErrNotAllowedBurn()
+
 	nft, err := k.GetNFT(ctx, msg.Denom, msg.ID)
 	if err != nil {
 		return nil, err
