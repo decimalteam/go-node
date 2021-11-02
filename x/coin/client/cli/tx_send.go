@@ -30,6 +30,7 @@ ignored as it is implied from [from_key_or_address].`,
 				return err
 			}
 
+
 			msg := types.NewMsgSendCoin(clientCtx.GetFromAddress(), coin, receiver)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

@@ -2,6 +2,7 @@ package cli
 
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"strconv"
 
@@ -18,10 +19,11 @@ import (
 
 func GetCmdCreateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
-		Use:   "create [title] [symbol] [crr] [initReserve] [initVolume] [limitVolume] [identity]",
+		Use:   "create [title] [symbol] [crr] [initReserve] [initVolume] [limitVolume] [identity] [from]",
 		Short: "Creates new coin",
-		Args:  cobra.ExactArgs(7),
+		Args:  cobra.ExactArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Flags().Set(flags.FlagFrom, args[7])
 			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
 			// Parsing parameters to variables

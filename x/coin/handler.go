@@ -214,7 +214,7 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgSendCoin) (*sdk.
 	}
 	err = k.BankKeeper.SendCoins(ctx, senderaddr, receiveraddr, sdk.Coins{msg.Coin})
 	if err != nil {
-		return nil, sdkerrors.New(types2.DefaultCodespace, 6, err.Error())
+		return nil, types.ErrInternal(err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -239,7 +239,7 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgMultiSendCo
 		}
 		err = k.BankKeeper.SendCoins(ctx, senderaddr, receiveraddr, sdk.Coins{msg.Sends[i].Coin})
 		if err != nil {
-			return nil, sdkerrors.New(types2.DefaultCodespace, 6, err.Error())
+			return nil, types.ErrInternal(err.Error())
 		}
 
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
