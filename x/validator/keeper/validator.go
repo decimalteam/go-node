@@ -159,11 +159,12 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 		go func(del exported.DelegationI) {
 			defer wg.Done()
 			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
-				coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
+				del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
+				/*coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
 				if err != nil {
 					panic(err)
 				}
-				del = del.SetTokensBase(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount))
+				del = del.SetTokensBase(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount))*/
 				eventMutex.Lock()
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
 					types.EventTypeCalcStake,

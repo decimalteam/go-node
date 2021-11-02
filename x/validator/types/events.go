@@ -20,6 +20,7 @@ const (
 	EventTypeDAOReward            = "dao_reward"
 	EventTypeDevelopReward        = "develop_reward"
 
+	AttributeDelPrice                      = "del"
 	AttributeKeyValidator                  = "validator"
 	AttributeKeyDelegator                  = "delegator"
 	AttributeKeyRewardAddress              = "reward_address"

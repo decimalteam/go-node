@@ -28,6 +28,20 @@ func (k Keeper) GetDelegation(ctx sdk.Context,
 	return delegation, true
 }
 
+
+func (k Keeper) GetDelegatedCoin(ctx sdk.Context, symbol string) sdk.Int {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetDelegateCoinKey(symbol)
+	value := store.Get(key)
+	if value == nil {
+		if ctx.BlockHeight() >= 1117042 {
+			return sdk.ZeroInt()
+		}
+		panic(fmt.Sprintf("coin with symbol %s not exist", symbol))
+	}
+	return types.MustUnmarshalDelegateCoin(k.cdc, value)
+}
+
 // IterateAllDelegations iterate through all of the delegations
 func (k Keeper) IterateAllDelegations(ctx sdk.Context, cb func(delegation exported.DelegationI) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
@@ -325,7 +339,7 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
 
 // Perform a delegation, set/update everything necessary within the store.
 // tokenSrc indicates the bond status of the incoming funds.
-func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.Coin, tokenSrc types.BondStatus, validator types.Validator, subtractAccount bool) error {
+func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.Coin, tokenSrc types.BondStatus, validator types.Validator, subtractAccount bool) (sdk.Int, error) {
 	valAddr, _ := sdk.ValAddressFromBech32(validator.ValAddress)
 
 	// Get or create the delegation object
@@ -343,11 +357,11 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 
 	delegatorAddr, err := sdk.AccAddressFromBech32(delegation.DelegatorAddress)
 	if err != nil {
-		return err
+		return  sdk.Int{} , err
 	}
 	delegatorValAddr, err := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
 	if err != nil {
-		return err
+		return sdk.Int{} , err
 	}
 
 	// if subtractAccount is true then we are
@@ -370,7 +384,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 
 		err = k.baseKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddr, sendName, sdk.NewCoins(bondCoin))
 		if err != nil {
-			return err
+			return sdk.Int{} , err
 		}
 	} else {
 
@@ -402,28 +416,37 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 		}
 	}
 
-	k.SetDelegation(ctx, delegation)
-
 	k.DeleteValidatorByPowerIndex(ctx, validator)
+
 	if bondCoin.Denom == k.BondDenom(ctx) {
-		validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
+		if delegation.GetCoin().Denom != k.BondDenom(ctx) {
+			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
+			validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
+			delegation.TokensBase = tokenBase
+		} else {
+			validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
+			delegation.TokensBase = bondCoin.Amount
+		}
 	} else {
 		coin, err := k.GetCoin(ctx, bondCoin.Denom)
 		if err != nil {
-			return err
+			return sdk.Int{},err
 		}
 		validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
 	}
+
+	k.SetDelegation(ctx, delegation)
+
 	err = k.SetValidator(ctx, validator)
 	if err != nil {
-		return err
+		return sdk.Int{},err
 	}
 	k.SetValidatorByPowerIndexWithoutCalc(ctx, valAddr, validator)
 
 	// Call the after-modification hook
 	k.AfterDelegationModified(ctx, delegatorAddr, delegatorValAddr)
 
-	return nil
+	return delegation.TokensBase, nil
 }
 
 func (k Keeper) CheckTotalStake(ctx sdk.Context, validator types.Validator) bool {
@@ -717,4 +740,14 @@ func (k Keeper) GetAllUnbondingDelegations(ctx sdk.Context) []types.UnbondingDel
 	}
 
 	return unbondingDelegations
+}
+
+func (k Keeper) TokenBaseOfDelegation(ctx sdk.Context, del exported.DelegationI) sdk.Int {
+	coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
+	if err != nil {
+		panic(err)
+	}
+	delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
+	totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
+	return totalAmountCoin.Mul(del.GetCoin().Amount).Quo(delegatedCoin)
 }

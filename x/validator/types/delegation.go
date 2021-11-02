@@ -69,6 +69,16 @@ func UnmarshalDelegation(cdc *codec.LegacyAmino, value []byte) (delegation Deleg
 	return delegation, err
 }
 
+
+func MustUnmarshalDelegateCoin(cdc *codec.LegacyAmino, value []byte) sdk.Int {
+	amount := sdk.ZeroInt()
+	err := cdc.UnmarshalBinaryLengthPrefixed(value, &amount)
+	if err != nil {
+		panic(err)
+	}
+	return amount
+}
+
 // nolint
 func (d Delegation) Equal(d2 Delegation) bool {
 	return bytes.Equal([]byte(d.DelegatorAddress), []byte(d2.DelegatorAddress)) &&
