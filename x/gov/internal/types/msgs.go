@@ -11,9 +11,10 @@ import (
 
 // Governance message types and routes
 const (
-	TypeMsgVote            = "vote"
-	TypeMsgSubmitProposal  = "submit_proposal"
-	TypeMsgSoftwareUpgrade = "software_upgrade"
+	TypeMsgVote           = "vote"
+	TypeMsgSubmitProposal = "submit_proposal"
+	// TypeMsgSoftwareUpgrade = "software_upgrade"
+	TypeMsgSoftwareUpgrade = "SoftwareUpgrade"
 )
 
 var _, _ sdk.Msg = MsgSubmitProposal{}, MsgVote{}
