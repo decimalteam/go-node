@@ -24,36 +24,39 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
-	if ctx.BlockHeight() > plan.Height {
-		nextVersion := loadVersion(plan.Name)
-		if ncfg.DecimalVersion != nextVersion {
-			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
-			os.Exit(1)
+	planURL := ""
+
+	if ctx.BlockHeight() >= 456767 {
+		// "http://127.0.0.1/95000@v1.2.1"
+		splited := strings.Split(plan.Name, "@")
+		if len(splited) != 2 {
+			k.ClearUpgradePlan(ctx)
+			return
 		}
-		k.ClearUpgradePlan(ctx)
-		return
+
+		planURL = splited[0]
+		version := splited[1]
+
+		if ctx.BlockHeight() > plan.Height {
+			if ncfg.DecimalVersion != version {
+				ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
+				os.Exit(2)
+			}
+			k.ClearUpgradePlan(ctx)
+			return
+		}
+	} else {
+		if ctx.BlockHeight() > plan.Height {
+			nextVersion := loadVersion(plan.Name)
+			if ncfg.DecimalVersion != nextVersion {
+				ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
+				os.Exit(1)
+			}
+			k.ClearUpgradePlan(ctx)
+			return
+		}
+		planURL = plan.Name
 	}
-
-	planURL := plan.Name
-
-	// // "http://127.0.0.1/95000@v1.2.1"
-	// splited := strings.Split(plan.Name, "@")
-	// if len(splited) != 2 {
-	// 	k.ClearUpgradePlan(ctx)
-	// 	return
-	// }
-
-	// planURL := splited[0]
-	// version := splited[1]
-
-	// if ctx.BlockHeight() > plan.Height {
-	// 	if ncfg.DecimalVersion != version {
-	// 		ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
-	// 		os.Exit(2)
-	// 	}
-	// 	k.ClearUpgradePlan(ctx)
-	// 	return
-	// }
 
 	allBlocks := ncfg.UpdatesInfo.AllBlocks
 	if _, ok := allBlocks[planURL]; ok {
