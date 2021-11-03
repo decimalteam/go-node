@@ -64,7 +64,6 @@ func GetCmdCreateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 
 import (
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
@@ -87,7 +86,7 @@ func GetCmdCreateCoin() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Println(clientCtx.GetFromAddress())
+
 			title := args[1]
 			symbol := args[2]
 			crr, err := strconv.ParseUint(args[3], 10, 8)
@@ -105,14 +104,15 @@ func GetCmdCreateCoin() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			acc, err := cliUtils.GetAccount(clientCtx, clientCtx.GetFromAddress())
+			/*acc, err := cliUtils.GetAccount(clientCtx, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}
+
 			balance, _ := cliUtils.GetAccountCoins(clientCtx, acc.GetAddress())
 			if balance.AmountOf(cliUtils.GetBaseCoin()).LT(initReserve) {
 				return types.ErrInsufficientCoinReserve()
-			}
+			}*/
 			// Check if coin does not exist yet
 			coinExists, _ := cliUtils.ExistsCoin(clientCtx, symbol)
 			if coinExists {

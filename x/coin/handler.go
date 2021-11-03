@@ -212,6 +212,7 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types2.MsgSendCoin) (*sdk.
 	if err != nil {
 		return nil, types.ErrCoinDoesNotExist(msg.Coin.Denom)
 	}
+
 	err = k.BankKeeper.SendCoins(ctx, senderaddr, receiveraddr, sdk.Coins{msg.Coin})
 	if err != nil {
 		return nil, types.ErrInternal(err.Error())
