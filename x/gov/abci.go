@@ -2,6 +2,10 @@ package gov
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -20,24 +24,36 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
-	// "http://127.0.0.1/95000@v1.2.1"
-	splited := strings.Split(plan.Name, "@")
-	if len(splited) != 2 {
-		k.ClearUpgradePlan(ctx)
-		return
-	}
-
-	planURL := splited[0]
-	version := splited[1]
-
 	if ctx.BlockHeight() > plan.Height {
-		if ncfg.DecimalVersion != version {
+		nextVersion := loadVersion(plan.Name)
+		if ncfg.DecimalVersion != nextVersion {
 			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
-			os.Exit(2)
+			os.Exit(1)
 		}
 		k.ClearUpgradePlan(ctx)
 		return
 	}
+
+	planURL := plan.Name
+
+	// // "http://127.0.0.1/95000@v1.2.1"
+	// splited := strings.Split(plan.Name, "@")
+	// if len(splited) != 2 {
+	// 	k.ClearUpgradePlan(ctx)
+	// 	return
+	// }
+
+	// planURL := splited[0]
+	// version := splited[1]
+
+	// if ctx.BlockHeight() > plan.Height {
+	// 	if ncfg.DecimalVersion != version {
+	// 		ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
+	// 		os.Exit(2)
+	// 	}
+	// 	k.ClearUpgradePlan(ctx)
+	// 	return
+	// }
 
 	allBlocks := ncfg.UpdatesInfo.AllBlocks
 	if _, ok := allBlocks[planURL]; ok {
@@ -164,4 +180,33 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 		return false
 	})
+}
+
+func loadVersion(urlPath string) string {
+	const fileVersion = "version.txt"
+
+	// example: "version.txt"
+	u, err := url.Parse(fileVersion)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// example: "https://testnet-repo.decimalchain.com/95000"
+	base, err := u.Parse(urlPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// result: "https://testnet-repo.decimalchain.com/version.txt"
+	resp, err := http.Get(base.ResolveReference(u).String())
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return strings.TrimSpace(string(body))
 }
