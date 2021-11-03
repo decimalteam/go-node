@@ -1,17 +1,16 @@
 package cli
 
 import (
-	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
-	"github.com/cosmos/cosmos-sdk/client/tx"
-	"strconv"
-
-	"github.com/spf13/cobra"
-
+	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/spf13/cobra"
+	"strconv"
 
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
+	"bitbucket.org/decimalteam/go-node/x/coin/types"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 )
 
 func GetCmdCreateCoin(cdc *codec.LegacyAmino) *cobra.Command {
@@ -20,9 +19,8 @@ func GetCmdCreateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 		Short: "Creates new coin",
 		Args:  cobra.ExactArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			sender, err := sdk.AccAddressFromBech32(args[7])
+			cmd.Flags().Set(flags.FlagFrom, args[7])
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -32,30 +30,30 @@ func GetCmdCreateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 			crr, err := strconv.ParseUint(args[2], 10, 8)
 			// If error when convert crr
 			if err != nil {
-				return types2.ErrInvalidCRR()
+				return types.ErrInvalidCRR()
 			}
 			initReserve, _ := sdk.NewIntFromString(args[3])
 			initVolume, _ := sdk.NewIntFromString(args[4])
 			limitVolume, _ := sdk.NewIntFromString(args[5])
 			identity := args[6]
 
-			msg := types2.NewMsgCreateCoin(sender, title, symbol, uint(crr), initVolume, initReserve, limitVolume, identity)
+			msg := types.NewMsgCreateCoin(clientCtx.GetFromAddress(), title, symbol, uint(crr), initVolume, initReserve, limitVolume, identity)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
-			acc, err := cliUtils.GetAccount(clientCtx, sender)
+			acc, err := cliUtils.GetAccount(clientCtx, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}
 			balance, _ := cliUtils.GetAccountCoins(clientCtx, acc.GetAddress())
 			if balance.AmountOf(cliUtils.GetBaseCoin()).LT(initReserve) {
-				return types2.ErrInsufficientCoinReserve()
+				return types.ErrInsufficientCoinReserve()
 			}
 			// Check if coin does not exist yet
 			coinExists, _ := cliUtils.ExistsCoin(clientCtx, symbol)
 			if coinExists {
-				return types2.ErrCoinAlreadyExist(symbol)
+				return types.ErrCoinAlreadyExist(symbol)
 			}
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
