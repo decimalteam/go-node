@@ -125,7 +125,8 @@ func (keeper Keeper) IterateAllActiveProposalsQueue(ctx sdk.Context, cb func(pro
 		proposalID, _ := types.SplitActiveProposalQueueKey(iterator.Key())
 		proposal, found := keeper.GetProposal(ctx, proposalID)
 		if !found {
-			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
+			continue
+			// panic(fmt.Sprintf("proposal %d does not exist", proposalID))
 		}
 
 		if cb(proposal) {
@@ -164,7 +165,8 @@ func (keeper Keeper) IterateAllInactiveProposalsQueue(ctx sdk.Context, cb func(p
 		proposalID, _ := types.SplitInactiveProposalQueueKey(iterator.Key())
 		proposal, found := keeper.GetProposal(ctx, proposalID)
 		if !found {
-			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
+			continue
+			// panic(fmt.Sprintf("proposal %d does not exist", proposalID))
 		}
 
 		if cb(proposal) {
