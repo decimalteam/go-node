@@ -2,7 +2,6 @@ package cli
 
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"strconv"
 
@@ -11,8 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-
 
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 )
@@ -23,28 +20,31 @@ func GetCmdCreateCoin(cdc *codec.LegacyAmino) *cobra.Command {
 		Short: "Creates new coin",
 		Args:  cobra.ExactArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().Set(flags.FlagFrom, args[7])
-			clientCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc)
 
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			sender, err := sdk.AccAddressFromBech32(args[7])
+			if err != nil {
+				return err
+			}
 			// Parsing parameters to variables
-			var title = args[0]
-			var symbol = args[1]
-			var crr, err = strconv.ParseUint(args[2], 10, 8)
+			title := args[0]
+			symbol := args[1]
+			crr, err := strconv.ParseUint(args[2], 10, 8)
 			// If error when convert crr
 			if err != nil {
 				return types2.ErrInvalidCRR()
 			}
-			var initReserve, _ = sdk.NewIntFromString(args[3])
-			var initVolume, _ = sdk.NewIntFromString(args[4])
-			var limitVolume, _ = sdk.NewIntFromString(args[5])
-			var identity = args[6]
+			initReserve, _ := sdk.NewIntFromString(args[3])
+			initVolume, _ := sdk.NewIntFromString(args[4])
+			limitVolume, _ := sdk.NewIntFromString(args[5])
+			identity := args[6]
 
-			msg := types2.NewMsgCreateCoin(clientCtx.GetFromAddress(), title, symbol, uint(crr), initVolume, initReserve, limitVolume, identity)
+			msg := types2.NewMsgCreateCoin(sender, title, symbol, uint(crr), initVolume, initReserve, limitVolume, identity)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
-			acc, err := cliUtils.GetAccount(clientCtx, clientCtx.GetFromAddress())
+			acc, err := cliUtils.GetAccount(clientCtx, sender)
 			if err != nil {
 				return err
 			}
