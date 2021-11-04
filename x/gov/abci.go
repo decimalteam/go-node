@@ -27,7 +27,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	planURL := ""
 	nextVersion := ""
 
-	if ctx.BlockHeight() >= 467900 {
+	if ctx.BlockHeight() >= 468300 {
 		// "http://127.0.0.1/95000@v1.2.1"
 		splited := strings.Split(plan.Name, "@")
 		if len(splited) != 2 {
