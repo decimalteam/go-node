@@ -27,19 +27,14 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	planURL := ""
 	nextVersion := ""
 
-	if ctx.BlockHeight() >= 468300 {
-		// "http://127.0.0.1/95000@v1.2.1"
-		splited := strings.Split(plan.Name, "@")
-		if len(splited) != 2 {
-			k.ClearUpgradePlan(ctx)
-			return
-		}
-		planURL = splited[0]
-		nextVersion = splited[1]
-	} else {
-		planURL = plan.Name
-		nextVersion = loadVersion(plan.Name)
+	// "http://127.0.0.1/95000@v1.2.1"
+	splited := strings.Split(plan.Name, "@")
+	if len(splited) != 2 {
+		k.ClearUpgradePlan(ctx)
+		return
 	}
+	planURL = splited[0]
+	nextVersion = splited[1]
 
 	if ctx.BlockHeight() > plan.Height {
 		if ncfg.DecimalVersion != nextVersion {

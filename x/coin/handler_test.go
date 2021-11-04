@@ -1,15 +1,15 @@
 package coin
 
-/*
 import (
+	"strings"
+	"testing"
+
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	keep "bitbucket.org/decimalteam/go-node/x/coin/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
 )
 
 func createCoin(ctx sdk.Context, keeper Keeper) Coin {
@@ -318,4 +318,3 @@ func TestCreateCoinTx(t *testing.T) {
 	testBalance := account.GetCoins().AmountOf(strings.ToLower(symbol))
 	require.Equal(t, testBalance, targetTestBalance, "Target %s balance is not correct. Expected %s, got %s", symbol, targetTestBalance, testBalance)
 }
-*/
