@@ -93,6 +93,8 @@ func getCreateCoinCommission(symbol string) sdk.Int {
 }
 
 func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*sdk.Result, error) {
+	return nil, types.ErrInternal("test-fail create coin")
+
 	if msg.InitialReserve.LT(MinCoinReserve(ctx)) {
 		return nil, types.ErrInvalidCoinInitialReserve(MinCoinReserve(ctx).String())
 	}
