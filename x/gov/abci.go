@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -91,9 +90,9 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
-	if ctx.BlockHeight() < updates.Update2Block {
-		return
-	}
+	// if ctx.BlockHeight() < updates.Update2Block {
+	// 	return
+	// }
 
 	logger := keeper.Logger(ctx)
 
