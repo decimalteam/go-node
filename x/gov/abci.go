@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -24,53 +25,29 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
-	planURL := ""
-
-	if ctx.BlockHeight() >= 456767 {
-		// "http://127.0.0.1/95000@v1.2.1"
-		splited := strings.Split(plan.Name, "@")
-		if len(splited) != 2 {
-			k.ClearUpgradePlan(ctx)
-			return
+	if ctx.BlockHeight() > plan.Height {
+		nextVersion := loadVersion(plan.Name)
+		if ncfg.DecimalVersion != nextVersion {
+			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
+			os.Exit(1)
 		}
-
-		planURL = splited[0]
-		version := splited[1]
-
-		if ctx.BlockHeight() > plan.Height {
-			if ncfg.DecimalVersion != version {
-				ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
-				os.Exit(2)
-			}
-			k.ClearUpgradePlan(ctx)
-			return
-		}
-	} else {
-		if ctx.BlockHeight() > plan.Height {
-			nextVersion := loadVersion(plan.Name)
-			if ncfg.DecimalVersion != nextVersion {
-				ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
-				os.Exit(1)
-			}
-			k.ClearUpgradePlan(ctx)
-			return
-		}
-		planURL = plan.Name
-	}
-
-	allBlocks := ncfg.UpdatesInfo.AllBlocks
-	if _, ok := allBlocks[planURL]; ok {
+		k.ClearUpgradePlan(ctx)
 		return
 	}
 
-	_, ok := downloadStat[planURL]
+	allBlocks := ncfg.UpdatesInfo.AllBlocks
+	if _, ok := allBlocks[plan.Name]; ok {
+		return
+	}
+
+	_, ok := downloadStat[plan.Name]
 
 	if ctx.BlockHeight() > (plan.Height-plan.ToDownload) && ctx.BlockHeight() < plan.Height && !ok {
 		for _, name := range ncfg.NameFiles {
 			// example:
 			// from "http://127.0.0.1/95000/decd"
 			// to "http://127.0.0.1/95000/linux/ubuntu/20.04/decd"
-			newUrl := k.GenerateUrl(fmt.Sprintf("%s/%s", planURL, name))
+			newUrl := k.GenerateUrl(fmt.Sprintf("%s/%s", plan.Name, name))
 			if newUrl == "" {
 				return
 			}
@@ -79,7 +56,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 				return
 			}
 
-			downloadStat[planURL] = true
+			downloadStat[plan.Name] = true
 			go k.DownloadBinary(k.GetDownloadName(name), newUrl)
 		}
 	}
@@ -88,7 +65,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	if plan.ShouldExecute(ctx) {
 		// If skip upgrade has been set for current height, we clear the upgrade plan
 		if k.IsSkipHeight(ctx.BlockHeight()) {
-			skipUpgradeMsg := fmt.Sprintf("UPGRADE \"%s\" SKIPPED at %d: %s", planURL, plan.Height, plan.Info)
+			skipUpgradeMsg := fmt.Sprintf("UPGRADE \"%s\" SKIPPED at %d: %s", plan.Name, plan.Height, plan.Info)
 			ctx.Logger().Info(skipUpgradeMsg)
 
 			// Clear the upgrade plan at current height
@@ -97,16 +74,16 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		}
 
 		// We have an upgrade handler for this upgrade name, so apply the upgrade
-		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", planURL, plan.DueAt()))
+		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 
 		err := k.ApplyUpgrade(ctx, plan)
 		if err != nil {
-			ctx.Logger().Error(fmt.Sprintf("upgrade \"%s\" with %s", planURL, err.Error()))
+			ctx.Logger().Error(fmt.Sprintf("upgrade \"%s\" with %s", plan.Name, err.Error()))
 			return
 		}
 
-		ncfg.UpdatesInfo.Push(planURL, ctx.BlockHeight())
+		ncfg.UpdatesInfo.Push(plan.Name, ctx.BlockHeight())
 		os.Exit(0)
 		return
 	}
@@ -114,9 +91,9 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
-	// if ctx.BlockHeight() < updates.Update1Block {
-	// 	return
-	// }
+	if ctx.BlockHeight() < updates.Update2Block {
+		return
+	}
 
 	logger := keeper.Logger(ctx)
 
