@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -28,7 +27,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	planURL := ""
 	nextVersion := ""
 
-	if ctx.BlockHeight() >= updates.Update3Block {
+	if ctx.BlockHeight() >= 467900 {
 		// "http://127.0.0.1/95000@v1.2.1"
 		splited := strings.Split(plan.Name, "@")
 		if len(splited) != 2 {
