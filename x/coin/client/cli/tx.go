@@ -26,7 +26,7 @@ func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 		GetCmdBuyCoin(cdc),
 		GetCmdSellCoin(cdc),
 		GetCmdSendCoin(),
-		GetCmdMultiSendCoin(cdc),
+		GetCmdMultiSendCoin(),
 		GetCmdSellAllCoin(cdc),
 		GetCmdIssueCheck(cdc),
 		GetCmdRedeemCheck(cdc),
