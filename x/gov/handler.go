@@ -1,7 +1,6 @@
 package gov
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"fmt"
 	"runtime/debug"
 	"strconv"
@@ -98,16 +97,6 @@ func handleSoftwareUpgradeProposal(ctx sdk.Context, k Keeper, p types.MsgSoftwar
 	err := k.ScheduleUpgrade(ctx, p.Plan)
 	if err != nil {
 		return nil, err
-	}
-	if ctx.BlockHeight() >= updates.Update14Block {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				sdk.EventTypeMessage,
-				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-				sdk.NewAttribute(sdk.AttributeKeySender, p.Proposer.String()),
-				sdk.NewAttribute(types.AttributeKeyUpgradeHeight, strconv.FormatInt(p.Plan.Height, 10)),
-			),
-		)
 	}
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

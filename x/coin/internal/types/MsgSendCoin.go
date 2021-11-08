@@ -41,8 +41,5 @@ func ValidateSend(msg MsgSendCoin) error {
 	if msg.Coin.Amount.LTE(sdk.NewInt(0)) {
 		return ErrInvalidAmount()
 	}
-	if msg.Receiver.Empty() {
-		return ErrReceiverEmpty()
-	}
 	return nil
 }
