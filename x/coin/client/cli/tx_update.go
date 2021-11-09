@@ -43,11 +43,11 @@ import (
 
 func GetCmdUpdateCoin() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update [from] [symbol] [limitVolume] [identity]",
+		Use:   "update [symbol] [limitVolume] [identity] [from]",
 		Short: "Update custom coin",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().Set(flags.FlagFrom, args[0])
+			cmd.Flags().Set(flags.FlagFrom, args[3])
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			var symbol = args[0]

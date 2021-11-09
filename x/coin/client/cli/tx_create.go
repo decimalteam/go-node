@@ -14,28 +14,28 @@ import (
 
 func GetCmdCreateCoin() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create [from] [title] [symbol] [crr] [initReserve] [initVolume] [limitVolume] [identity]",
+		Use:   "create [title] [symbol] [crr] [initReserve] [initVolume] [limitVolume] [identity] [from]",
 		Short: "Creates new coin",
 		Args:  cobra.ExactArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().Set(flags.FlagFrom, args[0])
+			cmd.Flags().Set(flags.FlagFrom, args[7])
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			title := args[1]
-			symbol := args[2]
-			crr, err := strconv.ParseUint(args[3], 10, 8)
+			title := args[0]
+			symbol := args[1]
+			crr, err := strconv.ParseUint(args[2], 10, 8)
 			// If error when convert crr
 			if err != nil {
 				return types.ErrInvalidCRR()
 			}
-			initReserve, _ := sdk.NewIntFromString(args[4])
-			initVolume, _ := sdk.NewIntFromString(args[5])
-			limitVolume, _ := sdk.NewIntFromString(args[6])
-			identity := args[7]
+			initReserve, _ := sdk.NewIntFromString(args[3])
+			initVolume, _ := sdk.NewIntFromString(args[4])
+			limitVolume, _ := sdk.NewIntFromString(args[5])
+			identity := args[6]
 
 			msg := types.NewMsgCreateCoin(clientCtx.GetFromAddress(), title, symbol, uint(crr), initVolume, initReserve, limitVolume, identity)
 			err = msg.ValidateBasic()

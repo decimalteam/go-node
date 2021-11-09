@@ -1,7 +1,6 @@
 package cli
 
 import (
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	//cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	types2 "bitbucket.org/decimalteam/go-node/x/coin/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -47,7 +46,7 @@ func GetCmdMultiSendCoin() *cobra.Command {
 
 
 			// Check if enough balance
-			balance, err := cliUtils.GetAccountCoins(clientCtx, clientCtx.GetFromAddress())
+			/*balance, err := cliUtils.GetAccountCoins(clientCtx, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}
@@ -59,7 +58,7 @@ func GetCmdMultiSendCoin() *cobra.Command {
 				}
 				wantFunds = wantFunds[:len(wantFunds)-2]
 				return types2.ErrInsufficientFunds(wantFunds, balance.String())
-			}
+			}*/
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
