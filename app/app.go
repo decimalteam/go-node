@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 
@@ -109,10 +108,12 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 
 	// Load file with updates info: last_block and all_blocks
-	err := config.UpdatesInfo.Load()
-	if err != nil {
-		panic(fmt.Sprintf("error: load file with updates '%s'", err.Error()))
-	}
+	config.UpdatesInfo.Load()
+
+	// err := config.UpdatesInfo.Load()
+	// if err != nil {
+	// 	panic(fmt.Sprintf("error: load file with updates '%s'", err.Error()))
+	// }
 
 	bApp.SetAppVersion(config.DecimalVersion)
 
@@ -283,7 +284,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)
 
-	err = app.LoadLatestVersion(app.keys[bam.MainStoreKey])
+	err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
 	if err != nil {
 		tos.Exit(err.Error())
 	}

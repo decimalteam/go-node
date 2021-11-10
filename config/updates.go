@@ -20,57 +20,40 @@ func NewUpdatesInfo(planfile string) *updatesInfo {
 	}
 }
 
-func (plan *updatesInfo) Push(height int64) error {
+func (plan *updatesInfo) Push(name string, height int64) {
 	plan.LastBlock = height
+	plan.AllBlocks[name] = height
 
 	bytes, err := json.Marshal(plan)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	err = ioutil.WriteFile(plan.filename, bytes, 0644)
 	if err != nil {
-		return err
+		panic(err)
 	}
-
-	return nil
 }
 
-func (plan *updatesInfo) Save(name string) error {
-	plan.AllBlocks[name] = plan.LastBlock
-
-	bytes, err := json.Marshal(plan)
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(plan.filename, bytes, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (plan *updatesInfo) Load() error {
+func (plan *updatesInfo) Load() *updatesInfo {
 	if !fileExist(plan.filename) {
-		err := ioutil.WriteFile(plan.filename, []byte("{}"), 0644)
+		err := ioutil.WriteFile(plan.filename, []byte("{}"), 0600)
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
 
 	bytes, err := ioutil.ReadFile(plan.filename)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	err = json.Unmarshal(bytes, plan)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
-	return nil
+	return plan
 }
 
 func fileExist(filename string) bool {
