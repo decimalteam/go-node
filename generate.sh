@@ -43,5 +43,5 @@ deccli config trust-node true
 echo "decd gentx --name test1"
 decd gentx --name test1
 
-echo "decd collect-gentxs"
+echo "decd collect-gentxs "
 decd collect-gentxs
