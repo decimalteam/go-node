@@ -78,13 +78,15 @@ func getCoinCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 				return nil
 			}
 
-			var out types2.Coin
+			fmt.Println(res)
+			return err
+			/*var out types2.Coin
 			err = json.Unmarshal(res, &out)
 			if err != nil {
 				panic(err)
 			}
 			fmt.Println(out)
-			return err
+			return err*/
 			//cdc.MustUnmarshalJSON(res, &out)
 			//return ctx.PrintObjectLegacy(out)
 		},

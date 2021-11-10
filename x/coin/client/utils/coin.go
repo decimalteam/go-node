@@ -13,7 +13,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-
 // Check if coin exists
 func ExistsCoin(clientCtx clientctx.Context, symbol string) (bool, error) {
 	res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types2.ModuleName, types2.QueryGetCoin, symbol), nil)
@@ -35,7 +34,7 @@ func GetCoin(clientCtx clientctx.Context, symbol string) (types2.Coin, error) {
 }
 
 func GetAccountCoins(clientCtx clientctx.Context, addr sdk.AccAddress) (sdk.Coins, error) {
-	res, _, err := clientCtx.QueryWithData(fmt.Sprintf("%s/%s/%s/%s","http://127.0.0.1:26657", bankTypes.ModuleName, "balances", addr), nil)
+	res, _, err := clientCtx.QueryWithData(fmt.Sprintf("%s/%s/%s", bankTypes.ModuleName, "balances", addr), nil)
 	coins := sdk.Coins{}
 
 	if err != nil {
