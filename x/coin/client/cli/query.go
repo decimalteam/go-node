@@ -78,7 +78,7 @@ func getCoinCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 				return nil
 			}
 
-			fmt.Println(res)
+			fmt.Println(string(res))
 			return err
 			/*var out types2.Coin
 			err = json.Unmarshal(res, &out)
