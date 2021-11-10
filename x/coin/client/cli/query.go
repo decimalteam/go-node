@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 )
@@ -46,8 +47,14 @@ func listCoinsCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command 
 			}
 
 			var out types2.QueryResCoins
-			cdc.MustUnmarshalJSON(res, &out)
-			return ctx.PrintObjectLegacy(out)
+			err = json.Unmarshal(res, &out)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println(out)
+			return err
+			//cdc.MustUnmarshalJSON(res, &out)
+			//return ctx.PrintObjectLegacy(out)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
@@ -72,8 +79,14 @@ func getCoinCommand(queryRoute string, cdc *codec.LegacyAmino) *cobra.Command {
 			}
 
 			var out types2.Coin
-			cdc.MustUnmarshalJSON(res, &out)
-			return ctx.PrintObjectLegacy(out)
+			err = json.Unmarshal(res, &out)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println(out)
+			return err
+			//cdc.MustUnmarshalJSON(res, &out)
+			//return ctx.PrintObjectLegacy(out)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
