@@ -35,11 +35,6 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
-	allBlocks := ncfg.UpdatesInfo.AllBlocks
-	if _, ok := allBlocks[plan.Name]; ok {
-		return
-	}
-
 	_, ok := downloadStat[plan.Name]
 
 	if ctx.BlockHeight() > (plan.Height-plan.ToDownload) && ctx.BlockHeight() < plan.Height && !ok {
@@ -59,9 +54,12 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			}
 
 			downloadStat[plan.Name] = true
-			go k.DownloadBinary(k.GetDownloadName(name), newUrl)
+			downloadName := k.GetDownloadName(name)
 
-			ctx.Logger().Info(fmt.Sprintf("downloading binary \"%s\"", newUrl))
+			if _, err := os.Stat(downloadName); os.IsNotExist(err) {
+				go k.DownloadBinary(downloadName, newUrl)
+				ctx.Logger().Info(fmt.Sprintf("download binary \"%s\"", newUrl))
+			}
 		}
 	}
 

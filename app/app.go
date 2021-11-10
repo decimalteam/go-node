@@ -290,7 +290,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)
 
-	err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
+	err = app.LoadLatestVersion(app.keys[bam.MainStoreKey])
 	if err != nil {
 		tos.Exit(err.Error())
 	}
