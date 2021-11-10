@@ -20,9 +20,24 @@ func NewUpdatesInfo(planfile string) *updatesInfo {
 	}
 }
 
-func (plan *updatesInfo) Push(name string, height int64) error {
+func (plan *updatesInfo) Push(height int64) error {
 	plan.LastBlock = height
-	plan.AllBlocks[name] = height
+
+	bytes, err := json.Marshal(plan)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(plan.filename, bytes, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (plan *updatesInfo) Save(name string) error {
+	plan.AllBlocks[name] = plan.LastBlock
 
 	bytes, err := json.Marshal(plan)
 	if err != nil {

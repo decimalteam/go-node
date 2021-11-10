@@ -29,7 +29,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		nextVersion := loadVersion(plan.Name)
 		if ncfg.DecimalVersion != nextVersion {
 			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d with version", plan.Name, plan.Height))
-			os.Exit(2)
+			os.Exit(3)
 		}
 		k.ClearUpgradePlan(ctx)
 		return
@@ -59,9 +59,12 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			}
 
 			downloadStat[plan.Name] = true
-			go k.DownloadBinary(k.GetDownloadName(name), newUrl)
+			downloadName := k.GetDownloadName(name)
 
-			ctx.Logger().Info(fmt.Sprintf("downloading binary \"%s\"", newUrl))
+			if _, err := os.Stat(downloadName); os.IsNotExist(err) {
+				go k.DownloadBinary(downloadName, newUrl)
+				ctx.Logger().Info(fmt.Sprintf("download binary \"%s\"", newUrl))
+			}
 		}
 	}
 
@@ -85,6 +88,12 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		if err != nil {
 			ctx.Logger().Error(fmt.Sprintf("upgrade \"%s\" with '%s'", plan.Name, err.Error()))
 			os.Exit(1)
+		}
+
+		err = ncfg.UpdatesInfo.Save(plan.Name)
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("save \"%s\" with '%s'", plan.Name, err.Error()))
+			os.Exit(2)
 		}
 
 		ctx.Logger().Info(fmt.Sprintf("success upgrade \"%s\"", plan.Name))
