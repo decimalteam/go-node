@@ -1,10 +1,12 @@
 package app
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/ante"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
+
+	"bitbucket.org/decimalteam/go-node/utils/ante"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -106,7 +108,12 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 
-	config.UpdatesInfo.Load()
+	// Load file with updates info: last_block and all_blocks
+	err := config.UpdatesInfo.Load()
+	if err != nil {
+		panic(fmt.Sprintf("error: load file with updates '%s'", err.Error()))
+	}
+
 	bApp.SetAppVersion(config.DecimalVersion)
 
 	// TODO: Add the keys that module requires
