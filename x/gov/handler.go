@@ -99,16 +99,14 @@ func handleSoftwareUpgradeProposal(ctx sdk.Context, k Keeper, p types.MsgSoftwar
 		return nil, err
 	}
 
-	if ctx.BlockHeight() > 7010900 {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				sdk.EventTypeMessage,
-				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-				sdk.NewAttribute(sdk.AttributeKeySender, p.Proposer.String()),
-				sdk.NewAttribute(types.AttributeKeyUpgradeHeight, strconv.FormatInt(p.Plan.Height, 10)),
-			),
-		)
-	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, p.Proposer.String()),
+			sdk.NewAttribute(types.AttributeKeyUpgradeHeight, strconv.FormatInt(p.Plan.Height, 10)),
+		),
+	)
 
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
