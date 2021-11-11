@@ -106,7 +106,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			os.Exit(1)
 		}
 
-		err = ncfg.UpdatesInfo.Save(plan.Name)
+		err = ncfg.UpdatesInfo.Save(planURL)
 		if err != nil {
 			ctx.Logger().Error(fmt.Sprintf("save \"%s\" with '%s'", plan.Name, err.Error()))
 			os.Exit(2)
