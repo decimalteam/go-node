@@ -36,8 +36,19 @@ func GetCoin(clientCtx clientctx.Context, symbol string) (types2.Coin, error) {
 }
 
 func GetAccountCoins(clientCtx clientctx.Context, addr sdk.AccAddress) (sdk.Coins, error) {
-	res, _, err := clientCtx.QueryWithData(fmt.Sprintf("%s/%s/%s", bankTypes.ModuleName, "balances", addr), nil)
+
+	params := bankTypes.NewQueryAllBalancesRequest(addr, nil)
+	route := fmt.Sprintf("custom/%s/%s", bankTypes.QuerierRoute, bankTypes.QueryAllBalances)
 	coins := sdk.Coins{}
+
+	bz, err := clientCtx.LegacyAmino.MarshalJSON(params)
+	if err!= nil {
+		return coins ,  err
+	}
+
+	res, _, err := clientCtx.QueryWithData(route, bz)
+	//res, _, err := clientCtx.QueryWithData(fmt.Sprintf("%s/%s/%s", bankTypes.ModuleName, "balances", addr), nil)
+	//coins := sdk.Coins{}
 	fmt.Println(string(res))
 	if err != nil {
 		return coins, err

@@ -42,10 +42,11 @@ func GetCmdCreateCoin() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			/*acc, err := cliUtils.GetAccount(clientCtx, clientCtx.GetFromAddress())
+			acc, err := cliUtils.GetAccount(clientCtx, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
-			}*/
+			}
+			acc.GetAddress()
 
 			balance, _ := cliUtils.GetAccountCoins(clientCtx, clientCtx.GetFromAddress())
 			if balance.AmountOf(cliUtils.GetBaseCoin()).LT(initReserve) {
