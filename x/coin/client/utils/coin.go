@@ -16,6 +16,7 @@ import (
 // Check if coin exists
 func ExistsCoin(clientCtx clientctx.Context, symbol string) (bool, error) {
 	res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types2.ModuleName, types2.QueryGetCoin, symbol), nil)
+	fmt.Println(string(res))
 	if err == nil {
 		return res != nil, nil
 	} else {
@@ -27,6 +28,7 @@ func ExistsCoin(clientCtx clientctx.Context, symbol string) (bool, error) {
 func GetCoin(clientCtx clientctx.Context, symbol string) (types2.Coin, error) {
 	res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types2.ModuleName, types2.QueryGetCoin, symbol), nil)
 	coin := types2.Coin{}
+	fmt.Println(string(res))
 	if err = clientCtx.LegacyAmino.UnmarshalJSON(res, &coin); err != nil {
 		return coin, err
 	}
@@ -36,7 +38,7 @@ func GetCoin(clientCtx clientctx.Context, symbol string) (types2.Coin, error) {
 func GetAccountCoins(clientCtx clientctx.Context, addr sdk.AccAddress) (sdk.Coins, error) {
 	res, _, err := clientCtx.QueryWithData(fmt.Sprintf("%s/%s/%s", bankTypes.ModuleName, "balances", addr), nil)
 	coins := sdk.Coins{}
-
+	fmt.Println(string(res))
 	if err != nil {
 		return coins, err
 	}

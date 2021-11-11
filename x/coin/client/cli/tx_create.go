@@ -45,12 +45,12 @@ func GetCmdCreateCoin() *cobra.Command {
 			/*acc, err := cliUtils.GetAccount(clientCtx, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
-			}
+			}*/
 
-			balance, _ := cliUtils.GetAccountCoins(clientCtx, acc.GetAddress())
+			balance, _ := cliUtils.GetAccountCoins(clientCtx, clientCtx.GetFromAddress())
 			if balance.AmountOf(cliUtils.GetBaseCoin()).LT(initReserve) {
 				return types.ErrInsufficientCoinReserve()
-			}*/
+			}
 			// Check if coin does not exist yet
 			coinExists, _ := cliUtils.ExistsCoin(clientCtx, symbol)
 			if coinExists {
