@@ -26,8 +26,23 @@ func ExistsCoin(clientCtx clientctx.Context, symbol string) (bool, error) {
 
 // Return coin instance from State
 func GetCoin(clientCtx clientctx.Context, symbol string) (types2.Coin, error) {
-	res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types2.ModuleName, types2.QueryGetCoin, symbol), nil)
+	params := bankTypes.NewQueryBalanceRequest(clientCtx.GetFromAddress(), symbol)
+	route := fmt.Sprintf("custom/%s/%s", bankTypes.QuerierRoute, bankTypes.QueryBalance)
 	coin := types2.Coin{}
+
+	bz, err := clientCtx.LegacyAmino.MarshalJSON(params)
+	if err!= nil {
+		return coin ,  err
+	}
+
+	res, _, err := clientCtx.QueryWithData(route, bz)
+	//res, _, err := clientCtx.QueryWithData(fmt.Sprintf("%s/%s/%s", bankTypes.ModuleName, "balances", addr), nil)
+	//coins := sdk.Coins{}
+
+	if err != nil {
+		return coin, err
+	}
+	//res, _, err := clientCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", types2.ModuleName, types2.QueryGetCoin, symbol), nil)
 	fmt.Println(string(res))
 	if err = clientCtx.LegacyAmino.UnmarshalJSON(res, &coin); err != nil {
 		return coin, err
@@ -36,7 +51,6 @@ func GetCoin(clientCtx clientctx.Context, symbol string) (types2.Coin, error) {
 }
 
 func GetAccountCoins(clientCtx clientctx.Context, addr sdk.AccAddress) (sdk.Coins, error) {
-
 	params := bankTypes.NewQueryAllBalancesRequest(addr, nil)
 	route := fmt.Sprintf("custom/%s/%s", bankTypes.QuerierRoute, bankTypes.QueryAllBalances)
 	coins := sdk.Coins{}
@@ -49,7 +63,7 @@ func GetAccountCoins(clientCtx clientctx.Context, addr sdk.AccAddress) (sdk.Coin
 	res, _, err := clientCtx.QueryWithData(route, bz)
 	//res, _, err := clientCtx.QueryWithData(fmt.Sprintf("%s/%s/%s", bankTypes.ModuleName, "balances", addr), nil)
 	//coins := sdk.Coins{}
-	fmt.Println(string(res))
+
 	if err != nil {
 		return coins, err
 	}
