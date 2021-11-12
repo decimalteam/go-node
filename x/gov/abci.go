@@ -28,8 +28,8 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	if ctx.BlockHeight() > plan.Height {
 		nextVersion := loadVersion(plan.Name)
 		if ncfg.DecimalVersion != nextVersion {
-			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
-			os.Exit(1)
+			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d with version", plan.Name, plan.Height))
+			os.Exit(3)
 		}
 		k.ClearUpgradePlan(ctx)
 		return
@@ -49,15 +49,22 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			// to "http://127.0.0.1/95000/linux/ubuntu/20.04/decd"
 			newUrl := k.GenerateUrl(fmt.Sprintf("%s/%s", plan.Name, name))
 			if newUrl == "" {
+				ctx.Logger().Error("error: failed with generate url")
 				return
 			}
 
 			if !k.UrlPageExist(newUrl) {
+				ctx.Logger().Error("error: url page is not exists")
 				return
 			}
 
 			downloadStat[plan.Name] = true
-			go k.DownloadBinary(k.GetDownloadName(name), newUrl)
+			downloadName := k.GetDownloadName(name)
+
+			if _, err := os.Stat(downloadName); os.IsNotExist(err) {
+				go k.DownloadBinary(downloadName, newUrl)
+				ctx.Logger().Info(fmt.Sprintf("download binary \"%s\"", newUrl))
+			}
 		}
 	}
 
@@ -79,13 +86,18 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 
 		err := k.ApplyUpgrade(ctx, plan)
 		if err != nil {
-			ctx.Logger().Error(fmt.Sprintf("upgrade \"%s\" with %s", plan.Name, err.Error()))
-			return
+			ctx.Logger().Error(fmt.Sprintf("upgrade \"%s\" with '%s'", plan.Name, err.Error()))
+			os.Exit(1)
 		}
 
-		ncfg.UpdatesInfo.Push(plan.Name, ctx.BlockHeight())
+		err = ncfg.UpdatesInfo.Save(plan.Name)
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("save \"%s\" with '%s'", plan.Name, err.Error()))
+			os.Exit(2)
+		}
+
+		ctx.Logger().Info(fmt.Sprintf("success upgrade \"%s\"", plan.Name))
 		os.Exit(0)
-		return
 	}
 }
 
