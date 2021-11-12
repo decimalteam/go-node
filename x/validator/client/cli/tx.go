@@ -27,21 +27,94 @@ func GetTxCmd(cdc *codec.LegacyAmino) *cobra.Command {
 	}
 
 	validatorTxCmd.AddCommand(
-		GetCmdDeclareCandidate(cdc),
-		GetDelegate(cdc),
-		GetDelegateNFT(cdc),
-		GetUnbondNFT(cdc),
-		GetSetOnline(cdc),
-		GetSetOffline(cdc),
-		GetUnbond(cdc),
-		GetEditCandidate(cdc),
+		GetCmdDeclareCandidate(),
+		GetDelegate(),
+		GetDelegateNFT(),
+		GetUnbondNFT(),
+		GetSetOnline(),
+		GetSetOffline(),
+		GetUnbond(),
+		GetEditCandidate(),
 	)
 
 	return validatorTxCmd
 }
 
 // GetCmdDeclareCandidate is the CLI command for doing CreateValidator
-func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
+func GetCmdDeclareCandidate() *cobra.Command {
+	cmd := &cobra.Command{
+		Short: "Declare candidate",
+		Use:   "declare [pub_key] [coin] [commission] [from]",
+		Args:  cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Flags().Set(flags.FlagFrom, args[3])
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			valAddress := clientCtx.GetFromAddress()
+
+			stake, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+			commission, err := sdk.NewDecFromStr(args[2])
+			if err != nil {
+				return err
+			}
+
+			var pk cryptotypes.PubKey
+			if err := clientCtx.JSONMarshaler.UnmarshalInterfaceJSON([]byte(args[0]), &pk); err != nil {
+				return err
+			}
+
+			rewardAddressStr, _ := cmd.Flags().GetString(FlagRewardAddress)
+			rewardAddress := sdk.AccAddress{}
+			if rewardAddressStr != "" {
+				rewardAddress, err = sdk.AccAddressFromBech32(rewardAddressStr)
+				if err != nil {
+					return err
+				}
+			} else {
+				rewardAddress = valAddress
+			}
+
+			msg, err := types.NewMsgDeclareCandidate(sdk.ValAddress(valAddress), pk, commission, stake, types.Description{}, rewardAddress)
+			if err != nil {
+				return err
+			}
+
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FsPk)
+	cmd.Flags().AddFlagSet(FsAmount)
+	cmd.Flags().AddFlagSet(FsDescriptionCreate)
+	cmd.Flags().AddFlagSet(FsCommissionCreate)
+
+	cmd.Flags().String(FlagIP, "", fmt.Sprintf("The node's public IP. It takes effect only when used in combination with --%s", flags.FlagGenerateOnly))
+	cmd.Flags().String(FlagNodeID, "", "The node's ID")
+
+	//cmd.MarkFlagRequired(flags.FlagFrom)
+	cmd.MarkFlagRequired(FlagAmount)
+	cmd.MarkFlagRequired(FlagPubKey)
+	cmd.MarkFlagRequired(FlagMoniker)
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdDeclareCandidate is the CLI command for doing CreateValidator
+/*func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Short: "Declare candidate",
 		Use:   "declare [pub_key] [coin] [commission] --from name/address",
@@ -106,7 +179,7 @@ func GetCmdDeclareCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
-}
+}*/
 
 // CreateValidatorMsgHelpers returns the flagset, particular flags and a description of defaults
 // this is anticipated to be used with the gen-tx.
@@ -260,7 +333,43 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config cli2.TxCreateValid
 }
 
 // GetDelegate .
-func GetDelegate(cdc *codec.LegacyAmino) *cobra.Command {
+func GetDelegate() *cobra.Command {
+	cmd := &cobra.Command{
+		Short: "Delegate coins",
+		Use:   "delegate [validator_address] [coin] [from]",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Flags().Set(flags.FlagFrom, args[2])
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			delAddress := clientCtx.GetFromAddress()
+
+			coin, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			valAddress, err := sdk.ValAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDelegate(valAddress, delAddress, coin)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+
+/*func GetDelegate(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Short: "Delegate coins",
 		Use:   "delegate [validator_address] [coin] --from name/address",
@@ -288,9 +397,48 @@ func GetDelegate(cdc *codec.LegacyAmino) *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}*/
+
+
+func GetDelegateNFT() *cobra.Command {
+	cmd := &cobra.Command{
+		Short: "Delegate NFT",
+		Use:   "delegate-nft [validator_address] [tokenID] [denom] [quantity] [from]",
+		Args:  cobra.ExactArgs(5),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Flags().Set(flags.FlagFrom, args[4])
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			delAddress := clientCtx.GetFromAddress()
+
+			quantity, ok := sdk.NewIntFromString(args[3])
+			if !ok {
+				return fmt.Errorf("invalid quantity")
+			}
+
+			valAddress, err := sdk.ValAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			tokenID := args[1]
+			denom := args[2]
+
+			msg := types.NewMsgDelegateNFT(valAddress, delAddress, tokenID, denom, quantity)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
-func GetDelegateNFT(cdc *codec.LegacyAmino) *cobra.Command {
+/*func GetDelegateNFT(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Short: "Delegate NFT",
 		Use:   "delegate-nft [validator_address] [tokenID] [denom] [quantity] --from name/address",
@@ -321,10 +469,33 @@ func GetDelegateNFT(cdc *codec.LegacyAmino) *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
-}
+}*/
 
 // GetSetOnline .
-func GetSetOnline(cdc *codec.LegacyAmino) *cobra.Command {
+
+func GetSetOnline() *cobra.Command {
+	return &cobra.Command{
+		Short: "Set online validator",
+		Use:   "set-online [from]",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Flags().Set(flags.FlagFrom, args[0])
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			valAddress := clientCtx.GetFromAddress()
+
+			msg := types.NewMsgSetOnline(sdk.ValAddress(valAddress))
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+}
+
+/*func GetSetOnline(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Short: "Set online validator",
 		Use:   "set-online --from name/address",
@@ -338,10 +509,32 @@ func GetSetOnline(cdc *codec.LegacyAmino) *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
-}
+}*/
 
 // GetSetOffline .
-func GetSetOffline(cdc *codec.LegacyAmino) *cobra.Command {
+func GetSetOffline() *cobra.Command {
+	return &cobra.Command{
+		Short: "Set offline validator",
+		Use:   "set-offline [from]",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Flags().Set(flags.FlagFrom, args[0])
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			valAddress := clientCtx.GetFromAddress()
+
+			msg := types.NewMsgSetOffline(sdk.ValAddress(valAddress))
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+}
+
+/*func GetSetOffline(cdc *codec.LegacyAmino) *cobra.Command {
 	return &cobra.Command{
 		Short: "Set offline validator",
 		Use:   "set-offline --from name/address",
@@ -355,9 +548,44 @@ func GetSetOffline(cdc *codec.LegacyAmino) *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
 	}
-}
+}*/
 
 // GetUnbond .
+func GetUnbond() *cobra.Command {
+	cmd := &cobra.Command{
+		Short: "Unbond delegation",
+		Use:   "unbond [validator-address] [coin] [from]",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Flags().Set(flags.FlagFrom, args[2])
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			valAddress, err := sdk.ValAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			delAddress := clientCtx.GetFromAddress()
+
+			coin, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUnbond(valAddress, delAddress, coin)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+/*
 func GetUnbond(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Short: "Unbond delegation",
@@ -386,9 +614,47 @@ func GetUnbond(cdc *codec.LegacyAmino) *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
-}
+}*/
 
 // GetUnbondNFT .
+func GetUnbondNFT() *cobra.Command {
+	cmd := &cobra.Command{
+		Short: "Unbond-nft delegation",
+		Use:   "unbond-nft [validator-address] [tokenID] [denom] [quantity] [from]",
+		Args:  cobra.ExactArgs(5),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Flags().Set(flags.FlagFrom, args[4])
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			valAddress, err := sdk.ValAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			delAddress := clientCtx.GetFromAddress()
+
+			quantity, ok := sdk.NewIntFromString(args[3])
+			if !ok {
+				return fmt.Errorf("invalid quantity")
+			}
+
+			tokenID := args[1]
+			denom := args[2]
+
+			msg := types.NewMsgUnbondNFT(valAddress, delAddress, tokenID, denom, quantity)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+/*
 func GetUnbondNFT(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Short: "Unbond-nft delegation",
@@ -420,9 +686,52 @@ func GetUnbondNFT(cdc *codec.LegacyAmino) *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
-}
+}*/
 
 // GetEditCandidate .
+func GetEditCandidate() *cobra.Command {
+	cmd := &cobra.Command{
+		Short: "Edit candidate",
+		Use:   "edit-candidate [validator-address] [reward-address]",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Flags().Set(flags.FlagFrom, args[4])
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			valAddress, err := sdk.ValAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			rewardAddress, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+
+			description := types.NewDescription(
+				viper.GetString(FlagMoniker),
+				viper.GetString(FlagIdentity),
+				viper.GetString(FlagWebsite),
+				viper.GetString(FlagSecurityContact),
+				viper.GetString(FlagDetails),
+			)
+
+			msg := types.NewMsgEditCandidate(valAddress, rewardAddress, description)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FsDescriptionEdit)
+	cmd.Flags().AddFlagSet(FsCommissionUpdate)
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+/*
 func GetEditCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 	cmd := &cobra.Command{
 		Short: "Edit candidate",
@@ -459,4 +768,4 @@ func GetEditCandidate(cdc *codec.LegacyAmino) *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
-}
+}*/
