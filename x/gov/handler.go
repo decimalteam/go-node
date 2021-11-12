@@ -5,7 +5,6 @@ import (
 	"runtime/debug"
 	"strconv"
 
-	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -98,11 +97,6 @@ func handleSoftwareUpgradeProposal(ctx sdk.Context, k Keeper, p types.MsgSoftwar
 	err := k.ScheduleUpgrade(ctx, p.Plan)
 	if err != nil {
 		return nil, err
-	}
-
-	err = ncfg.UpdatesInfo.Push(p.Plan.Height)
-	if err != nil {
-		ctx.Logger().Error(fmt.Sprintf("push plan \"%s\" with error: %s", p.Plan.Name, err.Error()))
 	}
 
 	ctx.EventManager().EmitEvent(
