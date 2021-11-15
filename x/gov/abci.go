@@ -3,6 +3,10 @@ package gov
 import (
 	types2 "bitbucket.org/decimalteam/go-node/x/gov/types"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -20,20 +24,12 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
-	// "http://127.0.0.1/95000@v1.2.1"
-	splited := strings.Split(plan.Name, "@")
-	if len(splited) != 2 {
-		k.ClearUpgradePlan(ctx)
-		return
-	}
-
-	planURL := splited[0]
-	version := splited[1]
-
+	planURL := plan.Name
 	if ctx.BlockHeight() > plan.Height {
-		if ncfg.DecimalVersion != version {
-			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d", plan.Name, plan.Height))
-			os.Exit(2)
+		nextVersion := loadVersion(plan.Name)
+		if ncfg.DecimalVersion != nextVersion {
+			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d with version", plan.Name, plan.Height))
+			os.Exit(3)
 		}
 		k.ClearUpgradePlan(ctx)
 		return
@@ -51,17 +47,24 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			// example:
 			// from "http://127.0.0.1/95000/decd"
 			// to "http://127.0.0.1/95000/linux/ubuntu/20.04/decd"
-			newUrl := k.GenerateUrl(fmt.Sprintf("%s/%s", planURL, name))
+			newUrl := k.GenerateUrl(fmt.Sprintf("%s/%s", plan.Name, name))
 			if newUrl == "" {
+				ctx.Logger().Error("error: failed with generate url")
 				return
 			}
 
 			if !k.UrlPageExist(newUrl) {
+				ctx.Logger().Error("error: url page is not exists")
 				return
 			}
 
-			downloadStat[planURL] = true
-			go k.DownloadBinary(k.GetDownloadName(name), newUrl)
+			downloadStat[plan.Name] = true
+			downloadName := k.GetDownloadName(name)
+
+			if _, err := os.Stat(downloadName); os.IsNotExist(err) {
+				go k.DownloadBinary(downloadName, newUrl)
+				ctx.Logger().Info(fmt.Sprintf("download binary \"%s\"", newUrl))
+			}
 		}
 	}
 
@@ -83,13 +86,18 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 
 		err := k.ApplyUpgrade(ctx, plan)
 		if err != nil {
-			ctx.Logger().Error(fmt.Sprintf("upgrade \"%s\" with %s", planURL, err.Error()))
-			return
+			ctx.Logger().Error(fmt.Sprintf("upgrade \"%s\" with '%s'", plan.Name, err.Error()))
+			os.Exit(1)
 		}
 
-		ncfg.UpdatesInfo.Push(planURL, ctx.BlockHeight())
+		err = ncfg.UpdatesInfo.Save(plan.Name)
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("save \"%s\" with '%s'", plan.Name, err.Error()))
+			os.Exit(2)
+		}
+
+		ctx.Logger().Info(fmt.Sprintf("success upgrade \"%s\"", plan.Name))
 		os.Exit(0)
-		return
 	}
 }
 // EndBlocker called every block, process inflation, update validator set.
@@ -159,4 +167,33 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 		return false
 	})
+}
+
+func loadVersion(urlPath string) string {
+	const fileVersion = "version.txt"
+
+	// example: "version.txt"
+	u, err := url.Parse(fileVersion)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// example: "https://testnet-repo.decimalchain.com/95000"
+	base, err := u.Parse(urlPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// result: "https://testnet-repo.decimalchain.com/version.txt"
+	resp, err := http.Get(base.ResolveReference(u).String())
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return strings.TrimSpace(string(body))
 }
