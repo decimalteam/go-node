@@ -25,4 +25,5 @@ const (
 	AttributeKeyResultVoteAbstain = "result_vote_abstain"
 	AttributeKeyResultVoteNo      = "result_vote_no"
 	AttributeKeyTotalVotingPower  = "total_voting_power"
+	AttributeKeyUpgradeHeight     = "upgrade_height"
 )

@@ -248,7 +248,7 @@ $ %s query validator delegations cosmos1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 				return err
 			}
 
-			var resp []types.DelegationResponse
+			var resp types.DelegationResponse
 			if err := cdc.UnmarshalJSON(res, &resp); err != nil {
 				return err
 			}
@@ -473,6 +473,37 @@ func GetCmdQueryDelegatedCoins(storeName string, cdc *codec.Codec) *cobra.Comman
 
 Example:
 $ %s query validator delegated_coins
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			route := fmt.Sprintf("custom/%s/%s", storeName, types.QueryDelegatedCoins)
+			bz, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			var coins sdk.Coins
+			cdc.MustUnmarshalJSON(bz, &coins)
+			return cliCtx.PrintOutput(coins)
+		},
+	}
+}
+
+// GetCmdQueryDelegatedCoin implements the delegated coin query command.
+func GetCmdQueryDelegatedCoin(storeName string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "delegated_coin [symbol]",
+		Args:  cobra.NoArgs,
+		Short: "Query the delegated coin",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query delegated coin.
+
+Example:
+$ %s query validator delegated_coin coin1
 `,
 				version.ClientName,
 			),
