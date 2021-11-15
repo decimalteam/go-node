@@ -177,6 +177,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
 				))
 				eventMutex.Unlock()
+
 				if ctx.BlockHeight() > updates.Update7Block {
 					switch del := del.(type) {
 					case types.Delegation:
