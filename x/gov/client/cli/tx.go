@@ -398,42 +398,5 @@ func GetCmdSubmitUpgradeProposal() *cobra.Command {
 	return cmd
 }
 
-/*func GetCmdSubmitUpgradeProposal(cdc *codec.LegacyAmino) *cobra.Command  {
-	cmd := &cobra.Command{
-		Use:   "software-upgrade [name] (--upgrade-height [height] | --upgrade-time [time]) (--upgrade-info [info]) [flags]",
-		Args:  cobra.ExactArgs(1),
-		Short: "Submit a software upgrade proposal",
-		Long: "Submit a software upgrade along with an initial deposit.\n" +
-			"Please specify a unique name and height OR time for the upgrade to take effect.\n" +
-			"You may include info to reference a binary download link, in a format compatible with: https://github.com/regen-network/cosmosd",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			name := args[0]
-
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-
-			cliCtx := client.GetClientContextFromCmd(cmd).WithLegacyAmino(cdc).WithInput(inBuf)
-			from := cliCtx.GetFromAddress()
-
-			msg, err := parseArgsToContent(cmd, name, from)
-			if err != nil {
-				return err
-			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
-		},
-	}
-
-	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
-	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
-	cmd.Flags().Int64(FlagUpgradeHeight, 0, "The height at which the upgrade must happen (not to be used together with --upgrade-time)")
-	cmd.Flags().String(FlagUpgradeTime, "", fmt.Sprintf("The time at which the upgrade must happen (ex. %s) (not to be used together with --upgrade-height)", TimeFormat))
-	cmd.Flags().String(FlagUpgradeInfo, "", "Optional info for the planned upgrade such as commit hash, etc.")
-	cmd.Flags().Int64(FlagToDownload, 0, "How many blocks before the update you need to start downloading the new version")
-
-	return cmd
-}*/
 
 // DONTCOVER
