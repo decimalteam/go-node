@@ -1,15 +1,16 @@
 package app
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/supply/exported"
-	tmtypes "github.com/tendermint/tendermint/types"
 	"io"
 	"os"
 	"strings"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
+	"github.com/cosmos/cosmos-sdk/x/supply/exported"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -118,7 +119,16 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 
-	config.UpdatesInfo.Load()
+	// Load file with updates info: last_update and all_updates
+	err := config.UpdatesInfo.Load()
+	if err != nil {
+		panic(fmt.Sprintf("error: read permissions '%s'", err.Error()))
+	}
+	err = config.UpdatesInfo.Push(config.UpdatesInfo.LastBlock)
+	if err != nil {
+		panic(fmt.Sprintf("error: write permissions '%s'", err.Error()))
+	}
+
 	bApp.SetAppVersion(config.DecimalVersion)
 
 	keys := sdk.NewKVStoreKeys(
@@ -284,7 +294,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)
 
-	err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
+	err = app.LoadLatestVersion(app.keys[bam.MainStoreKey])
 	if err != nil {
 		tos.Exit(err.Error())
 	}
@@ -350,7 +360,6 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 
 		swapAppModule.InitGenesis(ctx, genState[swap.ModuleName])
 		swap.InitGenesis(ctx, app.swapKeeper, app.supplyKeeper, swap.InitialGenesisState)
-
 
 		moduleAddress := app.supplyKeeper.GetModuleAddress(swap.PoolName)
 		moduleAccount := app.accountKeeper.GetAccount(ctx, moduleAddress)
