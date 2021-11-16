@@ -17,6 +17,26 @@ sudo apt-get install build-essential
 brew install coreutils
 ```
 
+To run installed `decd` and `deccli` binary files from any location on your server set install path of the binary file
+Use your preferred editor to open .profile, which is stored in your user’s home directory. Here, we’ll use nano:
+
+```bash
+sudo nano ~/.profile
+```
+
+Then, add the following information to the end of this file:
+
+```bash
+#default install path of the binary file
+export PATH=$PATH:~/go/bin
+```
+
+Next, refresh your profile by running the following command:
+
+```bash
+source ~/.profile
+```
+
 ## Installing
 
 Clone repository
@@ -53,21 +73,14 @@ Time to determine proper chain ID currently used in the network and initialize n
 
 ```bash
 NODE_MONIKER="$USER-node" # You are free to choose other name for your node
-CHAIN_ID="$(curl -s 'https://testnet-gate.decimalchain.com/api/rpc/genesis/chain')"
-decd init "$NODE_MONIKER" --network testnet --chain-id "$CHAIN_ID"
+CHAIN_ID="$(curl -s 'https://mainnet-gate.decimalchain.com/api/rpc/genesis/chain')"
+decd init "$NODE_MONIKER" --network mainnet --chain-id "$CHAIN_ID"
 ```
 
 Download proper `genesis.json` from master node
 
 ```bash
-curl -s 'https://testnet-gate.decimalchain.com/api/rpc/genesis' | jq '.result.genesis' > "$HOME/.decimal/daemon/config/genesis.json"
-```
-
-Add proper `persistent_peers` to `config.toml` file
-
-```toml
-# Comma separated list of nodes to keep persistent connections to
-persistent_peers = "bf7a6b366e3c451a3c12b3a6c01af7230fb92fc7@139.59.133.148:26656"
+curl -s 'https://mainnet-gate.decimalchain.com/api/rpc/genesis' | jq '.result.genesis' > "$HOME/.decimal/daemon/config/genesis.json"
 ```
 
 ## Running
