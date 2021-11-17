@@ -17,7 +17,16 @@ sudo apt-get install build-essential
 brew install coreutils
 ```
 
-To run installed `decd` and `deccli` binary files from any location on your server set install path of the binary file
+## Installing
+
+Clone repository
+
+```bash
+git clone https://bitbucket.org/decimalteam/go-node.git
+cd go-node
+```
+
+To run `deccli` (Decimal Client Console) and `decd` (Decimal Go Node) commands from any location on your server set their installation path.  
 Use your preferred editor to open .profile, which is stored in your user’s home directory. Here, we’ll use nano:
 
 ```bash
@@ -35,15 +44,6 @@ Next, refresh your profile by running the following command:
 
 ```bash
 source ~/.profile
-```
-
-## Installing
-
-Clone repository
-
-```bash
-git clone https://bitbucket.org/decimalteam/go-node.git
-cd go-node
 ```
 
 Build and install Decimal Go Node from source code
@@ -81,6 +81,21 @@ Download proper `genesis.json` from master node
 
 ```bash
 curl -s 'https://mainnet-gate.decimalchain.com/api/rpc/genesis' | jq '.result.genesis' > "$HOME/.decimal/daemon/config/genesis.json"
+```
+
+## Sync from backup
+
+Download the latest blockchain backup from https://backup.decimalchain.com/
+
+```bash
+curl -O https://backup.decimalchain.com/decimalchain-2021-11-16_09-43.tgz
+```
+
+Extract downloaded archive and move the contents of data directory from it to the ~/.decimal/daemon/data
+
+```bash
+tar -xvf decimalchain-2021-11-16_09-43.tgz
+cp -rv ./zfspool/2021-11-16_09-43/daemon/data/ ~/.decimal/daemon/data/
 ```
 
 ## Running
