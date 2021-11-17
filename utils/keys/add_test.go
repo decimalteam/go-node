@@ -1,6 +1,5 @@
 package keys
 
-/*
 import (
 	"testing"
 
@@ -55,4 +54,4 @@ func Test_runAddCmdBasic(t *testing.T) {
 	}
 	err := runAddCmd(cmd, []string{"keyname2"})
 	assert.NoError(t, err)
-}*/
+}
