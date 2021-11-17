@@ -109,9 +109,9 @@ func (k Keeper) GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddres
 
 // set a delegation
 func (k Keeper) SetDelegation(ctx sdk.Context, delegation types.Delegation) {
-	/*if ctx.BlockHeight() < 1_087_900 {
+	if ctx.BlockHeight() < 1_087_900 {
 		delegation.TokensBase = k.CalcTokensBase(ctx, delegation)
-	}*/
+	}
 	err := k.set(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.Coin.Denom), delegation)
 	if err != nil {
 		panic(err)
