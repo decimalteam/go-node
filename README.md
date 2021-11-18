@@ -73,19 +73,19 @@ Time to determine proper chain ID currently used in the network and initialize n
 
 ```bash
 NODE_MONIKER="$USER-node" # You are free to choose other name for your node
-CHAIN_ID="$(curl -s 'https://testnet-gate.decimalchain.com/api/rpc/genesis/chain')"
-decd init "$NODE_MONIKER" --network testnet --chain-id "$CHAIN_ID"
+CHAIN_ID="$(curl -s 'https://mainnet-gate.decimalchain.com/api/rpc/genesis/chain')"
+decd init "$NODE_MONIKER" --network mainnet --chain-id "$CHAIN_ID"
 ```
 
 Download proper `genesis.json` from master node
 
 ```bash
-curl -s 'https://testnet-gate.decimalchain.com/api/rpc/genesis' | jq '.result.genesis' > "$HOME/.decimal/daemon/config/genesis.json"
+curl -s 'https://mainnet-gate.decimalchain.com/api/rpc/genesis' | jq '.result.genesis' > "$HOME/.decimal/daemon/config/genesis.json"
 ```
 
 ## Sync your Node
 
-Download Decimal Node backup for testnet from https://backup.decimalchain.com
+Download Decimal Node backup for mainnet from https://backup.decimalchain.com
 
 ```bash
 curl -O https://backup.decimalchain.com/decimalchain-2021-11-16_09-43.tgz
