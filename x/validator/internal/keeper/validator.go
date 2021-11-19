@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
@@ -149,18 +150,13 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 					ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
 				}
 			}()
+			if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
+				del = del.SetTokensBase(del.GetCoin().Amount)
+			}
 			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
-				if ctx.BlockHeight() >= 51340 {
-					del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
-				} else {
-					coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
-					if err != nil {
-						panic(err)
-					}
-					delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
-					totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
-					del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount.ToDec().Quo(delegatedCoin.ToDec()).TruncateInt()))
-				}
+
+				del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
+
 				eventMutex.Lock()
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
 					types.EventTypeCalcStake,
