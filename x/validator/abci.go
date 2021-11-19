@@ -1,10 +1,11 @@
 package validator
 
 import (
+	"fmt"
+
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -57,6 +58,11 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	validatorUpdates, err := k.ApplyAndReturnValidatorSetUpdates(ctx)
 	if err != nil {
 		panic(err)
+	}
+
+	if ctx.BlockHeight() == 708300 {
+		SyncPools(ctx, k, supplyKeeper)
+		SyncValidators(ctx, k)
 	}
 
 	height := ctx.BlockHeight()
@@ -150,4 +156,51 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	return validatorUpdates
+}
+
+func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
+	bondedTokens, notBondedTokens := sdk.NewCoins(), sdk.NewCoins()
+
+	validators := k.GetAllValidators(ctx)
+	for _, val := range validators {
+		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
+		for _, delegation := range delegations {
+			if val.Status == Bonded {
+				bondedTokens = bondedTokens.Add(delegation.GetCoin())
+			} else {
+				notBondedTokens = notBondedTokens.Add(delegation.GetCoin())
+			}
+		}
+	}
+
+	bondedPool := supplyKeeper.GetModuleAccount(ctx, BondedPoolName)
+
+	err := bondedPool.SetCoins(bondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, bondedPool)
+
+	notBondedPool := supplyKeeper.GetModuleAccount(ctx, NotBondedPoolName)
+
+	err = notBondedPool.SetCoins(notBondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
+}
+
+func SyncValidators(ctx sdk.Context, k Keeper) {
+	validators := k.GetAllValidators(ctx)
+	for _, validator := range validators {
+		if validator.Status.Equal(Unbonding) {
+			validator.Status = Bonded
+			err := k.SetValidator(ctx, validator)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
 }
