@@ -65,6 +65,11 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		SyncValidators(ctx, k)
 	}
 
+	if ctx.BlockHeight() == 709100 {
+		SyncPools2(ctx, k, supplyKeeper)
+		SyncUnbondingDelegations(ctx, k)
+	}
+
 	height := ctx.BlockHeight()
 	// Unbond all mature validators from the unbonding queue.
 	k.UnbondAllMatureValidatorQueue(ctx)
@@ -200,6 +205,70 @@ func SyncValidators(ctx sdk.Context, k Keeper) {
 			err := k.SetValidator(ctx, validator)
 			if err != nil {
 				panic(err)
+			}
+		}
+	}
+}
+
+func SyncPools2(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
+	bondedTokens, notBondedTokens := sdk.NewCoins(), sdk.NewCoins()
+
+	validators := k.GetAllValidators(ctx)
+	for _, val := range validators {
+		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
+		for _, delegation := range delegations {
+			if val.Status == Bonded {
+				bondedTokens = bondedTokens.Add(delegation.GetCoin())
+			} else {
+				notBondedTokens = notBondedTokens.Add(delegation.GetCoin())
+			}
+		}
+	}
+
+	unbondingDelegations := k.GetAllUnbondingDelegations(ctx)
+	for _, delegation := range unbondingDelegations {
+		for _, entry := range delegation.Entries {
+			notBondedTokens = notBondedTokens.Add(entry.GetBalance())
+		}
+	}
+
+	bondedPool := supplyKeeper.GetModuleAccount(ctx, BondedPoolName)
+
+	err := bondedPool.SetCoins(bondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, bondedPool)
+
+	notBondedPool := supplyKeeper.GetModuleAccount(ctx, NotBondedPoolName)
+
+	err = notBondedPool.SetCoins(notBondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
+}
+
+func SyncUnbondingDelegations(ctx sdk.Context, k Keeper) {
+	unbondingDelegations := k.GetAllUnbondingDelegations(ctx)
+	for _, delegation := range unbondingDelegations {
+		err := k.CompleteUnbonding(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+		if err != nil {
+			panic(err)
+		}
+
+		for _, entry := range delegation.Entries {
+			if entry.IsMature(ctx.BlockTime()) {
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EventTypeCompleteUnbonding,
+						sdk.NewAttribute(types.AttributeKeyValidator, delegation.ValidatorAddress.String()),
+						sdk.NewAttribute(types.AttributeKeyDelegator, delegation.DelegatorAddress.String()),
+						sdk.NewAttribute(types.AttributeKeyCoin, entry.GetBalance().String()),
+					),
+				)
 			}
 		}
 	}
