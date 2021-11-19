@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -34,7 +35,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		}
 	}
 
-	if ctx.BlockHeight() == 709_602 {
+	if ctx.BlockHeight() == updates.Update3Block+20 {
 		delegations := k.GetAllDelegations(ctx)
 		for _, delegation := range delegations {
 			if delegation.GetCoin().Denom != k.BondDenom(ctx) {
@@ -60,12 +61,12 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		panic(err)
 	}
 
-	if ctx.BlockHeight() == 708300 {
+	if ctx.BlockHeight() == updates.Update3Block {
 		SyncPools(ctx, k, supplyKeeper)
 		SyncValidators(ctx, k)
 	}
 
-	if ctx.BlockHeight() == 709100 {
+	if ctx.BlockHeight() == updates.Update3Block+10 {
 		SyncPools2(ctx, k, supplyKeeper)
 		SyncUnbondingDelegations(ctx, k)
 	}
