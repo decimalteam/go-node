@@ -560,7 +560,9 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 		}
 	}
 
+	delegation.TokensBase = k.CalcTokensBase(ctx, delegation)
 	k.SetDelegation(ctx, delegation)
+
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
 		return sdk.Int{}, err
@@ -645,6 +647,7 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 	if delegation.Coin.IsZero() {
 		k.RemoveDelegation(ctx, delegation)
 	} else {
+		delegation.TokensBase = k.CalcTokensBase(ctx, delegation)
 		k.SetDelegation(ctx, delegation)
 		// call the after delegation modification hook
 		k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
