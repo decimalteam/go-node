@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"os"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/updates"
@@ -159,6 +160,39 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		if err != nil {
 			panic(err)
 		}
+		delegations := k.GetAllDelegations(ctx)
+
+		filename := fmt.Sprintf("%s/logs/delegations_%d.txt", os.Getenv("HOME"), ctx.BlockHeight())
+		file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+		if err != nil {
+			panic(err)
+		}
+
+		for _, del := range delegations {
+			if del.GetCoin().Denom == k.BondDenom(ctx) {
+				continue
+			}
+			coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
+			if err != nil {
+				panic(err)
+			}
+			file.WriteString(
+				fmt.Sprintf("Denom: %s\nVolume: %s\nReserve: %s\nCRR: %d\nAmount: %s\nTokenBase: %s\nTokenBaseOfDelegation: %s\nCalcTokensBase: %s\nDelegator: %s\nValidator: %s\n\n",
+					del.GetCoin().Denom,
+					coin.Volume,
+					coin.Reserve,
+					coin.CRR,
+					del.GetCoin().Amount,
+					del.GetTokensBase(),
+					k.TokenBaseOfDelegation(ctx, del),
+					k.CalcTokensBase(ctx, del),
+					del.GetDelegatorAddr(),
+					del.GetValidatorAddr(),
+				),
+			)
+		}
+
+		file.Close()
 	}
 
 	return validatorUpdates
