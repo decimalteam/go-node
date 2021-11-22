@@ -155,18 +155,18 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 				del = del.SetTokensBase(del.GetCoin().Amount)
 			}
 			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
-				// del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
+				del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
 
 				// if ctx.BlockHeight() >= 51340 {
 				// 	del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
 				// } else {
-				coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
-				if err != nil {
-					panic(err)
-				}
-				delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
-				totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
-				del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount.ToDec().Quo(delegatedCoin.ToDec()).TruncateInt()))
+				// coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
+				// if err != nil {
+				// 	panic(err)
+				// }
+				// delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
+				// totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
+				// del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount.ToDec().Quo(delegatedCoin.ToDec()).TruncateInt()))
 				// }
 
 				eventMutex.Lock()
