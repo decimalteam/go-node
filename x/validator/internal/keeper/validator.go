@@ -166,7 +166,6 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
 				))
 				eventMutex.Unlock()
-
 				switch del := del.(type) {
 				case types.Delegation:
 					k.SetDelegation(ctx, del)
