@@ -67,11 +67,6 @@ func (k Keeper) SetValidatorByConsAddr(ctx sdk.Context, validator types.Validato
 
 // get a single validator by consensus address
 func (k Keeper) GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (types.Validator, error) {
-	defer func() {
-		if r := recover(); r != nil {
-			ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
-		}
-	}()
 	store := ctx.KVStore(k.storeKey)
 	valAddr := store.Get(types.GetValidatorByConsAddrKey(consAddr))
 	if valAddr == nil {
@@ -159,45 +154,23 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 			if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
 				del = del.SetTokensBase(del.GetCoin().Amount)
 			}
-			if ctx.BlockHeight() >= 762400 {
-				if strings.ToLower(del.GetCoin().Denom) != k.BondDenom(ctx) {
-					del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
+			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
+				del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
 
-					eventMutex.Lock()
-					ctx.EventManager().EmitEvent(sdk.NewEvent(
-						types.EventTypeCalcStake,
-						sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
-						sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
-						sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
-						sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
-					))
-					eventMutex.Unlock()
-					switch del := del.(type) {
-					case types.Delegation:
-						k.SetDelegation(ctx, del)
-					case types.DelegationNFT:
-						k.SetDelegationNFT(ctx, del)
-					}
-				}
-			} else {
-				if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
-					del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
-
-					eventMutex.Lock()
-					ctx.EventManager().EmitEvent(sdk.NewEvent(
-						types.EventTypeCalcStake,
-						sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
-						sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
-						sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
-						sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
-					))
-					eventMutex.Unlock()
-					switch del := del.(type) {
-					case types.Delegation:
-						k.SetDelegation(ctx, del)
-					case types.DelegationNFT:
-						k.SetDelegationNFT(ctx, del)
-					}
+				eventMutex.Lock()
+				ctx.EventManager().EmitEvent(sdk.NewEvent(
+					types.EventTypeCalcStake,
+					sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
+					sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
+					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
+				))
+				eventMutex.Unlock()
+				switch del := del.(type) {
+				case types.Delegation:
+					k.SetDelegation(ctx, del)
+				case types.DelegationNFT:
+					k.SetDelegationNFT(ctx, del)
 				}
 			}
 
