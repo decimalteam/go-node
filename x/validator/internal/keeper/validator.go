@@ -67,6 +67,11 @@ func (k Keeper) SetValidatorByConsAddr(ctx sdk.Context, validator types.Validato
 
 // get a single validator by consensus address
 func (k Keeper) GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (types.Validator, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
+		}
+	}()
 	store := ctx.KVStore(k.storeKey)
 	valAddr := store.Get(types.GetValidatorByConsAddrKey(consAddr))
 	if valAddr == nil {
