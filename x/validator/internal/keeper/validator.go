@@ -154,7 +154,8 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 			if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
 				del = del.SetTokensBase(del.GetCoin().Amount)
 			}
-			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
+			if strings.ToLower(del.GetCoin().Denom) != k.BondDenom(ctx) {
+				// if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
 				del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
 
 				eventMutex.Lock()
