@@ -164,7 +164,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		delegations := k.GetAllDelegations(ctx)
 
 		logsDir := fmt.Sprintf("%s/logs", os.Getenv("HOME"))
-		os.Mkdir(logsDir, 0644)
+		os.Mkdir(logsDir, 0600)
 
 		filename := fmt.Sprintf("%s/delegations_%d.txt", logsDir, ctx.BlockHeight())
 		file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
