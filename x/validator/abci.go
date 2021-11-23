@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"os"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/updates"
@@ -166,44 +167,44 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 }
 
 func createLogs(ctx sdk.Context, k Keeper) {
-	// delegations := k.GetAllDelegations(ctx)
+	delegations := k.GetAllDelegations(ctx)
 
-	// logsDir := fmt.Sprintf("%s/logs", os.Getenv("HOME"))
-	// if _, err := os.Stat(logsDir); os.IsNotExist(err) {
-	// 	os.Mkdir(logsDir, 0771)
-	// }
+	logsDir := fmt.Sprintf("%s/logs", os.Getenv("HOME"))
+	if _, err := os.Stat(logsDir); os.IsNotExist(err) {
+		os.Mkdir(logsDir, 0771)
+	}
 
-	// filename := fmt.Sprintf("%s/delegations_%d.txt", logsDir, ctx.BlockHeight())
-	// file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	filename := fmt.Sprintf("%s/delegations_%d.txt", logsDir, ctx.BlockHeight())
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		panic(err)
+	}
 
-	// for _, del := range delegations {
-	// 	if del.GetCoin().Denom == k.BondDenom(ctx) {
-	// 		continue
-	// 	}
-	// 	coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	file.WriteString(
-	// 		fmt.Sprintf("Denom: %s\nVolume: %s\nReserve: %s\nCRR: %d\nAmount: %s\nTokenBase: %s\nTokenBaseOfDelegation: %s\nCalcTokensBase: %s\nDelegator: %s\nValidator: %s\n\n",
-	// 			del.GetCoin().Denom,
-	// 			coin.Volume,
-	// 			coin.Reserve,
-	// 			coin.CRR,
-	// 			del.GetCoin().Amount,
-	// 			del.GetTokensBase(),
-	// 			k.TokenBaseOfDelegation(ctx, del),
-	// 			k.CalcTokensBase(ctx, del),
-	// 			del.GetDelegatorAddr(),
-	// 			del.GetValidatorAddr(),
-	// 		),
-	// 	)
-	// }
+	for _, del := range delegations {
+		if del.GetCoin().Denom == k.BondDenom(ctx) {
+			continue
+		}
+		coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
+		if err != nil {
+			panic(err)
+		}
+		file.WriteString(
+			fmt.Sprintf("Denom: %s\nVolume: %s\nReserve: %s\nCRR: %d\nAmount: %s\nTokenBase: %s\nTokenBaseOfDelegation: %s\nCalcTokensBase: %s\nDelegator: %s\nValidator: %s\n\n",
+				del.GetCoin().Denom,
+				coin.Volume,
+				coin.Reserve,
+				coin.CRR,
+				del.GetCoin().Amount,
+				del.GetTokensBase(),
+				k.TokenBaseOfDelegation(ctx, del),
+				k.CalcTokensBase(ctx, del),
+				del.GetDelegatorAddr(),
+				del.GetValidatorAddr(),
+			),
+		)
+	}
 
-	// file.Close()
+	file.Close()
 }
 
 func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
