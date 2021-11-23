@@ -3,10 +3,12 @@ package validator
 import (
 	"fmt"
 	"os"
+	"runtime/debug"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
@@ -189,15 +191,14 @@ func createLogs(ctx sdk.Context, k Keeper) {
 			panic(err)
 		}
 		file.WriteString(
-			// TokenBaseOfDelegation: %s\n
-			fmt.Sprintf("Denom: %s\nVolume: %s\nReserve: %s\nCRR: %d\nAmount: %s\nTokenBase: %s\nCalcTokensBase: %s\nDelegator: %s\nValidator: %s\n\n",
+			fmt.Sprintf("Denom: %s\nVolume: %s\nReserve: %s\nCRR: %d\nAmount: %s\nTokenBase: %s\nTokenBaseOfDelegation: %s\nCalcTokensBase: %s\nDelegator: %s\nValidator: %s\n\n",
 				del.GetCoin().Denom,
 				coin.Volume,
 				coin.Reserve,
 				coin.CRR,
 				del.GetCoin().Amount,
 				del.GetTokensBase(),
-				// k.TokenBaseOfDelegation(ctx, del),
+				tryTokenBaseOfDelegation(ctx, k, del),
 				k.CalcTokensBase(ctx, del),
 				del.GetDelegatorAddr(),
 				del.GetValidatorAddr(),
@@ -206,6 +207,15 @@ func createLogs(ctx sdk.Context, k Keeper) {
 	}
 
 	file.Close()
+}
+
+func tryTokenBaseOfDelegation(ctx sdk.Context, k Keeper, del exported.DelegationI) sdk.Int {
+	defer func() {
+		if r := recover(); r != nil {
+			ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
+		}
+	}()
+	return k.TokenBaseOfDelegation(ctx, del)
 }
 
 func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
