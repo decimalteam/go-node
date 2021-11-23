@@ -154,27 +154,48 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 			if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
 				del = del.SetTokensBase(del.GetCoin().Amount)
 			}
-			// if strings.ToLower(del.GetCoin().Denom) != k.BondDenom(ctx) {
-			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
-				del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
+			if ctx.BlockHeight() >= 762400 {
+				if strings.ToLower(del.GetCoin().Denom) != k.BondDenom(ctx) {
+					del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
 
-				eventMutex.Lock()
-				ctx.EventManager().EmitEvent(sdk.NewEvent(
-					types.EventTypeCalcStake,
-					sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
-					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
-					sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
-					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
-				))
-				eventMutex.Unlock()
-				switch del := del.(type) {
-				case types.Delegation:
-					k.SetDelegation(ctx, del)
-				case types.DelegationNFT:
-					k.SetDelegationNFT(ctx, del)
+					eventMutex.Lock()
+					ctx.EventManager().EmitEvent(sdk.NewEvent(
+						types.EventTypeCalcStake,
+						sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
+						sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
+						sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
+						sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
+					))
+					eventMutex.Unlock()
+					switch del := del.(type) {
+					case types.Delegation:
+						k.SetDelegation(ctx, del)
+					case types.DelegationNFT:
+						k.SetDelegationNFT(ctx, del)
+					}
 				}
+			} else {
+				if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
+					del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
 
+					eventMutex.Lock()
+					ctx.EventManager().EmitEvent(sdk.NewEvent(
+						types.EventTypeCalcStake,
+						sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
+						sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
+						sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
+						sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
+					))
+					eventMutex.Unlock()
+					switch del := del.(type) {
+					case types.Delegation:
+						k.SetDelegation(ctx, del)
+					case types.DelegationNFT:
+						k.SetDelegationNFT(ctx, del)
+					}
+				}
 			}
+
 			mutex.Lock()
 			total = total.Add(del.GetTokensBase())
 			mutex.Unlock()
