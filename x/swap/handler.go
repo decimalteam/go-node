@@ -46,6 +46,9 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, error) {
+
+	return nil, types.ErrDeprecated()
+
 	if k.HasSwap(ctx, msg.HashedSecret) {
 		return nil, types.ErrSwapAlreadyExist(
 			hex.EncodeToString(msg.HashedSecret[:]))
@@ -118,6 +121,9 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 }
 
 func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Result, error) {
+
+	return nil, types.ErrDeprecated()
+
 	hash := sha256.Sum256(msg.Secret)
 
 	swap, ok := k.GetSwap(ctx, hash)
@@ -171,6 +177,9 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Resul
 }
 
 func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Result, error) {
+
+	return nil, types.ErrDeprecated()
+
 	swap, ok := k.GetSwap(ctx, msg.HashedSecret)
 	if !ok {
 		return nil, types.ErrSwapNotFound()

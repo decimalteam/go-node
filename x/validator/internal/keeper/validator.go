@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"errors"
 	"fmt"
@@ -8,8 +9,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
@@ -172,8 +171,8 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 				case types.DelegationNFT:
 					k.SetDelegationNFT(ctx, del)
 				}
-			}
 
+			}
 			mutex.Lock()
 			total = total.Add(del.GetTokensBase())
 			mutex.Unlock()

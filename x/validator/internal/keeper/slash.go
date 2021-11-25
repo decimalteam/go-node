@@ -1,12 +1,11 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
-
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -360,7 +359,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	signInfo.IndexOffset++
 
 	gracePeriodStart := ncfg.UpdatesInfo.LastBlock
-	gracePeriodEnd := gracePeriodStart + (24 * ncfg.OneHour)
+	gracePeriodEnd := gracePeriodStart + (ncfg.OneHour / 4)
 
 	// Update signed block bit array & counter
 	// This counter just tracks the sum of the bit array

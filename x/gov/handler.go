@@ -39,9 +39,9 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgSubmitProposal(ctx sdk.Context, keeper Keeper, msg types.MsgSubmitProposal) (*sdk.Result, error) {
-	//if !types.CheckProposalAddress(msg.Proposer) {
-	//	return nil, types.ErrNotAllowed
-	//}
+	if !types.CheckProposalAddress(msg.Proposer) {
+		return nil, types.ErrNotAllowed()
+	}
 
 	if int64(msg.VotingStartBlock) <= ctx.BlockHeight() {
 		return nil, types.ErrStartBlock()

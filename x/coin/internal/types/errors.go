@@ -38,8 +38,9 @@ const (
 	CodeMinimumValueToBuyReached   CodeType = 205
 	CodeUpdateBalance              CodeType = 206
 	CodeLimitVolumeBroken          CodeType = 207
+
 	// Send coin
-	CodeInvalidAmount CodeType = 300
+	CodeInvalidAmount          CodeType = 300
 	CodeInvalidReceiverAddress CodeType = 301
 	// Redeem check
 	CodeInvalidCheck          CodeType = 400
@@ -438,7 +439,6 @@ func ErrUnableRetrieveSECPPkey(name string, algo string) *sdkerrors.Error {
 		errors.NewParam("algo", algo),
 	)
 }
-
 
 func ErrReceiverEmpty() *sdkerrors.Error {
 	return errors.Encode(

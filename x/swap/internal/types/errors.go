@@ -26,6 +26,8 @@ const (
 	CodeInvalidServiceAddress    = 201
 	CodeInsufficientPoolFunds    = 202
 	CodeInvalidTransactionNumber = 203
+
+	CodeDeprecated = 300
 )
 
 func ErrSwapNotFound() *sdkerrors.Error {
@@ -129,5 +131,13 @@ func ErrInvalidTransactionNumber() *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidTransactionNumber,
 		"invalid transaction number",
+	)
+}
+
+func ErrDeprecated() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeDeprecated,
+		"msg deprecated",
 	)
 }

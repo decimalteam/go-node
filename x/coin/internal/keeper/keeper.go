@@ -15,7 +15,6 @@ import (
 
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
@@ -171,7 +170,7 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 	var feeCoin string
 	fee, ok := ctx.Value("fee").(sdk.Coins)
 	if !ok || fee == nil {
-		feeCoin = cliUtils.GetBaseCoin()
+		feeCoin = k.GetBaseCoin(ctx)
 		return commissionInBaseCoin, feeCoin, nil
 	}
 
@@ -180,7 +179,7 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 	coin := fee[0]
 
 	feeCoin = coin.Denom
-	if feeCoin != cliUtils.GetBaseCoin() {
+	if feeCoin != k.GetBaseCoin(ctx) {
 		coinInfo, err := k.GetCoin(ctx, feeCoin)
 		if err != nil {
 			return sdk.Int{}, "", err
@@ -223,4 +222,8 @@ func (k Keeper) GetCoinCache(symbol string) bool {
 	k.coinCacheMutex.Lock()
 	_, ok := k.coinCache[symbol]
 	return ok
+}
+
+func (k Keeper) GetBaseCoin(ctx sdk.Context) string {
+	return k.Config.SymbolBaseCoin
 }

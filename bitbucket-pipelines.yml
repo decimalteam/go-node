@@ -238,7 +238,7 @@ pipelines:
   branches:
     master:
       - step: *build
-      
+
     staging:
       - step: *build
       - step:

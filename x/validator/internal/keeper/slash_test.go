@@ -249,15 +249,14 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	keeper.SetUnbondingDelegation(ctx, ubd)
 
 	// slash validator for the first time
-	ctx = ctx.WithBlockHeight(12)
+	ctx = ctx.WithBlockHeight(4)
 	oldBondedPool := keeper.GetBondedPool(ctx)
 	validator, err := keeper.GetValidatorByConsAddr(ctx, consAddr)
 	require.NoError(t, err)
-	keeper.Slash(ctx, consAddr, 10, fraction)
+	keeper.Slash(ctx, consAddr, 3, fraction)
 
 	// end block
 	updates, err := keeper.ApplyAndReturnValidatorSetUpdates(ctx)
-	log.Println(updates)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(updates))
 
@@ -282,8 +281,8 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	require.Equal(t, int64(5), validator.ConsensusPower())
 
 	// slash validator again
-	ctx = ctx.WithBlockHeight(13)
-	keeper.Slash(ctx, consAddr, 9, fraction)
+	ctx = ctx.WithBlockHeight(6)
+	keeper.Slash(ctx, consAddr, 5, fraction)
 	ubd, found = keeper.GetUnbondingDelegation(ctx, addrDels[0], addrVals[0])
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
@@ -304,8 +303,8 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	// all originally bonded stake has been slashed, so this will have no effect
 	// on the unbonding delegation, but it will slash stake bonded since the infraction
 	// this may not be the desirable behaviour, ref https://github.com/cosmos/cosmos-sdk/issues/1440
-	ctx = ctx.WithBlockHeight(13)
-	keeper.Slash(ctx, consAddr, 9, fraction)
+	ctx = ctx.WithBlockHeight(6)
+	keeper.Slash(ctx, consAddr, 5, fraction)
 	ubd, found = keeper.GetUnbondingDelegation(ctx, addrDels[0], addrVals[0])
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
@@ -326,8 +325,8 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	// all originally bonded stake has been slashed, so this will have no effect
 	// on the unbonding delegation, but it will slash stake bonded since the infraction
 	// this may not be the desirable behaviour, ref https://github.com/cosmos/cosmos-sdk/issues/1440
-	ctx = ctx.WithBlockHeight(13)
-	keeper.Slash(ctx, consAddr, 9, fraction)
+	ctx = ctx.WithBlockHeight(6)
+	keeper.Slash(ctx, consAddr, 5, fraction)
 	ubd, found = keeper.GetUnbondingDelegation(ctx, addrDels[0], addrVals[0])
 	require.True(t, found)
 	require.Len(t, ubd.Entries, 1)
