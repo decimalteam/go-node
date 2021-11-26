@@ -218,7 +218,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	govRouter := gov.NewRouter()
 	app.govKeeper = gov.NewKeeper(
 		app.cdc,
-		app.keys[gov.StoreKey],
+		keys[gov.StoreKey],
 		govSubspace,
 		app.supplyKeeper,
 		&app.validatorKeeper,
@@ -227,7 +227,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	app.swapKeeper = swap.NewKeeper(
 		app.cdc,
-		app.keys[swap.StoreKey],
+		keys[swap.StoreKey],
 		swapSubspace,
 		app.coinKeeper,
 		app.accountKeeper,
@@ -242,8 +242,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
-		swap.NewAppModule(app.swapKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		swap.NewAppModule(app.swapKeeper),
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
 	)
 
@@ -261,8 +261,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		supply.ModuleName,
 		multisig.ModuleName,
 		genutil.ModuleName,
-		swap.ModuleName,
 		gov.ModuleName,
+		swap.ModuleName,
 		nft.ModuleName,
 	)
 
