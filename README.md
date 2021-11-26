@@ -26,26 +26,6 @@ git clone https://bitbucket.org/decimalteam/go-node.git
 cd go-node
 ```
 
-To run `deccli` (Decimal Client Console) and `decd` (Decimal Go Node) commands from any location on your server set their installation path.  
-Use your preferred editor to open .profile, which is stored in your user’s home directory. Here, we’ll use nano:
-
-```bash
-sudo nano ~/.profile
-```
-
-Then, add the following information to the end of this file:
-
-```bash
-#default install path of the binary file
-export PATH=$PATH:~/go/bin
-```
-
-Next, refresh your profile by running the following command:
-
-```bash
-source ~/.profile
-```
-
 Build and install Decimal Go Node from source code
 
 ```bash
@@ -74,7 +54,7 @@ Time to determine proper chain ID currently used in the network and initialize n
 ```bash
 NODE_MONIKER="$USER-node" # You are free to choose other name for your node
 CHAIN_ID="$(curl -s 'https://testnet-gate.decimalchain.com/api/rpc/genesis/chain')"
-decd init "$NODE_MONIKER" --network testnet --chain-id "$CHAIN_ID"
+decd init "$NODE_MONIKER" --chain-id "$CHAIN_ID"
 ```
 
 Download proper `genesis.json` from master node
@@ -83,19 +63,11 @@ Download proper `genesis.json` from master node
 curl -s 'https://testnet-gate.decimalchain.com/api/rpc/genesis' | jq '.result.genesis' > "$HOME/.decimal/daemon/config/genesis.json"
 ```
 
-## Sync your Node
+Add proper `persistent_peers` to `config.toml` file
 
-Download Decimal Node backup for testnet from https://backup.decimalchain.com
-
-```bash
-curl -O https://backup.decimalchain.com/decimalchain-2021-11-16_09-43.tgz
-```
-
-Extract downloaded archive and move the contents of data directory from it to the ~/.decimal/daemon/data
-
-```bash
-tar -xvf decimalchain-2021-11-16_09-43.tgz
-cp -rv ./zfspool/2021-11-16_09-43/daemon/data/ ~/.decimal/daemon/data/
+```toml
+# Comma separated list of nodes to keep persistent connections to
+persistent_peers = "bf7a6b366e3c451a3c12b3a6c01af7230fb92fc7@139.59.133.148:26656"
 ```
 
 ## Running

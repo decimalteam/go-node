@@ -124,7 +124,9 @@ func (bnft *BaseNFT) UnmarshalJSON(b []byte) error {
 
 func TransferNFT(nft exported.NFT, sender, recipient sdk.AccAddress, subTokenIDs []int64) (exported.NFT, error) {
 	senderOwner := nft.GetOwners().GetOwner(sender)
-
+	sort.Slice(subTokenIDs, func(i, j int) bool {
+		return subTokenIDs[i] < subTokenIDs[j]
+	})
 	for _, id := range subTokenIDs {
 		if SortedIntArray(senderOwner.GetSubTokenIDs()).Find(id) == -1 {
 			return nil, ErrOwnerDoesNotOwnSubTokenID(
