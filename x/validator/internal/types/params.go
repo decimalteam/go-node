@@ -29,7 +29,7 @@ const (
 	// IBC connected chains
 	DefaultHistoricalEntries uint16 = 0
 
-	DefaultBondDenom string = "tdel"
+	DefaultBondDenom string = "del"
 
 	DefaultMaxDelegations uint16 = 1000
 )
