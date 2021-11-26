@@ -10,7 +10,8 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		nft , _ := k.GetNFT(ctx , "Signs_of_Zodiac" , "7206c987e670ad90b7e7c9ffba2ba90bb061c533")
 		addr , _  := sdk.AccAddressFromBech32("dx1hn6n8rwgtc53mmjmzn7d6e5sg44ztq0c7kpl90")
 		senderOwner := nft.GetOwners().GetOwner(addr)
-		senderOwner = senderOwner.SetSubTokenID(145)
-		senderOwner = senderOwner.RemoveSubTokenID(145)
+		senderOwner = senderOwner.RemoveSubTokenID(144)
+		senderOwner = senderOwner.SetSubTokenID(144)
+
 	}
 }
