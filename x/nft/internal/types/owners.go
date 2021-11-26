@@ -200,9 +200,11 @@ func (t TokenOwner) SetSubTokenID(subTokenID int64) exported.TokenOwner {
 	index := t.SubTokenIDs.Find(subTokenID)
 	if index == -1 {
 		t.SubTokenIDs = append(t.SubTokenIDs, subTokenID).Sort()
+		fmt.Println("Append+Sort: " , t.SubTokenIDs)
 	} else {
 		t.SubTokenIDs[index] = subTokenID
 	}
+	fmt.Println("Return: " , t.SubTokenIDs)
 	return t
 }
 
