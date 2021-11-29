@@ -126,7 +126,7 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 		if k.ExistTokenID(ctx, msg.ID) {
 			return nil, ErrNotUniqueTokenID()
 		}
-		if msg.Reserve.LT(types.MinReserve) {
+		if msg.Reserve.LT(types.NewMinReserve) {
 			return nil, types.ErrInvalidReserve(msg.Reserve.String())
 		}
 	}
