@@ -6,12 +6,12 @@ import (
 
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
-/*	if ctx.BlockHeight() == 809100 {
-		nft , _ := k.GetNFT(ctx , "Signs_of_Zodiac" , "7206c987e670ad90b7e7c9ffba2ba90bb061c533")
-		addr , _  := sdk.AccAddressFromBech32("dx1hn6n8rwgtc53mmjmzn7d6e5sg44ztq0c7kpl90")
+	if ctx.BlockHeight() == 834100 {
+		nft , _ := k.GetNFT(ctx , "Colibri" , "56c9fa969e77b35e39d0f0042eac0249077fe079")
+		addr , _  := sdk.AccAddressFromBech32("dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v")
 		senderOwner := nft.GetOwners().GetOwner(addr)
 		senderOwner = senderOwner.RemoveSubTokenID(144)
 		senderOwner = senderOwner.SetSubTokenID(144)
 
-	}*/
+	}
 }
