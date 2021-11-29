@@ -9,8 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-
 	"golang.org/x/crypto/sha3"
 
 	"github.com/btcsuite/btcutil/base58"
@@ -114,13 +112,9 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		return nil, types.ErrCoinAlreadyExist(msg.Symbol)
 	}
 
-	if ctx.BlockHeight() >= updates.Update1Block {
-		coin.Creator = msg.Sender
-	}
+	coin.Creator = msg.Sender
 
-	if ctx.BlockHeight() >= updates.Update1Block {
-		coin.Identity = msg.Identity
-	}
+	coin.Identity = msg.Identity
 
 	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(coin.Symbol)))
 	if err != nil {
@@ -358,6 +352,7 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 }
 
 func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll bool) (*sdk.Result, error) {
+
 	// Retrieve seller account and it's balance of selling coins
 	account := k.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balance := account.GetCoins().AmountOf(strings.ToLower(msg.CoinToSell.Denom))

@@ -431,7 +431,7 @@ func (k Keeper) unjailValidator(ctx sdk.Context, validator types.Validator) erro
 }
 
 func (k Keeper) getValidatorsCountForBlock(ctx sdk.Context, block int64) int {
-	count := 16 + (block/432000)*4
+	count := 5 + (block/7200)*1
 	if uint16(count) > k.GetParams(ctx).MaxValidators {
 		return int(k.GetParams(ctx).MaxValidators)
 	}

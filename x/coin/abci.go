@@ -9,6 +9,7 @@ import (
 // on every begin block
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 	k.ClearCoinCache()
+
 }
 
 // EndBlocker called every block, process inflation, update validator set.

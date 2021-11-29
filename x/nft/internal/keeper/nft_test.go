@@ -191,6 +191,55 @@ func TestDeleteNFT(t *testing.T) {
 	require.Equal(t, 1, owner.Supply())
 }
 
+
+func TestUpdateMinReserve(t *testing.T) {
+	ctx, _, NFTKeeper := createTestApp(t, false)
+
+	// UpdateNFT should fail when NFT doesn't exist and collection doesn't exist
+	subTokenIDs := []int64{}
+
+
+	// MintNFT should not fail when collection does not exist
+	nft := types.NewBaseNFT(
+		ID1,
+		Addrs[0],
+		Addrs[0],
+		TokenURI1,
+		sdk.NewInt(100),
+		subTokenIDs,
+		true,
+	)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, nft.GetID(), nft.GetReserve(), sdk.NewInt(2), nft.GetCreator(), Addrs[0], nft.GetTokenURI(), nft.GetAllowMint())
+
+	require.NoError(t, err)
+
+	// UpdateNFTReserve success
+	err = NFTKeeper.UpdateNFTReserve(ctx, Denom1, ID1, []int64{2}, sdk.NewInt(2))
+	require.Error(t, err)
+
+	// UpdateNFTReserve should fail when at least of nft's subtokenIds is not in the owner's subTokenIDs
+	err = NFTKeeper.UpdateNFTReserve(ctx, Denom1, ID1, []int64{3}, sdk.NewInt(2))
+	require.Error(t, err)
+
+	err = NFTKeeper.UpdateNFTReserve(ctx, Denom1, ID1, []int64{2}, sdk.NewInt(200))
+	require.NoError(t, err)
+	//Checking that the new reserve is the one we set
+	newReserve , ok := NFTKeeper.GetSubToken(ctx, Denom1, ID1, 2)
+
+	require.True(t, ok)
+	require.Equal(t, sdk.NewInt(200) , newReserve)
+
+
+	err = NFTKeeper.UpdateNFTReserve(ctx, Denom1, ID1, []int64{1}, sdk.NewInt(300))
+	require.NoError(t, err)
+
+	newReserve , ok = NFTKeeper.GetSubToken(ctx, Denom1, ID1, 1)
+
+	require.True(t, ok)
+	require.Equal(t, sdk.NewInt(300) , newReserve)
+
+}
+
 func TestIsNFT(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 

@@ -2,7 +2,6 @@ package validator
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
@@ -34,14 +33,6 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		}
 	}
 
-	if ctx.BlockHeight() == updates.Update1Block {
-		delegations := k.GetAllDelegations(ctx)
-		for _, delegation := range delegations {
-			if delegation.GetCoin().Denom != k.BondDenom(ctx) {
-				k.AddDelegatedCoin(ctx, delegation.GetCoin())
-			}
-		}
-	}
 }
 
 // EndBlocker called every block, process inflation, update validator set.
@@ -93,9 +84,6 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	if err != nil {
 		panic(err)
 	}
-	if ctx.BlockHeight() < updates.Update1Block {
-		coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
-	}
 
 	feeCollector := supplyKeeper.GetModuleAccount(ctx, k.FeeCollectorName)
 	feesCollectedInt := feeCollector.GetCoins()
@@ -115,9 +103,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	if err != nil {
 		panic(err)
 	}
-	if ctx.BlockHeight() >= updates.Update1Block {
-		coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
-	}
+	coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
 
 	remainder := sdk.NewIntFromBigInt(rewards.BigInt())
 

@@ -1,19 +1,18 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"errors"
 	"fmt"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // get a single validator
@@ -148,25 +147,15 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 			defer wg.Done()
 			defer func() {
 				if r := recover(); r != nil {
-					ctx.Logger().Debug(string(debug.Stack()))
+					ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
 				}
 			}()
-			if del.GetCoin().Denom != k.BondDenom(ctx) {
-				if ctx.BlockHeight() >= updates.Update1Block {
-					del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
-				} else {
-					coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
-					if err != nil {
-						panic(err)
-					}
-					if ctx.BlockHeight() >= updates.Update1Block {
-						delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
-						totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
-						del = del.SetTokensBase(totalAmountCoin.Mul(del.GetCoin().Amount.ToDec().Quo(delegatedCoin.ToDec()).TruncateInt()))
-					} else {
-						del = del.SetTokensBase(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, del.GetCoin().Amount))
-					}
-				}
+			if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
+				del = del.SetTokensBase(del.GetCoin().Amount)
+			}
+			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
+				del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
+
 				eventMutex.Lock()
 				ctx.EventManager().EmitEvent(sdk.NewEvent(
 					types.EventTypeCalcStake,
@@ -182,15 +171,14 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 				case types.DelegationNFT:
 					k.SetDelegationNFT(ctx, del)
 				}
+
 			}
 			mutex.Lock()
 			total = total.Add(del.GetTokensBase())
 			mutex.Unlock()
 		}(del)
 	}
-
 	wg.Wait()
-
 	return total
 }
 
@@ -499,9 +487,9 @@ func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Vali
 	}
 
 	for _, delegation := range delegations {
-		_ , err  = k.GetCoin(ctx , delegation.GetCoin().Denom )
-		if err!= nil {
-			return  false , err
+		_, err = k.GetCoin(ctx, delegation.GetCoin().Denom)
+		if err != nil {
+			return false, err
 		}
 		if delegation.GetCoin().Amount.LT(stakeValue) || (delAddr.Equals(delegation.GetDelegatorAddr()) && stake.Denom == delegation.GetCoin().Denom) {
 			return true, nil

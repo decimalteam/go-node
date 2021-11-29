@@ -114,5 +114,6 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (coin.Coin, error) {
 	} else {
 		symbol = strings.ToUpper(symbol)
 	}
+
 	return k.CoinKeeper.GetCoin(ctx, symbol)
 }

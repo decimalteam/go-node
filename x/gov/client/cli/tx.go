@@ -18,7 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	"github.com/spf13/cobra"
 
-
 	govutils "bitbucket.org/decimalteam/go-node/x/gov/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 )
@@ -196,8 +195,6 @@ const (
 	flagProposalType = "type"
 )
 
-
-
 func parseArgsToContent(cmd *cobra.Command, name string, proposer sdk.AccAddress) (types.MsgSoftwareUpgradeProposal, error) {
 	title, err := cmd.Flags().GetString(FlagTitle)
 	if err != nil {
@@ -240,7 +237,7 @@ func parseArgsToContent(cmd *cobra.Command, name string, proposer sdk.AccAddress
 	if err != nil {
 		return types.MsgSoftwareUpgradeProposal{}, err
 	}
-	
+
 	plan := types.Plan{Name: name, Time: upgradeTime, Height: height, Info: info, ToDownload: toDownload}
 	msg := types.NewSoftwareUpgradeProposal(title, description, plan, proposer)
 	return msg, nil
@@ -262,7 +259,7 @@ func GetCmdSubmitUpgradeProposal(cdc *codec.Codec) *cobra.Command {
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 			from := cliCtx.GetFromAddress()
-	
+
 			msg, err := parseArgsToContent(cmd, name, from)
 			if err != nil {
 				return err

@@ -1,7 +1,6 @@
 package swap
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
 	"crypto/sha256"
 	"encoding/hex"
@@ -47,9 +46,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, error) {
-	if ctx.BlockHeight() >= updates.Update1Block {
-		return nil, types.ErrDeprecated()
-	}
+
+	return nil, types.ErrDeprecated()
 
 	if k.HasSwap(ctx, msg.HashedSecret) {
 		return nil, types.ErrSwapAlreadyExist(
@@ -123,9 +121,8 @@ func handleMsgHTLT(ctx sdk.Context, k Keeper, msg types.MsgHTLT) (*sdk.Result, e
 }
 
 func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Result, error) {
-	if ctx.BlockHeight() >= updates.Update1Block {
-		return nil, types.ErrDeprecated()
-	}
+
+	return nil, types.ErrDeprecated()
 
 	hash := sha256.Sum256(msg.Secret)
 
@@ -180,9 +177,8 @@ func handleMsgRedeem(ctx sdk.Context, k Keeper, msg types.MsgRedeem) (*sdk.Resul
 }
 
 func handleMsgRefund(ctx sdk.Context, k Keeper, msg types.MsgRefund) (*sdk.Result, error) {
-	if ctx.BlockHeight() >= updates.Update1Block {
-		return nil, types.ErrDeprecated()
-	}
+
+	return nil, types.ErrDeprecated()
 
 	swap, ok := k.GetSwap(ctx, msg.HashedSecret)
 	if !ok {

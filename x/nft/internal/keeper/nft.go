@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"encoding/binary"
 	"fmt"
 
@@ -143,9 +142,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 	}
 	k.SetCollection(ctx, denom, collection)
 
-	if ctx.BlockHeight() >= updates.Update1Block {
-		k.SetTokenIDIndex(ctx, id)
-	}
+	k.SetTokenIDIndex(ctx, id)
 
 	newLastSubTokenID := lastSubTokenID + quantity.Int64()
 
@@ -239,7 +236,6 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 	return nil
 }
 
-
 //UpdateNFTReserve function to increase the minimum reserve of the NFT token
 func (k Keeper) UpdateNFTReserve(ctx sdk.Context, denom, id string, subTokenIDs []int64, newReserve sdk.Int) error {
 	collection, found := k.GetCollection(ctx, denom)
@@ -271,13 +267,13 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, denom, id string, subTokenIDs 
 
 		}
 
-		reserveForRefill  = reserveForRefill.Add(newReserve.Sub(reserve))
+		reserveForRefill = reserveForRefill.Add(newReserve.Sub(reserve))
 
-		k.SetSubToken(ctx, denom, id  , subTokenID, newReserve)
+		k.SetSubToken(ctx, denom, id, subTokenID, newReserve)
 	}
 
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool ,  sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForRefill)))
-	if err!= nil {
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool, sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForRefill)))
+	if err != nil {
 		return types.ErrNotEnoughFunds(reserveForRefill.String())
 	}
 	return err

@@ -5,8 +5,6 @@ import (
 	"runtime/debug"
 	"strconv"
 
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -31,6 +29,8 @@ func GenericHandler(k keeper.Keeper) sdk.Handler {
 			return HandleMsgMintNFT(ctx, msg, k)
 		case types.MsgBurnNFT:
 			return HandleMsgBurnNFT(ctx, msg, k)
+		case types.MsgUpdateReserveNFT:
+			return HandleMsgUpdateReserveNFT(ctx, msg, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unrecognized nft message type: %T", msg))
 		}
@@ -126,18 +126,8 @@ func HandleMsgMintNFT(ctx sdk.Context, msg types.MsgMintNFT, k keeper.Keeper,
 		if k.ExistTokenID(ctx, msg.ID) {
 			return nil, ErrNotUniqueTokenID()
 		}
-		if ctx.BlockHeight() >= updates.Update2Block {
-			if msg.Reserve.LT(types.NewMinReserve2) {
-				return nil, types.ErrInvalidReserve(msg.Reserve.String())
-			}
-		} else if ctx.BlockHeight() >= updates.Update1Block {
-			if msg.Reserve.LT(types.NewMinReserve) {
-				return nil, types.ErrInvalidReserve(msg.Reserve.String())
-			}
-		} else {
-			if msg.Reserve.LT(types.MinReserve) {
-				return nil, types.ErrInvalidReserve(msg.Reserve.String())
-			}
+		if msg.Reserve.LT(types.MinReserve) {
+			return nil, types.ErrInvalidReserve(msg.Reserve.String())
 		}
 	}
 
@@ -197,7 +187,6 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-//HandleMsgUpdateReserveNFT handles MsgUpdateReserveNFT
 func HandleMsgUpdateReserveNFT(ctx sdk.Context, msg types.MsgUpdateReserveNFT, k keeper.Keeper,
 ) (*sdk.Result, error) {
 	nft, err := k.GetNFT(ctx, msg.Denom, msg.ID)

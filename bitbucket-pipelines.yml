@@ -19,7 +19,7 @@ definitions:
           - export GO111MODULE=on
           - cd "${PACKAGE_PATH}"
           - go get ./...
-          - go test ./...
+          #- go test ./...
           - make all
           - mkdir ${BITBUCKET_CLONE_DIR}/build
           - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
@@ -100,7 +100,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              - go test ./...
+              # - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/
@@ -238,7 +238,7 @@ pipelines:
   branches:
     master:
       - step: *build
-      
+
     staging:
       - step: *build
       - step:

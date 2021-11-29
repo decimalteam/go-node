@@ -1,9 +1,8 @@
 package types
 
 import (
-	"fmt"
-
 	"bitbucket.org/decimalteam/go-node/utils/errors"
+	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 

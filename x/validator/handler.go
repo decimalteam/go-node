@@ -69,14 +69,14 @@ func handleMsgDeclareCandidate(ctx sdk.Context, k Keeper, msg types.MsgDeclareCa
 	val := types.NewValidator(msg.ValidatorAddr, msg.PubKey, msg.Commission, msg.RewardAddr, msg.Description)
 	err := k.SetValidator(ctx, val)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrInvalidStruct(), err.Error())
+		return nil, types.ErrInvalidStruct()
 	}
 	k.SetValidatorByConsAddr(ctx, val)
 	k.SetNewValidatorByPowerIndex(ctx, val)
 
 	k.AfterValidatorCreated(ctx, val.ValAddress)
 
-	_ , err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
+	_, err = k.Delegate(ctx, sdk.AccAddress(msg.ValidatorAddr), msg.Stake, types.Unbonded, val, true)
 	if err != nil {
 		e := sdkerrors.Error{}
 		if errors.As(err, &e) {
@@ -118,7 +118,7 @@ func handleMsgDelegate(ctx sdk.Context, k Keeper, msg types.MsgDelegate) (*sdk.R
 		return nil, types.ErrDelegatorStakeIsTooLow()
 	}
 
-	priceDelCustom , err := k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)
+	priceDelCustom, err := k.Delegate(ctx, msg.DelegatorAddress, msg.Coin, types.Unbonded, val, true)
 	if err != nil {
 		e := sdkerrors.Error{}
 		if errors.As(err, &e) {

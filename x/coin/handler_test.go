@@ -1,4 +1,5 @@
 package coin
+
 /*
 import (
 	"strings"
