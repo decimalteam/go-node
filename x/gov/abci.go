@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -25,6 +24,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		return
 	}
 
+	planURL := plan.Name
 	if ctx.BlockHeight() > plan.Height {
 		nextVersion := loadVersion(plan.Name)
 		if ncfg.DecimalVersion != nextVersion {
@@ -36,11 +36,11 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	allBlocks := ncfg.UpdatesInfo.AllBlocks
-	if _, ok := allBlocks[plan.Name]; ok {
+	if _, ok := allBlocks[planURL]; ok {
 		return
 	}
 
-	_, ok := downloadStat[plan.Name]
+	_, ok := downloadStat[planURL]
 
 	if ctx.BlockHeight() > (plan.Height-plan.ToDownload) && ctx.BlockHeight() < plan.Height && !ok {
 		for _, name := range ncfg.NameFiles {
@@ -72,7 +72,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	if plan.ShouldExecute(ctx) {
 		// If skip upgrade has been set for current height, we clear the upgrade plan
 		if k.IsSkipHeight(ctx.BlockHeight()) {
-			skipUpgradeMsg := fmt.Sprintf("UPGRADE \"%s\" SKIPPED at %d: %s", plan.Name, plan.Height, plan.Info)
+			skipUpgradeMsg := fmt.Sprintf("UPGRADE \"%s\" SKIPPED at %d: %s", planURL, plan.Height, plan.Info)
 			ctx.Logger().Info(skipUpgradeMsg)
 
 			// Clear the upgrade plan at current height
@@ -81,7 +81,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		}
 
 		// We have an upgrade handler for this upgrade name, so apply the upgrade
-		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", plan.Name, plan.DueAt()))
+		ctx.Logger().Info(fmt.Sprintf("applying upgrade \"%s\" at %s", planURL, plan.DueAt()))
 		ctx = ctx.WithBlockGasMeter(sdk.NewInfiniteGasMeter())
 
 		err := k.ApplyUpgrade(ctx, plan)
@@ -103,9 +103,9 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
-	if ctx.BlockHeight() < updates.Update2Block {
-		return
-	}
+	// if ctx.BlockHeight() < updates.Update1Block {
+	// 	return
+	// }
 
 	logger := keeper.Logger(ctx)
 

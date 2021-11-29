@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -94,16 +92,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		for _, del := range delegations {
 			reward := sdk.NewIntFromBigInt(rewards.BigInt())
 			if del.GetCoin().Denom != k.BondDenom(ctx) {
-				var defAmount sdk.Int
-				if ctx.BlockHeight() >= updates.Update11Block {
-					defAmount = del.GetTokensBase()
-				} else {
-					coinDel, err := k.GetCoin(ctx, del.GetCoin().Denom)
-					if err != nil {
-						return err
-					}
-					defAmount = formulas.CalculateSaleReturn(coinDel.Volume, coinDel.Reserve, coinDel.CRR, del.GetCoin().Amount)
-				}
+				defAmount := del.GetTokensBase()
 
 				reward = reward.Mul(defAmount).Quo(totalStake)
 				if reward.LT(sdk.NewInt(1)) {
@@ -128,6 +117,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 					sdk.NewAttribute(sdk.AttributeKeyAmount, reward.String()),
 					sdk.NewAttribute(types.AttributeKeyValidator, val.ValAddress.String()),
 					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
+					sdk.NewAttribute(types.AttributeKeyCoin ,del.GetCoin().Denom),
 				),
 			)
 		}

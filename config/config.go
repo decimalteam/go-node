@@ -10,9 +10,8 @@ import (
 )
 
 const (
-
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "1.2.3"
+	DecimalVersion = "0.9.45"
 
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
@@ -46,8 +45,9 @@ const (
 )
 
 const (
-	OneHour     = 660 // blocks
-	UpdatesName = "updates.json"
+	// ChainID is the Decimal chain identifier.
+	ChainID = "decimal-devnet-06-09-16-00"
+	OneHour = 660 // blocks
 )
 
 var (
@@ -56,6 +56,7 @@ var (
 )
 
 var (
+	UpdatesName = "updates.json"
 	UpdatesInfo = NewUpdatesInfo(filepath.Join(DataPath, UpdatesName))
 )
 
@@ -63,8 +64,6 @@ var (
 	InitialVolumeTestBaseCoin, _ = sdk.NewIntFromString("340000000000000000000000000")
 	InitialVolumeBaseCoin, _     = sdk.NewIntFromString("340000000000000000000000000")
 )
-
-var ChainID = "decimal-testnet-07-31-22-30"
 
 type Config struct {
 	Initialized           bool    `json:"initialized" yaml:"initialized"`

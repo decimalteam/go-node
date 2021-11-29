@@ -41,9 +41,7 @@ func NewMsgMintNFT(sender, recipient sdk.AccAddress, id, denom, tokenURI string,
 const regName = "^[a-zA-Z0-9_-]{1,255}$"
 
 var MinReserve = sdk.NewInt(100)
-
-var NewMinReserve = helpers.BipToPip(sdk.NewInt(100))
-var NewMinReserve2 = helpers.BipToPip(sdk.NewInt(1))
+var NewMinReserve = helpers.BipToPip(sdk.NewInt(1))
 
 // Route Implements Msg
 func (msg MsgMintNFT) Route() string { return RouterKey }
@@ -68,8 +66,7 @@ func (msg MsgMintNFT) ValidateBasic() error {
 	if !msg.Quantity.IsPositive() {
 		return ErrInvalidQuantity(msg.Quantity.String())
 	}
-
-	if !msg.Reserve.IsPositive() || msg.Reserve.LT(MinReserve) {
+	if !msg.Reserve.IsPositive() || msg.Reserve.LT(NewMinReserve) {
 		return ErrInvalidReserve(msg.Reserve.String())
 	}
 	if match, _ := regexp.MatchString(regName, msg.Denom); !match {
@@ -146,6 +143,68 @@ func (msg MsgBurnNFT) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg MsgBurnNFT) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Sender}
+}
+
+/* --------------------------------------------------------------------------- */
+// MsgUpdateReservNFT
+/* --------------------------------------------------------------------------- */
+type MsgUpdateReserveNFT struct {
+	Sender       sdk.AccAddress `json:"sender"`
+	ID           string         `json:"id"`
+	Denom        string         `json:"denom"`
+	SubTokenIDs  []int64        `json:"sub_token_ids"`
+	NewReserveNFT sdk.Int        `json:"reserve"`
+}
+
+// NewUpdateReservNFT is a constructor function for MsgUpdateReservNFT
+func NewMsgUpdateReserveNFT(sender sdk.AccAddress, id string, denom string, subTokenIDs []int64, newReserveNFT sdk.Int) MsgUpdateReserveNFT {
+	return MsgUpdateReserveNFT{
+		Sender:       sender,
+		ID:           strings.TrimSpace(id),
+		Denom:        strings.TrimSpace(denom),
+		SubTokenIDs:  subTokenIDs,
+		NewReserveNFT: newReserveNFT,
+	}
+}
+
+// Route Implements Msg
+func (msg MsgUpdateReserveNFT) Route() string { return RouterKey }
+
+// Type Implements Msg
+func (msg MsgUpdateReserveNFT) Type() string { return "update_nft_reserve" }
+
+// ValidateBasic Implements Msg.
+func (msg MsgUpdateReserveNFT) ValidateBasic() error {
+	if strings.TrimSpace(msg.Denom) == "" {
+
+		return ErrInvalidDenom(msg.Denom)
+	}
+	if strings.TrimSpace(msg.ID) == "" {
+		return ErrInvalidNFT(msg.ID)
+	}
+	if msg.Sender.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
+	}
+	if !CheckUnique(msg.SubTokenIDs) {
+		return ErrNotUniqueSubTokenIDs()
+	}
+
+	if msg.NewReserveNFT.IsZero() {
+		return ErrInvalidReserve("Reserv can not be equal to zero")
+	}
+
+	return nil
+}
+
+// GetSignBytes Implements Msg.
+func (msg MsgUpdateReserveNFT) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners Implements Msg.
+func (msg MsgUpdateReserveNFT) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 

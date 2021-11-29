@@ -94,7 +94,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bk, config.GetDefaultConfig(config.ChainID))
 
-	coinConfig := config.GetDefaultConfig("decimal")
+	coinConfig := config.GetDefaultConfig(config.ChainID)
 	coinKeeper.SetCoin(ctx, coin.Coin{
 		Title:  coinConfig.TitleBaseCoin,
 		Symbol: coinConfig.SymbolBaseCoin,

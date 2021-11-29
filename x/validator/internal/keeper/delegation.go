@@ -1,13 +1,13 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-	"bitbucket.org/decimalteam/go-node/x/nft"
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"log"
 	"time"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/x/nft"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -109,7 +109,7 @@ func (k Keeper) GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddres
 
 // set a delegation
 func (k Keeper) SetDelegation(ctx sdk.Context, delegation types.Delegation) {
-	delegation.TokensBase = k.CalcTokensBase(ctx, delegation)
+	// delegation.TokensBase = k.CalcTokensBase(ctx, delegation)
 	err := k.set(ctx, types.GetDelegationKey(delegation.DelegatorAddress, delegation.ValidatorAddress, delegation.Coin.Denom), delegation)
 	if err != nil {
 		panic(err)
@@ -170,10 +170,8 @@ func (k Keeper) GetDelegatedCoin(ctx sdk.Context, symbol string) sdk.Int {
 	key := types.GetDelegateCoinKey(symbol)
 	value := store.Get(key)
 	if value == nil {
-		if ctx.BlockHeight() >= updates.Update13Block {
-			return sdk.ZeroInt()
-		}
-		panic(fmt.Sprintf("coin with symbol %s not exist", symbol))
+		return sdk.ZeroInt()
+		//panic(fmt.Sprintf("coin with symbol %s not exist", symbol))
 	}
 	return types.MustUnmarshalDelegateCoin(k.cdc, value)
 }
@@ -530,47 +528,27 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 			delegation = types.NewDelegation(delAddr, validator.ValAddress, bondCoin)
 		}
 	}
-
-	// MERGE
-	if ctx.BlockHeight() >= updates.Update13Block {
-		k.DeleteValidatorByPowerIndex(ctx, validator)
-
-		if bondCoin.Denom == k.BondDenom(ctx) {
-			if delegation.GetCoin().Denom != k.BondDenom(ctx) {
-				tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
-				validator.Tokens = validator.Tokens.Add(tokenBase)
-				delegation.TokensBase = tokenBase
-			} else {
-				validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
-				delegation.TokensBase = bondCoin.Amount
-			}
-		} else {
-			k.AddDelegatedCoin(ctx, bondCoin)
+	k.DeleteValidatorByPowerIndex(ctx, validator)
+	if bondCoin.Denom == k.BondDenom(ctx) {
+		if delegation.GetCoin().Denom != k.BondDenom(ctx) {
 			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
 			validator.Tokens = validator.Tokens.Add(tokenBase)
 			delegation.TokensBase = tokenBase
-			k.CoinKeeper.SetCachedCoin(bondCoin.Denom)
-		}
-
-		k.SetDelegation(ctx, delegation)
-
-	} else {
-		k.SetDelegation(ctx, delegation)
-
-		k.DeleteValidatorByPowerIndex(ctx, validator)
-		if bondCoin.Denom == k.BondDenom(ctx) {
-			validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
 		} else {
-			coin, err := k.GetCoin(ctx, bondCoin.Denom)
-			if err != nil {
-				return sdk.Int{}, err
-			}
-			validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
-			if ctx.BlockHeight() >= updates.Update11Block {
-				k.AddDelegatedCoin(ctx, bondCoin)
-			}
+			validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
+			delegation.TokensBase = bondCoin.Amount
 		}
+	} else {
+		k.AddDelegatedCoin(ctx, bondCoin)
+
+		tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
+		validator.Tokens = validator.Tokens.Add(tokenBase)
+		delegation.TokensBase = tokenBase
+		k.CoinKeeper.SetCachedCoin(bondCoin.Denom)
+
 	}
+
+	k.SetDelegation(ctx, delegation)
 
 	err := k.SetValidator(ctx, validator)
 	if err != nil {
@@ -578,6 +556,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	}
 	k.SetValidatorByPowerIndexWithoutCalc(ctx, validator)
 
+	// Call the after-modification hook
 	k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 
 	return delegation.TokensBase, nil
@@ -711,9 +690,7 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 					if err != nil {
 						return err
 					}
-					if ctx.BlockHeight() >= updates.Update11Block {
-						k.SubtractDelegatedCoin(ctx, entry.Balance)
-					}
+					k.SubtractDelegatedCoin(ctx, entry.Balance)
 				case types.UnbondingDelegationNFTEntry:
 					collection, ok := k.nftKeeper.GetCollection(ctx, entry.Denom)
 					if !ok {

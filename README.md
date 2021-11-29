@@ -54,7 +54,7 @@ Time to determine proper chain ID currently used in the network and initialize n
 ```bash
 NODE_MONIKER="$USER-node" # You are free to choose other name for your node
 CHAIN_ID="$(curl -s 'https://testnet-gate.decimalchain.com/api/rpc/genesis/chain')"
-decd init "$NODE_MONIKER" --network testnet --chain-id "$CHAIN_ID"
+decd init "$NODE_MONIKER" --chain-id "$CHAIN_ID"
 ```
 
 Download proper `genesis.json` from master node

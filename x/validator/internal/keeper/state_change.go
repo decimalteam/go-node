@@ -1,19 +1,17 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"errors"
 	"fmt"
 	"runtime/debug"
 	"sort"
 
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	updts "bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -143,7 +141,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		// fetch the validator
 		validator, err := k.GetValidator(ctx, valAddrBytes)
 		if err != nil {
-			panic(err)
+			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
 
 		if validator.Jailed {
@@ -176,23 +174,9 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		}
 
 		if validator.Tokens.IsZero() {
-			if ctx.BlockHeight() >= updts.Update6Block {
-				if validator.IsBonded() {
-					validator, err = k.bondedToUnbonding(ctx, validator)
-					if err != nil {
-						panic(err)
-					}
-				} else {
-					err = k.RemoveValidator(ctx, validator.ValAddress)
-					if err != nil {
-						panic(err)
-					}
-				}
-			} else {
-				validator, err = k.bondedToUnbonding(ctx, validator)
-				if err != nil {
-					panic(err)
-				}
+			validator, err = k.bondedToUnbonding(ctx, validator)
+			if err != nil {
+				panic(err)
 			}
 		} else {
 			validator = validator.UpdateStatus(types.Unbonded)
@@ -326,10 +310,8 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator) {
 	var delegationsInBase []exported.DelegationI
 
 	for _, delegation := range delegations {
-		if ctx.BlockHeight() < updts.Update11Block {
-			if _, ok := k.CoinKeeper.GetCoinsCache()[delegation.GetCoin().Denom]; ok {
-				delegation = delegation.SetTokensBase(k.CalcTokensBase(ctx, delegation))
-			}
+		if _, ok := k.CoinKeeper.GetCoinsCache()[delegation.GetCoin().Denom]; ok {
+			delegation = delegation.SetTokensBase(k.CalcTokensBase(ctx, delegation))
 		}
 		delegationsInBase = append(delegationsInBase, delegation)
 	}
@@ -449,7 +431,7 @@ func (k Keeper) unjailValidator(ctx sdk.Context, validator types.Validator) erro
 }
 
 func (k Keeper) getValidatorsCountForBlock(ctx sdk.Context, block int64) int {
-	count := 16 + (block/432000)*4
+	count := 5 + (block/7200)*1
 	if uint16(count) > k.GetParams(ctx).MaxValidators {
 		return int(k.GetParams(ctx).MaxValidators)
 	}

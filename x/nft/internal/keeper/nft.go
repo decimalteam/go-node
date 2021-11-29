@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"encoding/binary"
 	"fmt"
 
@@ -143,9 +142,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 	}
 	k.SetCollection(ctx, denom, collection)
 
-	if ctx.BlockHeight() >= updates.Update11Block {
-		k.SetTokenIDIndex(ctx, id)
-	}
+	k.SetTokenIDIndex(ctx, id)
 
 	newLastSubTokenID := lastSubTokenID + quantity.Int64()
 
@@ -158,7 +155,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 	err = k.ReserveTokens(ctx,
 		sdk.NewCoins(
 			sdk.NewCoin(
-				*k.BaseDenom,
+				k.baseDenom,
 				reserve.Mul(quantity), // reserve * quantity
 			)),
 		creator)
@@ -224,40 +221,60 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 		GetOwners().
 		SetOwner(owner))
 
-	if ctx.BlockHeight() >= updates.Update11Block {
-		collection, err = collection.UpdateNFT(nft)
-		if err != nil {
-			return err
-		}
-	} else {
-		nftOwner, err := k.GetOwner(ctx, nft.GetCreator()).DeleteID(denom, nft.GetID())
-
-		if err != nil {
-			return err
-		}
-
-		k.SetOwner(ctx, nftOwner)
-
-		collection, err = collection.DeleteNFT(nft)
-		if err != nil {
-			return err
-		}
+	collection, err = collection.UpdateNFT(nft)
+	if err != nil {
+		return err
 	}
 
 	k.SetCollection(ctx, denom, collection)
 
-	if ctx.BlockHeight() >= updates.Update11Block {
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ReservedPool, owner.GetAddress(), sdk.NewCoins(sdk.NewCoin(*k.BaseDenom, reserveForReturn)))
-		if err != nil {
-			return err
-		}
-	} else {
-		err = k.BurnTokens(ctx, sdk.NewCoins(
-			sdk.NewCoin(*k.BaseDenom, nft.GetReserve().MulRaw(int64(len(subTokenIDs))))))
-		if err != nil {
-			return err
-		}
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ReservedPool, owner.GetAddress(), sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForReturn)))
+	if err != nil {
+		return err
 	}
 
 	return nil
+}
+
+//UpdateNFTReserve function to increase the minimum reserve of the NFT token
+func (k Keeper) UpdateNFTReserve(ctx sdk.Context, denom, id string, subTokenIDs []int64, newReserve sdk.Int) error {
+	collection, found := k.GetCollection(ctx, denom)
+	if !found {
+		return types.ErrUnknownCollection(denom)
+	}
+	nft, err := collection.GetNFT(id)
+	if err != nil {
+		return err
+	}
+
+	owner := nft.GetOwners().GetOwner(nft.GetCreator())
+	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
+
+	reserveForRefill := sdk.NewInt(0)
+
+	for _, subTokenID := range subTokenIDs {
+		if ownerSubTokenIDs.Find(subTokenID) == -1 {
+			return sdkerrors.Wrap(types.ErrNotAllowedUpdateReserve(),
+				fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(),
+					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
+		}
+		reserve, _ := k.GetSubToken(ctx, denom, id, subTokenID)
+		if reserve.Equal(newReserve) {
+			return types.ErrNotSetValueLowerNow()
+		}
+		if reserve.GT(newReserve) {
+			return types.ErrNotSetValueLowerNow()
+
+		}
+
+		reserveForRefill = reserveForRefill.Add(newReserve.Sub(reserve))
+
+		k.SetSubToken(ctx, denom, id, subTokenID, newReserve)
+	}
+
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool, sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForRefill)))
+	if err != nil {
+		return types.ErrNotEnoughFunds(reserveForRefill.String())
+	}
+	return err
 }

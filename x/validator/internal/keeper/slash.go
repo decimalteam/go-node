@@ -1,10 +1,7 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
-
 	"fmt"
 	"log"
 	"strconv"
@@ -189,11 +186,8 @@ func (k Keeper) slashUnbondingDelegation(ctx sdk.Context, unbondingDelegation ty
 				panic(err)
 			}
 			ret := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, unbondingSlashAmount)
-
 			k.CoinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(unbondingSlashAmount))
-			if ctx.BlockHeight() >= updates.Update13Block {
-				k.SubtractDelegatedCoin(ctx, sdk.NewCoin(entry.Balance.Denom, unbondingSlashAmount))
-			}
+			k.SubtractDelegatedCoin(ctx, sdk.NewCoin(entry.Balance.Denom, unbondingSlashAmount))
 		}
 	}
 
@@ -255,9 +249,7 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 				k.CoinKeeper.UpdateCoin(ctx, coin, coin.Reserve.Sub(ret), coin.Volume.Sub(bondSlashAmount))
 				validator.Tokens = validator.Tokens.Sub(ret)
 
-				if ctx.BlockHeight() >= updates.Update13Block {
-					k.SubtractDelegatedCoin(ctx, sdk.NewCoin(delegation.GetCoin().Denom, bondSlashAmount))
-				}
+				k.SubtractDelegatedCoin(ctx, sdk.NewCoin(delegation.GetCoin().Denom, bondSlashAmount))
 			} else {
 				validator.Tokens = validator.Tokens.Sub(bondSlashAmount)
 			}
@@ -325,7 +317,6 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	for _, coin := range burnedAmount {
 		tokensToBurn = tokensToBurn.Add(sdk.NewCoin(coin.Denom, sdk.MaxInt(coin.Amount, sdk.ZeroInt()))) // defensive.
 	}
-
 	if err := k.burnBondedTokens(ctx, tokensToBurn); err != nil {
 		panic(err)
 	}
@@ -333,53 +324,10 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	return tokensToBurn
 }
 
-const WithoutSlashPeriod1Start = 66120
-const WithoutSlashPeriod1End = 70320
-
-const WithoutSlashPeriod2Start = updates.Update1Block
-const WithoutSlashPeriod2End = WithoutSlashPeriod2Start + 4200
-
-const WithoutSlashPeriod3Start = updates.Update6Block
-const WithoutSlashPeriod3End = WithoutSlashPeriod3Start + 2400
-
-const WithoutSlashPeriod4Start = updates.Update7Block
-const WithoutSlashPeriod4End = WithoutSlashPeriod4Start + 2600
-
-const WithoutSlashPeriod5Start = updates.Update10Block
-const WithoutSlashPeriod5End = WithoutSlashPeriod5Start + 2600
-
-const WithoutSlashPeriod6Start = updates.Update12Block
-const WithoutSlashPeriod6End = WithoutSlashPeriod6Start + 15840
-
-const WithoutSlashPeriod7Start = updates.Update13Block
-const WithoutSlashPeriod7End = updates.Update13Block + 14992
-
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
 	logger := k.Logger(ctx)
 	height := ctx.BlockHeight()
-
-	if height >= WithoutSlashPeriod1Start && height <= WithoutSlashPeriod1End {
-		return
-	}
-	if height >= WithoutSlashPeriod2Start && height <= WithoutSlashPeriod2End {
-		return
-	}
-	if height >= WithoutSlashPeriod3Start && height <= WithoutSlashPeriod3End {
-		return
-	}
-	if height >= WithoutSlashPeriod4Start && height <= WithoutSlashPeriod4End {
-		return
-	}
-	if height >= WithoutSlashPeriod5Start && height <= WithoutSlashPeriod5End {
-		return
-	}
-	if height >= WithoutSlashPeriod6Start && height <= WithoutSlashPeriod6End {
-		return
-	}
-	if height >= WithoutSlashPeriod7Start && height <= WithoutSlashPeriod7End {
-		return
-	}
 	consAddr := sdk.ConsAddress(addr)
 	pubkey, err := k.getPubkey(ctx, addr)
 	if err != nil {
@@ -410,22 +358,20 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	index := signInfo.IndexOffset % types.SignedBlocksWindow
 	signInfo.IndexOffset++
 
+	gracePeriodStart := ncfg.UpdatesInfo.LastBlock
+	gracePeriodEnd := gracePeriodStart + (ncfg.OneHour / 4)
+
 	// Update signed block bit array & counter
 	// This counter just tracks the sum of the bit array
 	// That way we avoid needing to read/write the whole array each time
 	previous := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
 	missed := !signed
-
-	gracePeriodStart := ncfg.UpdatesInfo.LastBlock
-	gracePeriodEnd := gracePeriodStart + (ncfg.OneHour * 24)
-
 	switch {
 	case !previous && missed:
 		if height >= gracePeriodStart && height <= gracePeriodEnd {
 			log.Println(consAddr.String())
 			return
 		}
-
 		// Array value has changed from not missed to missed, increment counter
 		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 		signInfo.MissedBlocksCounter++

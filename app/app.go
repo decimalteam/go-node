@@ -5,12 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
-	"github.com/cosmos/cosmos-sdk/x/supply/exported"
-	tmtypes "github.com/tendermint/tendermint/types"
+	"bitbucket.org/decimalteam/go-node/utils/ante"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -27,7 +23,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 	"bitbucket.org/decimalteam/go-node/x/gov"
@@ -119,18 +114,15 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 
-	// Load file with updates info: last_update and all_updates
+	// Load file with updates info: last_block and all_blocks
 	err := config.UpdatesInfo.Load()
 	if err != nil {
-		panic(fmt.Sprintf("error: read permissions '%s'", err.Error()))
-	}
-	err = config.UpdatesInfo.Push(config.UpdatesInfo.LastBlock)
-	if err != nil {
-		panic(fmt.Sprintf("error: write permissions '%s'", err.Error()))
+		panic(fmt.Sprintf("error: load file with updates '%s'", err.Error()))
 	}
 
 	bApp.SetAppVersion(config.DecimalVersion)
 
+	// TODO: Add the keys that module requires
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey,
 		auth.StoreKey,
@@ -139,6 +131,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.StoreKey,
 		multisig.StoreKey,
 		validator.StoreKey,
+		gov.StoreKey,
+		swap.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
@@ -220,10 +214,11 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		auth.FeeCollectorName,
 	)
 
+	// register the proposal types
 	govRouter := gov.NewRouter()
 	app.govKeeper = gov.NewKeeper(
 		app.cdc,
-		app.keys[gov.StoreKey],
+		keys[gov.StoreKey],
 		govSubspace,
 		app.supplyKeeper,
 		&app.validatorKeeper,
@@ -232,7 +227,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	app.swapKeeper = swap.NewKeeper(
 		app.cdc,
-		app.keys[swap.StoreKey],
+		keys[swap.StoreKey],
 		swapSubspace,
 		app.coinKeeper,
 		app.accountKeeper,
@@ -247,8 +242,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coin.NewAppModule(app.coinKeeper, app.accountKeeper),
 		multisig.NewAppModule(app.multisigKeeper, app.accountKeeper, app.bankKeeper),
 		validator.NewAppModule(app.validatorKeeper, app.supplyKeeper, app.coinKeeper),
-		swap.NewAppModule(app.swapKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		swap.NewAppModule(app.swapKeeper),
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
 	)
 
@@ -266,8 +261,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		supply.ModuleName,
 		multisig.ModuleName,
 		genutil.ModuleName,
-		swap.ModuleName,
 		gov.ModuleName,
+		swap.ModuleName,
 		nft.ModuleName,
 	)
 
@@ -281,7 +276,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// The AnteHandler handles signature verification and transaction pre-processing
 	app.SetAnteHandler(
-		utils.NewAnteHandler(
+		ante.NewAnteHandler(
 			app.accountKeeper,
 			app.validatorKeeper,
 			app.coinKeeper,
@@ -324,53 +319,6 @@ func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 }
 
 func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	if !cfg.Initialized {
-		config.ChainID = ctx.ChainID()
-		if strings.HasPrefix(config.ChainID, "decimal-testnet") {
-			cfg.TitleBaseCoin = config.TitleTestBaseCoin
-			cfg.SymbolBaseCoin = config.SymbolTestBaseCoin
-			cfg.InitialVolumeBaseCoin = config.InitialVolumeTestBaseCoin
-		} else if strings.HasPrefix(config.ChainID, "decimal") {
-			cfg.TitleBaseCoin = config.TitleBaseCoin
-			cfg.SymbolBaseCoin = config.SymbolBaseCoin
-			cfg.InitialVolumeBaseCoin = config.InitialVolumeBaseCoin
-		}
-		cfg.Initialized = true
-	}
-
-	if ctx.BlockHeight() == updates.Update2Block {
-		govAppModule := app.mm.Modules[gov.ModuleName].(gov.AppModule)
-		swapAppModule := app.mm.Modules[swap.ModuleName].(swap.AppModule)
-
-		genesis := genutilcli.MainNetGenesis
-		var err error
-
-		var genDoc *tmtypes.GenesisDoc
-		if genDoc, err = tmtypes.GenesisDocFromJSON([]byte(genesis)); err != nil {
-			panic(err)
-		}
-
-		var genState map[string]json.RawMessage
-		if err = app.cdc.UnmarshalJSON(genDoc.AppState, &genState); err != nil {
-			panic(err)
-		}
-
-		govAppModule.InitGenesis(ctx, genState[gov.ModuleName])
-		gov.InitGenesis(ctx, app.govKeeper, gov.InitialGenesisState)
-
-		swapAppModule.InitGenesis(ctx, genState[swap.ModuleName])
-		swap.InitGenesis(ctx, app.swapKeeper, app.supplyKeeper, swap.InitialGenesisState)
-
-		moduleAddress := app.supplyKeeper.GetModuleAddress(swap.PoolName)
-		moduleAccount := app.accountKeeper.GetAccount(ctx, moduleAddress)
-
-		if moduleAccount != nil {
-			if _, ok := moduleAccount.(exported.ModuleAccountI); !ok {
-				app.accountKeeper.RemoveAccount(ctx, moduleAccount)
-			}
-		}
-	}
-
 	return app.mm.BeginBlock(ctx, req)
 }
 func (app *newApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {

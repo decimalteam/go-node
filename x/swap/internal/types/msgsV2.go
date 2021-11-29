@@ -136,11 +136,7 @@ func (msg MsgChainActivate) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
 	}
 
-	swapServiceAddress, err := sdk.AccAddressFromBech32(ChainActivatorAddress)
-	if err != nil {
-		return err
-	}
-	if !msg.From.Equals(swapServiceAddress) {
+	if !msg.From.Equals(SwapServiceAddress()) {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
 	}
 
@@ -178,11 +174,7 @@ func (msg MsgChainDeactivate) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
 	}
 
-	swapServiceAddress, err := sdk.AccAddressFromBech32(ChainActivatorAddress)
-	if err != nil {
-		return err
-	}
-	if !msg.From.Equals(swapServiceAddress) {
+	if !msg.From.Equals(SwapServiceAddress()) {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.From.String())
 	}
 

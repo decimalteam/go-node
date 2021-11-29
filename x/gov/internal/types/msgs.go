@@ -3,10 +3,9 @@ package types
 import (
 	"errors"
 	"fmt"
-	"strconv"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"strconv"
 )
 
 // Governance message types and routes
@@ -14,6 +13,7 @@ const (
 	TypeMsgVote            = "vote"
 	TypeMsgSubmitProposal  = "submit_proposal"
 	TypeMsgSoftwareUpgrade = "software_upgrade"
+	// TypeMsgSoftwareUpgrade = "SoftwareUpgrade"
 )
 
 var _, _ sdk.Msg = MsgSubmitProposal{}, MsgVote{}
@@ -132,7 +132,7 @@ func (msg MsgVote) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.AccAddress(msg.Voter)}
 }
 
-const AddressForSoftwareUpgrade = "dx15gflwp3lj4neh2gt9p4ljrv9vtlda836xj7kev"
+const AddressForSoftwareUpgrade = "dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v"
 
 // Software Upgrade Proposals
 type MsgSoftwareUpgradeProposal struct {
@@ -158,7 +158,6 @@ func (msg MsgSoftwareUpgradeProposal) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-	// ADD NOT
 	if !msg.Proposer.Equals(address) {
 		return errors.New("not allowed")
 	}

@@ -21,6 +21,7 @@ type TokenOwner interface {
 	GetAddress() sdk.AccAddress
 	GetSubTokenIDs() []int64
 	SetSubTokenID(id int64) TokenOwner
+	SortSubTokensFix() TokenOwner
 	RemoveSubTokenID(id int64) TokenOwner
 	String() string
 }

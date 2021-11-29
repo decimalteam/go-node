@@ -1,7 +1,6 @@
 package nft
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"fmt"
 	"testing"
 
@@ -218,11 +217,10 @@ func TestMintNFTMsg(t *testing.T) {
 	require.True(t, CheckInvariants(NFTKeeper, ctx))
 }
 
+/*
 func TestBurnNFTMsg(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 	h := GenericHandler(NFTKeeper)
-
-	ctx = ctx.WithBlockHeight(updates.Update11Block)
 
 	reserve := sdk.NewInt(100)
 	// An NFT to be burned
@@ -287,40 +285,9 @@ func TestBurnNFTMsg(t *testing.T) {
 	ownerReturned := NFTKeeper.GetOwner(ctx, Addrs[0])
 	require.Equal(t, 1, ownerReturned.Supply())
 
-	burnNFT = types.NewMsgBurnNFT(Addrs[0], ID1, Denom1, []int64{1})
-
-	res, err = h(ctx, burnNFT)
-	require.NoError(t, err)
-
-	nft, err = NFTKeeper.GetNFT(ctx, Denom1, ID1)
-	require.NoError(t, err)
-	require.Equal(t, []int64{3}, nft.GetOwners().GetOwners()[0].GetSubTokenIDs())
-
-	// the NFT should not exist after burn
-	exists = NFTKeeper.IsNFT(ctx, Denom1, ID1)
-	require.True(t, exists)
-
-	ownerReturned = NFTKeeper.GetOwner(ctx, Addrs[0])
-	require.Equal(t, 1, ownerReturned.Supply())
-
-	burnNFT = types.NewMsgBurnNFT(Addrs[0], ID1, Denom1, []int64{3})
-
-	res, err = h(ctx, burnNFT)
-	require.NoError(t, err)
-
-	nft, err = NFTKeeper.GetNFT(ctx, Denom1, ID1)
-	require.NoError(t, err)
-	require.Equal(t, []int64(nil), nft.GetOwners().GetOwners()[0].GetSubTokenIDs())
-
-	// the NFT should not exist after burn
-	exists = NFTKeeper.IsNFT(ctx, Denom1, ID1)
-	require.True(t, exists)
-
-	ownerReturned = NFTKeeper.GetOwner(ctx, Addrs[0])
-	require.Equal(t, 1, ownerReturned.Supply())
-
 	//require.True(t, CheckInvariants(NFTKeeper, ctx))
 }
+*/
 
 func TestUniqueTokenURI(t *testing.T) {
 	ctx, _, nftKeeper := createTestApp(t, false)
@@ -347,19 +314,73 @@ func TestUniqueTokenURI(t *testing.T) {
 	require.Error(t, types.ErrNotUniqueTokenURI(), err)
 }
 
-func TestUniqueTokenID(t *testing.T) {
-	ctx, _, nftKeeper := createTestApp(t, false)
+func TestHandleMsgUpdateReserveNFT(t *testing.T) {
+	ctx, _, NFTKeeper := createTestApp(t, false)
+	h := GenericHandler(NFTKeeper)
 
 	reserve := sdk.NewInt(100)
+	// An NFT to be burned
+	basenft := types.NewBaseNFT(ID1, Addrs[0], Addrs[0], TokenURI1, reserve, []int64{1, 2, 3}, true)
 
-	const tokenURI1 = "tokenURI1"
-	const tokenURI2 = "tokenURI2"
+	// Create token (collection and address)
+	_, err := NFTKeeper.MintNFT(ctx, Denom1, basenft.GetID(), basenft.GetReserve(), sdk.NewInt(3), basenft.GetCreator(), Addrs[0], basenft.GetTokenURI(), basenft.GetAllowMint())
+	require.Nil(t, err)
 
-	msg := types.NewMsgMintNFT(Addrs[0], Addrs[0], "token1", "denom1", tokenURI1, sdk.NewInt(1), reserve, true)
-	_, err := HandleMsgMintNFT(ctx, msg, nftKeeper)
+	exists := NFTKeeper.IsNFT(ctx, Denom1, ID1)
+	require.True(t, exists)
+
+	// burning a non-existent NFT should fail
+	failUpdate := types.NewMsgUpdateReserveNFT(Addrs[0], ID2, Denom1, []int64{4}, sdk.NewInt(500))
+	res, err := h(ctx, failUpdate)
+	require.Error(t, err)
+
+	// NFT should still exist
+	exists = NFTKeeper.IsNFT(ctx, Denom1, ID1)
+	require.True(t, exists)
+
+	// burning the NFt should succeed
+	updateReserveNFT := types.NewMsgUpdateReserveNFT(Addrs[0], ID1, Denom1, []int64{1, 2}, sdk.NewInt(500))
+
+	res, err = h(ctx, updateReserveNFT)
 	require.NoError(t, err)
 
-	msg = types.NewMsgMintNFT(Addrs[0], Addrs[0], "token1", "denom2", tokenURI2, sdk.NewInt(1), reserve, true)
-	_, err = HandleMsgMintNFT(ctx, msg, nftKeeper)
-	require.Error(t, types.ErrNotUniqueTokenID(), err)
+	// event events should be emitted correctly
+	for _, event := range res.Events {
+		for _, attribute := range event.Attributes {
+			if event.Type != sdk.EventTypeMessage || event.Type != types.EventTypeUpdateReserveNFT {
+				continue
+			}
+			value := string(attribute.Value)
+			switch key := string(attribute.Key); key {
+			case moduleKey:
+				require.Equal(t, value, types.ModuleName)
+			case denom:
+				require.Equal(t, value, Denom1)
+			case nftID:
+				require.Equal(t, value, ID1)
+			case sender:
+				require.Equal(t, value, Addrs[0].String())
+			case recipient:
+				// require.Equal(t, value, Addrs[0].String())
+			case amount:
+				// require.Equal(t, value, reserve)
+			default:
+				require.Fail(t, fmt.Sprintf("unrecognized event %s", key))
+			}
+		}
+	}
+
+	nft, err := NFTKeeper.GetNFT(ctx, Denom1, ID1)
+	require.NoError(t, err)
+	require.Equal(t, []int64{1, 2, 3}, nft.GetOwners().GetOwners()[0].GetSubTokenIDs())
+
+	_, err = HandleMsgUpdateReserveNFT(ctx, updateReserveNFT, NFTKeeper)
+	// the NFT should not exist after burn
+	exists = NFTKeeper.IsNFT(ctx, Denom1, ID1)
+	require.True(t, exists)
+
+	ownerReturned := NFTKeeper.GetOwner(ctx, Addrs[0])
+	require.Equal(t, 1, ownerReturned.Supply())
+
+	//require.True(t, CheckInvariants(NFTKeeper, ctx))
 }

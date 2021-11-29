@@ -1,10 +1,10 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"fmt"
+
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -125,7 +125,8 @@ func (keeper Keeper) IterateAllActiveProposalsQueue(ctx sdk.Context, cb func(pro
 		proposalID, _ := types.SplitActiveProposalQueueKey(iterator.Key())
 		proposal, found := keeper.GetProposal(ctx, proposalID)
 		if !found {
-			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
+			continue
+			// panic(fmt.Sprintf("proposal %d does not exist", proposalID))
 		}
 
 		if cb(proposal) {
@@ -164,7 +165,8 @@ func (keeper Keeper) IterateAllInactiveProposalsQueue(ctx sdk.Context, cb func(p
 		proposalID, _ := types.SplitInactiveProposalQueueKey(iterator.Key())
 		proposal, found := keeper.GetProposal(ctx, proposalID)
 		if !found {
-			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
+			continue
+			// panic(fmt.Sprintf("proposal %d does not exist", proposalID))
 		}
 
 		if cb(proposal) {
@@ -205,11 +207,6 @@ func (keeper Keeper) CheckValidator(ctx sdk.Context, address sdk.ValAddress) err
 	var val exported.ValidatorI
 
 	keeper.vk.IterateBondedValidatorsByPower(ctx, func(index int64, validator exported.ValidatorI) bool {
-		if ctx.BlockHeight() >= updates.Update3Block {
-			if index == 9 {
-				return true
-			}
-		}
 		if index == 10 {
 			return true
 		}

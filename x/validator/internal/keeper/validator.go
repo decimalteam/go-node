@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"errors"
 	"fmt"
@@ -9,13 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // get a single validator
@@ -75,11 +72,6 @@ func (k Keeper) GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress
 		return types.Validator{}, errors.New("not found validator ")
 	}
 	return k.GetValidator(ctx, valAddr)
-}
-
-func (k Keeper) GetValidatorAddrByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) sdk.ValAddress {
-	store := ctx.KVStore(k.storeKey)
-	return store.Get(types.GetValidatorByConsAddrKey(consAddr))
 }
 
 // validator index
@@ -153,17 +145,13 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 	for _, del := range delegations {
 		go func(del exported.DelegationI) {
 			defer wg.Done()
-			if ctx.BlockHeight() >= updates.Update12Block {
-				defer func() {
-					if r := recover(); r != nil {
-						ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
-					}
-				}()
-			}
-			if ctx.BlockHeight() >= updates.Update7Block {
-				if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
-					del = del.SetTokensBase(del.GetCoin().Amount)
+			defer func() {
+				if r := recover(); r != nil {
+					ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
 				}
+			}()
+			if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
+				del = del.SetTokensBase(del.GetCoin().Amount)
 			}
 			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
 				del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
@@ -177,24 +165,20 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
 				))
 				eventMutex.Unlock()
-
-				if ctx.BlockHeight() > updates.Update7Block {
-					switch del := del.(type) {
-					case types.Delegation:
-						k.SetDelegation(ctx, del)
-					case types.DelegationNFT:
-						k.SetDelegationNFT(ctx, del)
-					}
+				switch del := del.(type) {
+				case types.Delegation:
+					k.SetDelegation(ctx, del)
+				case types.DelegationNFT:
+					k.SetDelegationNFT(ctx, del)
 				}
+
 			}
 			mutex.Lock()
 			total = total.Add(del.GetTokensBase())
 			mutex.Unlock()
 		}(del)
 	}
-
 	wg.Wait()
-
 	return total
 }
 
@@ -503,6 +487,10 @@ func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Vali
 	}
 
 	for _, delegation := range delegations {
+		_, err = k.GetCoin(ctx, delegation.GetCoin().Denom)
+		if err != nil {
+			return false, err
+		}
 		if delegation.GetCoin().Amount.LT(stakeValue) || (delAddr.Equals(delegation.GetDelegatorAddr()) && stake.Denom == delegation.GetCoin().Denom) {
 			return true, nil
 		}

@@ -1,19 +1,20 @@
-package utils
+package ante
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-	"bitbucket.org/decimalteam/go-node/x/swap"
+	"bitbucket.org/decimalteam/go-node/utils"
+	"bitbucket.org/decimalteam/go-node/utils/ante/internal/types"
 	"fmt"
+	"strings"
 
+	"bitbucket.org/decimalteam/go-node/x/swap"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"strings"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
@@ -43,7 +44,7 @@ func NewAnteHandler(ak keeper.AccountKeeper, vk validator.Keeper, ck coin.Keeper
 }
 
 var (
-	_ GasTx = (*types.StdTx)(nil) // assert StdTx implements GasTx
+	_ GasTx = (*authtypes.StdTx)(nil) // assert StdTx implements GasTx
 )
 
 // GasTx defines a Tx with a GetGas() method which is needed to use SetUpContextDecorator
@@ -116,11 +117,11 @@ func (cad PostCreateAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 		ctx = ctx.WithValue("created_account_number", nil)
 		accAddr, err := sdk.AccAddressFromBech32(accAddress.(string))
 		if err != nil {
-			return ctx, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "invalid address of created accout")
+			return ctx, types.ErrInvalidAddressOfCreatedAccount()
 		}
 		acc := cad.ak.GetAccount(ctx, accAddr)
 		if acc == nil {
-			return ctx, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "unable to find created accout")
+			return ctx, types.ErrUnableToFindCreatedAccount()
 		}
 		acc.SetAccountNumber(accNumber.(uint64))
 		cad.ak.SetAccount(ctx, acc)
@@ -149,7 +150,7 @@ func (sud SetUpContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate
 		// Set a gas meter with limit 0 as to prevent an infinite gas meter attack
 		// during runTx.
 		newCtx = SetGasMeter(simulate, ctx, 0)
-		return newCtx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be GasTx")
+		return newCtx, types.ErrNotGasTxType()
 	}
 
 	newCtx = SetGasMeter(simulate, ctx, gasTx.GetGas())
@@ -163,11 +164,11 @@ func (sud SetUpContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate
 		if r := recover(); r != nil {
 			switch rType := r.(type) {
 			case sdk.ErrorOutOfGas:
-				logStr := fmt.Sprintf(
-					"out of gas in location: %v; gasWanted: %d, gasUsed: %d",
-					rType.Descriptor, gasTx.GetGas(), newCtx.GasMeter().GasConsumed())
-
-				err = sdkerrors.Wrap(sdkerrors.ErrOutOfGas, logStr)
+				err = types.ErrOutOfGas(
+					rType.Descriptor,
+					fmt.Sprintf("%d", gasTx.GetGas()),
+					fmt.Sprintf("%d", newCtx.GasMeter().GasConsumed()),
+				)
 			default:
 				panic(r)
 			}
@@ -185,7 +186,7 @@ func SetGasMeter(simulate bool, ctx sdk.Context, gasLimit uint64) sdk.Context {
 		return ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	}
 
-	return ctx.WithGasMeter(NewGasMeter(gasLimit))
+	return ctx.WithGasMeter(utils.NewGasMeter(gasLimit))
 }
 
 type FeeDecorator struct {
@@ -242,17 +243,17 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 
 	feeTx, ok := tx.(FeeTx)
 	if !ok {
-		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
+		return ctx, types.ErrNotFeeTxType()
 	}
 
-	if addr := fd.sk.GetModuleAddress(types.FeeCollectorName); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.FeeCollectorName))
+	if addr := fd.sk.GetModuleAddress(authtypes.FeeCollectorName); addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", authtypes.FeeCollectorName))
 	}
 
 	// all transactions must implement GasTx
 	stdTx, ok := tx.(auth.StdTx)
 	if !ok {
-		return newCtx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be StdTx")
+		return newCtx, types.ErrNotStdTxType()
 	}
 
 	commissionInBaseCoin := sdk.ZeroInt()
@@ -297,58 +298,17 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		case coin.CreateCoinConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(createCoinFee)
 		case swap.MsgHTLTConst:
-			if ctx.BlockHeight() >= updates.Update3Block {
-				swapServiceAddress, err := sdk.AccAddressFromBech32(swap.ServiceAddress)
-				if err != nil {
-					return ctx, err
-				}
-				if msg.(swap.MsgHTLT).From.Equals(swapServiceAddress) {
-					return next(ctx, tx, simulate)
-				}
-				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
-			} else {
-				if msg.(swap.MsgHTLT).From.Equals(swap.ServiceAccAddress) {
-					return next(ctx, tx, simulate)
-				}
-				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
+			if msg.(swap.MsgHTLT).From.Equals(swap.SwapServiceAddress()) {
+				return next(ctx, tx, simulate)
 			}
+			commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
 		case swap.MsgRedeemConst:
-			if ctx.BlockHeight() >= updates.Update4Block {
-				swapServiceAddress, err := sdk.AccAddressFromBech32(swap.ServiceAddress)
-				if err != nil {
-					return ctx, err
-				}
-				if msg.(swap.MsgRedeem).From.Equals(swapServiceAddress) {
-					return next(ctx, tx, simulate)
-				}
-			} else if ctx.BlockHeight() >= updates.Update3Block {
-				swapServiceAddress, err := sdk.AccAddressFromBech32(swap.ServiceAddress)
-				if err != nil {
-					return ctx, err
-				}
-				if msg.(swap.MsgHTLT).From.Equals(swapServiceAddress) {
-					return next(ctx, tx, simulate)
-				}
-				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
+			if msg.(swap.MsgRedeem).From.Equals(swap.SwapServiceAddress()) {
+				return next(ctx, tx, simulate)
 			}
 		case swap.MsgRefundConst:
-			if ctx.BlockHeight() >= updates.Update4Block {
-				swapServiceAddress, err := sdk.AccAddressFromBech32(swap.ServiceAddress)
-				if err != nil {
-					return ctx, err
-				}
-				if msg.(swap.MsgRefund).From.Equals(swapServiceAddress) {
-					return next(ctx, tx, simulate)
-				}
-			} else if ctx.BlockHeight() >= updates.Update3Block {
-				swapServiceAddress, err := sdk.AccAddressFromBech32(swap.ServiceAddress)
-				if err != nil {
-					return ctx, err
-				}
-				if msg.(swap.MsgHTLT).From.Equals(swapServiceAddress) {
-					return next(ctx, tx, simulate)
-				}
-				commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
+			if msg.(swap.MsgRefund).From.Equals(swap.SwapServiceAddress()) {
+				return next(ctx, tx, simulate)
 			}
 		}
 	}
@@ -359,7 +319,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	feePayerAcc := fd.ak.GetAccount(ctx, feePayer)
 
 	if feePayerAcc == nil {
-		return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "fee payer address: %s does not exist", feePayer)
+		return ctx, types.ErrFeePayerAddressDoesNotExist(feePayer.String())
 	}
 
 	if feeTx.GetFee().IsZero() {
@@ -395,43 +355,24 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 			return ctx, err
 		}
 
-		if ctx.BlockHeight() < updates.Update5Block {
-			if coinInfo.Reserve.LT(commissionInBaseCoin) {
-				return ctx, fmt.Errorf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
-					coinInfo.Reserve.String(),
-					commissionInBaseCoin.String())
-			}
+		if coinInfo.Reserve.LT(commissionInBaseCoin) {
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, fmt.Sprintf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
+				coinInfo.Reserve.String(),
+				commissionInBaseCoin.String()))
 		}
 
-		if ctx.BlockHeight() >= updates.Update5Block && ctx.BlockHeight() < updates.Update9Block {
-			feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
-			if coinInfo.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
-				return ctx, fmt.Errorf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
-					coinInfo.Reserve.String(),
-					feeInBaseCoin.String())
-			}
-		}
+		feeInBaseCoin = formulas.CalculateSaleReturn(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
 
-		if ctx.BlockHeight() < updates.Update2Block {
-			feeInBaseCoin = formulas.CalculateSaleAmount(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
-		} else {
-			feeInBaseCoin = formulas.CalculateSaleReturn(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
-		}
-
-		if ctx.BlockHeight() >= updates.Update9Block {
-			if coinInfo.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
-				return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, fmt.Sprintf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
-					coinInfo.Reserve.String(),
-					feeInBaseCoin.String()))
-			}
+		if coinInfo.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, fmt.Sprintf("coin reserve can't be lower than 1000del. Has: %s",
+				coinInfo.Reserve.String()))
 		}
 	} else {
 		feeInBaseCoin = f.Amount
 	}
 
 	if feeInBaseCoin.LT(commissionInBaseCoin) {
-		return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds,
-			"insufficient funds to pay for fees; %s < %s", feeInBaseCoin, commissionInBaseCoin)
+		return ctx, types.ErrFeeLessThanCommission(feeInBaseCoin.String(), commissionInBaseCoin.String())
 	}
 
 	// deduct the fees
@@ -462,58 +403,46 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 
 	feeCoin, err := coinKeeper.GetCoin(ctx, strings.ToLower(fee.Denom))
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "coin not exist: %s", fee.Denom)
+		return types.ErrCoinDoesNotExist(fee.Denom)
 	}
 
-	if ctx.BlockHeight() >= updates.Update2Block {
-		if !coinKeeper.IsCoinBase(fee.Denom) {
-			if ctx.BlockHeight() < updates.Update9Block {
-				if feeCoin.Reserve.Sub(fee.Amount).LT(coin.MinCoinReserve(ctx)) {
-					return coin.ErrTxBreaksMinReserveRule(feeCoin.Reserve.Sub(fee.Amount).String(), coin.MinCoinReserve(ctx).String())
-				}
-			} else {
-				if feeCoin.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
-					return coin.ErrTxBreaksMinReserveRule(feeCoin.Reserve.Sub(feeInBaseCoin).String(), coin.MinCoinReserve(ctx).String())
-				}
-			}
+	if !coinKeeper.IsCoinBase(fee.Denom) {
+		if feeCoin.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
+			return coin.ErrTxBreaksMinReserveRule(coin.MinCoinReserve(ctx).String(), feeCoin.Reserve.Sub(fee.Amount).String())
 		}
 	}
 
 	if !fee.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "invalid fee amount: %s", fee)
+		return types.ErrInvalidFeeAmount(fee.String())
 	}
 
 	// verify the account has enough funds to pay for fee
 	_, hasNeg := coins.SafeSub(sdk.NewCoins(fee))
 	if hasNeg {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds,
-			"insufficient funds to pay for fee; %s < %s", coins, fee)
+		return types.ErrInsufficientFundsToPayFee(coins.String(), fee.String())
 	}
 
 	// Validate the account has enough "spendable" coins as this will cover cases
 	// such as vesting accounts.
 	spendableCoins := acc.SpendableCoins(blockTime)
 	if _, hasNeg := spendableCoins.SafeSub(sdk.NewCoins(fee)); hasNeg {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds,
-			"insufficient funds to pay for fee; %s < %s", spendableCoins, fee)
+		return types.ErrInsufficientFundsToPayFee(spendableCoins.String(), fee.String())
 	}
 
-	err = supplyKeeper.SendCoinsFromAccountToModule(ctx, acc.GetAddress(), types.FeeCollectorName, sdk.NewCoins(fee))
+	err = supplyKeeper.SendCoinsFromAccountToModule(ctx, acc.GetAddress(), authtypes.FeeCollectorName, sdk.NewCoins(fee))
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, err.Error())
+		return types.ErrFailedToSendCoins(err.Error())
 	}
 
 	s := supplyKeeper.GetSupply(ctx)
 	s = s.Inflate(sdk.NewCoins(fee))
 	supplyKeeper.SetSupply(ctx, s)
 
-	if ctx.BlockHeight() >= updates.Update2Block {
-		// update coin: decrease reserve and volume
-		if !coinKeeper.IsCoinBase(fee.Denom) {
-			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve.Sub(feeInBaseCoin), feeCoin.Volume.Sub(fee.Amount))
-		} else {
-			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve, feeCoin.Volume.Sub(fee.Amount))
-		}
+	// update coin: decrease reserve and volume
+	if !coinKeeper.IsCoinBase(fee.Denom) {
+		coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve.Sub(feeInBaseCoin), feeCoin.Volume.Sub(fee.Amount))
+	} else {
+		coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve, feeCoin.Volume.Sub(fee.Amount))
 	}
 
 	return nil

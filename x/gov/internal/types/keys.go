@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"bitbucket.org/decimalteam/go-node/x/coin"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -14,7 +12,7 @@ const (
 	ModuleName = "gov"
 
 	// StoreKey is the store key string for gov
-	StoreKey = coin.StoreKey
+	StoreKey = ModuleName
 
 	// RouterKey is the message route for gov
 	RouterKey = ModuleName

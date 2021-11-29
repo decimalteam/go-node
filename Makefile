@@ -1,6 +1,6 @@
 PACKAGES=$(shell go list ./... | grep -v '/simulation')
 
-VERSION := '1.2.3'
+VERSION := '0.9.45'
 COMMIT = $(shell git rev-parse --short=8 HEAD)
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=Decimal \
@@ -11,6 +11,7 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=Decimal \
 
 BUILD_FLAGS := -ldflags '$(ldflags)'
 BUILD_TAGS := -tags cleveldb
+# BUILD_TAGS :=
 
 all: install
 
@@ -20,7 +21,7 @@ install: go.sum
 
 go.sum: go.mod
 		@echo "--> Ensure dependencies have not been modified"
-		#GO111MODULE=on go mod verify
+		GO111MODULE=on go mod verify
 
 # Uncomment when you have some tests
 # test:
@@ -30,4 +31,7 @@ go.sum: go.mod
 lint:
 	@echo "--> Running linter"
 	@golangci-lint run
-#	@go mod verify
+	@go mod verify
+
+test:
+	@go test -mod=readonly $(PACKAGES)

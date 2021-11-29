@@ -1,7 +1,6 @@
 package coin
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bytes"
 	"encoding/base64"
 	"fmt"
@@ -93,6 +92,8 @@ func getCreateCoinCommission(symbol string) sdk.Int {
 }
 
 func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*sdk.Result, error) {
+	// return nil, types.ErrInternal("test failed create_coin")
+
 	if msg.InitialReserve.LT(MinCoinReserve(ctx)) {
 		return nil, types.ErrInvalidCoinInitialReserve(MinCoinReserve(ctx).String())
 	}
@@ -111,13 +112,9 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		return nil, types.ErrCoinAlreadyExist(msg.Symbol)
 	}
 
-	if ctx.BlockHeight() >= updates.Update6Block {
-		coin.Creator = msg.Sender
-	}
+	coin.Creator = msg.Sender
 
-	if ctx.BlockHeight() >= updates.Update6Block {
-		coin.Identity = msg.Identity
-	}
+	coin.Identity = msg.Identity
 
 	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(coin.Symbol)))
 	if err != nil {
@@ -203,10 +200,13 @@ func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types.MsgUpdateCoin) (*s
 ////////////////////////////////////////////////////////////////
 
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
-
-	err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
+	_, err := k.GetCoin(ctx, msg.Coin.Denom)
 	if err != nil {
-		return nil, sdkerrors.New(types.DefaultCodespace, 6, err.Error())
+		return nil, types.ErrCoinDoesNotExist(msg.Coin.Denom)
+	}
+	err = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
+	if err != nil {
+		return nil, types.ErrInternal(err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -222,7 +222,11 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.R
 
 func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoin) (*sdk.Result, error) {
 	for i := range msg.Sends {
-		err := k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Sends[i].Receiver, sdk.Coins{msg.Sends[i].Coin})
+		_, err := k.GetCoin(ctx, msg.Sends[i].Coin.Denom)
+		if err != nil {
+			return nil, types.ErrCoinDoesNotExist(msg.Sends[i].Coin.Denom)
+		}
+		err = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Sends[i].Receiver, sdk.Coins{msg.Sends[i].Coin})
 		if err != nil {
 			return nil, types.ErrInternal(err.Error())
 		}
@@ -506,11 +510,9 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 			return nil, types.ErrInsufficientFunds(amount.String()+coin.Symbol, balance.String()+coin.Symbol)
 		}
 	} else {
-		if ctx.BlockHeight() >= 32000 {
-			feeBalance := account.GetCoins().AmountOf(feeCoin)
-			if feeBalance.LT(commission) {
-				return nil, types.ErrInsufficientFunds(commission.String()+feeCoin, feeBalance.String()+feeCoin)
-			}
+		feeBalance := account.GetCoins().AmountOf(feeCoin)
+		if feeBalance.LT(commission) {
+			return nil, types.ErrInsufficientFunds(commission.String()+feeCoin, feeBalance.String()+feeCoin)
 		}
 	}
 

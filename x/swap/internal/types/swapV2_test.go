@@ -19,13 +19,13 @@ func TestEcrecover(t *testing.T) {
 	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
 	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
 
-	_r, err := hex.DecodeString("8e2f625a4b8a149a08efe71848c55031a1b7d1e8f625d60ae284336001f448ab")
+	_r, err := hex.DecodeString("d8c0c8ff4a9b168be168f480bae61ead0a7f2b973f983a038f867621451fa553")
 	require.NoError(t, err)
 
 	var r Hash
 	copy(r[:], _r)
 
-	_s, err := hex.DecodeString("6f6ecd87173c2d567ed9b7a4a5687b773e6a924f4122276b063186001f69e9c4")
+	_s, err := hex.DecodeString("641ba9f5749afbb425e83b69ecacb3a0c6e32e2431609d474d4300a7cce5eb41")
 	require.NoError(t, err)
 
 	var s Hash
@@ -34,12 +34,12 @@ func TestEcrecover(t *testing.T) {
 	sender, err := sdk.AccAddressFromBech32("dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v")
 	require.NoError(t, err)
 
-	recipient, err := sdk.AccAddressFromBech32("dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v")
+	recipient, err := sdk.AccAddressFromBech32("dx1tlhpwr6t9nnq95xjet3ap2lc9zlxyw9dhr9y0z")
 	require.NoError(t, err)
 
 	//wantAddress := SwapServiceAddress()
 
-	amount, ok := sdk.NewIntFromString("1000000000000000000")
+	amount, ok := sdk.NewIntFromString("100000000000000000000")
 	require.True(t, ok)
 
 	msg := NewMsgRedeemV2(
@@ -48,10 +48,10 @@ func TestEcrecover(t *testing.T) {
 		"0x45376AD024c767577714C7B92882578aE8B7f98C",
 		amount,
 		"del",
-		"1625633838875",
+		"123",
 		2,
 		1,
-		28,
+		27,
 		r,
 		s)
 
@@ -61,7 +61,7 @@ func TestEcrecover(t *testing.T) {
 	hash, err := GetHash(transactionNumber, msg.TokenSymbol, msg.Amount, msg.Recipient, msg.FromChain, msg.DestChain)
 	require.NoError(t, err)
 
-	require.Equal(t, "a1eb252d25bb4e1ea472f8f9671789a1418ad710fe7481418eb75828fcbf5b29", hex.EncodeToString(hash[:]))
+	require.Equal(t, "b3d218b80efdaaac18e3df1647786f1200fb330cf90bfef72baa0073f6bf872b", hex.EncodeToString(hash[:]))
 
 	R := big.NewInt(0)
 	R.SetBytes(msg.R[:])
