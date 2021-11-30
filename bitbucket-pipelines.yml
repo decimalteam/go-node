@@ -11,6 +11,10 @@ definitions:
         script:
           - dnf install -y epel-release
           - dnf install -y golang-1.13.15 leveldb leveldb-devel snappy
+          - bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
+          - source ~/.gvm/scripts/gvm
+          - gvm install go1.15.4
+          - gvm use go1.15.4
           - dnf groupinstall -y "Development Tools"
           - export GOPATH=~/go
           - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
