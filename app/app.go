@@ -219,7 +219,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	govRouter := gov.NewRouter()
 	app.govKeeper = gov.NewKeeper(
 		app.cdc,
-		keys[gov.StoreKey],
+		app.keys[gov.StoreKey],
 		govSubspace,
 		app.supplyKeeper,
 		&app.validatorKeeper,
@@ -228,7 +228,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	app.swapKeeper = swap.NewKeeper(
 		app.cdc,
-		keys[swap.StoreKey],
+		app.keys[swap.StoreKey],
 		swapSubspace,
 		app.coinKeeper,
 		app.accountKeeper,
