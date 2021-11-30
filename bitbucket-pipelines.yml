@@ -10,7 +10,7 @@ definitions:
           - go-pkg
         script:
           - dnf install -y epel-release
-          - dnf install -y golang-1.13.15 leveldb leveldb-devel snappy
+          - dnf install -y golang leveldb leveldb-devel snappy
           - bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
           - source ~/.gvm/scripts/gvm
           - gvm install go1.15.4
@@ -71,7 +71,7 @@ definitions:
               - go-pkg
             script:
               - dnf install -y epel-release
-              - dnf install -y golang-1.13.15 leveldb leveldb-devel snappy
+              - dnf install -y golang leveldb leveldb-devel snappy
               - dnf groupinstall -y "Development Tools"
               - export GOPATH=~/go
               - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
@@ -95,7 +95,7 @@ definitions:
               - go-pkg
             script:
               - yum install -y epel-release
-              - yum install -y golang-1.13.15 leveldb leveldb-devel snappy
+              - yum install -y golang leveldb leveldb-devel snappy
               - yum groupinstall -y "Development Tools"
               - export GOPATH=~/go
               - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
@@ -120,7 +120,7 @@ definitions:
             script:
               - apt-get update -y
               - apt-get install -y build-essential
-              - apt-get install -y --no-install-recommends golang=1.13.15 libsnappy-dev libleveldb-dev
+              - apt-get install -y --no-install-recommends golang libsnappy-dev libleveldb-dev
               - export GOPATH=~/go
               - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
               - mkdir -pv "${PACKAGE_PATH}"
