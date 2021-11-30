@@ -207,6 +207,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		if err != nil {
 			return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 		}
+		//log.Println(updates)
 	}
 
 	return updates, nil
@@ -310,9 +311,6 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator) {
 	var delegationsInBase []exported.DelegationI
 
 	for _, delegation := range delegations {
-		if _, ok := k.CoinKeeper.GetCoinsCache()[delegation.GetCoin().Denom]; ok {
-			delegation = delegation.SetTokensBase(k.CalcTokensBase(ctx, delegation))
-		}
 		delegationsInBase = append(delegationsInBase, delegation)
 	}
 
@@ -431,6 +429,7 @@ func (k Keeper) unjailValidator(ctx sdk.Context, validator types.Validator) erro
 }
 
 func (k Keeper) getValidatorsCountForBlock(ctx sdk.Context, block int64) int {
+	// count := 16 + (block/518400)*4
 	count := 5 + (block/7200)*1
 	if uint16(count) > k.GetParams(ctx).MaxValidators {
 		return int(k.GetParams(ctx).MaxValidators)

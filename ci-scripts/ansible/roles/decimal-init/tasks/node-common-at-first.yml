@@ -3,7 +3,7 @@
 - name: Install epel-release (need for leveldb)
   dnf:
     name:
-      - epel-release
+      - epel-release  
     state: latest
   become: yes
 

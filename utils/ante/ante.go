@@ -302,14 +302,6 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 				return next(ctx, tx, simulate)
 			}
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(htltFee)
-		case swap.MsgRedeemConst:
-			if msg.(swap.MsgRedeem).From.Equals(swap.SwapServiceAddress()) {
-				return next(ctx, tx, simulate)
-			}
-		case swap.MsgRefundConst:
-			if msg.(swap.MsgRefund).From.Equals(swap.SwapServiceAddress()) {
-				return next(ctx, tx, simulate)
-			}
 		}
 	}
 
@@ -355,18 +347,13 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 			return ctx, err
 		}
 
-		if coinInfo.Reserve.LT(commissionInBaseCoin) {
-			return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, fmt.Sprintf("coin reserve balance is not sufficient for transaction. Has: %s, required %s",
-				coinInfo.Reserve.String(),
-				commissionInBaseCoin.String()))
-		}
-
 		feeInBaseCoin = formulas.CalculateSaleReturn(coinInfo.Volume, coinInfo.Reserve, coinInfo.CRR, f.Amount)
 
 		if coinInfo.Reserve.Sub(feeInBaseCoin).LT(coin.MinCoinReserve(ctx)) {
 			return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, fmt.Sprintf("coin reserve can't be lower than 1000del. Has: %s",
 				coinInfo.Reserve.String()))
 		}
+
 	} else {
 		feeInBaseCoin = f.Amount
 	}

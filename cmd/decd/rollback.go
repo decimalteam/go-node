@@ -105,7 +105,7 @@ func fixAppHashError(ctx *server.Context, defaultNodeHome string) *cobra.Command
 			st.LastHeightValidatorsChanged = valInfo.LastHeightChanged
 			st.LastValidators = valInfo.ValidatorSet
 			st.Validators = valInfo.ValidatorSet
-			st.NextValidators = valInfo.ValidatorSet
+			//st.NextValidators = valInfo.ValidatorSet
 
 			state.SaveState(stateDB, st)
 			return nil

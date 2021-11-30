@@ -52,7 +52,6 @@ func CollectGenTxsCmd(ctx *server.Context, cdc *codec.Codec,
 
 			config.P2P.Seeds = "8a2cc38f5264e9699abb8db91c9b4a4a061f000d@decimal-node-1.devnet.decimalchain.com:26656 (http://8a2cc38f5264e9699abb8db91c9b4a4a061f000d@decimal-node1.devnet.decimalchain.com:26656/),27fcfef145b3717c5d639ec72fb12f9c43da98f0@decimal-node-2.devnet.decimalchain.com:26656 (http://,27fcfef145b3717c5d639ec72fb12f9c43da98f0@decimal-node2.devnet.decimalchain.com:26656/)"
 
-
 			name := viper.GetString(flags.FlagName)
 			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(config)
 			if err != nil {

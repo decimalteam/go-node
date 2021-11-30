@@ -18,9 +18,8 @@ definitions:
           - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
           - export GO111MODULE=on
           - cd "${PACKAGE_PATH}"
-          - go version
           - go get ./...
-          #- go test ./...
+         #- go test ./...
           - make all
           - mkdir ${BITBUCKET_CLONE_DIR}/build
           - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
@@ -77,7 +76,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              #- go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/centos/8/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/centos/8/
@@ -101,7 +100,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              # - go test ./...
+             # - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/
@@ -125,7 +124,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              #- go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/20.04/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/20.04/
@@ -156,7 +155,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              #- go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/18.04/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/18.04/
@@ -189,7 +188,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              #- go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/
@@ -220,7 +219,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              #- go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/debian/10/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/debian/10/
@@ -239,7 +238,7 @@ pipelines:
   branches:
     master:
       - step: *build
-
+      
     staging:
       - step: *build
       - step:

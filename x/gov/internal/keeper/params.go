@@ -9,9 +9,6 @@ import (
 func (keeper Keeper) GetTallyParams(ctx sdk.Context) types.TallyParams {
 	var tallyParams types.TallyParams
 	keeper.paramSpace.Get(ctx, types.ParamStoreKeyTallyParams, &tallyParams)
-
-	tallyParams.Quorum = sdk.NewDecWithPrec(667, 3)
-
 	return tallyParams
 }
 

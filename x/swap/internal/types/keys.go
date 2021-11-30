@@ -1,9 +1,6 @@
 package types
 
-import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	"encoding/binary"
-)
+import "encoding/binary"
 
 const (
 	// ModuleName is the name of the module
@@ -13,15 +10,15 @@ const (
 	RouterKey = ModuleName
 
 	// StoreKey to be used when creating the KVStore
-	StoreKey = coin.StoreKey
+	StoreKey = ModuleName
 
 	QuerierRoute = ModuleName
 )
 
 var (
-	SwapKey   = []byte{0x50, 0x01}
-	SwapV2Key = []byte{0x50, 0x02}
-	ChainKey  = []byte{0x50, 0x03}
+	SwapKey   = []byte{0x01}
+	SwapV2Key = []byte{0x02}
+	ChainKey  = []byte{0x03}
 )
 
 func GetSwapKey(hash [32]byte) []byte {

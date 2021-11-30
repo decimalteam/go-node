@@ -3,9 +3,10 @@ package types
 import (
 	"errors"
 	"fmt"
+	"strconv"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strconv"
 )
 
 // Governance message types and routes

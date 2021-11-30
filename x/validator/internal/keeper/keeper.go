@@ -5,11 +5,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"strings"
 
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/tendermint/tendermint/libs/log"
 
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/multisig"

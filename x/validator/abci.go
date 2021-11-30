@@ -1,10 +1,15 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
+	"os"
+	"runtime/debug"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -33,6 +38,14 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		}
 	}
 
+	if ctx.BlockHeight() == updates.Update3Block+20 {
+		delegations := k.GetAllDelegations(ctx)
+		for _, delegation := range delegations {
+			if delegation.GetCoin().Denom != k.BondDenom(ctx) {
+				k.AddDelegatedCoin(ctx, delegation.GetCoin())
+			}
+		}
+	}
 }
 
 // EndBlocker called every block, process inflation, update validator set.
@@ -51,8 +64,17 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		panic(err)
 	}
 
-	height := ctx.BlockHeight()
+	if ctx.BlockHeight() == updates.Update3Block {
+		SyncPools(ctx, k, supplyKeeper)
+		SyncValidators(ctx, k)
+	}
 
+	if ctx.BlockHeight() == updates.Update3Block+10 {
+		SyncPools2(ctx, k, supplyKeeper)
+		SyncUnbondingDelegations(ctx, k)
+	}
+
+	height := ctx.BlockHeight()
 	// Unbond all mature validators from the unbonding queue.
 	k.UnbondAllMatureValidatorQueue(ctx)
 
@@ -66,6 +88,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		err := k.CompleteUnbonding(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
 		if err != nil {
 			continue
+			panic(fmt.Sprintf("error = %s. Delegator = %s, validator = %s", err.Error(), dvPair.DelegatorAddress, dvPair.ValidatorAddress))
 		}
 
 		ctxTime := ctx.BlockHeader().Time
@@ -139,7 +162,169 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		if err != nil {
 			panic(err)
 		}
+		createLogs(ctx, k)
 	}
 
 	return validatorUpdates
+}
+
+func createLogs(ctx sdk.Context, k Keeper) {
+	delegations := k.GetAllDelegations(ctx)
+
+	logsDir := fmt.Sprintf("%s/logs", os.Getenv("HOME"))
+	if _, err := os.Stat(logsDir); os.IsNotExist(err) {
+		os.Mkdir(logsDir, 0771)
+	}
+
+	filename := fmt.Sprintf("%s/delegations_%d.txt", logsDir, ctx.BlockHeight())
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, del := range delegations {
+		if del.GetCoin().Denom == k.BondDenom(ctx) {
+			continue
+		}
+		coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
+		if err != nil {
+			panic(err)
+		}
+		file.WriteString(
+			fmt.Sprintf("Denom: %s\nVolume: %s\nReserve: %s\nCRR: %d\nAmount: %s\nTokenBase: %s\nTokenBaseOfDelegation: %s\nCalcTokensBase: %s\nDelegator: %s\nValidator: %s\n\n",
+				del.GetCoin().Denom,
+				coin.Volume,
+				coin.Reserve,
+				coin.CRR,
+				del.GetCoin().Amount,
+				del.GetTokensBase(),
+				tryTokenBaseOfDelegation(ctx, k, del),
+				k.CalcTokensBase(ctx, del),
+				del.GetDelegatorAddr(),
+				del.GetValidatorAddr(),
+			),
+		)
+	}
+
+	file.Close()
+}
+
+func tryTokenBaseOfDelegation(ctx sdk.Context, k Keeper, del exported.DelegationI) sdk.Int {
+	defer func() {
+		if r := recover(); r != nil {
+			ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
+		}
+	}()
+	return k.TokenBaseOfDelegation(ctx, del)
+}
+
+func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
+	bondedTokens, notBondedTokens := sdk.NewCoins(), sdk.NewCoins()
+
+	validators := k.GetAllValidators(ctx)
+	for _, val := range validators {
+		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
+		for _, delegation := range delegations {
+			if val.Status == Bonded {
+				bondedTokens = bondedTokens.Add(delegation.GetCoin())
+			} else {
+				notBondedTokens = notBondedTokens.Add(delegation.GetCoin())
+			}
+		}
+	}
+
+	bondedPool := supplyKeeper.GetModuleAccount(ctx, BondedPoolName)
+
+	err := bondedPool.SetCoins(bondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, bondedPool)
+
+	notBondedPool := supplyKeeper.GetModuleAccount(ctx, NotBondedPoolName)
+
+	err = notBondedPool.SetCoins(notBondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
+}
+
+func SyncValidators(ctx sdk.Context, k Keeper) {
+	validators := k.GetAllValidators(ctx)
+	for _, validator := range validators {
+		if validator.Status.Equal(Unbonding) {
+			validator.Status = Bonded
+			err := k.SetValidator(ctx, validator)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+}
+
+func SyncPools2(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
+	bondedTokens, notBondedTokens := sdk.NewCoins(), sdk.NewCoins()
+
+	validators := k.GetAllValidators(ctx)
+	for _, val := range validators {
+		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
+		for _, delegation := range delegations {
+			if val.Status == Bonded {
+				bondedTokens = bondedTokens.Add(delegation.GetCoin())
+			} else {
+				notBondedTokens = notBondedTokens.Add(delegation.GetCoin())
+			}
+		}
+	}
+
+	unbondingDelegations := k.GetAllUnbondingDelegations(ctx)
+	for _, delegation := range unbondingDelegations {
+		for _, entry := range delegation.Entries {
+			notBondedTokens = notBondedTokens.Add(entry.GetBalance())
+		}
+	}
+
+	bondedPool := supplyKeeper.GetModuleAccount(ctx, BondedPoolName)
+
+	err := bondedPool.SetCoins(bondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, bondedPool)
+
+	notBondedPool := supplyKeeper.GetModuleAccount(ctx, NotBondedPoolName)
+
+	err = notBondedPool.SetCoins(notBondedTokens)
+	if err != nil {
+		panic(err)
+	}
+
+	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
+}
+
+func SyncUnbondingDelegations(ctx sdk.Context, k Keeper) {
+	unbondingDelegations := k.GetAllUnbondingDelegations(ctx)
+	for _, delegation := range unbondingDelegations {
+		err := k.CompleteUnbonding(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+		if err != nil {
+			panic(err)
+		}
+
+		for _, entry := range delegation.Entries {
+			if entry.IsMature(ctx.BlockTime()) {
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EventTypeCompleteUnbonding,
+						sdk.NewAttribute(types.AttributeKeyValidator, delegation.ValidatorAddress.String()),
+						sdk.NewAttribute(types.AttributeKeyDelegator, delegation.DelegatorAddress.String()),
+						sdk.NewAttribute(types.AttributeKeyCoin, entry.GetBalance().String()),
+					),
+				)
+			}
+		}
+	}
 }

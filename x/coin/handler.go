@@ -21,6 +21,7 @@ import (
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
+	cliUtils "bitbucket.org/decimalteam/go-node/x/coin/client/utils"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
@@ -92,8 +93,6 @@ func getCreateCoinCommission(symbol string) sdk.Int {
 }
 
 func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*sdk.Result, error) {
-	// return nil, types.ErrInternal("test failed create_coin")
-
 	if msg.InitialReserve.LT(MinCoinReserve(ctx)) {
 		return nil, types.ErrInvalidCoinInitialReserve(MinCoinReserve(ctx).String())
 	}
@@ -105,16 +104,14 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		Reserve:     msg.InitialReserve,
 		LimitVolume: msg.LimitVolume,
 		Volume:      msg.InitialVolume,
+		Creator:     msg.Sender,
+		Identity:    msg.Identity,
 	}
 
 	_, err := k.GetCoin(ctx, strings.ToLower(msg.Symbol))
 	if err == nil {
 		return nil, types.ErrCoinAlreadyExist(msg.Symbol)
 	}
-
-	coin.Creator = msg.Sender
-
-	coin.Identity = msg.Identity
 
 	commission, feeCoin, err := k.GetCommission(ctx, helpers.BipToPip(getCreateCoinCommission(coin.Symbol)))
 	if err != nil {
@@ -123,7 +120,7 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 
 	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)
 	balance := acc.GetCoins()
-	if balance.AmountOf(k.GetBaseCoin(ctx)).LT(msg.InitialReserve) {
+	if balance.AmountOf(cliUtils.GetBaseCoin()).LT(msg.InitialReserve) {
 		return nil, types.ErrInsufficientCoinReserve()
 	}
 
@@ -131,13 +128,13 @@ func handleMsgCreateCoin(ctx sdk.Context, k Keeper, msg types.MsgCreateCoin) (*s
 		return nil, types.ErrInsufficientFundsToPayCommission(commission.String())
 	}
 
-	if feeCoin == k.GetBaseCoin(ctx) {
-		if balance.AmountOf(k.GetBaseCoin(ctx)).LT(commission.Add(msg.InitialReserve)) {
-			return nil, types.ErrInsufficientFunds(commission.Add(msg.InitialReserve).String(), balance.AmountOf(k.GetBaseCoin(ctx)).String())
+	if feeCoin == cliUtils.GetBaseCoin() {
+		if balance.AmountOf(cliUtils.GetBaseCoin()).LT(commission.Add(msg.InitialReserve)) {
+			return nil, types.ErrInsufficientFunds(commission.Add(msg.InitialReserve).String(), balance.AmountOf(cliUtils.GetBaseCoin()).String())
 		}
 	}
 
-	err = k.UpdateBalance(ctx, k.GetBaseCoin(ctx), msg.InitialReserve.Neg(), msg.Sender)
+	err = k.UpdateBalance(ctx, cliUtils.GetBaseCoin(), msg.InitialReserve.Neg(), msg.Sender)
 	if err != nil {
 		return nil, types.ErrUpdateBalance(msg.Sender.String(), err.Error())
 	}
@@ -496,7 +493,7 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 		return nil, types.ErrRetrievedAnotherCoin(check.Coin, coin.Symbol)
 	}
 
-	feeCoin := k.GetBaseCoin(ctx)
+	feeCoin := cliUtils.GetBaseCoin()
 	commission := helpers.UnitToPip(sdk.NewIntFromUint64(30))
 
 	// Ensure that check issuer account holds enough coins
@@ -508,11 +505,6 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	if feeCoin == strings.ToLower(check.Coin) {
 		if balance.LT(amount.Add(commission)) {
 			return nil, types.ErrInsufficientFunds(amount.String()+coin.Symbol, balance.String()+coin.Symbol)
-		}
-	} else {
-		feeBalance := account.GetCoins().AmountOf(feeCoin)
-		if feeBalance.LT(commission) {
-			return nil, types.ErrInsufficientFunds(commission.String()+feeCoin, feeBalance.String()+feeCoin)
 		}
 	}
 

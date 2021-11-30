@@ -170,8 +170,10 @@ func (k Keeper) GetDelegatedCoin(ctx sdk.Context, symbol string) sdk.Int {
 	key := types.GetDelegateCoinKey(symbol)
 	value := store.Get(key)
 	if value == nil {
-		return sdk.ZeroInt()
-		//panic(fmt.Sprintf("coin with symbol %s not exist", symbol))
+		if ctx.BlockHeight() >= 1117042 {
+			return sdk.ZeroInt()
+		}
+		panic(fmt.Sprintf("coin with symbol %s not exist", symbol))
 	}
 	return types.MustUnmarshalDelegateCoin(k.cdc, value)
 }
@@ -530,7 +532,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	}
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 	if bondCoin.Denom == k.BondDenom(ctx) {
-		if delegation.GetCoin().Denom != k.BondDenom(ctx) {
+		if ctx.BlockHeight() >= 49626 && delegation.GetCoin().Denom != k.BondDenom(ctx) {
 			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
 			validator.Tokens = validator.Tokens.Add(tokenBase)
 			delegation.TokensBase = tokenBase
@@ -541,11 +543,19 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	} else {
 		k.AddDelegatedCoin(ctx, bondCoin)
 
-		tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
-		validator.Tokens = validator.Tokens.Add(tokenBase)
-		delegation.TokensBase = tokenBase
-		k.CoinKeeper.SetCachedCoin(bondCoin.Denom)
+		if ctx.BlockHeight() >= 48900 {
+			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
+			validator.Tokens = validator.Tokens.Add(tokenBase)
+			delegation.TokensBase = tokenBase
+			k.CoinKeeper.SetCachedCoin(bondCoin.Denom)
 
+		} else {
+			coin, err := k.GetCoin(ctx, bondCoin.Denom)
+			if err != nil {
+				return sdk.Int{}, err
+			}
+			validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
+		}
 	}
 
 	k.SetDelegation(ctx, delegation)

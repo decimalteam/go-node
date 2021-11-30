@@ -23,8 +23,6 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-var InitialGenesisState GenesisState
-
 // AppModuleBasic defines the basic application module used by the gov module.
 type AppModuleBasic struct{}
 
@@ -75,8 +73,7 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper       Keeper
-	GenesisState GenesisState
+	keeper Keeper
 }
 
 // NewAppModule creates a new AppModule object
@@ -120,7 +117,9 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 // InitGenesis performs genesis initialization for the gov module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	ModuleCdc.MustUnmarshalJSON(data, &InitialGenesisState)
+	var genesisState GenesisState
+	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	InitGenesis(ctx, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 

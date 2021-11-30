@@ -41,6 +41,14 @@ func GetCmdCreateCoin(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			acc, err := cliUtils.GetAccount(cliCtx, cliCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+			balance := acc.GetCoins()
+			if balance.AmountOf(cliUtils.GetBaseCoin()).LT(initReserve) {
+				return types.ErrInsufficientCoinReserve()
+			}
 			// Check if coin does not exist yet
 			coinExists, _ := cliUtils.ExistsCoin(cliCtx, symbol)
 			if coinExists {
