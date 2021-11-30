@@ -52,7 +52,6 @@ func (k Keeper) SetSubToken(ctx sdk.Context, denom, id string, subTokenID int64,
 	store.Set(subTokenKey, bz)
 }
 
-
 func (k Keeper) RemoveSubToken(ctx sdk.Context, denom, id string, subTokenID int64) {
 	store := ctx.KVStore(k.storeKey)
 	subTokenKey := types.GetSubTokenKey(denom, id, subTokenID)
@@ -140,9 +139,10 @@ func (k Keeper) MintNFT(ctx sdk.Context, denom, id string, reserve, quantity sdk
 		}
 	} else {
 		collection = types.NewCollection(denom, types.NewNFTs(nft))
-		k.SetTokenIDIndex(ctx, id)
 	}
 	k.SetCollection(ctx, denom, collection)
+
+	k.SetTokenIDIndex(ctx, id)
 
 	newLastSubTokenID := lastSubTokenID + quantity.Int64()
 
@@ -267,13 +267,13 @@ func (k Keeper) UpdateNFTReserve(ctx sdk.Context, denom, id string, subTokenIDs 
 
 		}
 
-		reserveForRefill  = reserveForRefill.Add(newReserve.Sub(reserve))
+		reserveForRefill = reserveForRefill.Add(newReserve.Sub(reserve))
 
-		k.SetSubToken(ctx, denom, id  , subTokenID, newReserve)
+		k.SetSubToken(ctx, denom, id, subTokenID, newReserve)
 	}
 
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool ,  sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForRefill)))
-	if err!= nil {
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool, sdk.NewCoins(sdk.NewCoin(k.baseDenom, reserveForRefill)))
+	if err != nil {
 		return types.ErrNotEnoughFunds(reserveForRefill.String())
 	}
 	return err

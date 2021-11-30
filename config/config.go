@@ -11,7 +11,7 @@ import (
 
 const (
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "0.9.45"
+	DecimalVersion = "0.9.46"
 
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
@@ -66,6 +66,7 @@ var (
 )
 
 type Config struct {
+	Initialized           bool    `json:"initialized" yaml:"initialized"`
 	TitleBaseCoin         string  `json:"title" yaml:"title"`   // Full coin title (Bitcoin)
 	SymbolBaseCoin        string  `json:"symbol" yaml:"symbol"` // Short coin title (BTC)
 	InitialVolumeBaseCoin sdk.Int `json:"initial_volume" yaml:"initial_volume"`

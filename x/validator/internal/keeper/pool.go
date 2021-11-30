@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -44,16 +43,10 @@ func (k Keeper) burnBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	if ctx.BlockHeight() >= updates.Update1Block {
-		err := k.burnCoins(ctx, types.BondedPoolName, coinsBurn)
-		if err != nil {
-			return err
-		}
-	} else {
-		err := k.supplyKeeper.BurnCoins(ctx, types.BondedPoolName, coinsBurn)
-		if err != nil {
-			return err
-		}
+
+	err := k.burnCoins(ctx, types.BondedPoolName, coinsBurn)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -68,17 +61,12 @@ func (k Keeper) burnNotBondedTokens(ctx sdk.Context, coins sdk.Coins) error {
 		}
 		coinsBurn = coinsBurn.Add(sdk.NewCoins(coin)...)
 	}
-	if ctx.BlockHeight() >= updates.Update1Block {
-		err := k.burnCoins(ctx, types.NotBondedPoolName, coinsBurn)
-		if err != nil {
-			return err
-		}
-	} else {
-		err := k.supplyKeeper.BurnCoins(ctx, types.NotBondedPoolName, coinsBurn)
-		if err != nil {
-			return err
-		}
+
+	err := k.burnCoins(ctx, types.NotBondedPoolName, coinsBurn)
+	if err != nil {
+		return err
 	}
+
 	return nil
 }
 

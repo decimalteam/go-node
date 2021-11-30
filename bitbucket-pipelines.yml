@@ -10,7 +10,13 @@ definitions:
           - go-pkg
         script:
           - dnf install -y epel-release
-          - dnf install -y golang leveldb leveldb-devel snappy
+          - dnf install -y git golang leveldb leveldb-devel snappy
+          - curl https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer >> script.sh
+          - chmod +x script.sh
+          - ./script.sh
+          - source ~/.gvm/scripts/gvm
+          - gvm install go1.15.4
+          - gvm use go1.15.4
           - dnf groupinstall -y "Development Tools"
           - export GOPATH=~/go
           - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
@@ -19,7 +25,7 @@ definitions:
           - export GO111MODULE=on
           - cd "${PACKAGE_PATH}"
           - go get ./...
-         #- go test ./...
+          - go test ./...
           - make all
           - mkdir ${BITBUCKET_CLONE_DIR}/build
           - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
@@ -100,7 +106,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-             # - go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/
@@ -238,7 +244,7 @@ pipelines:
   branches:
     master:
       - step: *build
-      
+
     staging:
       - step: *build
       - step:

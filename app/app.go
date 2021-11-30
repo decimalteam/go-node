@@ -96,11 +96,17 @@ type newApp struct {
 
 	// Module Manager
 	mm *module.Manager
+
+	updated   bool
+	initChain bool
 }
+
+var cfg = &config.Config{}
 
 // Newgo-nodeApp is a constructor function for go-nodeApp
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
+	fmt.Printf("decd version: %s\n", config.DecimalVersion)
 
 	// First define the top level codec that will be shared by the different modules
 	cdc := MakeCodec()
@@ -131,7 +137,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
-	config := config.GetDefaultConfig(config.ChainID)
+	cfg = config.GetDefaultConfig(config.ChainID)
 
 	// Here you initialize your application with the store keys it requires
 	var app = &newApp{
@@ -182,7 +188,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coinSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		config,
+		cfg,
 	)
 
 	app.multisigKeeper = multisig.NewKeeper(
@@ -241,7 +247,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		nft.NewAppModule(app.nftKeeper, app.accountKeeper),
 	)
 
-	//app.mm.SetOrderBeginBlockers(distr.ModuleName, /*slashing.ModuleName*/)
+	// app.mm.SetOrderBeginBlockers(coin.ModuleName, validator.ModuleName)
 	app.mm.SetOrderEndBlockers(validator.ModuleName, gov.ModuleName)
 
 	// Sets the order of Genesis - Order matters, genutil is to always come last
@@ -299,6 +305,9 @@ func NewDefaultGenesisState() GenesisState {
 }
 
 func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+	if app.initChain {
+		return abci.ResponseInitChain{}
+	}
 	var genesisState GenesisState
 
 	err := app.cdc.UnmarshalJSON(req.AppStateBytes, &genesisState)

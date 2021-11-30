@@ -19,9 +19,11 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 
 	// fetch all the bonded validators, insert them into currValidators
 	keeper.vk.IterateBondedValidatorsByPower(ctx, func(index int64, validator exported.ValidatorI) (stop bool) {
+
 		if index == 9 {
 			return true
 		}
+
 		currValidators[validator.GetOperator().String()] = types.NewValidatorGovInfo(
 			validator.GetOperator(),
 			validator.GetBondedTokens(),
@@ -46,7 +48,9 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 	// iterate over the validators again to tally their voting power
 	for _, val := range currValidators {
 		if val.Vote == types.OptionEmpty {
+
 			val.Vote = types.OptionAbstain
+
 		}
 
 		votingPower := val.BondedTokens
@@ -74,4 +78,5 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal types.Proposal) (passes boo
 	}
 
 	return false, tallyResults, totalVotingPower
+
 }

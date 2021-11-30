@@ -94,7 +94,6 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	initTokens := validator.TokensFromConsensusPower(initPower)
 
 	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
-	keyGov := sdk.NewKVStoreKey(types.StoreKey)
 	keyStaking := sdk.NewKVStoreKey(validator.StoreKey)
 	tkeyStaking := sdk.NewTransientStoreKey(validator.TStoreKey)
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
@@ -109,7 +108,6 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 	ms.MountStoreWithDB(keyAcc, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(keySupply, sdk.StoreTypeIAVL, db)
-	ms.MountStoreWithDB(keyGov, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(keyStaking, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(tkeyStaking, sdk.StoreTypeTransient, nil)
 	ms.MountStoreWithDB(keyParams, sdk.StoreTypeIAVL, db)
@@ -166,15 +164,6 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	sk := validator.NewKeeper(cdc, keyStaking, pk.Subspace(validator.DefaultParamSpace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, nftKeeper, auth.FeeCollectorName)
 	sk.SetParams(ctx, validator.DefaultParams())
 
-	rtr := types.NewRouter()
-
-	keeper := NewKeeper(
-		cdc, keyGov, pk.Subspace(types.DefaultParamspace).WithKeyTable(types.ParamKeyTable()), supplyKeeper, sk, rtr,
-	)
-
-	keeper.SetProposalID(ctx, types.DefaultStartingProposalID)
-	keeper.SetTallyParams(ctx, types.DefaultTallyParams())
-
 	initCoins := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens))
 	totalSupply := sdk.NewCoins(sdk.NewCoin(validator.DefaultBondDenom, initTokens.MulRaw(int64(len(TestAddrs)))))
 	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
@@ -183,6 +172,15 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 		_, err := bankKeeper.AddCoins(ctx, addr, initCoins)
 		require.Nil(t, err)
 	}
+
+	rtr := types.NewRouter()
+
+	keeper := NewKeeper(
+		cdc, keyCoin, pk.Subspace(types.DefaultParamspace).WithKeyTable(types.ParamKeyTable()), supplyKeeper, sk, rtr,
+	)
+
+	keeper.SetProposalID(ctx, types.DefaultStartingProposalID)
+	keeper.SetTallyParams(ctx, types.DefaultTallyParams())
 
 	keeper.supplyKeeper.SetModuleAccount(ctx, feeCollectorAcc)
 	keeper.supplyKeeper.SetModuleAccount(ctx, govAcc)

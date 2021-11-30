@@ -45,7 +45,9 @@ var minCoinSupply = sdk.NewInt(1)
 var maxCoinSupply = helpers.BipToPip(sdk.NewInt(1000000000000000))
 
 func MinCoinReserve(ctx sdk.Context) sdk.Int {
+
 	return helpers.BipToPip(sdk.NewInt(1000))
+
 }
 
 func (msg MsgCreateCoin) Route() string { return RouterKey }
