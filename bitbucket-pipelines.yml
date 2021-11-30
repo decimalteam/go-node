@@ -10,7 +10,7 @@ definitions:
           - go-pkg
         script:
           - dnf install -y epel-release
-          - dnf install -y golang leveldb leveldb-devel snappy
+          - dnf install -y golang-1.15.14 leveldb leveldb-devel snappy
           - dnf groupinstall -y "Development Tools"
           - export GOPATH=~/go
           - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
@@ -19,7 +19,7 @@ definitions:
           - export GO111MODULE=on
           - cd "${PACKAGE_PATH}"
           - go get ./...
-          #- go test ./...
+          - go test ./...
           - make all
           - mkdir ${BITBUCKET_CLONE_DIR}/build
           - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
@@ -67,7 +67,7 @@ definitions:
               - go-pkg
             script:
               - dnf install -y epel-release
-              - dnf install -y golang leveldb leveldb-devel snappy
+              - dnf install -y golang-1.15.14 leveldb leveldb-devel snappy
               - dnf groupinstall -y "Development Tools"
               - export GOPATH=~/go
               - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
@@ -76,7 +76,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              #- go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/centos/8/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/centos/8/
@@ -91,7 +91,7 @@ definitions:
               - go-pkg
             script:
               - yum install -y epel-release
-              - yum install -y golang leveldb leveldb-devel snappy
+              - yum install -y golang-1.15.14 leveldb leveldb-devel snappy
               - yum groupinstall -y "Development Tools"
               - export GOPATH=~/go
               - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
@@ -100,7 +100,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              # - go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/
@@ -116,7 +116,7 @@ definitions:
             script:
               - apt-get update -y
               - apt-get install -y build-essential
-              - apt-get install -y --no-install-recommends golang libsnappy-dev libleveldb-dev
+              - apt-get install -y --no-install-recommends golang=1.15.14 libsnappy-dev libleveldb-dev
               - export GOPATH=~/go
               - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
               - mkdir -pv "${PACKAGE_PATH}"
@@ -124,7 +124,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              #- go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/20.04/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/20.04/
@@ -155,7 +155,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              #- go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/18.04/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/18.04/
@@ -188,7 +188,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              #- go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/
@@ -219,7 +219,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-              #- go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/debian/10/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/debian/10/
