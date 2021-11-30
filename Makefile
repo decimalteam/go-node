@@ -1,6 +1,6 @@
 PACKAGES=$(shell go list ./... | grep -v '/simulation')
 
-VERSION := '0.9.45'
+VERSION := '0.9.46'
 COMMIT = $(shell git rev-parse --short=8 HEAD)
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=Decimal \
