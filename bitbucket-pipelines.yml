@@ -10,8 +10,10 @@ definitions:
           - go-pkg
         script:
           - dnf install -y epel-release
-          - dnf install -y golang leveldb leveldb-devel snappy
-          - bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
+          - dnf install -y git golang leveldb leveldb-devel snappy
+          - curl https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer >> script.sh
+          - chmod +x script.sh
+          - ./script.sh
           - source ~/.gvm/scripts/gvm
           - gvm install go1.15.4
           - gvm use go1.15.4
