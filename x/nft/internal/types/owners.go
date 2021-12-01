@@ -214,6 +214,11 @@ func (t TokenOwner) RemoveSubTokenID(subTokenID int64) exported.TokenOwner {
 	return t
 }
 
+func (t TokenOwner) SortSubTokensFix() exported.TokenOwner {
+	t.SubTokenIDs = t.SubTokenIDs.Sort()
+	return t
+}
+
 func (t TokenOwner) String() string {
 	return fmt.Sprintf("%s %s", t.Address, t.SubTokenIDs.String())
 }

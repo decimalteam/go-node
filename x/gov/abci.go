@@ -29,7 +29,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		nextVersion := loadVersion(plan.Name)
 		if ncfg.DecimalVersion != nextVersion {
 			ctx.Logger().Error(fmt.Sprintf("failed upgrade \"%s\" at height %d with version", plan.Name, plan.Height))
-			os.Exit(3)
+			os.Exit(4)
 		}
 		k.ClearUpgradePlan(ctx)
 		return
@@ -90,10 +90,16 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			os.Exit(1)
 		}
 
+		err = ncfg.UpdatesInfo.Push(plan.Height)
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("push plan \"%s\" with error: %s", plan.Name, err.Error()))
+			os.Exit(2)
+		}
+
 		err = ncfg.UpdatesInfo.Save(plan.Name)
 		if err != nil {
 			ctx.Logger().Error(fmt.Sprintf("save \"%s\" with '%s'", plan.Name, err.Error()))
-			os.Exit(2)
+			os.Exit(3)
 		}
 
 		ctx.Logger().Info(fmt.Sprintf("success upgrade \"%s\"", plan.Name))

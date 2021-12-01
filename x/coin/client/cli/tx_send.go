@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -25,7 +26,10 @@ func GetCmdSendCoin(cdc *codec.Codec) *cobra.Command {
 			txBldr := auth.NewTxBuilderFromCLI(cliCtx.Input).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			coin := args[0]
-			amount, _ := sdk.NewIntFromString(args[1])
+			amount, ok := sdk.NewIntFromString(args[1])
+			if !ok {
+				return fmt.Errorf("bitLen(int) > maxBitLen(=255)")
+			}
 			receiver, err := sdk.AccAddressFromBech32(args[2])
 			if err != nil {
 				return err
