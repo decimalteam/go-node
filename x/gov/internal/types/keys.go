@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
 	"encoding/binary"
 	"fmt"
 
@@ -13,7 +12,7 @@ const (
 	ModuleName = "gov"
 
 	// StoreKey is the store key string for gov
-	StoreKey = coin.StoreKey
+	StoreKey = ModuleName
 
 	// RouterKey is the message route for gov
 	RouterKey = ModuleName
