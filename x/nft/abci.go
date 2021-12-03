@@ -1,12 +1,11 @@
 package nft
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
-	if ctx.BlockHeight() == 889401 {
+	/*if ctx.BlockHeight() == 889401 {
 		problems := [][3]string{
 			[3]string{"BravoMeme", "98bc347afb23484bc802f36083ca2672d7a72e2a", "dx13fgegk6aaymdzhjmx0cdt9g3y7a3se0azf675e"},
 			[3]string{"ter", "8271ad9f2a18c5a6a130f73dbda43f74c114a684", "dx1ulat3e0s25g6amuxd6p059enkl5pe5rlu3u9tu"},
@@ -32,6 +31,6 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			k.SetCollection(ctx, arr[0], collection)
 		}
 
-	}
+	}*/
 
 }
