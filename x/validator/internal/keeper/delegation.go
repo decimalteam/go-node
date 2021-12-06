@@ -659,7 +659,9 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 		}
 	}
 
+	k.CoinKeeper.SetCachedCoin(coin.Denom)
 	k.SubtractDelegatedCoin(ctx, coin)
+
 	return nil
 }
 
