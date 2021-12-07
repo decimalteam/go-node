@@ -175,7 +175,7 @@ func createLogs(ctx sdk.Context, k Keeper) {
 			panic(err)
 		}
 		file.WriteString(
-			fmt.Sprintf("Denom: %s\nVolume: %s\nReserve: %s\nCRR: %d\nAmount: %s\nTokenBase: %s\nTokenBaseOfDelegation: %s\nCalcTokensBase: %s\nDelegator: %s\nValidator: %s\n\n",
+			fmt.Sprintf("Denom: %s\nVolume: %s\nReserve: %s\nCRR: %d\nAmount: %s\nTokenBase: %s\nTokenBaseOfDelegation: %s\nCalcTokensBase: %s\nDelegated: %s\nDelegator: %s\nValidator: %s\n\n",
 				del.GetCoin().Denom,
 				coin.Volume,
 				coin.Reserve,
@@ -184,6 +184,7 @@ func createLogs(ctx sdk.Context, k Keeper) {
 				del.GetTokensBase(),
 				tryTokenBaseOfDelegation(ctx, k, del),
 				k.CalcTokensBase(ctx, del),
+				k.GetDelegatedCoin(ctx, del.GetCoin().Denom),
 				del.GetDelegatorAddr(),
 				del.GetValidatorAddr(),
 			),
