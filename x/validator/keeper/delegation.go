@@ -28,7 +28,6 @@ func (k Keeper) GetDelegation(ctx sdk.Context,
 	return delegation, true
 }
 
-
 func (k Keeper) GetDelegatedCoin(ctx sdk.Context, symbol string) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetDelegateCoinKey(symbol)
@@ -131,7 +130,7 @@ func (k Keeper) SetDelegation(ctx sdk.Context, delegation types.Delegation) {
 		panic(err)
 	}
 
-	delegation.TokensBase = k.CalcTokensBase(ctx, delegation)
+	//delegation.TokensBase = k.CalcTokensBase(ctx, delegation)
 	err = k.set(ctx, types.GetDelegationKey(delegatorAddr, validatorAddr, delegation.Coin.Denom), delegation)
 	if err != nil {
 		panic(err)
@@ -357,11 +356,11 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 
 	delegatorAddr, err := sdk.AccAddressFromBech32(delegation.DelegatorAddress)
 	if err != nil {
-		return  sdk.Int{} , err
+		return sdk.Int{}, err
 	}
 	delegatorValAddr, err := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
 	if err != nil {
-		return sdk.Int{} , err
+		return sdk.Int{}, err
 	}
 
 	// if subtractAccount is true then we are
@@ -384,7 +383,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 
 		err = k.baseKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddr, sendName, sdk.NewCoins(bondCoin))
 		if err != nil {
-			return sdk.Int{} , err
+			return sdk.Int{}, err
 		}
 	} else {
 
@@ -430,7 +429,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 	} else {
 		coin, err := k.GetCoin(ctx, bondCoin.Denom)
 		if err != nil {
-			return sdk.Int{},err
+			return sdk.Int{}, err
 		}
 		validator.Tokens = validator.Tokens.Add(formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, bondCoin.Amount))
 	}
@@ -439,7 +438,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 
 	err = k.SetValidator(ctx, validator)
 	if err != nil {
-		return sdk.Int{},err
+		return sdk.Int{}, err
 	}
 	k.SetValidatorByPowerIndexWithoutCalc(ctx, valAddr, validator)
 
