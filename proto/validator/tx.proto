@@ -14,9 +14,9 @@ service Msg {
   rpc DelegateNFT(MsgDelegateNFT) returns (MsgDelegateNFTResponse);
   rpc SetOnline(MsgSetOnline) returns (MsgSetOnlineResponse);
   rpc SetOffline(MsgSetOffline) returns (MsgSetOfflineResponse);
-  rpc MsgUnbond(MsgUnbond) returns (MsgUnbondResponse);
-  rpc MsgUnbondNFT(MsgUnbondNFT) returns (MsgUnbondNFTResponse);
-  rpc MsgEditCandidate(MsgEditCandidate) returns (MsgEditCandidateResponse);
+  rpc Unbond(MsgUnbond) returns (MsgUnbondResponse);
+  rpc UnbondNFT(MsgUnbondNFT) returns (MsgUnbondNFTResponse);
+  rpc EditCandidate(MsgEditCandidate) returns (MsgEditCandidateResponse);
 }
 
 message MsgDeclareCandidate {
