@@ -95,8 +95,9 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		default:
 			delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
 			for _, delegation := range delegations {
-				if _, ok := delegation.(types.Delegation); ok && delegation.GetCoin().Denom == "tdel" {
-					k.RemoveDelegation(ctx, delegation.(types.Delegation))
+				if delegation.GetCoin().Denom == k.BondDenom(ctx) {
+					k.BeforeDelegationRemoved(ctx, delegation.GetDelegatorAddr(), delegation.GetValidatorAddr())
+					k.delete(ctx, types.GetDelegationKey(delegation.GetDelegatorAddr(), delegation.GetValidatorAddr(), delegation.GetCoin().Denom))
 				}
 			}
 			panic("unexpected validator status")
