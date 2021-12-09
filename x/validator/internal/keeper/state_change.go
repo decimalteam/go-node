@@ -93,12 +93,6 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		case validator.IsBonded():
 			// no state change
 		default:
-			delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
-			for _, delegation := range delegations {
-				if delegation.GetCoin().Denom == k.BondDenom(ctx) {
-					k.RemoveDelegationNFT(ctx, delegation.(types.DelegationNFT))
-				}
-			}
 			panic("unexpected validator status")
 		}
 
