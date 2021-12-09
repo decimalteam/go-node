@@ -1,12 +1,13 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"errors"
 	"fmt"
 	"runtime/debug"
 	"sort"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -92,6 +93,12 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		case validator.IsBonded():
 			// no state change
 		default:
+			delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+			for _, delegation := range delegations {
+				if _, ok := delegation.(types.Delegation); ok && delegation.GetCoin().Denom == "tdel" {
+					k.RemoveDelegation(ctx, delegation.(types.Delegation))
+				}
+			}
 			panic("unexpected validator status")
 		}
 
