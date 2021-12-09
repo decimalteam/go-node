@@ -658,8 +658,10 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 			return types.ErrInternal(err.Error())
 		}
 	}
+	if coin.Denom != k.BondDenom(ctx) {
+		k.CoinKeeper.SetCachedCoin(coin.Denom)
+	}
 
-	k.CoinKeeper.SetCachedCoin(coin.Denom)
 	k.SubtractDelegatedCoin(ctx, coin)
 
 	return nil
