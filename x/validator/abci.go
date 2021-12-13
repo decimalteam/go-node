@@ -52,7 +52,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		panic(err)
 	}
 
-	if ctx.BlockHeight() == 1 {
+	if ctx.BlockHeight() == 1544400 {
 		SyncValidators(ctx, k)
 	}
 
