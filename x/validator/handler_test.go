@@ -1,6 +1,9 @@
 package validator
 
 import (
+	"testing"
+	"time"
+
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/nft"
 	val "bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
@@ -9,8 +12,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 

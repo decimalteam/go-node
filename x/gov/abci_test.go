@@ -1,13 +1,14 @@
 package gov
 
 import (
+	"testing"
+
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	keep "bitbucket.org/decimalteam/go-node/x/gov/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestTickPassedVotingPeriod(t *testing.T) {
