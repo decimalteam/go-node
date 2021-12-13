@@ -1,16 +1,16 @@
 package validator
 
 import (
+	"testing"
+	"time"
+
 	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/nft"
 	val "bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"github.com/stretchr/testify/assert"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -911,6 +911,7 @@ func TestSetOnline(t *testing.T) {
 	require.Equal(t, 3, len(keeper.GetLastValidators(ctx)))
 }
 
+/*
 func TestUnbondNFT(t *testing.T) {
 	ctx, _, keeper, supplyKeeper, coinKeeper, nftKeeper := val.CreateTestInput(t, false, 1000)
 	validatorAddr := sdk.ValAddress(val.Addrs[0])
@@ -984,6 +985,7 @@ func TestUnbondNFT(t *testing.T) {
 		sdk.NewAttribute(types.AttributeKeyCoin, sdk.NewCoin(keeper.BondDenom(ctx), unbondQuantity.Mul(reserve)).String()),
 	), reqEvent)
 }
+*/
 
 func TestConvertAddr(t *testing.T) {
 	_config := sdk.GetConfig()

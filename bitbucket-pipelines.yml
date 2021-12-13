@@ -10,16 +10,22 @@ definitions:
           - go-pkg
         script:
           - dnf install -y epel-release
-          - dnf install -y golang leveldb leveldb-devel snappy
-          - dnf groupinstall -y "Development Tools"
+          - dnf install -y  leveldb leveldb-devel snappy gcc git wget make
+          - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
+          - tar -xvf go1.14.15.linux-amd64.tar.gz
+          - mv go /usr/local
+          - export GOROOT=/usr/local/go
           - export GOPATH=~/go
+          - export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+          - go version
+          - go env
           - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
           - mkdir -pv "${PACKAGE_PATH}"
           - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
           - export GO111MODULE=on
           - cd "${PACKAGE_PATH}"
           - go get ./...
-         # - go test ./...
+          - go test ./...
           - make all
           - mkdir ${BITBUCKET_CLONE_DIR}/build
           - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build
@@ -67,16 +73,22 @@ definitions:
               - go-pkg
             script:
               - dnf install -y epel-release
-              - dnf install -y golang leveldb leveldb-devel snappy
-              - dnf groupinstall -y "Development Tools"
+              - dnf install -y leveldb leveldb-devel snappy gcc git wget make
+              - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
+              - tar -xvf go1.14.15.linux-amd64.tar.gz
+              - mv go /usr/local
+              - export GOROOT=/usr/local/go
               - export GOPATH=~/go
+              - export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+              - go version
+              - go env
               - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
               - mkdir -pv "${PACKAGE_PATH}"
               - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-            #  - go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/centos/8/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/centos/8/
@@ -91,16 +103,22 @@ definitions:
               - go-pkg
             script:
               - yum install -y epel-release
-              - yum install -y golang leveldb leveldb-devel snappy
-              - yum groupinstall -y "Development Tools"
+              - yum install -y leveldb leveldb-devel snappy gcc git wget make
+              - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
+              - tar -xvf go1.14.15.linux-amd64.tar.gz
+              - mv go /usr/local
+              - export GOROOT=/usr/local/go
               - export GOPATH=~/go
+              - export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+              - go version
+              - go env
               - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
               - mkdir -pv "${PACKAGE_PATH}"
               - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-             # - go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/centos/7/
@@ -116,15 +134,22 @@ definitions:
             script:
               - apt-get update -y
               - apt-get install -y build-essential
-              - apt-get install -y --no-install-recommends golang libsnappy-dev libleveldb-dev
+              - apt-get install -y --no-install-recommends libsnappy-dev libleveldb-dev git ca-certificates wget
+              - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
+              - tar -xvf go1.14.15.linux-amd64.tar.gz
+              - mv go /usr/local
+              - export GOROOT=/usr/local/go
               - export GOPATH=~/go
+              - export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+              - go version
+              - go env
               - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
               - mkdir -pv "${PACKAGE_PATH}"
               - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-            #  - go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/20.04/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/20.04/
@@ -141,8 +166,8 @@ definitions:
               - apt-get update -y
               - apt-get install -y build-essential
               - apt-get install -y --no-install-recommends libsnappy-dev libleveldb-dev git ca-certificates wget
-              - wget https://golang.org/dl/go1.13.15.linux-amd64.tar.gz
-              - tar -xvf go1.13.15.linux-amd64.tar.gz
+              - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
+              - tar -xvf go1.14.15.linux-amd64.tar.gz
               - mv go /usr/local
               - export GOROOT=/usr/local/go
               - export GOPATH=~/go
@@ -155,7 +180,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-             # - go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/18.04/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/18.04/
@@ -165,8 +190,6 @@ definitions:
         - step:
             name: Build on Ubuntu 16.04
             image: ubuntu:16.04
-            variables:
-              - name: deployment
             caches:
               - go-src
               - go-pkg
@@ -174,8 +197,8 @@ definitions:
               - apt-get update -y
               - apt-get install -y build-essential
               - apt-get install -y --no-install-recommends libsnappy-dev libleveldb-dev git ca-certificates wget
-              - wget https://golang.org/dl/go1.13.15.linux-amd64.tar.gz
-              - tar -xvf go1.13.15.linux-amd64.tar.gz
+              - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
+              - tar -xvf go1.14.15.linux-amd64.tar.gz
               - mv go /usr/local
               - export GOROOT=/usr/local/go
               - export GOPATH=~/go
@@ -188,7 +211,7 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-             # - go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ubuntu/16.04/
@@ -205,8 +228,8 @@ definitions:
               - apt-get update -y
               - apt-get install -y build-essential
               - apt-get install -y --no-install-recommends libsnappy-dev libleveldb-dev git ca-certificates wget
-              - wget https://golang.org/dl/go1.13.15.linux-amd64.tar.gz
-              - tar -xvf go1.13.15.linux-amd64.tar.gz
+              - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
+              - tar -xvf go1.14.15.linux-amd64.tar.gz
               - mv go /usr/local
               - export GOROOT=/usr/local/go
               - export GOPATH=~/go
@@ -219,10 +242,41 @@ definitions:
               - export GO111MODULE=on
               - cd "${PACKAGE_PATH}"
               - go get ./...
-             # - go test ./...
+              - go test ./...
               - make all
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/debian/10/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/debian/10/
+            artifacts:
+              - build/**
+
+        - step:
+            name: Build on Debian 9 (stretch)
+            image: debian:9.13
+            caches:
+              - go-src
+              - go-pkg
+            script:
+              - apt-get update -y
+              - apt-get install -y build-essential
+              - apt-get install -y --no-install-recommends libsnappy-dev libleveldb-dev git ca-certificates wget
+              - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
+              - tar -xvf go1.14.15.linux-amd64.tar.gz
+              - mv go /usr/local
+              - export GOROOT=/usr/local/go
+              - export GOPATH=~/go
+              - export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+              - go version
+              - go env
+              - PACKAGE_PATH="${GOPATH}/src/bitbucket.org/${BITBUCKET_REPO_FULL_NAME}"
+              - mkdir -pv "${PACKAGE_PATH}"
+              - tar -cO --exclude-vcs --exclude=bitbucket-pipelines.yml . | tar -xv -C "${PACKAGE_PATH}"
+              - export GO111MODULE=on
+              - cd "${PACKAGE_PATH}"
+              - go get ./...
+              - go test ./...
+              - make all
+              - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/debian/9/
+              - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/debian/9/
             artifacts:
               - build/**
 

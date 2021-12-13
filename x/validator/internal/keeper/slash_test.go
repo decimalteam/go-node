@@ -1,13 +1,12 @@
 package keeper
 
 import (
+	"log"
+	"testing"
+
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"log"
-	"testing"
-	"time"
 )
 
 // TODO integrate with test_common.go helper (CreateTestInput)
@@ -121,6 +120,7 @@ func TestSlashBondedDelegationNFT(t *testing.T) {
 	require.Equal(t, sdk.NewInt(99), delegationNFT.Quantity)
 }*/
 
+/*
 // tests slashUnbondingDelegation
 func TestSlashUnbondingDelegation(t *testing.T) {
 	ctx, keeper, _ := setupHelper(t, 10)
@@ -162,6 +162,7 @@ func TestSlashUnbondingDelegation(t *testing.T) {
 	diffTokens := oldUnbondedPool.GetCoins().Sub(newUnbondedPool.GetCoins()).AmountOf(keeper.BondDenom(ctx))
 	require.Equal(t, int64(5), diffTokens.Int64())
 }
+*/
 
 // tests Slash at a future height (must panic)
 func TestSlashAtFutureHeight(t *testing.T) {
@@ -235,6 +236,7 @@ func TestSlashValidatorAtCurrentHeight(t *testing.T) {
 	require.Equal(t, types.TokensFromConsensusPower(5), diffTokens)
 }
 
+/*
 // tests Slash at a previous height with an unbonding delegation
 func TestSlashWithUnbondingDelegation(t *testing.T) {
 	ctx, keeper, _ := setupHelper(t, 10)
@@ -346,3 +348,4 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	validator, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
 	require.Equal(t, validator.GetStatus(), types.Unbonded)
 }
+*/
