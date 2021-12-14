@@ -1,14 +1,15 @@
 package keeper
 
 import (
+	"log"
+	"testing"
+	"time"
+
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"log"
-	"testing"
-	"time"
 )
 
 // TODO integrate with test_common.go helper (CreateTestInput)

@@ -160,10 +160,8 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 					}
 				}()
 			}
-			if ctx.BlockHeight() >= updates.Update7Block {
-				if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
-					del = del.SetTokensBase(del.GetCoin().Amount)
-				}
+			if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
+				del = del.SetTokensBase(del.GetCoin().Amount)
 			}
 			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
 				del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
@@ -187,6 +185,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 					}
 				}
 			}
+
 			mutex.Lock()
 			total = total.Add(del.GetTokensBase())
 			mutex.Unlock()

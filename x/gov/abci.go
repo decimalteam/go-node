@@ -92,7 +92,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 
 		err = ncfg.UpdatesInfo.Push(plan.Height)
 		if err != nil {
-			ctx.Logger().Error(fmt.Sprintf("push plan \"%s\" with error: %s", plan.Name, err.Error()))
+			ctx.Logger().Error(fmt.Sprintf("push \"%s\" with error: %s", plan.Name, err.Error()))
 			os.Exit(2)
 		}
 
