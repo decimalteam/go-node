@@ -9,7 +9,7 @@ import (
 func BeginBlocker(ctx sdk.Context, k Keeper) {
 	k.SetBaseDenom()
 
-	if ctx.BlockHeight() == 889401 {
+	if ctx.BlockHeight() == 7_519_421 {
 		problems := [][3]string{
 			[3]string{"Fur_and_Fury", "ba00925f5e66413a82277987d440b6bdd3226c94", "dx1nafxm7gn4kmyjtctya7cshj4nj956k5tq5p9wu"},
 			[3]string{"Fur_and_Fury", "ba00925f5e66413a82277987d440b6bdd3226c94", "dx16xh0e5unylk28kwrctsuuazkwwgrk2hvsv5us3"},
