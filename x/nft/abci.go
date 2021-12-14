@@ -9,7 +9,7 @@ import (
 func BeginBlocker(ctx sdk.Context, k Keeper) {
 	k.SetBaseDenom()
 
-	if ctx.BlockHeight() == 7_519_421 {
+	if ctx.BlockHeight() == 7_519_431 {
 		problems := [][3]string{
 			[3]string{"Fur_and_Fury", "ba00925f5e66413a82277987d440b6bdd3226c94", "dx1nafxm7gn4kmyjtctya7cshj4nj956k5tq5p9wu"},
 			[3]string{"Fur_and_Fury", "ba00925f5e66413a82277987d440b6bdd3226c94", "dx16xh0e5unylk28kwrctsuuazkwwgrk2hvsv5us3"},
@@ -33,6 +33,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			collection, found := k.GetCollection(ctx, arr[0])
 			if !found {
 				fmt.Printf("collection undefined [%s, %s, %s]\n", arr[0], arr[1], arr[2])
+				continue
 			}
 
 			collection.NFTs, _ = collection.NFTs.Update(arr[1], nft)
