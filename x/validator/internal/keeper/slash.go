@@ -1,11 +1,12 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -313,15 +314,17 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 		}
 	}
 
-	tokensToBurn := sdk.NewCoins()
+	resTokensToBurn := sdk.NewCoins()
 	for _, coin := range burnedAmount {
-		tokensToBurn = tokensToBurn.Add(sdk.NewCoin(coin.Denom, sdk.MaxInt(coin.Amount, sdk.ZeroInt()))) // defensive.
-	}
-	if err := k.burnBondedTokens(ctx, tokensToBurn); err != nil {
-		panic(err)
+		newCoin := sdk.NewCoin(coin.Denom, sdk.MaxInt(coin.Amount, sdk.ZeroInt()))
+		if err := k.burnBondedTokens(ctx, sdk.NewCoins().Add(newCoin)); err != nil {
+			log.Printf("[slash] coin '%s' undefined in module account", coin.Denom)
+			continue
+		}
+		resTokensToBurn = resTokensToBurn.Add(newCoin)
 	}
 
-	return tokensToBurn
+	return resTokensToBurn
 }
 
 // handle a validator signature, must be called once per validator per block
