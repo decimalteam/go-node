@@ -1,11 +1,12 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -112,7 +113,6 @@ func (k Keeper) Jail(ctx sdk.Context, consAddr sdk.ConsAddress) {
 	k.jailValidator(ctx, validator)
 	logger := k.Logger(ctx)
 	logger.Info(fmt.Sprintf("validator %s jailed", consAddr))
-	return
 }
 
 // unjail a validator
@@ -127,7 +127,6 @@ func (k Keeper) Unjail(ctx sdk.Context, consAddr sdk.ConsAddress) {
 	}
 	logger := k.Logger(ctx)
 	logger.Info(fmt.Sprintf("validator %s unjailed", consAddr))
-	return
 }
 
 // slash an unbonding delegation and update the pool
@@ -326,9 +325,12 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
-	logger := k.Logger(ctx)
-	height := ctx.BlockHeight()
-	consAddr := sdk.ConsAddress(addr)
+	var (
+		logger   = k.Logger(ctx)
+		height   = ctx.BlockHeight()
+		consAddr = sdk.ConsAddress(addr)
+	)
+
 	pubkey, err := k.getPubkey(ctx, addr)
 	if err != nil {
 		panic(fmt.Sprintf("Validator consensus-address %s not found", consAddr))
@@ -353,34 +355,21 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		panic(fmt.Sprintf("Expected signing info for validator %s but not found", consAddr))
 	}
 
-	// this is a relative index, so it counts blocks the validator *should* have signed
-	// will use the 0-value default signing info if not present, except for start height
-	index := signInfo.IndexOffset % types.SignedBlocksWindow
-	signInfo.IndexOffset++
-
-	gracePeriodStart := ncfg.UpdatesInfo.LastBlock
-	gracePeriodEnd := gracePeriodStart + (ncfg.OneHour / 4)
-
-	// Update signed block bit array & counter
-	// This counter just tracks the sum of the bit array
-	// That way we avoid needing to read/write the whole array each time
-	previous := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
 	missed := !signed
-	switch {
-	case !previous && missed:
-		if height >= gracePeriodStart && height <= gracePeriodEnd {
+
+	switch missed {
+	case true:
+		if inGracePeriod(ctx) {
 			log.Println(consAddr.String())
 			return
 		}
-		// Array value has changed from not missed to missed, increment counter
-		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
-		signInfo.MissedBlocksCounter++
-	case previous && !missed:
-		// Array value has changed from missed to not missed, decrement counter
-		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, false)
-		signInfo.MissedBlocksCounter--
-	default:
-		// Array value at this index has not changed, no need to update counter
+		if signInfo.MissedBlocksCounter < types.SignedBlocksWindow {
+			signInfo.MissedBlocksCounter++
+		}
+	case false:
+		if signInfo.MissedBlocksCounter > 0 {
+			signInfo.MissedBlocksCounter--
+		}
 	}
 
 	if missed {
@@ -397,16 +386,15 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			fmt.Sprintf("Absent validator %s (%s) at height %d, %d missed, threshold %d", consAddr, pubkey, height, signInfo.MissedBlocksCounter, types.MinSignedPerWindow))
 	}
 
-	minHeight := signInfo.StartHeight + types.SignedBlocksWindow
 	maxMissed := types.SignedBlocksWindow - types.MinSignedPerWindow
 
-	//if we are past the minimum height and the validator has missed too many blocks, punish them
-	if height > minHeight && signInfo.MissedBlocksCounter > maxMissed {
+	// if we are past the minimum height and the validator has missed too many blocks, punish them
+	if signInfo.MissedBlocksCounter > maxMissed {
 		if !validator.IsJailed() {
 
 			// Downtime confirmed: slash and jail the validator
-			logger.Info(fmt.Sprintf("Validator %s past min height of %d and below signed blocks threshold of %d",
-				consAddr, minHeight, types.MinSignedPerWindow))
+			logger.Info(fmt.Sprintf("Validator %s past and below signed blocks threshold of %d",
+				consAddr, types.MinSignedPerWindow))
 
 			// We need to retrieve the stake distribution which signed the block, so we subtract ValidatorUpdateDelay from the evidence height,
 			// and subtract an additional 1 since this is the LastCommit.
@@ -427,8 +415,6 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 
 			// We need to reset the counter & array so that the validator won't be immediately slashed for downtime upon rebonding.
 			signInfo.MissedBlocksCounter = 0
-			signInfo.IndexOffset = 0
-			k.clearValidatorMissedBlockBitArray(ctx, consAddr)
 		} else {
 			// Validator was (a) not found or (b) already jailed, don't slash
 			logger.Info(
@@ -459,36 +445,6 @@ func (k Keeper) setValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(info)
 	store.Set(types.GetValidatorSigningInfoKey(address), bz)
-}
-
-// Stored by *validator* address (not operator address)
-func (k Keeper) clearValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetValidatorMissedBlockBitArrayPrefixKey(address))
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		store.Delete(iter.Key())
-	}
-}
-
-// Stored by *validator* address (not operator address)
-func (k Keeper) getValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress, index int64) (missed bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetValidatorMissedBlockBitArrayKey(address, index))
-	if bz == nil {
-		// lazy: treat empty key as not missed
-		missed = false
-		return
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &missed)
-	return
-}
-
-// Stored by *validator* address (not operator address)
-func (k Keeper) setValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress, index int64, missed bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(missed)
-	store.Set(types.GetValidatorMissedBlockBitArrayKey(address, index), bz)
 }
 
 // handle a validator signing two blocks at the same height
@@ -586,4 +542,13 @@ func (k Keeper) setAddrPubkeyRelation(ctx sdk.Context, addr crypto.Address, pubk
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(pubkey)
 	store.Set(types.GetAddrPubkeyRelationKey(addr), bz)
+}
+
+func inGracePeriod(ctx sdk.Context) bool {
+	var (
+		height           = ctx.BlockHeight()
+		gracePeriodStart = ncfg.UpdatesInfo.LastBlock
+		gracePeriodEnd   = gracePeriodStart + (ncfg.OneHour * 24)
+	)
+	return height >= gracePeriodStart && height <= gracePeriodEnd
 }
