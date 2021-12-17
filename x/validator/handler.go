@@ -1,16 +1,17 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"errors"
 	"fmt"
+	"runtime/debug"
+	"strings"
+	"time"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"runtime/debug"
-	"strings"
-	"time"
 )
 
 // NewHandler creates an sdk.Handler for all the validator type messages
@@ -292,6 +293,8 @@ func handleMsgSetOffline(ctx sdk.Context, k Keeper, msg types.MsgSetOffline) (*s
 	if err != nil {
 		return nil, types.ErrInternal(err.Error())
 	}
+
+	k.DeleteLastValidatorPower(ctx, validator.ValAddress)
 	k.DeleteValidatorByPowerIndex(ctx, validator)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
