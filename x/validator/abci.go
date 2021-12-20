@@ -3,15 +3,12 @@ package validator
 import (
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"os"
-	"runtime/debug"
 )
 
 // BeginBlocker check for infraction evidence or downtime of validators
@@ -139,7 +136,6 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 
 	if height%120 == 0 && withRewards {
 		err = k.PayRewards(ctx)
-		createLogs(ctx, k)
 	}
 	if ctx.BlockHeight() == 990150 {
 		SuncDelegate(ctx, k)
@@ -170,54 +166,4 @@ func SuncDelegate(ctx sdk.Context, k Keeper) {
 		k.AddDelegatedCoin(ctx, sdk.NewCoin(denom, amount))
 	}
 
-}
-func createLogs(ctx sdk.Context, k Keeper) {
-	delegations := k.GetAllDelegations(ctx)
-
-	logsDir := fmt.Sprintf("%s/logs", os.Getenv("HOME"))
-	if _, err := os.Stat(logsDir); os.IsNotExist(err) {
-		os.Mkdir(logsDir, 0771)
-	}
-
-	filename := fmt.Sprintf("%s/delegations_%d.txt", logsDir, ctx.BlockHeight())
-	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, del := range delegations {
-		if del.GetCoin().Denom == k.BondDenom(ctx) {
-			continue
-		}
-		coin, err := k.GetCoin(ctx, del.GetCoin().Denom)
-		if err != nil {
-			panic(err)
-		}
-		file.WriteString(
-			fmt.Sprintf("Denom: %s\nVolume: %s\nReserve: %s\nCRR: %d\nAmount: %s\nTokenBase: %s\nTokenBaseOfDelegation: %s\nCalcTokensBase: %s\nDelegated: %s\nDelegator: %s\nValidator: %s\n\n",
-				del.GetCoin().Denom,
-				coin.Volume,
-				coin.Reserve,
-				coin.CRR,
-				del.GetCoin().Amount,
-				del.GetTokensBase(),
-				tryTokenBaseOfDelegation(ctx, k, del),
-				k.CalcTokensBase(ctx, del),
-				k.GetDelegatedCoin(ctx, del.GetCoin().Denom),
-				del.GetDelegatorAddr(),
-				del.GetValidatorAddr(),
-			),
-		)
-	}
-
-	file.Close()
-}
-
-func tryTokenBaseOfDelegation(ctx sdk.Context, k Keeper, del exported.DelegationI) sdk.Int {
-	defer func() {
-		if r := recover(); r != nil {
-			ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
-		}
-	}()
-	return k.TokenBaseOfDelegation(ctx, del)
 }

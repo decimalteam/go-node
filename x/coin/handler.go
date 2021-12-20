@@ -200,7 +200,6 @@ func handleMsgUpdateCoin(ctx sdk.Context, k Keeper, msg types.MsgUpdateCoin) (*s
 ////////////////////////////////////////////////////////////////
 
 func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.Result, error) {
-	fmt.Println("send")
 	_, err := k.GetCoin(ctx, msg.Coin.Denom)
 	if err != nil {
 		return nil, types.ErrCoinDoesNotExist(msg.Coin.Denom)

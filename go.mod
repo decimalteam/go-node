@@ -9,7 +9,6 @@ require (
 	github.com/cosmos/cosmos-sdk v0.39.3
 	github.com/ethereum/go-ethereum v1.9.11
 	github.com/go-ini/ini v1.63.2
-	github.com/golang/mock v1.3.1 // indirect
 	github.com/gorilla/mux v1.7.4
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
