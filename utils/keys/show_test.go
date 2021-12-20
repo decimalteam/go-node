@@ -1,5 +1,6 @@
 package keys
 
+/*
 import (
 	"testing"
 
@@ -186,3 +187,4 @@ func Test_getBechKeyOut(t *testing.T) {
 		})
 	}
 }
+*/
