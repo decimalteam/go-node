@@ -355,6 +355,10 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		panic(fmt.Sprintf("Expected signing info for validator %s but not found", consAddr))
 	}
 
+	index := signInfo.IndexOffset % types.SignedBlocksWindow
+	signInfo.IndexOffset++
+
+	cachedMissedExist := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
 	missed := !signed
 
 	switch missed {
@@ -363,11 +367,13 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			log.Println(consAddr.String())
 			return
 		}
+		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 		if signInfo.MissedBlocksCounter < types.SignedBlocksWindow {
 			signInfo.MissedBlocksCounter++
 		}
 	case false:
-		if signInfo.MissedBlocksCounter > 0 {
+		if signInfo.MissedBlocksCounter > 0 && cachedMissedExist {
+			k.setValidatorMissedBlockBitArray(ctx, consAddr, index, false)
 			signInfo.MissedBlocksCounter--
 		}
 	}
@@ -415,6 +421,8 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 
 			// We need to reset the counter & array so that the validator won't be immediately slashed for downtime upon rebonding.
 			signInfo.MissedBlocksCounter = 0
+			signInfo.IndexOffset = 0
+			k.clearValidatorMissedBlockBitArray(ctx, consAddr)
 		} else {
 			// Validator was (a) not found or (b) already jailed, don't slash
 			logger.Info(
@@ -425,6 +433,36 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 
 	// Set the updated signing info
 	k.setValidatorSigningInfo(ctx, consAddr, signInfo)
+}
+
+// Stored by *validator* address (not operator address)
+func (k Keeper) clearValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.GetValidatorMissedBlockBitArrayPrefixKey(address))
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		store.Delete(iter.Key())
+	}
+}
+
+// Stored by *validator* address (not operator address)
+func (k Keeper) getValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress, index int64) (missed bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetValidatorMissedBlockBitArrayKey(address, index))
+	if bz == nil {
+		// lazy: treat empty key as not missed
+		missed = false
+		return
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &missed)
+	return
+}
+
+// Stored by *validator* address (not operator address)
+func (k Keeper) setValidatorMissedBlockBitArray(ctx sdk.Context, address sdk.ConsAddress, index int64, missed bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(missed)
+	store.Set(types.GetValidatorMissedBlockBitArrayKey(address, index), bz)
 }
 
 // Stored by *validator* address (not operator address)
