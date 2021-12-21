@@ -341,38 +341,49 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		panic(err)
 	}
 
-	if !validator.Online {
-		return
-	}
-
-	if validator.Jailed {
-		return
-	}
-
 	// fetch signing info
 	signInfo, found := k.getValidatorSigningInfo(ctx, consAddr)
 	if !found {
 		panic(fmt.Sprintf("Expected signing info for validator %s but not found", consAddr))
 	}
 
+	if validator.Jailed {
+		return
+	}
+
+	if !validator.Online {
+		if signInfo.MissedBlocksCounter > 0 {
+			signInfo.MissedBlocksCounter = 0
+			signInfo.IndexOffset = 0
+			k.clearValidatorMissedBlockBitArray(ctx, consAddr)
+			k.setValidatorSigningInfo(ctx, consAddr, signInfo)
+		}
+		return
+	}
+
 	index := signInfo.IndexOffset % types.SignedBlocksWindow
 	signInfo.IndexOffset++
 
-	cachedMissedExist := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
+	missedInWindow := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
 	missed := !signed
 
 	switch missed {
 	case true:
+		// If in grace period then pass missing block
 		if inGracePeriod(ctx) {
 			log.Println(consAddr.String())
 			return
 		}
-		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
+		// If missed < 24 then missed = missed + 1
 		if signInfo.MissedBlocksCounter < types.SignedBlocksWindow {
+			k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 			signInfo.MissedBlocksCounter++
 		}
 	case false:
-		if signInfo.MissedBlocksCounter > 0 && cachedMissedExist {
+		// If in grace perid and missed > 0 then missed = missed - 1
+		// If missed in bit array and missed > 0 then missed = missed - 1
+		grMissedBlocks := signInfo.MissedBlocksCounter > 0
+		if (inGracePeriod(ctx) && grMissedBlocks) || (missedInWindow && grMissedBlocks) {
 			k.setValidatorMissedBlockBitArray(ctx, consAddr, index, false)
 			signInfo.MissedBlocksCounter--
 		}
