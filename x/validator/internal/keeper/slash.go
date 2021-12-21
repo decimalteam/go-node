@@ -341,26 +341,28 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		panic(err)
 	}
 
-	if validator.Jailed {
-		return
-	}
-
 	// fetch signing info
 	signInfo, found := k.getValidatorSigningInfo(ctx, consAddr)
 	if !found {
 		panic(fmt.Sprintf("Expected signing info for validator %s but not found", consAddr))
 	}
 
+	if validator.Jailed {
+		return
+	}
+
 	if !validator.Online {
 		if signInfo.MissedBlocksCounter > 0 {
-			k.clearValidatorSigningInfo(ctx, consAddr, &signInfo)
+			signInfo.MissedBlocksCounter = 0
+			signInfo.IndexOffset = 0
+			k.clearValidatorMissedBlockBitArray(ctx, consAddr)
 			k.setValidatorSigningInfo(ctx, consAddr, signInfo)
 		}
 		return
 	}
 
-	index := signInfo.IndexOffset
-	signInfo.IndexOffset = (signInfo.IndexOffset + 1) % types.SignedBlocksWindow
+	index := signInfo.IndexOffset % types.SignedBlocksWindow
+	signInfo.IndexOffset++
 
 	missedInWindow := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
 	missed := !signed
@@ -369,8 +371,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	case true:
 		// If in grace period then pass missing block
 		if inGracePeriod(ctx) {
-			// log.Println(consAddr.String())
-			log.Printf("Missed block in grace period %s\n", validator.RewardAddress)
+			log.Println(consAddr.String())
 			return
 		}
 		// If missed < 24 then missed = missed + 1
@@ -389,9 +390,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	}
 
 	if missed {
-		// log.Println(fmt.Sprintf("Missed blocks: %d", signInfo.MissedBlocksCounter), signInfo.Address.String())
-		log.Printf("Missed blocks %d in slash period %s\n", signInfo.MissedBlocksCounter, validator.RewardAddress)
-
+		log.Println(fmt.Sprintf("Missed blocks: %d", signInfo.MissedBlocksCounter), signInfo.Address.String())
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeLiveness,
@@ -432,7 +431,9 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			))
 
 			// We need to reset the counter & array so that the validator won't be immediately slashed for downtime upon rebonding.
-			k.clearValidatorSigningInfo(ctx, consAddr, &signInfo)
+			signInfo.MissedBlocksCounter = 0
+			signInfo.IndexOffset = 0
+			k.clearValidatorMissedBlockBitArray(ctx, consAddr)
 		} else {
 			// Validator was (a) not found or (b) already jailed, don't slash
 			logger.Info(
@@ -441,15 +442,8 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		}
 	}
 
-	// Set the updated signing infoconsAddr
+	// Set the updated signing info
 	k.setValidatorSigningInfo(ctx, consAddr, signInfo)
-}
-
-// Set index, counter = 0, bit array = nil
-func (k Keeper) clearValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress, signInfo *types.ValidatorSigningInfo) {
-	signInfo.MissedBlocksCounter = 0
-	signInfo.IndexOffset = 0
-	k.clearValidatorMissedBlockBitArray(ctx, address)
 }
 
 // Stored by *validator* address (not operator address)
