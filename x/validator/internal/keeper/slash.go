@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
@@ -370,7 +369,8 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		// If in grace period then pass missing block
 		if inGracePeriod(ctx) {
 			// log.Println(consAddr.String())
-			log.Printf("Missed block in grace period %s\n", validator.RewardAddress)
+			ctx.Logger().Info(
+				fmt.Sprintf("Missed block in grace period (%s)\n", validator.ValAddress))
 			return
 		}
 		// If missed < 24 then missed = missed + 1
@@ -390,7 +390,8 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 
 	if missed {
 		// log.Println(fmt.Sprintf("Missed blocks: %d", signInfo.MissedBlocksCounter), signInfo.Address.String())
-		log.Printf("Missed blocks %d in slash period %s\n", signInfo.MissedBlocksCounter, validator.RewardAddress)
+		ctx.Logger().Info(
+			fmt.Sprintf("Missed blocks %d in slash period (%s)\n", signInfo.MissedBlocksCounter, validator.ValAddress))
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
