@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"sort"
 	"strconv"
 	"time"
 
@@ -65,6 +66,8 @@ func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, de
 		return err
 	}
 
+	sort.Sort(nftTypes.SortedIntArray(subTokenIDs))
+
 	owner := nft.GetOwners().GetOwner(delAddr)
 	if owner == nil {
 		return fmt.Errorf("not found owner %s", delAddr.String())
@@ -123,7 +126,7 @@ func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, de
 func (k Keeper) UndelegateNFT(
 	ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, tokenID, denom string, subTokenIDs []int64,
 ) (time.Time, error) {
-
+	sort.Sort(nftTypes.SortedIntArray(subTokenIDs))
 	_, foundErr := k.GetValidator(ctx, valAddr)
 	if foundErr != nil {
 		return time.Time{}, types.ErrNoDelegatorForAddress()
