@@ -41,7 +41,6 @@ func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, reser
 
 // GetID returns the ID of the token
 
-
 func (bnft BaseNFT) GetID() string { return bnft.ID }
 
 // GetOwner returns the account address that owns the NFT
@@ -125,8 +124,7 @@ func (bnft *BaseNFT) UnmarshalJSON(b []byte) error {
 func TransferNFT(nft exported.NFT, sender, recipient sdk.AccAddress, subTokenIDs []int64) (exported.NFT, error) {
 	senderOwner := nft.GetOwners().GetOwner(sender)
 
-	//sort.Sort(SortedIntArray(subTokenIDs))
-
+	sort.Sort(SortedIntArray(subTokenIDs))
 
 	for _, id := range subTokenIDs {
 		if SortedIntArray(senderOwner.GetSubTokenIDs()).Find(id) == -1 {
