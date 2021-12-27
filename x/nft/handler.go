@@ -3,6 +3,7 @@ package nft
 import (
 	"fmt"
 	"runtime/debug"
+	"sort"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -44,6 +45,8 @@ func HandleMsgTransferNFT(ctx sdk.Context, msg types.MsgTransferNFT, k keeper.Ke
 	if err != nil {
 		return nil, err
 	}
+
+	sort.Sort(SortedIntArray(msg.SubTokenIDs))
 
 	nft, err = types.TransferNFT(nft, msg.Sender, msg.Recipient, msg.SubTokenIDs)
 	if err != nil {
@@ -166,6 +169,8 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 		return nil, ErrNotAllowedBurn()
 	}
 
+	sort.Sort(SortedIntArray(msg.SubTokenIDs))
+
 	// remove NFT
 	err = k.DeleteNFT(ctx, msg.Denom, msg.ID, msg.SubTokenIDs)
 	if err != nil {
@@ -197,6 +202,8 @@ func HandleMsgUpdateReserveNFT(ctx sdk.Context, msg types.MsgUpdateReserveNFT, k
 	if !nft.GetCreator().Equals(msg.Sender) {
 		return nil, ErrNotAllowedUpdateRes()
 	}
+
+	sort.Sort(SortedIntArray(msg.SubTokenIDs))
 
 	// update reserve nft
 	err = k.UpdateNFTReserve(ctx, msg.Denom, msg.ID, msg.SubTokenIDs, msg.NewReserveNFT)

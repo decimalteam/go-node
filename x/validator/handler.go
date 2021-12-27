@@ -1,16 +1,19 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	"errors"
 	"fmt"
+	"runtime/debug"
+	"sort"
+	"strings"
+	"time"
+
+	nftTypes "bitbucket.org/decimalteam/go-node/x/nft"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	tmstrings "github.com/tendermint/tendermint/libs/strings"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"runtime/debug"
-	"strings"
-	"time"
 )
 
 // NewHandler creates an sdk.Handler for all the validator type messages
@@ -146,6 +149,8 @@ func handleMsgDelegateNFT(ctx sdk.Context, k Keeper, msg types.MsgDelegateNFT) (
 		return nil, types.ErrNoValidatorFound()
 	}
 
+	sort.Sort(nftTypes.SortedIntArray(msg.SubTokenIDs))
+
 	err = k.DelegateNFT(ctx, msg.DelegatorAddress, msg.TokenID, msg.Denom, msg.SubTokenIDs, val)
 	if err != nil {
 		e := sdkerrors.Error{}
@@ -167,6 +172,8 @@ func handleMsgDelegateNFT(ctx sdk.Context, k Keeper, msg types.MsgDelegateNFT) (
 }
 
 func handleMsgUnbondNFT(ctx sdk.Context, k Keeper, msg types.MsgUnbondNFT) (*sdk.Result, error) {
+	sort.Sort(nftTypes.SortedIntArray(msg.SubTokenIDs))
+
 	completionTime, err := k.UndelegateNFT(ctx, msg.DelegatorAddress, msg.ValidatorAddress, msg.TokenID, msg.Denom, msg.SubTokenIDs)
 	if err != nil {
 		e := sdkerrors.Error{}
