@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"sort"
 	"strconv"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	nftTypes "bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
@@ -123,11 +125,12 @@ func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, de
 func (k Keeper) UndelegateNFT(
 	ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, tokenID, denom string, subTokenIDs []int64,
 ) (time.Time, error) {
-
 	_, foundErr := k.GetValidator(ctx, valAddr)
 	if foundErr != nil {
 		return time.Time{}, types.ErrNoDelegatorForAddress()
 	}
+
+	sort.Sort(nftTypes.SortedIntArray(subTokenIDs))
 
 	err := k.unbondNFT(ctx, delAddr, valAddr, tokenID, denom, subTokenIDs)
 	if err != nil {

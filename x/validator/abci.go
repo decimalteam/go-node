@@ -1,11 +1,11 @@
 package validator
 
 import (
+	"fmt"
+
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -15,35 +15,13 @@ import (
 // BeginBlocker check for infraction evidence or downtime of validators
 // on every begin block
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
-	if ctx.BlockHeight() >= updates.Update10Block {
-		k.SetNFTBaseDenom(ctx)
-	}
+	k.SetNFTBaseDenom(ctx)
 
 	// Iterate over all the validators which *should* have signed this block
 	// store whether or not they have actually signed it and slash/unbond any
 	// which have missed too many blocks in a row (downtime slashing)
 	for _, voteInfo := range req.LastCommitInfo.GetVotes() {
 		k.HandleValidatorSignature(ctx, voteInfo.Validator.Address, voteInfo.Validator.Power, voteInfo.SignedLastBlock)
-	}
-
-	if ctx.BlockHeight() == updates.Update6Block {
-		validators := k.GetAllValidatorsByPowerIndex(ctx)
-		last := make(map[string]bool)
-		for _, validator := range validators {
-			last[validator.ValAddress.String()] = true
-			if validator.Online {
-				for _, info := range req.LastCommitInfo.GetVotes() {
-					if validator.ValAddress.Equals(k.GetValidatorAddrByConsAddr(ctx, info.Validator.Address)) {
-						delete(last, k.GetValidatorAddrByConsAddr(ctx, info.Validator.Address).String())
-					}
-				}
-			}
-		}
-
-		for validator := range last {
-			valAddr, _ := sdk.ValAddressFromBech32(validator)
-			k.DeleteLastValidatorPower(ctx, valAddr)
-		}
 	}
 
 	// Iterate through any newly discovered evidence of infraction
@@ -55,15 +33,6 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 			k.HandleDoubleSign(ctx, evidence.Validator.Address, evidence.Height, evidence.Time, evidence.Validator.Power)
 		default:
 			k.Logger(ctx).Error(fmt.Sprintf("ignored unknown evidence type: %s", evidence.Type))
-		}
-	}
-
-	if ctx.BlockHeight() == updates.Update11Block {
-		delegations := k.GetAllDelegations(ctx)
-		for _, delegation := range delegations {
-			if delegation.GetCoin().Denom != k.BondDenom(ctx) {
-				k.AddDelegatedCoin(ctx, delegation.GetCoin())
-			}
 		}
 	}
 }
@@ -84,14 +53,8 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		panic(err)
 	}
 
-	if ctx.BlockHeight() == updates.Update7Block {
-		SyncPools(ctx, k, supplyKeeper)
-		SyncValidators(ctx, k)
-	}
-
-	if ctx.BlockHeight() == updates.Update8Block {
-		SyncPools2(ctx, k, supplyKeeper)
-		SyncUnbondingDelegations(ctx, k)
+	if ctx.BlockHeight() == 7777777777777 {
+		SyncDelegate(ctx, k)
 	}
 
 	height := ctx.BlockHeight()
@@ -127,9 +90,6 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	if err != nil {
 		panic(err)
 	}
-	if ctx.BlockHeight() < updates.Update2Block {
-		coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
-	}
 
 	feeCollector := supplyKeeper.GetModuleAccount(ctx, k.FeeCollectorName)
 	feesCollectedInt := feeCollector.GetCoins()
@@ -149,9 +109,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	if err != nil {
 		panic(err)
 	}
-	if ctx.BlockHeight() >= updates.Update2Block {
-		coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
-	}
+	coinKeeper.UpdateCoin(ctx, denomCoin, denomCoin.Reserve, denomCoin.Volume.Add(rewards))
 
 	remainder := sdk.NewIntFromBigInt(rewards.BigInt())
 
@@ -190,6 +148,34 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	return validatorUpdates
+}
+
+func SyncDelegate(ctx sdk.Context, k Keeper) {
+	delegations := k.GetAllDelegations(ctx)
+	coins := make(map[string]sdk.Int)
+
+	for _, del := range delegations {
+		denom := del.GetCoin().Denom
+		amount := del.GetCoin().Amount
+
+		if denom == k.BondDenom(ctx) {
+			continue
+		}
+		_, err := k.GetCoin(ctx, denom)
+		if err != nil {
+			panic(err)
+		}
+		if _, ok := coins[denom]; !ok {
+			coins[denom] = amount
+		} else {
+			coins[denom] = coins[denom].Add(amount)
+		}
+	}
+
+	for denom, amount := range coins {
+		k.SubtractDelegatedCoin(ctx, sdk.NewCoin(denom, k.GetDelegatedCoin(ctx, denom)))
+		k.AddDelegatedCoin(ctx, sdk.NewCoin(denom, amount))
+	}
 }
 
 func SyncPools(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper) {
