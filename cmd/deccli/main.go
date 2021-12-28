@@ -145,14 +145,10 @@ func QueryAccountWithUnconfirmedNonceRequestHandlerFn(cliCtx context.CLIContext)
 }
 
 func parseCountTXs(address sdk.AccAddress) (uint64, error) {
-	type mempool struct {
-		Count      string   `json:"n_txs"`
-		Total      string   `json:"total"`
-		TotalBytes string   `json:"total_bytes"`
-		Txs        [][]byte `json:"txs"`
-	}
 	type result struct {
-		Result mempool `json:"result"`
+		Result struct {
+			Txs [][]byte `json:"txs"`
+		} `json:"result"`
 	}
 
 	const (
