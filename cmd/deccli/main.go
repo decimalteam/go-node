@@ -36,14 +36,10 @@ import (
 	multisigCmd "bitbucket.org/decimalteam/go-node/x/multisig/client/cli"
 )
 
-var (
-	cdc *amino.Codec
-)
-
 func main() {
 	cobra.EnableCommandSorting = false
 
-	cdc = app.MakeCodec()
+	cdc := app.MakeCodec()
 
 	// Read in the configuration file for the sdk
 	_config := sdk.GetConfig()
@@ -97,13 +93,12 @@ func registerRoutes(rs *lcd.RestServer) {
 
 func registerCustomRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(
-		"/auth/accounts_with_unconfirmed_nonce/{address}", QueryAccountWithUnconfirmedNonceHandlerFn(cliCtx),
+		"/auth/accounts_with_unconfirmed_nonce/{address}", QueryAccountWithUnconfirmedNonceRequestHandlerFn(cliCtx),
 	).Methods("GET")
 }
 
-// QueryTxRequestHandlerFn implements a REST handler that queries a transaction
-// by hash in a committed block.
-func QueryAccountWithUnconfirmedNonceHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+// Edited QueryAccountRequestHandlerFn
+func QueryAccountWithUnconfirmedNonceRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		bech32addr := vars["address"]
@@ -181,6 +176,9 @@ func parseCountTXs(address sdk.AccAddress) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	cdc := app.MakeCodec()
+	cdc.Seal()
 
 	count := uint64(0)
 	for _, tx := range res.Result.Txs {
