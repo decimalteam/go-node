@@ -42,6 +42,7 @@ var (
 	ErrUnknownNFT           = types.ErrUnknownNFT
 	ErrEmptyMetadata        = types.ErrEmptyMetadata
 	ErrNotAllowedBurn       = types.ErrNotAllowedBurn
+	ErrNotAllowedUpdateRes  = types.ErrNotAllowedUpdateReserve
 	ErrNotAllowedMint       = types.ErrNotAllowedMint
 	ErrNotUniqueSubTokenIDs = types.ErrNotUniqueSubTokenIDs
 	ErrNotUniqueTokenURI    = types.ErrNotUniqueTokenURI

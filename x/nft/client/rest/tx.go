@@ -39,6 +39,12 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router,
 		"/nfts/collection/{denom}/nft/{id}/burn",
 		burnNFTHandler(cdc, cliCtx),
 	).Methods("PUT")
+
+	//Update Reserv NFT
+	r.HandleFunc(
+		"/nfts/collection/{denom}/nft/{id}/updateReserve",
+		updateReserveNFTHandler(cdc, cliCtx),
+	).Methods("PUT")
 }
 
 type transferNFTReq struct {
@@ -199,6 +205,53 @@ func burnNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFun
 
 		// create the message
 		msg := types.NewMsgBurnNFT(fromAddr, req.ID, req.Denom, subTokenIDs)
+		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
+	}
+}
+
+type MsgUpdateReserveNFTq struct {
+	BaseReq       rest.BaseReq `json:"base_req"`
+	ID            string       `json:"id"`
+	Denom         string       `json:"denom"`
+	SubTokenIDs   []string     `json:"sub_token_ids"`
+	NewReserveNFT string       `json:"reserve"`
+}
+
+func updateReserveNFTHandler(cdc *codec.Codec, cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req MsgUpdateReserveNFTq
+		if !rest.ReadRESTReq(w, r, cdc, &req) {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
+			return
+		}
+		baseReq := req.BaseReq.Sanitize()
+		if !baseReq.ValidateBasic(w) {
+			return
+		}
+
+		fromAddr, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		subTokenIDs := make([]int64, len(req.SubTokenIDs))
+		for i, d := range req.SubTokenIDs {
+			subTokenID, err := strconv.ParseInt(d, 10, 64)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid subTokenID")
+				return
+			}
+			subTokenIDs[i] = subTokenID
+		}
+
+		newReserve, ok := sdk.NewIntFromString(req.NewReserveNFT)
+		if !ok {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid quantity")
+			return
+		}
+		// create the message
+		msg := types.NewMsgUpdateReserveNFT(fromAddr, req.ID, req.Denom, subTokenIDs, newReserve)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, baseReq, []sdk.Msg{msg})
 	}
 }

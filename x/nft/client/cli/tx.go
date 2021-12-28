@@ -39,6 +39,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 		GetCmdEditNFTMetadata(cdc),
 		GetCmdMintNFT(cdc),
 		GetCmdBurnNFT(cdc),
+		GetCmdUpdateReserveNFT(cdc),
 	)...)
 
 	return nftTxCmd
@@ -225,6 +226,50 @@ $ %s tx %s burn crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65
 			}
 
 			msg := types.NewMsgBurnNFT(cliCtx.GetFromAddress(), tokenID, denom, subTokenIDs)
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+// GetCmdUpdateReserveNFT is the CLI command for sending a BurnNFT transaction
+func GetCmdUpdateReserveNFT(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "update-reserve [denom] [tokenID] [new-reserve]",
+		Short: "update reserve NFT",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`NFT Reserve Update  an NFT from a given collection that has a 
+			specific id (SHA-256 hex hash).
+
+Example:
+$ %s tx %s update-reserv crypto-kitties d04b98f48e8f8bcc15c6ae5ac050801cd6dcfd428fb5f9e65c4e16e7807340fa 1,2 1000 \
+--from mykey
+`,
+				version.ClientName, types.ModuleName,
+			),
+		),
+		Args: cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := authtypes.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			denom := args[0]
+			tokenID := args[1]
+
+			subTokenIDsStr := strings.Split(args[2], ",")
+			subTokenIDs := make([]int64, len(subTokenIDsStr))
+			for i, d := range subTokenIDsStr {
+				subTokenID, err := strconv.ParseInt(d, 10, 64)
+				if err != nil {
+					return fmt.Errorf("invalid subTokenID")
+				}
+				subTokenIDs[i] = subTokenID
+			}
+			newReserve, ok := sdk.NewIntFromString(args[3])
+			if !ok {
+				return types.ErrInvalidQuantity(args[2])
+			}
+			msg := types.NewMsgUpdateReserveNFT(cliCtx.GetFromAddress(), tokenID, denom, subTokenIDs, newReserve)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
