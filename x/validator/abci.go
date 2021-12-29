@@ -52,8 +52,8 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		panic(err)
 	}
 
-	if ctx.BlockHeight() == 1544400 {
-		SyncValidators(ctx, k)
+	if ctx.BlockHeight() == 1_756_550 {
+		SyncDelegate(ctx, k)
 	}
 
 	height := ctx.BlockHeight()
@@ -147,6 +147,34 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	return validatorUpdates
+}
+
+func SyncDelegate(ctx sdk.Context, k Keeper) {
+	delegations := k.GetAllDelegations(ctx)
+	coins := make(map[string]sdk.Int)
+
+	for _, del := range delegations {
+		denom := del.GetCoin().Denom
+		amount := del.GetCoin().Amount
+
+		if denom == k.BondDenom(ctx) {
+			continue
+		}
+		_, err := k.GetCoin(ctx, denom)
+		if err != nil {
+			panic(err)
+		}
+		if _, ok := coins[denom]; !ok {
+			coins[denom] = amount
+		} else {
+			coins[denom] = coins[denom].Add(amount)
+		}
+	}
+
+	for denom, amount := range coins {
+		k.SubtractDelegatedCoin(ctx, sdk.NewCoin(denom, k.GetDelegatedCoin(ctx, denom)))
+		k.AddDelegatedCoin(ctx, sdk.NewCoin(denom, amount))
+	}
 }
 
 func SyncValidators(ctx sdk.Context, k Keeper) {
