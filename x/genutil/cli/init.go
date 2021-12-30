@@ -14,7 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	cfgApp "github.com/cosmos/cosmos-sdk/server/config"
-	"github.com/cosmos/cosmos-sdk/store"
+	types2 "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	cfg "github.com/tendermint/tendermint/config"
@@ -114,7 +114,7 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 			// Set pruning from 'syncable' to 'nothing'
 			appConfigFilePath := filepath.Join(config.RootDir, "config", "app.toml")
 			appConf, _ := cfgApp.ParseConfig()
-			appConf.Pruning = store.PruningStrategyNothing
+			appConf.Pruning = types2.PruningOptionNothing
 			cfgApp.WriteConfigFile(appConfigFilePath, appConf)
 
 			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
