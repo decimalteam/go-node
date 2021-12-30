@@ -2,39 +2,63 @@
 
 # Add initial signed transactions to the genesis file
 decd gen-declare-candidate-tx \
-    --chain-id decimal-devnet-06-09-16-00 \
-    --name dev-node-fra1-01 \
+    --name test-node-fra1-01 \
     --sequence 0 \
-    --amount 40000000000000000000000000del \
-    --pubkey dxvalconspub1zcjduepqwwrzqe9dg6tq2s0ps9sl0pqu42x3ypqjyykfaems3stnhpg30agqjczlcj \
-    --moniker dev-node-fra1-01 \
-    --details "Declaring validator on dev-node-fra1-01" \
+    --amount 40000000000000000000000000tdel \
+    --pubkey dxvalconspub1zcjduepquc5nas24rhqm0l8lyte0dfx2k3uda56wdn998lyrs6mpvsk9xmks6xa0ly \
+    --details "Declaring validator on test-node-fra1-01" \
     --website decimalchain.com \
-    --node-id 8a2cc38f5264e9699abb8db91c9b4a4a061f000d \
-    --keyring-backend test | jq '.value.signatures[0].signature'
+    --node-id bf7a6b366e3c451a3c12b3a6c01af7230fb92fc7 \
+    --ip 139.59.133.148 \
+    --chain-id decimal-testnet-06-09-13-00 \
+    --keyring-backend test \
+    --home ~/.decimal-test-node-fra1-01/daemon | jq '.value.signatures[0].signature'
 
 # Add initial signed transactions to the genesis file
 decd gen-declare-candidate-tx \
-    --chain-id decimal-devnet-06-09-16-00 \
-    --name dev-node-fra1-02 \
+    --name test-node-fra1-02 \
     --sequence 0 \
-    --amount 40000000000000000000000000del \
-    --pubkey dxvalconspub1zcjduepquhdcn6578xh37gpmwn89vlq8cu402gm5nvnkels3kpnz9a3gcyxqgexz4q \
-    --moniker dev-node-fra1-02 \
-    --details "Declaring validator on dev-node-fra1-02" \
+    --amount 40000000000000000000000000tdel \
+    --pubkey dxvalconspub1zcjduepq5hj3p750mves8wpmh4ywy6yjkz72sppr2kmzk7lzeedyelauwamsl3c57q \
+    --details "Declaring validator on test-node-fra1-02" \
     --website decimalchain.com \
-    --node-id e0e7a88de0b39bd2adceb3516d353582ff94ec15 \
-    --keyring-backend test | jq '.value.signatures[0].signature'
+    --node-id c0b9b6c9a0f95e3d2f4aed890806739fc77faefd \
+    --ip 64.225.110.228 \
+    --chain-id decimal-testnet-06-09-13-00 \
+    --keyring-backend test \
+    --home ~/.decimal-test-node-fra1-02/daemon | jq '.value.signatures[0].signature'
 
 # Add initial signed transactions to the genesis file
 decd gen-declare-candidate-tx \
-    --chain-id decimal-devnet-06-09-16-00 \
-    --name dev-node-tor1-01 \
+    --name test-node-nyc3-01 \
     --sequence 0 \
-    --amount 40000000000000000000000000del \
-    --pubkey dxvalconspub1zcjduepqcl2c373fljlpm0lfut5c4adq4x08fsd9ufqm6fsq3e6p4fqg7xeqkx0m98 \
-    --moniker dev-node-tor1-01 \
-    --details "Declaring validator on dev-node-tor1-01" \
+    --amount 40000000000000000000000000tdel \
+    --pubkey dxvalconspub1zcjduepqjwlm5xcsp60v6fgwt95zq624yjhjnpkrzm209c5f8ajz8rdvq6gsdx5y2l \
+    --details "Declaring validator on test-node-nyc3-01" \
     --website decimalchain.com \
-    --node-id 27fcfef145b3717c5d639ec72fb12f9c43da98f0 \
-    --keyring-backend test | jq '.value.signatures[0].signature'
+    --node-id 76b81a4b817b39d63a3afe1f3a294f2a8f5c55b0 \
+    --ip 64.225.56.107 \
+    --chain-id decimal-testnet-06-09-13-00 \
+    --keyring-backend test \
+    --home ~/.decimal-test-node-nyc3-01/daemon | jq '.value.signatures[0].signature'
+
+# Add initial signed transactions to the genesis file
+decd gen-declare-candidate-tx \
+    --name test-node-sgp1-01 \
+    --sequence 0 \
+    --amount 40000000000000000000000000tdel \
+    --pubkey dxvalconspub1zcjduepq73se7rmlycftjta3ydjvrjmn28rrweyxyg42tzfr5lcw6lx8zl7qc6dpss \
+    --details "Declaring validator on test-node-sgp1-01" \
+    --website decimalchain.com \
+    --node-id 29e566c41d51be90fa53340ba4edccefbebe8cb2 \
+    --ip 167.99.182.218 \
+    --chain-id decimal-testnet-06-09-13-00 \
+    --keyring-backend test \
+    --home ~/.decimal-test-node-sgp1-01/daemon | jq '.value.signatures[0].signature'
+
+# # Finish all nodes
+# for node in "${nodes[@]}"
+# do
+#     # Finish new blockchain initialization
+#     decd collect-gentxs --home ~/.decimal-$node/daemon
+# done

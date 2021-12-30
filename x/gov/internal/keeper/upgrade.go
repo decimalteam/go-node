@@ -79,7 +79,12 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 		return fmt.Errorf("error: mapping decode")
 	}
 
-	currPath := filepath.Dir(os.Args[0])
+	ex, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("error: get current dir")
+	}
+
+	currPath := filepath.Dir(ex)
 	for i, name := range ncfg.NameFiles {
 		downloadName := k.GetDownloadName(name)
 		if _, err := os.Stat(downloadName); os.IsNotExist(err) {
@@ -148,9 +153,8 @@ func runIsSuccess(nameFile string) bool {
 
 // Generate name of download file.
 func (k Keeper) GetDownloadName(name string) string {
-	baseFile := fmt.Sprintf("%s.nv", name)
-	nameFile := filepath.Join(filepath.Dir(os.Args[0]), baseFile)
-	return nameFile
+	ex, _ := os.Executable()
+	return filepath.Join(filepath.Dir(ex), fmt.Sprintf("%s.nv", name))
 }
 
 func (k Keeper) GenerateUrl(urlName string) string {

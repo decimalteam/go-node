@@ -1,10 +1,11 @@
 package validator
 
 import (
+	"fmt"
+
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -49,6 +50,10 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	validatorUpdates, err := k.ApplyAndReturnValidatorSetUpdates(ctx)
 	if err != nil {
 		panic(err)
+	}
+
+	if ctx.BlockHeight() == 1_756_550 {
+		SyncDelegate(ctx, k)
 	}
 
 	height := ctx.BlockHeight()
@@ -142,4 +147,45 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	return validatorUpdates
+}
+
+func SyncDelegate(ctx sdk.Context, k Keeper) {
+	delegations := k.GetAllDelegations(ctx)
+	coins := make(map[string]sdk.Int)
+
+	for _, del := range delegations {
+		denom := del.GetCoin().Denom
+		amount := del.GetCoin().Amount
+
+		if denom == k.BondDenom(ctx) {
+			continue
+		}
+		_, err := k.GetCoin(ctx, denom)
+		if err != nil {
+			panic(err)
+		}
+		if _, ok := coins[denom]; !ok {
+			coins[denom] = amount
+		} else {
+			coins[denom] = coins[denom].Add(amount)
+		}
+	}
+
+	for denom, amount := range coins {
+		k.SubtractDelegatedCoin(ctx, sdk.NewCoin(denom, k.GetDelegatedCoin(ctx, denom)))
+		k.AddDelegatedCoin(ctx, sdk.NewCoin(denom, amount))
+	}
+}
+
+func SyncValidators(ctx sdk.Context, k Keeper) {
+	validators := k.GetAllValidators(ctx)
+	for _, validator := range validators {
+		if validator.Status.Equal(Unbonding) {
+			validator.Status = Bonded
+			err := k.SetValidator(ctx, validator)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
 }

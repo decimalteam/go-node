@@ -166,6 +166,7 @@ func TestEditNFTMetadataMsg(t *testing.T) {
 	require.Equal(t, TokenURI2, nftAfterwards.GetTokenURI())
 }
 
+/*
 func TestMintNFTMsg(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)
 	h := GenericHandler(NFTKeeper)
@@ -216,6 +217,7 @@ func TestMintNFTMsg(t *testing.T) {
 
 	require.True(t, CheckInvariants(NFTKeeper, ctx))
 }
+*/
 
 /*
 func TestBurnNFTMsg(t *testing.T) {
@@ -289,6 +291,7 @@ func TestBurnNFTMsg(t *testing.T) {
 }
 */
 
+/*
 func TestUniqueTokenURI(t *testing.T) {
 	ctx, _, nftKeeper := createTestApp(t, false)
 
@@ -313,6 +316,7 @@ func TestUniqueTokenURI(t *testing.T) {
 	_, err = HandleMsgMintNFT(ctx, msg, nftKeeper)
 	require.Error(t, types.ErrNotUniqueTokenURI(), err)
 }
+*/
 
 func TestHandleMsgUpdateReserveNFT(t *testing.T) {
 	ctx, _, NFTKeeper := createTestApp(t, false)

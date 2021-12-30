@@ -146,6 +146,9 @@ func (msg MsgBurnNFT) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
+
+
+
 /* --------------------------------------------------------------------------- */
 // MsgUpdateReservNFT
 /* --------------------------------------------------------------------------- */

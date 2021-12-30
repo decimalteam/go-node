@@ -12,6 +12,7 @@ type CodeType = uint32
 const (
 	// Default coin codespace
 	DefaultCodespace string = ModuleName
+
 	// Create coin
 	CodeInvalidCRR                      CodeType = 100
 	CodeCoinDoesNotExist                CodeType = 101
@@ -42,6 +43,7 @@ const (
 	// Send coin
 	CodeInvalidAmount          CodeType = 300
 	CodeInvalidReceiverAddress CodeType = 301
+
 	// Redeem check
 	CodeInvalidCheck          CodeType = 400
 	CodeInvalidProof          CodeType = 401
@@ -56,6 +58,7 @@ const (
 	CodeUnableDecodeProof     CodeType = 410
 	CodeUnableRecoverAddress  CodeType = 411
 	CodeUnableRecoverLockPkey CodeType = 412
+
 	// AccountKeys
 	CodeInvalidPkey              CodeType = 500
 	CodeUnableRetriveArmoredPkey CodeType = 501
@@ -283,6 +286,14 @@ func ErrInvalidAmount() *sdkerrors.Error {
 	)
 }
 
+func ErrReceiverEmpty() *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeInvalidReceiverAddress,
+		"Receiver cannot be empty ",
+	)
+}
+
 // Redeem check
 
 func ErrInvalidCheck(data string) *sdkerrors.Error {
@@ -437,13 +448,5 @@ func ErrUnableRetrieveSECPPkey(name string, algo string) *sdkerrors.Error {
 		fmt.Sprintf("unable to retrieve secp256k1 private key for account %s: %s private key retrieved instead", name, algo),
 		errors.NewParam("name", name),
 		errors.NewParam("algo", algo),
-	)
-}
-
-func ErrReceiverEmpty() *sdkerrors.Error {
-	return errors.Encode(
-		DefaultCodespace,
-		CodeInvalidReceiverAddress,
-		"Receiver cannot be empty ",
 	)
 }

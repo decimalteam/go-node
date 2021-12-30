@@ -11,7 +11,7 @@ import (
 
 const (
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "0.9.45"
+	DecimalVersion = "1.3.49"
 
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
@@ -45,9 +45,8 @@ const (
 )
 
 const (
-	// ChainID is the Decimal chain identifier.
-	ChainID = "decimal-devnet-06-09-16-00"
-	OneHour = 660 // blocks
+	OneHour     = 660 // blocks
+	UpdatesName = "updates.json"
 )
 
 var (
@@ -56,7 +55,7 @@ var (
 )
 
 var (
-	UpdatesName = "updates.json"
+	ChainID     = "decimal-testnet-06-09-13-00"
 	UpdatesInfo = NewUpdatesInfo(filepath.Join(DataPath, UpdatesName))
 )
 

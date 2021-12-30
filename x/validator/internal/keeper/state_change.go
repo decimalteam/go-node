@@ -1,12 +1,13 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"errors"
 	"fmt"
 	"runtime/debug"
 	"sort"
+
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -431,7 +432,7 @@ func (k Keeper) unjailValidator(ctx sdk.Context, validator types.Validator) erro
 }
 
 func (k Keeper) getValidatorsCountForBlock(ctx sdk.Context, block int64) int {
-	count := 5 + (block/7200)*1
+	count := 16 + (block/432000)*4
 	if uint16(count) > k.GetParams(ctx).MaxValidators {
 		return int(k.GetParams(ctx).MaxValidators)
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"bitbucket.org/decimalteam/go-node/utils/ante"
 
@@ -218,7 +219,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	govRouter := gov.NewRouter()
 	app.govKeeper = gov.NewKeeper(
 		app.cdc,
-		keys[gov.StoreKey],
+		app.keys[gov.StoreKey],
 		govSubspace,
 		app.supplyKeeper,
 		&app.validatorKeeper,
@@ -227,7 +228,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	app.swapKeeper = swap.NewKeeper(
 		app.cdc,
-		keys[swap.StoreKey],
+		app.keys[swap.StoreKey],
 		swapSubspace,
 		app.coinKeeper,
 		app.accountKeeper,
@@ -319,6 +320,19 @@ func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 }
 
 func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	if !cfg.Initialized {
+		config.ChainID = ctx.ChainID()
+		if strings.HasPrefix(config.ChainID, "decimal-testnet") {
+			cfg.TitleBaseCoin = config.TitleTestBaseCoin
+			cfg.SymbolBaseCoin = config.SymbolTestBaseCoin
+			cfg.InitialVolumeBaseCoin = config.InitialVolumeTestBaseCoin
+		} else if strings.HasPrefix(config.ChainID, "decimal") {
+			cfg.TitleBaseCoin = config.TitleBaseCoin
+			cfg.SymbolBaseCoin = config.SymbolBaseCoin
+			cfg.InitialVolumeBaseCoin = config.InitialVolumeBaseCoin
+		}
+		cfg.Initialized = true
+	}
 	return app.mm.BeginBlock(ctx, req)
 }
 func (app *newApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
