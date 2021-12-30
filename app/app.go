@@ -3,8 +3,12 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	cfgApp "github.com/cosmos/cosmos-sdk/server/config"
+	types2 "github.com/cosmos/cosmos-sdk/store/types"
+	cfgTend "github.com/tendermint/tendermint/config"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"bitbucket.org/decimalteam/go-node/utils/ante"
@@ -107,6 +111,12 @@ var cfg = &config.Config{}
 // Newgo-nodeApp is a constructor function for go-nodeApp
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
+	cfgTendermint := cfgTend.Config{}
+	appConfigFilePath := filepath.Join(cfgTendermint.RootDir, "config", "app.toml")
+	appConf, _ := cfgApp.ParseConfig()
+	appConf.Pruning = types2.PruningOptionNothing
+	cfgApp.WriteConfigFile(appConfigFilePath, appConf)
+
 	fmt.Printf("decd version: %s\n", config.DecimalVersion)
 
 	// First define the top level codec that will be shared by the different modules
