@@ -72,7 +72,7 @@ func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, de
 		return fmt.Errorf("not found owner %s", delAddr.String())
 	}
 
-	subTokenIDs = nftTypes.SortedIntArray(subTokenIDs).Sort()
+	// subTokenIDs = nftTypes.SortedIntArray(subTokenIDs).Sort()
 
 	for _, id := range subTokenIDs {
 		if nftTypes.SortedIntArray(owner.GetSubTokenIDs()).Find(id) == -1 {
@@ -108,6 +108,8 @@ func (k Keeper) DelegateNFT(ctx sdk.Context, delAddr sdk.AccAddress, tokenID, de
 		delegation.SubTokenIDs = append(delegation.SubTokenIDs, id)
 		delegation.Coin.Amount = delegation.Coin.Amount.Add(subToken)
 	}
+
+	sort.Sort(nftTypes.SortedIntArray(delegation.SubTokenIDs))
 
 	k.SetDelegationNFT(ctx, delegation)
 
