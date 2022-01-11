@@ -2,21 +2,20 @@ package cli
 
 import (
 	"fmt"
+	types2 "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/tendermint/tendermint/types"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	cfgApp "github.com/cosmos/cosmos-sdk/server/config"
-	"github.com/cosmos/cosmos-sdk/store"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/cli"
 	tos "github.com/tendermint/tendermint/libs/os"
@@ -136,7 +135,7 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 			// Set pruning from 'syncable' to 'nothing'
 			appConfigFilePath := filepath.Join(config.RootDir, "config", "app.toml")
 			appConf, _ := cfgApp.ParseConfig()
-			appConf.Pruning = store.PruningStrategyNothing
+			appConf.Pruning = types2.PruningOptionNothing
 			cfgApp.WriteConfigFile(appConfigFilePath, appConf)
 
 			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)

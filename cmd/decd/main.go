@@ -1,9 +1,14 @@
 package main
 
 import (
+	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"encoding/json"
 	"fmt"
+	cfgApp "github.com/cosmos/cosmos-sdk/server/config"
+	"github.com/cosmos/cosmos-sdk/store/types"
+	stypes "github.com/cosmos/cosmos-sdk/store/types"
 	"io"
+	"path/filepath"
 
 	"github.com/pkg/errors"
 
@@ -21,7 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
@@ -44,15 +48,15 @@ var invCheckPeriod uint
 
 func main() {
 	// // syncable -> nothing
-	// appConfigFilePath := filepath.Join(ncfg.ConfigPath, "app.toml")
-	// appConf, err := cfgApp.ParseConfig()
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// if appConf.Pruning != stypes.PruningOptionNothing {
-	// 	appConf.Pruning = stypes.PruningOptionNothing
-	// 	cfgApp.WriteConfigFile(appConfigFilePath, appConf)
-	// }
+	appConfigFilePath := filepath.Join(ncfg.ConfigPath, "app.toml")
+	appConf, err := cfgApp.ParseConfig()
+	if err != nil {
+		panic(err)
+	}
+	if appConf.Pruning != stypes.PruningOptionNothing {
+		appConf.Pruning = stypes.PruningOptionNothing
+		cfgApp.WriteConfigFile(appConfigFilePath, appConf)
+	}
 
 	cdc := app.MakeCodec()
 
@@ -95,7 +99,7 @@ func main() {
 	executor := cli.PrepareBaseCmd(rootCmd, "AU", app.DefaultNodeHome)
 	rootCmd.PersistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 		0, "Assert registered invariants every N blocks")
-	err := executor.Execute()
+	err = executor.Execute()
 	if err != nil {
 		panic(err)
 	}
@@ -104,7 +108,7 @@ func main() {
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
 	return app.NewInitApp(
 		logger, db, traceStore, true, invCheckPeriod,
-		baseapp.SetPruning(store.NewPruningOptionsFromString(viper.GetString("pruning"))),
+		baseapp.SetPruning(types.NewPruningOptionsFromString(viper.GetString("pruning"))),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(uint64(viper.GetInt(server.FlagHaltHeight))),
 	)
