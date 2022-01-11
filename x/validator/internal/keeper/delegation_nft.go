@@ -130,6 +130,8 @@ func (k Keeper) UndelegateNFT(
 		return time.Time{}, types.ErrNoDelegatorForAddress()
 	}
 
+	sort.Sort(nftTypes.SortedIntArray(subTokenIDs))
+
 	err := k.unbondNFT(ctx, delAddr, valAddr, tokenID, denom, subTokenIDs)
 	if err != nil {
 		return time.Time{}, err
