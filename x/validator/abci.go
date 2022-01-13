@@ -163,7 +163,9 @@ func SyncDelegate(ctx sdk.Context, k Keeper) {
 		}
 		_, err := k.GetCoin(ctx, denom)
 		if err != nil {
-			panic(err)
+			ctx.Logger().Info(fmt.Sprintf("coin '%s' undefined", denom))
+			continue
+			// panic(err)
 		}
 		if _, ok := coins[denom]; !ok {
 			coins[denom] = amount

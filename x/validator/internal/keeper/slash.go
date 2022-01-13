@@ -370,8 +370,8 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 
 	// this is a relative index, so it counts blocks the validator *should* have signed
 	// will use the 0-value default signing info if not present, except for start height
-	index := signInfo.IndexOffset
 	signInfo.IndexOffset = (signInfo.IndexOffset + 1) % types.SignedBlocksWindow
+	index := signInfo.IndexOffset
 
 	// Update signed block bit array & counter
 	// This counter just tracks the sum of the bit array
@@ -396,8 +396,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	case false:
 		// If in grace perid and missed > 0 then missed = missed - 1
 		// If missed in bit array and missed > 0 then missed = missed - 1
-		grMissedBlocks := signInfo.MissedBlocksCounter > 0
-		if (inGracePeriod(ctx) && grMissedBlocks) || (missedInWindow && grMissedBlocks) {
+		if (signInfo.MissedBlocksCounter > 0) && (missedInWindow || inGracePeriod(ctx)) {
 			k.setValidatorMissedBlockBitArray(ctx, consAddr, index, false)
 			signInfo.MissedBlocksCounter--
 		}
