@@ -13,7 +13,6 @@ import (
 	"github.com/tendermint/tendermint/privval"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -115,7 +114,8 @@ func InitializeNodeValidatorFiles(config *cfg.Config,
 	}
 
 	nodeID = string(nodeKey.ID())
-	server.UpgradeOldPrivValFile(config)
+	/*todo
+	server.UpgradeOldPrivValFile(config)*/
 
 	pvKeyFile := config.PrivValidatorKeyFile()
 	if err := tos.EnsureDir(filepath.Dir(pvKeyFile), 0777); err != nil {
@@ -127,7 +127,10 @@ func InitializeNodeValidatorFiles(config *cfg.Config,
 		return nodeID, valPubKey, nil
 	}
 
-	valPubKey = privval.LoadOrGenFilePV(pvKeyFile, pvStateFile).GetPubKey()
+	valPubKey, err = privval.LoadOrGenFilePV(pvKeyFile, pvStateFile).GetPubKey()
 
+	if err != nil {
+		return nodeID, valPubKey, err
+	}
 	return nodeID, valPubKey, nil
 }

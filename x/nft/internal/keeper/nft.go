@@ -261,3 +261,46 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, denom, id string, subTokenIDs []int64
 
 	return nil
 }
+
+//UpdateNFTReserve function to increase the minimum reserve of the NFT token
+func (k Keeper) UpdateNFTReserve(ctx sdk.Context, denom, id string, subTokenIDs []int64, newReserve sdk.Int) error {
+	collection, found := k.GetCollection(ctx, denom)
+	if !found {
+		return types.ErrUnknownCollection(denom)
+	}
+	nft, err := collection.GetNFT(id)
+	if err != nil {
+		return err
+	}
+
+	owner := nft.GetOwners().GetOwner(nft.GetCreator())
+	ownerSubTokenIDs := types.SortedIntArray(owner.GetSubTokenIDs())
+
+	reserveForRefill := sdk.NewInt(0)
+
+	for _, subTokenID := range subTokenIDs {
+		if ownerSubTokenIDs.Find(subTokenID) == -1 {
+			return sdkerrors.Wrap(types.ErrNotAllowedUpdateReserve(),
+				fmt.Sprintf("owner %s has only %s tokens", nft.GetCreator(),
+					types.SortedIntArray(nft.GetOwners().GetOwner(nft.GetCreator()).GetSubTokenIDs()).String()))
+		}
+		reserve, _ := k.GetSubToken(ctx, denom, id, subTokenID)
+		if reserve.Equal(newReserve) {
+			return types.ErrNotSetValueLowerNow()
+		}
+		if reserve.GT(newReserve) {
+			return types.ErrNotSetValueLowerNow()
+
+		}
+
+		reserveForRefill = reserveForRefill.Add(newReserve.Sub(reserve))
+
+		k.SetSubToken(ctx, denom, id, subTokenID, newReserve)
+	}
+
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner.GetAddress(), types.ReservedPool, sdk.NewCoins(sdk.NewCoin(*k.BaseDenom, reserveForRefill)))
+	if err != nil {
+		return types.ErrNotEnoughFunds(reserveForRefill.String())
+	}
+	return err
+}

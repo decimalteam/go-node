@@ -31,6 +31,8 @@ func GenericHandler(k keeper.Keeper) sdk.Handler {
 			return HandleMsgMintNFT(ctx, msg, k)
 		case types.MsgBurnNFT:
 			return HandleMsgBurnNFT(ctx, msg, k)
+		case types.MsgUpdateReserveNFT:
+			return HandleMsgUpdateReserveNFT(ctx, msg, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unrecognized nft message type: %T", msg))
 		}
@@ -185,6 +187,38 @@ func HandleMsgBurnNFT(ctx sdk.Context, msg types.MsgBurnNFT, k keeper.Keeper,
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeBurnNFT,
+			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
+			sdk.NewAttribute(types.AttributeKeyNFTID, msg.ID),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func HandleMsgUpdateReserveNFT(ctx sdk.Context, msg types.MsgUpdateReserveNFT, k keeper.Keeper,
+) (*sdk.Result, error) {
+	nft, err := k.GetNFT(ctx, msg.Denom, msg.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !nft.GetCreator().Equals(msg.Sender) {
+		return nil, ErrNotAllowedUpdateRes()
+	}
+
+	// update reserve nft
+	err = k.UpdateNFTReserve(ctx, msg.Denom, msg.ID, msg.SubTokenIDs, msg.NewReserveNFT)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateReserveNFT,
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
 			sdk.NewAttribute(types.AttributeKeyNFTID, msg.ID),
 		),

@@ -4,6 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+
+	ncfg "bitbucket.org/decimalteam/go-node/config"
+	cfgApp "github.com/cosmos/cosmos-sdk/server/config"
+	"github.com/cosmos/cosmos-sdk/store/types"
+	stypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/pkg/errors"
 
@@ -21,11 +28,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
+
+	// ncfg "bitbucket.org/decimalteam/go-node/config"
+	// cfgApp "github.com/cosmos/cosmos-sdk/server/config"
+	// stypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/config"
@@ -39,6 +49,19 @@ const flagInvCheckPeriod = "inv-check-period"
 var invCheckPeriod uint
 
 func main() {
+	// syncable -> nothing
+	if len(os.Args) > 1 && os.Args[1] == "start" {
+		appConfigFilePath := filepath.Join(ncfg.ConfigPath, "app.toml")
+		appConf, err := cfgApp.ParseConfig()
+		if err != nil {
+			panic(err)
+		}
+		if appConf.Pruning != stypes.PruningOptionNothing {
+			appConf.Pruning = stypes.PruningOptionNothing
+			cfgApp.WriteConfigFile(appConfigFilePath, appConf)
+		}
+	}
+
 	cdc := app.MakeCodec()
 
 	_config := sdk.GetConfig()
@@ -89,7 +112,7 @@ func main() {
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
 	return app.NewInitApp(
 		logger, db, traceStore, true, invCheckPeriod,
-		baseapp.SetPruning(store.NewPruningOptionsFromString(viper.GetString("pruning"))),
+		baseapp.SetPruning(types.NewPruningOptionsFromString(viper.GetString("pruning"))),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(uint64(viper.GetInt(server.FlagHaltHeight))),
 	)
