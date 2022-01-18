@@ -1,14 +1,16 @@
 package main
 
 import (
-	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+
+	ncfg "bitbucket.org/decimalteam/go-node/config"
 	cfgApp "github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/store/types"
 	stypes "github.com/cosmos/cosmos-sdk/store/types"
-	"io"
-	"path/filepath"
 
 	"github.com/pkg/errors"
 
@@ -47,15 +49,17 @@ const flagInvCheckPeriod = "inv-check-period"
 var invCheckPeriod uint
 
 func main() {
-	// // syncable -> nothing
-	appConfigFilePath := filepath.Join(ncfg.ConfigPath, "app.toml")
-	appConf, err := cfgApp.ParseConfig()
-	if err != nil {
-		panic(err)
-	}
-	if appConf.Pruning != stypes.PruningOptionNothing {
-		appConf.Pruning = stypes.PruningOptionNothing
-		cfgApp.WriteConfigFile(appConfigFilePath, appConf)
+	// syncable -> nothing
+	if len(os.Args) > 1 && os.Args[1] == "start" {
+		appConfigFilePath := filepath.Join(ncfg.ConfigPath, "app.toml")
+		appConf, err := cfgApp.ParseConfig()
+		if err != nil {
+			panic(err)
+		}
+		if appConf.Pruning != stypes.PruningOptionNothing {
+			appConf.Pruning = stypes.PruningOptionNothing
+			cfgApp.WriteConfigFile(appConfigFilePath, appConf)
+		}
 	}
 
 	cdc := app.MakeCodec()
@@ -99,7 +103,7 @@ func main() {
 	executor := cli.PrepareBaseCmd(rootCmd, "AU", app.DefaultNodeHome)
 	rootCmd.PersistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 		0, "Assert registered invariants every N blocks")
-	err = executor.Execute()
+	err := executor.Execute()
 	if err != nil {
 		panic(err)
 	}
