@@ -53,7 +53,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		panic(err)
 	}
 
-	if ctx.BlockHeight() == 7777777777777 {
+	if ctx.BlockHeight() == 7_944_040 {
 		SyncDelegate(ctx, k)
 	}
 
