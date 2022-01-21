@@ -352,7 +352,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		panic(fmt.Sprintf("Expected signing info for validator %s but not found", consAddr))
 	}
 
-	if !validator.Online {
+	if !validator.Online || height == 2120348 {
 		if signInfo.MissedBlocksCounter > 0 {
 			k.clearValidatorSigningInfo(ctx, consAddr, &signInfo)
 			k.setValidatorSigningInfo(ctx, consAddr, signInfo)
@@ -378,7 +378,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			return
 		}
 		// If missed < 24 then missed = missed + 1
-		if signInfo.MissedBlocksCounter < types.SignedBlocksWindow {
+		if signInfo.MissedBlocksCounter < types.SignedBlocksWindow && !missedInWindow {
 			k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 			signInfo.MissedBlocksCounter++
 		}
