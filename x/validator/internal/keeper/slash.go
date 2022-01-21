@@ -389,7 +389,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			return
 		}
 		// If missed < 24 then missed = missed + 1
-		if signInfo.MissedBlocksCounter < types.SignedBlocksWindow {
+		if signInfo.MissedBlocksCounter < types.SignedBlocksWindow && !missedInWindow {
 			k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 			signInfo.MissedBlocksCounter++
 		}
@@ -618,7 +618,7 @@ func inGracePeriod(ctx sdk.Context) bool {
 	var (
 		height           = ctx.BlockHeight()
 		gracePeriodStart = ncfg.UpdatesInfo.LastBlock
-		gracePeriodEnd   = gracePeriodStart + (ncfg.OneHour * 24)
+		gracePeriodEnd   = gracePeriodStart + (ncfg.OneHour * 24 * 4)
 	)
 	return height >= gracePeriodStart && height <= gracePeriodEnd
 }
