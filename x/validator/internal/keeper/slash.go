@@ -350,7 +350,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		panic(fmt.Sprintf("Expected signing info for validator %s but not found", consAddr))
 	}
 
-	const blockToClearMessedBlocks = 477514
+	const blockToClearMessedBlocks = 477501
 	if !validator.Online || height == blockToClearMessedBlocks {
 		if signInfo.MissedBlocksCounter > 0 {
 			k.clearValidatorSigningInfo(ctx, consAddr, &signInfo)
