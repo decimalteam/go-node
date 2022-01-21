@@ -351,7 +351,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	}
 
 	const blockToClearMessedBlocks = 7977838
-	if !validator.Online || ctx.BlockHeader().Height == blockToClearMessedBlocks {
+	if !validator.Online || height == blockToClearMessedBlocks {
 		if signInfo.MissedBlocksCounter > 0 {
 			k.clearValidatorSigningInfo(ctx, consAddr, &signInfo)
 			k.setValidatorSigningInfo(ctx, consAddr, signInfo)
