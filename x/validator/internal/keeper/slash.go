@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -352,7 +351,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		panic(fmt.Sprintf("Expected signing info for validator %s but not found", consAddr))
 	}
 
-	if !validator.Online || height == 2120850 {
+	if !validator.Online || height == 2121150 {
 		if signInfo.MissedBlocksCounter > 0 {
 			k.clearValidatorSigningInfo(ctx, consAddr, &signInfo)
 			k.setValidatorSigningInfo(ctx, consAddr, signInfo)
@@ -604,10 +603,11 @@ func (k Keeper) setAddrPubkeyRelation(ctx sdk.Context, addr crypto.Address, pubk
 }
 
 func inGracePeriod(ctx sdk.Context) bool {
-	var (
-		height           = ctx.BlockHeight()
-		gracePeriodStart = ncfg.UpdatesInfo.LastBlock
-		gracePeriodEnd   = gracePeriodStart + (ncfg.OneHour / 4)
-	)
-	return height >= gracePeriodStart && height <= gracePeriodEnd
+	return false
+	//var (
+	//	height           = ctx.BlockHeight()
+	//	gracePeriodStart = ncfg.UpdatesInfo.LastBlock
+	//	gracePeriodEnd   = gracePeriodStart + (ncfg.OneHour / 4)
+	//)
+	//return height >= gracePeriodStart && height <= gracePeriodEnd
 }
