@@ -82,6 +82,6 @@ Decimal node required some time to sync blockchain on new deployed node so it is
 
 ## Validating
 
-Once your Decimal node is synced and in actual state, it becomes possible to participate in block generating process and earn some coins.
+Once your Decimal node is synced and in actual state, it becomes possible to participate in block generating process and earn some coins
 
 TODO: To be continued...
