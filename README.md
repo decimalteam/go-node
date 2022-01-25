@@ -26,7 +26,7 @@ git clone https://bitbucket.org/decimalteam/go-node.git
 cd go-node
 ```
 
-Build and install Decimal Go Node from source code
+Build and install Decimal Go Node from source code:
 
 ```bash
 make all
