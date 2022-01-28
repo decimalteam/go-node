@@ -46,7 +46,7 @@ const (
 
 const (
 	// ChainID is the Decimal chain identifier.
-	ChainID = "decimal-devnet-25-01-12-30"
+	ChainID = "decimal-devnet-28-01-14-00"
 	OneHour = 660 // blocks
 )
 
