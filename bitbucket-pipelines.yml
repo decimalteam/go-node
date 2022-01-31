@@ -9,6 +9,8 @@ definitions:
           - go-src
           - go-pkg
         script:
+          - echo "goose"
+          - rm -r /var/cache/dnf
           - dnf install -y epel-release
           - dnf install -y  leveldb leveldb-devel snappy gcc git wget make
           - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
