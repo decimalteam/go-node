@@ -9,13 +9,6 @@ definitions:
           - go-src
           - go-pkg
         script:
-          - echo "goose"
-          - echo "$LANG"
-          - echo "$LC_CTYPE"
-          - ls -l /etc/profile.d/lang.sh
-          - source /etc/profile.d/lang.sh
-          - echo "$LANG"
-          - echo "$LC_CTYPE"
           - dnf install -y leveldb leveldb-devel snappy gcc git wget make
           - dnf install -y epel-release
           - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
