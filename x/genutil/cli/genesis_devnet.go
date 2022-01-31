@@ -2,8 +2,8 @@ package cli
 
 const devNetGenesis = `
 {
-  "genesis_time": "2022-01-28T08:00:00.000000Z",
-  "chain_id": "decimal-devnet-28-01-14-00",
+  "genesis_time": "2022-01-31T19:00:00.000000Z",
+  "chain_id": "decimal-devnet-31-01-19-00",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -191,9 +191,9 @@ const devNetGenesis = `
                 "amount": "40000000000000000000000000"
               }
             ],
-            "public_key": "",
-            "account_number": 0,
-            "sequence": 0
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
           }
         },
         {
@@ -206,9 +206,9 @@ const devNetGenesis = `
                 "amount": "40000000000000000000000000"
               }
             ],
-            "public_key": "",
-            "account_number": 0,
-            "sequence": 0
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
           }
         },
         {
@@ -221,9 +221,9 @@ const devNetGenesis = `
                 "amount": "40000000000000000000000000"
               }
             ],
-            "public_key": "",
-            "account_number": 0,
-            "sequence": 0
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
           }
         },
         {
@@ -236,9 +236,9 @@ const devNetGenesis = `
                 "amount": "200000000000000000000000000"
               }
             ],
-            "public_key": "",
-            "account_number": 0,
-            "sequence": 0
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
           }
         },
         {
@@ -251,9 +251,9 @@ const devNetGenesis = `
                 "amount": "20000000000000000000000000"
               }
             ],
-            "public_key": "",
-            "account_number": 0,
-            "sequence": 0
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
           }
         }
       ]
