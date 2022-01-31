@@ -10,9 +10,8 @@ definitions:
           - go-pkg
         script:
           - echo "goose"
-          - ps -p 1 -o comm=
-          - dnf install -y leveldb leveldb-devel snappy gcc git wget make
-          - dnf install -y epel-release
+          - yum install -y leveldb leveldb-devel snappy gcc git wget make
+          - yum install -y epel-release
           - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
           - tar -xvf go1.14.15.linux-amd64.tar.gz
           - mv go /usr/local
