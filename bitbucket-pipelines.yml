@@ -11,6 +11,9 @@ definitions:
         script:
           - echo "goose"
           - cat /etc/locale.conf
+          - locale
+          - echo "LANG=ru_UA.utf8" > /etc/locale.conf
+          - cat /etc/locale.conf
           - dnf install -y leveldb leveldb-devel snappy gcc git wget make
           - dnf install -y epel-release
           - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
