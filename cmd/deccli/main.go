@@ -190,7 +190,7 @@ func parseCountTXs(address sdk.AccAddress) (uint64, error) {
 		fmt.Println("2222222222222222222222222222", msg.ValidateBasic())
 
 		for _, gmsg := range msg.GetMsgs() {
-			fmt.Println("333333333333333333333333333", gmsg.ValidateBasic())
+			fmt.Println("333333333333333333333333333", gmsg.Type())
 
 			for _, signer := range gmsg.GetSigners() {
 				if bytes.Equal(signer, address) {
