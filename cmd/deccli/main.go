@@ -100,7 +100,15 @@ func registerCustomRoutes(cliCtx context.CLIContext, r *mux.Router) {
 // Edited QueryAccountRequestHandlerFn
 func QueryAccountWithUnconfirmedNonceRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("00000000000000000000000000000000000")
+		text := "Hello Gold!"
+		file, err := os.Create("hello.txt")
+
+		if err != nil {
+			fmt.Println("Unable to create file:", err)
+			os.Exit(1)
+		}
+		defer file.Close()
+		file.WriteString(text)
 
 		vars := mux.Vars(r)
 		bech32addr := vars["address"]
