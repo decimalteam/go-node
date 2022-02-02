@@ -52,7 +52,7 @@ func main() {
 
 	rootCmd := &cobra.Command{
 		Use:   "deccli",
-		Short: "Decimal Client Console",
+		Short: "Decimal Clie312nt Console",
 	}
 
 	// Add --chain-id to persistent flags and mark it required
