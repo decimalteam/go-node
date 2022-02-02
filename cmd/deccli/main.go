@@ -100,15 +100,8 @@ func registerCustomRoutes(cliCtx context.CLIContext, r *mux.Router) {
 // Edited QueryAccountRequestHandlerFn
 func QueryAccountWithUnconfirmedNonceRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		text := "Hello Gold!"
-		file, err := os.Create("hello.txt")
-
-		if err != nil {
-			fmt.Println("Unable to create file:", err)
-			os.Exit(1)
-		}
-		defer file.Close()
-		file.WriteString(text)
+		rest.WriteErrorResponse(w, http.StatusInternalServerError, "goose error")
+		return
 
 		vars := mux.Vars(r)
 		bech32addr := vars["address"]
@@ -185,8 +178,6 @@ func parseCountTXs(address sdk.AccAddress) (uint64, error) {
 
 	cdc := app.MakeCodec()
 	cdc.Seal()
-
-	fmt.Println("111111111111111111111111111111111111111111111111")
 
 	count := uint64(0)
 	for _, tx := range res.Result.Txs {
