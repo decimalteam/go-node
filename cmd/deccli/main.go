@@ -52,7 +52,7 @@ func main() {
 
 	rootCmd := &cobra.Command{
 		Use:   "deccli",
-		Short: "Decimal Clie312nt Console",
+		Short: "Decimal Client Console",
 	}
 
 	// Add --chain-id to persistent flags and mark it required
@@ -100,8 +100,7 @@ func registerCustomRoutes(cliCtx context.CLIContext, r *mux.Router) {
 // Edited QueryAccountRequestHandlerFn
 func QueryAccountWithUnconfirmedNonceRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		rest.WriteErrorResponse(w, http.StatusInternalServerError, "goose error")
-		return
+		fmt.Println("111111111111111111111111111111111111111111111111")
 
 		vars := mux.Vars(r)
 		bech32addr := vars["address"]
@@ -179,13 +178,20 @@ func parseCountTXs(address sdk.AccAddress) (uint64, error) {
 	cdc := app.MakeCodec()
 	cdc.Seal()
 
+	fmt.Println("2222222222222222222222222222")
+
 	count := uint64(0)
 	for _, tx := range res.Result.Txs {
 		msg, err := types.DefaultTxDecoder(cdc)(tx)
 		if err != nil {
 			return 0, err
 		}
+
+		fmt.Println("2222222222222222222222222222", msg.ValidateBasic())
+
 		for _, gmsg := range msg.GetMsgs() {
+			fmt.Println("333333333333333333333333333", gmsg.ValidateBasic())
+
 			for _, signer := range gmsg.GetSigners() {
 				if bytes.Equal(signer, address) {
 					count++
