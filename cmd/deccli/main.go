@@ -100,6 +100,8 @@ func registerCustomRoutes(cliCtx context.CLIContext, r *mux.Router) {
 // Edited QueryAccountRequestHandlerFn
 func QueryAccountWithUnconfirmedNonceRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("00000000000000000000000000000000000")
+
 		vars := mux.Vars(r)
 		bech32addr := vars["address"]
 
@@ -175,6 +177,8 @@ func parseCountTXs(address sdk.AccAddress) (uint64, error) {
 
 	cdc := app.MakeCodec()
 	cdc.Seal()
+
+	fmt.Println("111111111111111111111111111111111111111111111111")
 
 	count := uint64(0)
 	for _, tx := range res.Result.Txs {
