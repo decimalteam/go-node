@@ -16,12 +16,13 @@
   become: yes
 
 - name: Install required packages (leveldb, snappy)
-  dnf:
-    name:
-      - leveldb
-      - snappy
-    state: latest
-    nobest: no
+  shell: dnf install leveldb snappy --nobest -y
+#  dnf:
+#    name:
+#      - leveldb
+#     - snappy
+#   state: latest
+#    nobest: no
   become: yes
 
 - name: Clear current blockchain state (remove keys and data dir)
