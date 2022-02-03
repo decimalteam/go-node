@@ -1,7 +1,7 @@
 ---
 # tasks file 
 - name: Update repo file in Centos 8
-  shell: sed -i 's/^mirrorlist$/#mirrorlist/g' /etc/yum.repos.d/CentOS-* & sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+  shell: sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* & sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
   when: 
     - ansible_distribution == "CentOS"
     - ansible_distribution_major_version == "8"
@@ -21,7 +21,7 @@
       - leveldb
       - snappy
     state: latest
-    nobest: true
+    nobest: false
   become: yes
 
 - name: Clear current blockchain state (remove keys and data dir)
