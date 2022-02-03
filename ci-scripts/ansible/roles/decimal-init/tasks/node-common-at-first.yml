@@ -21,7 +21,7 @@
       - leveldb
       - snappy
     state: latest
-    nobest: false
+    nobest: no
   become: yes
 
 - name: Clear current blockchain state (remove keys and data dir)
