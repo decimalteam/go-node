@@ -2,7 +2,7 @@ package cli
 
 const devNetGenesis = `
 {
-  "genesis_time": "2022-02-04T04:00:00.000000Z",
+  "genesis_time": "2022-02-03T04:00:00.000000Z",
   "chain_id": "decimal-devnet-03-02-20-00",
   "consensus_params": {
     "block": {
