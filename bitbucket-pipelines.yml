@@ -4,7 +4,7 @@ definitions:
   steps:
     - step: &build
         name: Build
-        image: centos:8.4.2105
+        image: centos:8.2.2004
         caches:
           - go-src
           - go-pkg
