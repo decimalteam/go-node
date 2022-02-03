@@ -41,7 +41,7 @@ deccli --help
 
 ## Configuring
 
-First of all, make sure directory at path `"$HOME/.decimal/daemon"` does not exist
+First of all, make sure directory at path `"$HOME/.decimal/daemon"` does not exist.
 
 ***WARNING*** *It will remove your current Decimal blockchain state if exists!*
 
