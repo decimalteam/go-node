@@ -1,5 +1,11 @@
 ---
 # tasks file 
+- name: Update repo file in Centos 8
+  shell: sed -i 's/^mirrorlist$/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-* & sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-Linux-*
+  when: 
+    - ansible_distribution == "CentOS"
+    - ansible_distribution_major_version == "8"
+
 - name: Install epel-release (need for leveldb)
   dnf:
     name:
@@ -13,6 +19,7 @@
       - leveldb
       - snappy
     state: latest
+    nobest: true
   become: yes
 
 - name: Clear current blockchain state (remove keys and data dir)
