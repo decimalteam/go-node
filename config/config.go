@@ -12,7 +12,7 @@ import (
 const (
 
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "1.2.9"
+	DecimalVersion = "1.2.8"
 
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
@@ -46,7 +46,7 @@ const (
 )
 
 const (
-	OneHour     = 660 // blocks
+	OneHour     = 530 // blocks
 	UpdatesName = "updates.json"
 )
 

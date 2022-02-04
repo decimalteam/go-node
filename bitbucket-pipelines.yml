@@ -9,8 +9,10 @@ definitions:
           - go-src
           - go-pkg
         script:
+          - sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-*
+          - sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g'
           - dnf install -y epel-release
-          - dnf install -y  leveldb leveldb-devel snappy gcc git wget make
+          - dnf install -y  leveldb leveldb-devel snappy gcc git wget make --nobest
           - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
           - tar -xvf go1.14.15.linux-amd64.tar.gz
           - mv go /usr/local
@@ -72,8 +74,10 @@ definitions:
               - go-src
               - go-pkg
             script:
+              - sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-*
+              - sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g'
               - dnf install -y epel-release
-              - dnf install -y leveldb leveldb-devel snappy gcc git wget make
+              - dnf install -y leveldb leveldb-devel snappy gcc git wget make --nobest
               - wget https://golang.org/dl/go1.14.15.linux-amd64.tar.gz
               - tar -xvf go1.14.15.linux-amd64.tar.gz
               - mv go /usr/local
