@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"os"
+	"strings"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 
@@ -332,8 +334,33 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 	return tokensToBurn
 }
 
+func F(ctx sdk.Context, k Keeper, validators []string) {
+	proposerAddress := ctx.BlockHeader().ProposerAddress
+
+	proposer, err := k.GetValidatorByConsAddr(ctx, proposerAddress)
+	if err != nil {
+		fmt.Println("ERR 1", err)
+		return
+	}
+
+	valAddress := proposer.ValAddress.String()
+
+	f, err := os.OpenFile("/home/centos/proposers_stat.txt", os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		fmt.Println("ERR 2", err)
+		return
+	}
+	defer f.Close()
+
+	str := fmt.Sprintf("%d;%s;%s\n", ctx.BlockHeight(), valAddress, strings.Join(validators, ","))
+	if _, err = f.WriteString(str); err != nil {
+		fmt.Println("ERR 3", err)
+		return
+	}
+}
+
 // handle a validator signature, must be called once per validator per block
-func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
+func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool, vals *[]string) {
 	var (
 		logger   = k.Logger(ctx)
 		height   = ctx.BlockHeight()
@@ -381,6 +408,8 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 
 	switch missed {
 	case true:
+		*vals = append(*vals, validator.ValAddress.String())
+
 		// If in grace period then pass missing block
 		if inGracePeriod(ctx) {
 			// log.Println(consAddr.String())
