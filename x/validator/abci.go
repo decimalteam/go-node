@@ -2,6 +2,8 @@ package validator
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
+	"strings"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin"
@@ -15,6 +17,8 @@ import (
 // BeginBlocker check for infraction evidence or downtime of validators
 // on every begin block
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
+	fmt.Println(strings.ToLower(viper.GetString("pruning")))
+
 	k.SetNFTBaseDenom(ctx)
 
 	// Iterate over all the validators which *should* have signed this block
