@@ -11,7 +11,9 @@ To install building essentials (which include [`make`](https://www.gnu.org/softw
 
 ```bash
 # Ubuntu:
+sudo apt-get update
 sudo apt-get install build-essential
+sudo apt-get install -y libsnappy-dev libleveldb-dev
 
 # macOS:
 brew install coreutils
@@ -67,7 +69,7 @@ Add proper `persistent_peers` to `config.toml` file
 
 ```toml
 # Comma separated list of nodes to keep persistent connections to
-persistent_peers = "bf7a6b366e3c451a3c12b3a6c01af7230fb92fc7@139.59.133.148:26656"
+persistent_peers = "8a2cc38f5264e9699abb8db91c9b4a4a061f000d@46.101.127.241:26656,e0e7a88de0b39bd2adceb3516d353582ff94ec15@164.90.211.234:26656,27fcfef145b3717c5d639ec72fb12f9c43da98f0@167.99.182.218:26656"
 ```
 
 ## Running
