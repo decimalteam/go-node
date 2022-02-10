@@ -2,49 +2,67 @@ package config
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"os"
 )
 
 type updatesInfo struct {
-	filename  string
-	LastBlock int64            `json:"last_update"`
-	AllBlocks map[string]int64 `json:"all_updates"`
+	filename   string
+	PlanBlocks []int64          `json:"plan_blocks"` // all last plan blocks to calculate grace periods
+	LastBlock  int64            `json:"last_update"` // last height of 'software_upgrade'
+	AllBlocks  map[string]int64 `json:"all_updates"` // map of executed upgrades. key - plan name, value - height
 }
 
 func NewUpdatesInfo(planfile string) *updatesInfo {
 	return &updatesInfo{
-		filename:  planfile,
-		LastBlock: 0,
-		AllBlocks: make(map[string]int64),
+		filename:   planfile,
+		PlanBlocks: make([]int64, 0),
+		LastBlock:  0,
+		AllBlocks:  make(map[string]int64),
 	}
 }
 
-func (plan *updatesInfo) Push(height int64) error {
-	plan.LastBlock = height
+func (plan *updatesInfo) PushNewPlanHeight(planHeight int64, horizonHeight int64) {
+	plan.LastBlock = planHeight
 
+	//do not add existing height
+	for _, h := range plan.PlanBlocks {
+		if h == planHeight {
+			return
+		}
+	}
+
+	plan.PlanBlocks = append(plan.PlanBlocks, planHeight)
+
+	// cleanup all below horizon
+	newblocks := make([]int64, 0, len(plan.PlanBlocks))
+	for _, h := range plan.PlanBlocks {
+		if h >= horizonHeight {
+			newblocks = append(newblocks, h)
+		}
+	}
+	plan.PlanBlocks = newblocks
+}
+
+func (plan *updatesInfo) SaveExecutedPlan(planName string, planHeight int64) {
+	plan.AllBlocks[planName] = planHeight
+}
+
+func (plan *updatesInfo) Save() error {
+	f, err := os.OpenFile(plan.filename, os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return plan.save(f)
+}
+
+func (plan *updatesInfo) save(wrt io.Writer) error {
 	bytes, err := json.Marshal(plan)
 	if err != nil {
 		return err
 	}
-
-	err = ioutil.WriteFile(plan.filename, bytes, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (plan *updatesInfo) Save(name string) error {
-	plan.AllBlocks[name] = plan.LastBlock
-
-	bytes, err := json.Marshal(plan)
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(plan.filename, bytes, 0644)
+	_, err = wrt.Write(bytes)
 	if err != nil {
 		return err
 	}
@@ -54,13 +72,21 @@ func (plan *updatesInfo) Save(name string) error {
 
 func (plan *updatesInfo) Load() error {
 	if !fileExist(plan.filename) {
-		err := ioutil.WriteFile(plan.filename, []byte("{}"), 0644)
+		err := os.WriteFile(plan.filename, []byte("{}"), 0644)
 		if err != nil {
 			return err
 		}
 	}
+	f, err := os.OpenFile(plan.filename, os.O_RDONLY, 0)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return plan.load(f)
+}
 
-	bytes, err := ioutil.ReadFile(plan.filename)
+func (plan *updatesInfo) load(rdr io.Reader) error {
+	bytes, err := io.ReadAll(rdr)
 	if err != nil {
 		return err
 	}

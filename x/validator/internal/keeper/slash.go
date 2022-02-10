@@ -603,9 +603,13 @@ func (k Keeper) setAddrPubkeyRelation(ctx sdk.Context, addr crypto.Address, pubk
 
 func inGracePeriod(ctx sdk.Context) bool {
 	var (
-		height           = ctx.BlockHeight()
-		gracePeriodStart = ncfg.UpdatesInfo.LastBlock
-		gracePeriodEnd   = gracePeriodStart + (ncfg.OneHour * 24 * 4)
+		currentHeight = ctx.BlockHeight()
 	)
-	return height >= gracePeriodStart && height <= gracePeriodEnd
+	for _, gracePeriodStart := range ncfg.UpdatesInfo.PlanBlocks {
+		gracePeriodEnd := gracePeriodStart + ncfg.GracePeriod
+		if (currentHeight >= gracePeriodStart) && (currentHeight <= gracePeriodEnd) {
+			return true
+		}
+	}
+	return false
 }
