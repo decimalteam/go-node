@@ -180,10 +180,11 @@ func (k Keeper) UrlPageExist(urlPage string) bool {
 }
 
 //Download file by url
-func (k Keeper) DownloadBinary(filepath string, url string) error {
+func (k Keeper) DownloadBinary(ctx sdk.Context, filepath string, url string) error {
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
+		ctx.Logger().Error(fmt.Sprintf("download binary from \"%s\" with '%s'", url, err.Error()))
 		return err
 	}
 	defer resp.Body.Close()
@@ -191,12 +192,16 @@ func (k Keeper) DownloadBinary(filepath string, url string) error {
 	// Create the file
 	out, err := os.Create(filepath)
 	if err != nil {
+		ctx.Logger().Error(fmt.Sprintf("create binary file \"%s\" for \"%s\" with '%s'", filepath, url, err.Error()))
 		return err
 	}
 	defer out.Close()
 
 	// Write the body to file
 	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		ctx.Logger().Error(fmt.Sprintf("write binary file \"%s\" for \"%s\" with '%s'", filepath, url, err.Error()))
+	}
 	return err
 }
 

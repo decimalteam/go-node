@@ -62,7 +62,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			downloadName := k.GetDownloadName(name)
 
 			if _, err := os.Stat(downloadName); os.IsNotExist(err) {
-				go k.DownloadBinary(downloadName, newUrl)
+				go k.DownloadBinary(ctx, downloadName, newUrl)
 				ctx.Logger().Info(fmt.Sprintf("download binary \"%s\"", newUrl))
 			}
 		}
