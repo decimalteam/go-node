@@ -46,10 +46,9 @@ const (
 
 const (
 	// ChainID is the Decimal chain identifier.
-	ChainID                   = "decimal-devnet-03-02-20-00"
-	OneHour                   = 660                // blocks
-	GracePeriod               = OneHour * 24 * 4   // grace period to use inside inGracePeriod
-	GracePeriodCleanupHorizon = OneHour * 24 * 365 // to cleanup old plan heights from updatesInfo
+	ChainID     = "decimal-devnet-03-02-20-00"
+	OneHour     = 660              // blocks
+	GracePeriod = OneHour * 24 * 4 // grace period to use inside inGracePeriod
 )
 
 var (

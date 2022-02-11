@@ -4,8 +4,6 @@ import (
 	"log"
 	"testing"
 
-	"bitbucket.org/decimalteam/go-node/config"
-
 	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -357,39 +355,40 @@ func TestInGracePeriod(t *testing.T) {
 
 	//test overlapping grace periods
 	{
-		ncfg.UpdatesInfo = config.NewUpdatesInfo("")
+		updatesInfo := ncfg.NewUpdatesInfo("")
 		p0start := int64(10000)
 		p0end := p0start + ncfg.GracePeriod
 		p1start := p0end - ncfg.GracePeriod/2
 		p1end := p1start + ncfg.GracePeriod
-		ncfg.UpdatesInfo.PushNewPlanHeight(p0start, 0)
-		ncfg.UpdatesInfo.PushNewPlanHeight(p1start, 0)
+		updatesInfo.AddExecutedPlan("0", p0start)
+		updatesInfo.PushNewPlanHeight(p1start)
 		//
-		require.False(t, inGracePeriod(ctxWithHeight(p0start-1)))
-		require.False(t, inGracePeriod(ctxWithHeight(p1end+1)))
-		require.True(t, inGracePeriod(ctxWithHeight(p0start+1)))
-		require.True(t, inGracePeriod(ctxWithHeight(p0end+1)))
-		require.True(t, inGracePeriod(ctxWithHeight(p1start-1)))
-		require.True(t, inGracePeriod(ctxWithHeight(p1end-1)))
+		require.False(t, inGracePeriod(ctxWithHeight(p0start-1), updatesInfo))
+		require.False(t, inGracePeriod(ctxWithHeight(p1end+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p0start+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p0end+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p1start-1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p1end-1), updatesInfo))
 	}
 
 	//test non-overlapping grace periods
 	{
-		ncfg.UpdatesInfo = config.NewUpdatesInfo("")
+		updatesInfo := ncfg.NewUpdatesInfo("")
 		p0start := int64(10000)
 		p0end := p0start + ncfg.GracePeriod
 		p1start := p0end + ncfg.GracePeriod/2
 		p1end := p1start + ncfg.GracePeriod
-		ncfg.UpdatesInfo.PushNewPlanHeight(p0start, 0)
-		ncfg.UpdatesInfo.PushNewPlanHeight(p1start, 0)
+		updatesInfo.AddExecutedPlan("0", p0start)
+		updatesInfo.AddExecutedPlan("1", p1start)
+		updatesInfo.PushNewPlanHeight(p1start)
 		//
-		require.False(t, inGracePeriod(ctxWithHeight(p0start-1)))
-		require.False(t, inGracePeriod(ctxWithHeight(p0end+1)))
-		require.True(t, inGracePeriod(ctxWithHeight(p0start+1)))
-		require.True(t, inGracePeriod(ctxWithHeight(p0end-1)))
-		require.False(t, inGracePeriod(ctxWithHeight(p1start-1)))
-		require.False(t, inGracePeriod(ctxWithHeight(p1end+1)))
-		require.True(t, inGracePeriod(ctxWithHeight(p1start+1)))
-		require.True(t, inGracePeriod(ctxWithHeight(p1end-1)))
+		require.False(t, inGracePeriod(ctxWithHeight(p0start-1), updatesInfo))
+		require.False(t, inGracePeriod(ctxWithHeight(p0end+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p0start+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p0end-1), updatesInfo))
+		require.False(t, inGracePeriod(ctxWithHeight(p1start-1), updatesInfo))
+		require.False(t, inGracePeriod(ctxWithHeight(p1end+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p1start+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p1end-1), updatesInfo))
 	}
 }

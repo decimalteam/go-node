@@ -114,23 +114,10 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 
-	// Load file with updates info: last_block, plan_blocks and all_blocks
+	// Load file with updates info: last_block and all_blocks
 	err := config.UpdatesInfo.Load()
 	if err != nil {
 		panic(fmt.Sprintf("error: load file with updates '%s'", err.Error()))
-	}
-	// workaround for old UpdatesInfo without PlanBlocks
-	if len(config.UpdatesInfo.PlanBlocks) == 0 {
-		if config.UpdatesInfo.LastBlock > 0 {
-			config.UpdatesInfo.PushNewPlanHeight(config.UpdatesInfo.LastBlock, 0)
-		}
-		for _, v := range config.UpdatesInfo.AllBlocks {
-			config.UpdatesInfo.PushNewPlanHeight(v, config.UpdatesInfo.LastBlock-config.GracePeriodCleanupHorizon)
-		}
-		err = config.UpdatesInfo.Save()
-		if err != nil {
-			panic(fmt.Sprintf("error: save file with updates '%s'", err.Error()))
-		}
 	}
 
 	bApp.SetAppVersion(config.DecimalVersion)

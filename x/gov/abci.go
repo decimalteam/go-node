@@ -89,7 +89,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			ctx.Logger().Error(fmt.Sprintf("upgrade \"%s\" with '%s'", plan.Name, err.Error()))
 			os.Exit(1)
 		}
-		ncfg.UpdatesInfo.SaveExecutedPlan(plan.Name, plan.Height)
+		ncfg.UpdatesInfo.AddExecutedPlan(plan.Name, plan.Height)
 		err = ncfg.UpdatesInfo.Save()
 		if err != nil {
 			ctx.Logger().Error(fmt.Sprintf("save \"%s\" with '%s'", plan.Name, err.Error()))
