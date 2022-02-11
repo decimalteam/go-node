@@ -23,16 +23,19 @@ func NewUpdatesInfo(planfile string) *updatesInfo {
 }
 
 func (plan *updatesInfo) PushNewPlanHeight(planHeight int64, horizonHeight int64) {
-	plan.LastBlock = planHeight
-
+	if planHeight > plan.LastBlock {
+		plan.LastBlock = planHeight
+	}
+	doadd := true
 	//do not add existing height
 	for _, h := range plan.PlanBlocks {
 		if h == planHeight {
-			return
+			doadd = false
 		}
 	}
-
-	plan.PlanBlocks = append(plan.PlanBlocks, planHeight)
+	if doadd {
+		plan.PlanBlocks = append(plan.PlanBlocks, planHeight)
+	}
 
 	// cleanup all below horizon
 	newblocks := make([]int64, 0, len(plan.PlanBlocks))
@@ -49,7 +52,7 @@ func (plan *updatesInfo) SaveExecutedPlan(planName string, planHeight int64) {
 }
 
 func (plan *updatesInfo) Save() error {
-	f, err := os.OpenFile(plan.filename, os.O_CREATE, 0644)
+	f, err := os.OpenFile(plan.filename, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
