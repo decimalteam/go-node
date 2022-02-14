@@ -46,7 +46,7 @@ const (
 )
 
 const (
-	OneHour     = 530 // blocks
+	OneHour     = 360 // blocks
 	UpdatesName = "updates.json"
 )
 
