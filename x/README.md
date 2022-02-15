@@ -33,6 +33,12 @@ type AccAddress []byte
 type ValAddress []byte
 ```
 
+### Auth
+
+```
+GET: /auth/accounts_with_unconfirmed_nonce/{address}
+```
+
 ### Coins
 
 ```
@@ -95,12 +101,12 @@ type CoinBuyReq struct {
 ### Gov
 
 ```
-GET: /gov/parameters/type
+GET: /gov/parameters/{paramsType}
 GET: /gov/proposals
-GET: /gov/proposals/proposal-id
-GET: /gov/proposals/proposal-id/tally
-GET: /gov/proposals/proposal-id/votes
-GET: /gov/proposals/proposal-id/votes/voter
+GET: /gov/proposals/proposal/{proposalId}
+GET: /gov/proposals/proposal/{proposalId}/tally
+GET: /gov/proposals/proposal/{proposalId}/votes
+GET: /gov/proposals/proposal/{proposalId}/votes/{restVoter}
 ```
 
 ```
@@ -118,7 +124,7 @@ type PostProposalReq struct {
 ```
 
 ```
-POST: /gov/proposals/proposal-id/votes
+POST: /gov/proposals/proposal/{proposalId}/votes
 ```
 ```go
 type VoteReq struct {
@@ -140,6 +146,7 @@ GET: /multisig/parameters
 GET: /nft/supply/{denom}
 GET: /nft/owner/{delegatorAddr}
 GET: /nft/owner/{delegatorAddr}/collection/{denom}
+GET: /nft/collection/{denom}
 GET: /nft/denoms
 GET: /nft/collection/{denom}/nft/{id}
 ```
@@ -158,7 +165,7 @@ type transferNFTReq struct {
 ```
 
 ```
-POST: /nfts/collection/{denom}/nft/{id}/metadata
+PUT: /nfts/collection/{denom}/nft/{id}/metadata
 ```
 ```go
 type editNFTMetadataReq struct {
@@ -192,6 +199,20 @@ type burnNFTReq struct {
 	Denom       string       `json:"denom"`
 	ID          string       `json:"id"`
 	SubTokenIDs []string     `json:"subTokenIDs"`
+}
+```
+
+
+```
+PUT: /nfts/collection/{denom}/nft/{id}/updateReserve
+```
+```go
+type MsgUpdateReserveNFTq struct {
+    BaseReq       rest.BaseReq `json:"base_req"`
+    ID            string       `json:"id"`
+    Denom         string       `json:"denom"`
+    SubTokenIDs   []string     `json:"sub_token_ids"`
+    NewReserveNFT string       `json:"reserve"`
 }
 ```
 
