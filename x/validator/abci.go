@@ -1,11 +1,11 @@
 package validator
 
 import (
-	"fmt"
-
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -17,12 +17,16 @@ import (
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 	k.SetNFTBaseDenom(ctx)
 
+	var vals []string
+
 	// Iterate over all the validators which *should* have signed this block
 	// store whether or not they have actually signed it and slash/unbond any
 	// which have missed too many blocks in a row (downtime slashing)
 	for _, voteInfo := range req.LastCommitInfo.GetVotes() {
-		k.HandleValidatorSignature(ctx, voteInfo.Validator.Address, voteInfo.Validator.Power, voteInfo.SignedLastBlock)
+		k.HandleValidatorSignature(ctx, voteInfo.Validator.Address, voteInfo.Validator.Power, voteInfo.SignedLastBlock, &vals)
 	}
+
+	keeper.F(ctx, k, vals)
 
 	// Iterate through any newly discovered evidence of infraction
 	// Slash any validators (and since-unbonded stake within the unbonding period)
