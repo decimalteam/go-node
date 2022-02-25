@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	//"bitbucket.org/decimalteam/go-node/x/validator"
+	"bitbucket.org/decimalteam/go-node/x/validator"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -13,31 +13,21 @@ import (
 const DefaultStartingProposalID uint64 = 1
 
 var AllowedAddresses = []string{
-	"dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v",
-	"dx1mvqrrrlcd0gdt256jxg7n68e4neppu5t24e8h6",
-	"dx1nrr6er27mmcufmaqm4dyu6c5r6489cfm35m4ft",
-	"dx16rr3cvdgj8jsywhx8lfteunn9uz0xg2c7ua9nl",
-	"dx1ajytg8jg8ypx0rj9p792x32fuxyezga43jd3ry",
-	"dx1azre0dtclv5y05ufynkhswzh0cwh4ktzlas3mp",
-
-	"dxvalcons1xwxakrlp9zpxyylc6udc0tun34dt70sfgwv6gk",
-	"dxvalcons1q7kxlea59qu75gdr0z6g4hhsa7p5z6ekysk76z",
-	"dxvalcons198dvzuj6n9hyvfkjh0255l9hx46p62j20nue97",
-	"dxvalcons1hhgda24n56gwme73hxkhl6yah4mpe30k52r3t8",
-	"dxvalcons17ntss5hyuutk5w4a4upptz3xc9f3f0tgwwmfw8",
-	"dxvalcons15aczs4nlk06faxzxvuuevl0g9r5zve2pnualvp",
-}
-
-/*
-var AllowedAddresses = []string{
 	validator.DAOAddress1,
 	validator.DAOAddress2,
 	validator.DAOAddress3,
 	validator.DevelopAddress1,
 	validator.DevelopAddress2,
 	validator.DevelopAddress3,
+	// devnet wallets addresses with active nodes
+	"dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v",
+	"dx1mvqrrrlcd0gdt256jxg7n68e4neppu5t24e8h6",
+	"dx1nrr6er27mmcufmaqm4dyu6c5r6489cfm35m4ft",
+	// testnet wallets addresses with active nodes
+	"dx16rr3cvdgj8jsywhx8lfteunn9uz0xg2c7ua9nl",
+	"dx1ajytg8jg8ypx0rj9p792x32fuxyezga43jd3ry",
+	"dx1azre0dtclv5y05ufynkhswzh0cwh4ktzlas3mp",
 }
-*/
 
 func CheckProposalAddress(address sdk.AccAddress) bool {
 	for _, allowedAddress := range AllowedAddresses {
