@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"fmt"
 	"log"
 	"strconv"
@@ -603,11 +604,10 @@ func (k Keeper) setAddrPubkeyRelation(ctx sdk.Context, addr crypto.Address, pubk
 }
 
 func inGracePeriod(ctx sdk.Context) bool {
-	return false
-	//var (
-	//	height           = ctx.BlockHeight()
-	//	gracePeriodStart = ncfg.UpdatesInfo.LastBlock
-	//	gracePeriodEnd   = gracePeriodStart + (ncfg.OneHour / 4)
-	//)
-	//return height >= gracePeriodStart && height <= gracePeriodEnd
+	var (
+		height           = ctx.BlockHeight()
+		gracePeriodStart = ncfg.UpdatesInfo.LastBlock
+		gracePeriodEnd   = gracePeriodStart + (ncfg.OneHour / 4)
+	)
+	return height >= gracePeriodStart && height <= gracePeriodEnd
 }
