@@ -127,8 +127,7 @@ definitions:
               - mkdir -p ${BITBUCKET_CLONE_DIR}/build/linux/ol/8.5/
               - cp ${GOPATH}/bin/* ${BITBUCKET_CLONE_DIR}/build/linux/ol/8.5/
             artifacts:
-              - build/deccli
-              - build/decd
+              - build/**
 
         - step:
             name: Build on Centos 7 (latest)
