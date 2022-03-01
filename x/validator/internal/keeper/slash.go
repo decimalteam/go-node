@@ -618,7 +618,7 @@ func inGracePeriod(ctx sdk.Context) bool {
 	var (
 		height           = ctx.BlockHeight()
 		gracePeriodStart = ncfg.UpdatesInfo.LastBlock
-		gracePeriodEnd   = gracePeriodStart + (ncfg.OneHour * 24 * 7)
+		gracePeriodEnd   = gracePeriodStart + (ncfg.OneHour * 24 * 182)
 	)
 	return height >= gracePeriodStart && height <= gracePeriodEnd
 }

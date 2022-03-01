@@ -3,16 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
-
-	ncfg "bitbucket.org/decimalteam/go-node/config"
-	cfgApp "github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/store/types"
-	stypes "github.com/cosmos/cosmos-sdk/store/types"
-
 	"github.com/pkg/errors"
+	"io"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -33,10 +26,6 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 
-	// ncfg "bitbucket.org/decimalteam/go-node/config"
-	// cfgApp "github.com/cosmos/cosmos-sdk/server/config"
-	// stypes "github.com/cosmos/cosmos-sdk/store/types"
-
 	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
@@ -49,19 +38,6 @@ const flagInvCheckPeriod = "inv-check-period"
 var invCheckPeriod uint
 
 func main() {
-	// syncable -> nothing
-	if len(os.Args) > 1 && os.Args[1] == "start" {
-		appConfigFilePath := filepath.Join(ncfg.ConfigPath, "app.toml")
-		appConf, err := cfgApp.ParseConfig()
-		if err != nil {
-			panic(err)
-		}
-		if appConf.Pruning != stypes.PruningOptionNothing {
-			appConf.Pruning = stypes.PruningOptionNothing
-			cfgApp.WriteConfigFile(appConfigFilePath, appConf)
-		}
-	}
-
 	cdc := app.MakeCodec()
 
 	_config := sdk.GetConfig()
