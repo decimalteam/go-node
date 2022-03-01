@@ -1,8 +1,9 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
+
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -190,7 +191,6 @@ func ErrNotEnoughDelegationShares(shares string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeNotEnoughDelegationShares,
 		fmt.Sprintf("not enough shares only have %v", shares),
-		errors.NewParam("shares", shares),
 	)
 }
 
@@ -207,8 +207,6 @@ func ErrValidatorPubKeyTypeNotSupported(PKeyType string, AllowedTypes string) *s
 		DefaultCodespace,
 		CodeValidatorPubKeyTypeNotSupported,
 		fmt.Sprintf("validator pubkey type is not supported. got: %s, valid: %s", PKeyType, AllowedTypes),
-		errors.NewParam("PKeyType", PKeyType),
-		errors.NewParam("AllowedTypes", AllowedTypes),
 	)
 }
 
@@ -217,8 +215,6 @@ func ErrCoinReserveIsNotSufficient(reserve string, amount string) *sdkerrors.Err
 		DefaultCodespace,
 		CodeCoinReserveIsNotSufficient,
 		fmt.Sprintf("Coin reserve balance is not sufficient for transaction. Has: %s, required %s", reserve, amount),
-		errors.NewParam("reserve", reserve),
-		errors.NewParam("amount", amount),
 	)
 }
 
@@ -251,7 +247,6 @@ func ErrNoHistoricalInfo(height string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeErrNoHistoricalInfo,
 		fmt.Sprintf("no historical info found: %s", height),
-		errors.NewParam("height", height),
 	)
 }
 
@@ -276,7 +271,6 @@ func ErrInsufficientCoinToPayCommission(commission string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInsufficientCoinToPayCommission,
 		fmt.Sprintf("Insufficient coin to pay commission: wanted = %s", commission),
-		errors.NewParam("commission", commission),
 	)
 }
 
@@ -285,7 +279,6 @@ func ErrInsufficientFunds(funds string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInsufficientFunds,
 		fmt.Sprintf("Insufficient funds: wanted = %s", funds),
-		errors.NewParam("funds", funds),
 	)
 }
 
@@ -294,7 +287,6 @@ func ErrUpdateBalance(error string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeUpdateBalanceError,
 		fmt.Sprintf("update balance error: %s", error),
-		errors.NewParam("error", error),
 	)
 }
 
@@ -303,7 +295,6 @@ func ErrCalculateCommission(error string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeErrCalculateCommission,
 		fmt.Sprintf("calculate commision error: %s", error),
-		errors.NewParam("error", error),
 	)
 }
 
@@ -312,7 +303,6 @@ func ErrCoinDoesNotExist(symbol string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeCoinDoesNotExist,
 		fmt.Sprintf("coin %s does not exist", symbol),
-		errors.NewParam("symbol", symbol),
 	)
 }
 
@@ -321,7 +311,6 @@ func ErrInternal(error string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInternalError,
 		fmt.Sprintf("internal error: %s", error),
-		errors.NewParam("error", error),
 	)
 }
 
