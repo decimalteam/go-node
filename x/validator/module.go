@@ -2,6 +2,10 @@ package validator
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/spf13/viper"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -158,6 +162,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 
 // BeginBlock returns the begin blocker for the validator module.
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+	fmt.Println(strings.ToLower(viper.GetString(server.FlagPruning)))
 	BeginBlocker(ctx, req, am.keeper)
 }
 
