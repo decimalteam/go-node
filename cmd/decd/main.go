@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/store/types"
 
@@ -29,12 +28,8 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 
-	cfgApp "github.com/cosmos/cosmos-sdk/server/config"
-	stypes "github.com/cosmos/cosmos-sdk/store/types"
-
 	"bitbucket.org/decimalteam/go-node/app"
 	"bitbucket.org/decimalteam/go-node/config"
-	ncfg "bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
 	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
 	"bitbucket.org/decimalteam/go-node/x/validator"
@@ -45,17 +40,6 @@ const flagInvCheckPeriod = "inv-check-period"
 var invCheckPeriod uint
 
 func main() {
-	// syncable -> nothing
-	appConfigFilePath := filepath.Join(ncfg.ConfigPath, "app.toml")
-	appConf, err := cfgApp.ParseConfig()
-	if err != nil {
-		panic(err)
-	}
-	if appConf.Pruning != stypes.PruningOptionNothing {
-		appConf.Pruning = stypes.PruningOptionNothing
-		cfgApp.WriteConfigFile(appConfigFilePath, appConf)
-	}
-
 	cdc := app.MakeCodec()
 
 	_config := sdk.GetConfig()
@@ -97,7 +81,7 @@ func main() {
 	executor := cli.PrepareBaseCmd(rootCmd, "AU", app.DefaultNodeHome)
 	rootCmd.PersistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 		0, "Assert registered invariants every N blocks")
-	err = executor.Execute()
+	err := executor.Execute()
 	if err != nil {
 		panic(err)
 	}
