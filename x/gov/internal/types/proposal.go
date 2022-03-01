@@ -1,11 +1,12 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
+
+	"bitbucket.org/decimalteam/go-node/x/validator"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // DefaultStartingProposalID is 1
@@ -18,6 +19,14 @@ var AllowedAddresses = []string{
 	validator.DevelopAddress1,
 	validator.DevelopAddress2,
 	validator.DevelopAddress3,
+	// devnet wallets addresses with active nodes
+	"dx1lx4lvt8sjuxj8vw5dcf6knnq0pacre4w6hdh2v",
+	"dx1mvqrrrlcd0gdt256jxg7n68e4neppu5t24e8h6",
+	"dx1nrr6er27mmcufmaqm4dyu6c5r6489cfm35m4ft",
+	// testnet wallets addresses with active nodes
+	"dx16rr3cvdgj8jsywhx8lfteunn9uz0xg2c7ua9nl",
+	"dx1ajytg8jg8ypx0rj9p792x32fuxyezga43jd3ry",
+	"dx1azre0dtclv5y05ufynkhswzh0cwh4ktzlas3mp",
 }
 
 func CheckProposalAddress(address sdk.AccAddress) bool {
