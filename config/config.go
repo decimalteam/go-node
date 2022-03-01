@@ -50,9 +50,8 @@ const (
 )
 
 var (
-	ConfigPath = fmt.Sprintf("%s/.decimal/daemon/config", os.Getenv("HOME"))
-	DataPath   = fmt.Sprintf("%s/.decimal/daemon/data", os.Getenv("HOME"))
-	NameFiles  = []string{"decd", "deccli"}
+	DataPath  = fmt.Sprintf("%s/.decimal/daemon/data", os.Getenv("HOME"))
+	NameFiles = []string{"decd", "deccli"}
 )
 
 var (
