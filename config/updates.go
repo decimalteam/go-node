@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"os"
 )
 
@@ -52,7 +53,7 @@ func (plan *UpdatesInfoStruct) save(wrt io.Writer) error {
 
 func (plan *UpdatesInfoStruct) Load() error {
 	if !fileExist(plan.filename) {
-		err := os.WriteFile(plan.filename, []byte("{}"), 0644)
+		err := ioutil.WriteFile(plan.filename, []byte("{}"), 0644)
 		if err != nil {
 			return err
 		}
@@ -66,7 +67,7 @@ func (plan *UpdatesInfoStruct) Load() error {
 }
 
 func (plan *UpdatesInfoStruct) load(rdr io.Reader) error {
-	bytes, err := io.ReadAll(rdr)
+	bytes, err := ioutil.ReadAll(rdr)
 	if err != nil {
 		return err
 	}
