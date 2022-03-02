@@ -9,6 +9,7 @@ import (
 
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -29,7 +30,7 @@ type TmpFilesystem struct {
 
 func NewTmpFilesystem() (tfs *TmpFilesystem, err error) {
 	tfs = &TmpFilesystem{}
-	tfs.basepath, err = os.MkdirTemp("", "gotest")
+	tfs.basepath, err = ioutil.TempDir("", "gotest")
 	if err != nil {
 		return
 	}
