@@ -328,9 +328,12 @@ func (k Keeper) slashBondedDelegations(ctx sdk.Context, delegations []exported.D
 
 // handle a validator signature, must be called once per validator per block
 func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, power int64, signed bool) {
-	logger := k.Logger(ctx)
-	height := ctx.BlockHeight()
-	consAddr := sdk.ConsAddress(addr)
+	var (
+		logger   = k.Logger(ctx)
+		height   = ctx.BlockHeight()
+		consAddr = sdk.ConsAddress(addr)
+	)
+
 	pubkey, err := k.getPubkey(ctx, addr)
 	if err != nil {
 		panic(fmt.Sprintf("Validator consensus-address %s not found", consAddr))
@@ -361,9 +364,12 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 
 	// this is a relative index, so it counts blocks the validator *should* have signed
 	// will use the 0-value default signing info if not present, except for start height
-	index := signInfo.IndexOffset
 	signInfo.IndexOffset = (signInfo.IndexOffset + 1) % types.SignedBlocksWindow
+	index := signInfo.IndexOffset
 
+	// Update signed block bit array & counter
+	// This counter just tracks the sum of the bit array
+	// That way we avoid needing to read/write the whole array each time
 	missedInWindow := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
 	missed := !signed
 
@@ -384,8 +390,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	case false:
 		// If in grace perid and missed > 0 then missed = missed - 1
 		// If missed in bit array and missed > 0 then missed = missed - 1
-		grMissedBlocks := signInfo.MissedBlocksCounter > 0
-		if (inGracePeriod(ctx) && grMissedBlocks) || (missedInWindow && grMissedBlocks) {
+		if (signInfo.MissedBlocksCounter > 0) && (missedInWindow || inGracePeriod(ctx)) {
 			k.setValidatorMissedBlockBitArray(ctx, consAddr, index, false)
 			signInfo.MissedBlocksCounter--
 		}
@@ -407,10 +412,11 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			fmt.Sprintf("Absent validator %s (%s) at height %d, %d missed, threshold %d", consAddr, pubkey, height, signInfo.MissedBlocksCounter, types.MinSignedPerWindow))
 	}
 
+	minHeight := signInfo.StartHeight + types.SignedBlocksWindow
 	maxMissed := types.SignedBlocksWindow - types.MinSignedPerWindow
 
 	//if we are past the minimum height and the validator has missed too many blocks, punish them
-	if signInfo.MissedBlocksCounter > maxMissed {
+	if height > minHeight && signInfo.MissedBlocksCounter > maxMissed {
 		if !validator.IsJailed() {
 
 			// Downtime confirmed: slash and jail the validator
