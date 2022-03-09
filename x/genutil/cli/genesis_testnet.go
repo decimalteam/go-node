@@ -235,9 +235,9 @@ const TestNetGenesis = `
                 "amount": "40000000000000000000000000"
               }
             ],
-            "public_key": "",
-            "account_number": 0,
-            "sequence": 0
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
           }
         },
         {
@@ -250,9 +250,9 @@ const TestNetGenesis = `
                 "amount": "40000000000000000000000000"
               }
             ],
-            "public_key": "",
-            "account_number": 0,
-            "sequence": 0
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
           }
         },
         {
@@ -265,9 +265,9 @@ const TestNetGenesis = `
                 "amount": "40000000000000000000000000"
               }
             ],
-            "public_key": "",
-            "account_number": 0,
-            "sequence": 0
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
           }
         },
         {
@@ -280,9 +280,9 @@ const TestNetGenesis = `
                 "amount": "40000000000000000000000000"
               }
             ],
-            "public_key": "",
-            "account_number": 0,
-            "sequence": 0
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
           }
         },
         {
@@ -295,9 +295,9 @@ const TestNetGenesis = `
                 "amount": "160000000000000000000000000"
               }
             ],
-            "public_key": "",
-            "account_number": 0,
-            "sequence": 0
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
           }
         },
         {
@@ -310,9 +310,9 @@ const TestNetGenesis = `
                 "amount": "20000000000000000000000000"
               }
             ],
-            "public_key": "",
-            "account_number": 0,
-            "sequence": 0
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
           }
         }
       ]
