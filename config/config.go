@@ -11,7 +11,7 @@ import (
 
 const (
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "0.9.48"
+	DecimalVersion = "0.9.49"
 
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
