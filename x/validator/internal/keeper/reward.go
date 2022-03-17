@@ -14,6 +14,7 @@ var DevelopCommission = sdk.NewDec(5).QuoInt64(100)
 
 func (k Keeper) PayRewards(ctx sdk.Context) error {
 	validators := k.GetAllValidators(ctx)
+	delegations := k.GetAllDelegationsByValidator(ctx)
 	for _, val := range validators {
 		if val.AccumRewards.IsZero() {
 			continue
@@ -88,8 +89,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 		rewards = rewards.Sub(rewardsVal)
 		remainder := rewards
 		totalStake := val.Tokens
-		delegations := k.GetValidatorDelegations(ctx, val.ValAddress)
-		for _, del := range delegations {
+		for _, del := range delegations[val.ValAddress.String()] {
 			reward := sdk.NewIntFromBigInt(rewards.BigInt())
 			if del.GetCoin().Denom != k.BondDenom(ctx) {
 				defAmount := del.GetTokensBase()
@@ -117,7 +117,7 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 					sdk.NewAttribute(sdk.AttributeKeyAmount, reward.String()),
 					sdk.NewAttribute(types.AttributeKeyValidator, val.ValAddress.String()),
 					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
-					sdk.NewAttribute(types.AttributeKeyCoin ,del.GetCoin().Denom),
+					sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().Denom),
 				),
 			)
 		}
