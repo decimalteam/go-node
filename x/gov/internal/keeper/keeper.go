@@ -181,7 +181,7 @@ func (keeper Keeper) ActiveProposalQueueIterator(ctx sdk.Context, endBlock uint6
 	store := ctx.KVStore(keeper.storeKey)
 	keyPrefix := types.ActiveProposalQueuePrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x01}
+		keyPrefix = types.LegacyActiveProposalQueuePrefix
 	}
 	return store.Iterator(keyPrefix, sdk.PrefixEndBytes(types.ActiveProposalByTimeKey(ctx, endBlock)))
 }
@@ -191,7 +191,7 @@ func (keeper Keeper) ActiveAllProposalQueueIterator(ctx sdk.Context) sdk.Iterato
 	store := ctx.KVStore(keeper.storeKey)
 	keyPrefix := types.ActiveProposalQueuePrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x01}
+		keyPrefix = types.LegacyActiveProposalQueuePrefix
 	}
 	return store.Iterator(keyPrefix, nil)
 }
@@ -201,7 +201,7 @@ func (keeper Keeper) InactiveProposalQueueIterator(ctx sdk.Context, endBlock uin
 	store := ctx.KVStore(keeper.storeKey)
 	keyPrefix := types.InactiveProposalQueuePrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x02}
+		keyPrefix = types.LegacyInactiveProposalQueuePrefix
 	}
 	return store.Iterator(keyPrefix, sdk.PrefixEndBytes(types.InactiveProposalByTimeKey(ctx, endBlock)))
 }
@@ -211,7 +211,7 @@ func (keeper Keeper) InactiveAllProposalQueueIterator(ctx sdk.Context) sdk.Itera
 	store := ctx.KVStore(keeper.storeKey)
 	keyPrefix := types.InactiveProposalQueuePrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x02}
+		keyPrefix = types.LegacyInactiveProposalQueuePrefix
 	}
 	return store.Iterator(keyPrefix, nil)
 }
@@ -270,19 +270,19 @@ func (k Keeper) MigrateToUpdatedPrefixes(ctx sdk.Context) error {
 	k.migrateActiveProposals(ctx)
 	k.migrateInactiveProposals(ctx)
 	k.migrateVotes(ctx)
-	k.migrateSingleRecord(ctx, []byte{0x03}, types.ProposalIDKey)
-	k.migrateSingleRecord(ctx, []byte{0x20}, types.PlanKey(ctx))
-	k.migrateSingleRecord(ctx, []byte{0x21}, types.DoneKey(ctx))
+	k.migrateSingleRecord(ctx, types.LegacyProposalIDKey, types.ProposalIDKey)
+	k.migrateSingleRecord(ctx, types.LegacyPlanPrefix, types.PlanKey(ctx))
+	k.migrateSingleRecord(ctx, types.LegacyDonePrefix, types.DoneKey(ctx))
 	return nil
 }
 
 func (k Keeper) migrateProposals(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{0x00})
+	iterator := sdk.KVStorePrefixIterator(store, types.LegacyProposalsKeyPrefix)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		keyFrom, value := iterator.Key(), iterator.Value()
-		if len(keyFrom) != 9 {
+		if len(keyFrom) != 9 { // previous key format: 0x00<proposalID_Bytes> (1+8)
 			continue
 		}
 		var proposal types.Proposal
@@ -295,11 +295,11 @@ func (k Keeper) migrateProposals(ctx sdk.Context) {
 
 func (k Keeper) migrateActiveProposals(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{0x01})
+	iterator := sdk.KVStorePrefixIterator(store, types.LegacyActiveProposalQueuePrefix)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		keyFrom, value := iterator.Key(), iterator.Value()
-		if len(keyFrom) != 17 {
+		if len(keyFrom) != 17 { // previous key format: 0x01<endTime_Bytes><proposalID_Bytes> (1+8+8)
 			continue
 		}
 		var proposal types.Proposal
@@ -312,11 +312,11 @@ func (k Keeper) migrateActiveProposals(ctx sdk.Context) {
 
 func (k Keeper) migrateInactiveProposals(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{0x02})
+	iterator := sdk.KVStorePrefixIterator(store, types.LegacyInactiveProposalQueuePrefix)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		keyFrom, value := iterator.Key(), iterator.Value()
-		if len(keyFrom) != 17 {
+		if len(keyFrom) != 17 { // previous key format: 0x02<endTime_Bytes><proposalID_Bytes> (1+8+8)
 			continue
 		}
 		var proposal types.Proposal
@@ -329,11 +329,11 @@ func (k Keeper) migrateInactiveProposals(ctx sdk.Context) {
 
 func (k Keeper) migrateVotes(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{0x10})
+	iterator := sdk.KVStorePrefixIterator(store, types.LegacyVotesKeyPrefix)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		keyFrom, value := iterator.Key(), iterator.Value()
-		if len(keyFrom) != 29 {
+		if len(keyFrom) != 29 { // previous key format: 0x10<proposalID_Bytes><voterAddr_Bytes> (1+8+20)
 			continue
 		}
 		var vote types.Vote

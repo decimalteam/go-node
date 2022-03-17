@@ -37,7 +37,7 @@ func (keeper Keeper) GetProposalID(ctx sdk.Context) (proposalID uint64, err erro
 	store := ctx.KVStore(keeper.storeKey)
 	keyPrefix := types.ProposalIDKey
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x03}
+		keyPrefix = types.LegacyProposalIDKey
 	}
 	bz := store.Get(keyPrefix)
 	if bz == nil {
@@ -53,7 +53,7 @@ func (keeper Keeper) SetProposalID(ctx sdk.Context, proposalID uint64) {
 	store := ctx.KVStore(keeper.storeKey)
 	keyPrefix := types.ProposalIDKey
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x03}
+		keyPrefix = types.LegacyProposalIDKey
 	}
 	store.Set(keyPrefix, types.GetProposalIDBytes(proposalID))
 }
@@ -93,7 +93,7 @@ func (keeper Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Pr
 	store := ctx.KVStore(keeper.storeKey)
 	keyPrefix := types.ProposalsKeyPrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x00}
+		keyPrefix = types.LegacyProposalsKeyPrefix
 	}
 	iterator := sdk.KVStorePrefixIterator(store, keyPrefix)
 
