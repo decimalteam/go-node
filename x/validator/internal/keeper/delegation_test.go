@@ -4,13 +4,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"github.com/stretchr/testify/require"
 )
 
-// tests GetDelegation, GetDelegatorDelegations, SetDelegation, RemoveDelegation, GetDelegatorDelegations
+// tests GetDelegation, SetDelegation, RemoveDelegation, GetAllDelegatorDelegations
 func TestDelegation(t *testing.T) {
 	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 10)
 
@@ -61,16 +62,7 @@ func TestDelegation(t *testing.T) {
 	keeper.SetDelegation(ctx, bond2to3)
 
 	// test all bond retrieve capabilities
-	resBonds := types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[0], 5))
-	require.Equal(t, 3, len(resBonds))
-	require.True(t, bond1to1.Equal(resBonds[0]))
-	require.True(t, bond1to2.Equal(resBonds[1]))
-	require.True(t, bond1to3.Equal(resBonds[2]))
-	resBonds = types.GetBaseDelegations(keeper.GetAllDelegatorDelegations(ctx, addrDels[0]))
-	require.Equal(t, 3, len(resBonds))
-	resBonds = types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[0], 2))
-	require.Equal(t, 2, len(resBonds))
-	resBonds = types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[1], 5))
+	resBonds := types.GetBaseDelegations(keeper.GetAllDelegatorDelegations(ctx, addrDels[0]))
 	require.Equal(t, 3, len(resBonds))
 	require.True(t, bond2to1.Equal(resBonds[0]))
 	require.True(t, bond2to2.Equal(resBonds[1]))
@@ -107,7 +99,7 @@ func TestDelegation(t *testing.T) {
 	keeper.RemoveDelegation(ctx, bond2to3)
 	_, found = keeper.GetDelegation(ctx, addrDels[1], addrVals[2], keeper.BondDenom(ctx))
 	require.False(t, found)
-	resBonds = types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[1], 5))
+	resBonds = types.GetBaseDelegations(keeper.GetAllDelegatorDelegations(ctx, addrDels[1]))
 	require.Equal(t, 2, len(resBonds))
 	require.True(t, bond2to1.Equal(resBonds[0]))
 	require.True(t, bond2to2.Equal(resBonds[1]))
@@ -122,7 +114,7 @@ func TestDelegation(t *testing.T) {
 	require.False(t, found)
 	_, found = keeper.GetDelegation(ctx, addrDels[1], addrVals[1], keeper.BondDenom(ctx))
 	require.False(t, found)
-	resBonds = types.GetBaseDelegations(keeper.GetDelegatorDelegations(ctx, addrDels[1], 5))
+	resBonds = types.GetBaseDelegations(keeper.GetAllDelegatorDelegations(ctx, addrDels[1]))
 	require.Equal(t, 0, len(resBonds))
 }
 
