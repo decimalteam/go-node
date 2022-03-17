@@ -45,8 +45,8 @@ func JoinUints(values []uint) string {
 	return sb.String()
 }
 
-func TimeTrack(ctx sdk.Context, msg string) (string, time.Time) {
-	return msg, time.Now()
+func TimeTrack(ctx sdk.Context, msg string) (sdk.Context, string, time.Time) {
+	return ctx, msg, time.Now()
 }
 
 func TimeDuration(ctx sdk.Context, msg string, start time.Time) {

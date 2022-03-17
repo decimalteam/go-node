@@ -112,7 +112,6 @@ var cfg = &config.Config{}
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
 
-	defer helpers.TimeDuration(helpers.TimeTrack("[NewInitApp]"))
 	fmt.Printf("decd version: %s\n", config.DecimalVersion)
 
 	// First define the top level codec that will be shared by the different modules
@@ -326,7 +325,7 @@ func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 }
 
 func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	defer helpers.TimeDuration(helpers.TimeTrack("[BeginBlocker] app"))
+	defer helpers.TimeDuration(helpers.TimeTrack(ctx, "[BeginBlocker] app"))
 	if !cfg.Initialized {
 		config.ChainID = ctx.ChainID()
 		if strings.HasPrefix(config.ChainID, "decimal-testnet") {
@@ -377,7 +376,7 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 	return app.mm.BeginBlock(ctx, req)
 }
 func (app *newApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	defer helpers.TimeDuration(helpers.TimeTrack("[EndBlocker] app"))
+	defer helpers.TimeDuration(helpers.TimeTrack(ctx, "[EndBlocker] app"))
 	return app.mm.EndBlock(ctx, req)
 }
 func (app *newApp) LoadHeight(height int64) error {
