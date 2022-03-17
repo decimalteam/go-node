@@ -7,14 +7,10 @@ import (
 	"os"
 	"strings"
 
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
-	"github.com/cosmos/cosmos-sdk/x/supply/exported"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tos "github.com/tendermint/tendermint/libs/os"
+	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
@@ -25,11 +21,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils"
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/genutil"
+	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
 	"bitbucket.org/decimalteam/go-node/x/gov"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/nft"
@@ -111,6 +111,8 @@ var cfg = &config.Config{}
 // Newgo-nodeApp is a constructor function for go-nodeApp
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
+
+	defer helpers.TimeDuration(helpers.TimeTrack("[NewInitApp]"))
 	fmt.Printf("decd version: %s\n", config.DecimalVersion)
 
 	// First define the top level codec that will be shared by the different modules
@@ -324,6 +326,7 @@ func (app *newApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 }
 
 func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	defer helpers.TimeDuration(helpers.TimeTrack("[BeginBlocker] app"))
 	if !cfg.Initialized {
 		config.ChainID = ctx.ChainID()
 		if strings.HasPrefix(config.ChainID, "decimal-testnet") {
@@ -374,6 +377,7 @@ func (app *newApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 	return app.mm.BeginBlock(ctx, req)
 }
 func (app *newApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	defer helpers.TimeDuration(helpers.TimeTrack("[EndBlocker] app"))
 	return app.mm.EndBlock(ctx, req)
 }
 func (app *newApp) LoadHeight(height int64) error {

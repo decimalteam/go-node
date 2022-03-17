@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -42,4 +43,12 @@ func JoinUints(values []uint) string {
 		sb.WriteString(strconv.FormatUint(uint64(v), 10))
 	}
 	return sb.String()
+}
+
+func TimeTrack(ctx sdk.Context, msg string) (string, time.Time) {
+	return msg, time.Now()
+}
+
+func TimeDuration(ctx sdk.Context, msg string, start time.Time) {
+	ctx.Logger().Info("%v: %v ms\n", msg, time.Since(start).Milliseconds())
 }
