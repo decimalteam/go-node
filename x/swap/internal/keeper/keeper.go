@@ -1,14 +1,17 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
 )
 
 // Keeper of the validator store
@@ -81,4 +84,66 @@ func (k Keeper) GetLockedFunds(ctx sdk.Context) sdk.Coins {
 	}
 
 	return account.GetCoins()
+}
+
+func (k Keeper) MigrateToUpdatedPrefixes(ctx sdk.Context) error {
+	if ctx.BlockHeight() != updates.Update14Block {
+		panic(fmt.Sprintf("wrong time for data migration (called at block %d instead of %d)", ctx.BlockHeight(), updates.Update14Block))
+	}
+	k.migrateSwaps(ctx)
+	k.migrateSwapsV2(ctx)
+	k.migrateChains(ctx)
+	return nil
+}
+
+func (k Keeper) migrateSwaps(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{0x50, 0x01})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		keyFrom, value := iterator.Key(), iterator.Value()
+		if len(keyFrom) != 34 {
+			continue
+		}
+		var swap types.Swap
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &swap)
+		keyTo := types.GetSwapKey(ctx, swap.HashedSecret)
+		store.Set(keyTo, value)
+		store.Delete(keyFrom)
+	}
+}
+
+func (k Keeper) migrateSwapsV2(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{0x50, 0x02})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		keyFrom, value := iterator.Key(), iterator.Value()
+		if value == nil {
+			value = []byte{}
+		}
+		if len(keyFrom) != 34 {
+			continue
+		}
+		keyTo := append(types.SwapV2Key, keyFrom[2:]...)
+		store.Set(keyTo, value)
+		store.Delete(keyFrom)
+	}
+}
+
+func (k Keeper) migrateChains(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{0x50, 0x03})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		keyFrom, value := iterator.Key(), iterator.Value()
+		if len(keyFrom) != 10 {
+			continue
+		}
+		var chain types.Chain
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &chain)
+		keyTo := append(types.ChainKey, keyFrom[2:]...)
+		store.Set(keyTo, value)
+		store.Delete(keyFrom)
+	}
 }

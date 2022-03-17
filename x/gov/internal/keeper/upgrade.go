@@ -35,7 +35,7 @@ const (
 // upgrade or false if there is none
 func (k Keeper) GetUpgradePlan(ctx sdk.Context) (plan types.Plan, havePlan bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.PlanKey())
+	bz := store.Get(types.PlanKey(ctx))
 	if bz == nil {
 		return plan, false
 	}
@@ -50,7 +50,7 @@ func (k Keeper) IsSkipHeight(height int64) bool {
 }
 
 func (k Keeper) setDone(ctx sdk.Context, name string) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneByte)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneKey(ctx))
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(ctx.BlockHeight()))
 	store.Set([]byte(name), bz)
@@ -62,7 +62,7 @@ func (k Keeper) ClearUpgradePlan(ctx sdk.Context) {
 		k.ClearIBCState(ctx, oldPlan.Height)
 	}
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.PlanKey())
+	store.Delete(types.PlanKey(ctx))
 }
 
 func (k Keeper) ClearIBCState(ctx sdk.Context, lastHeight int64) {
@@ -242,14 +242,14 @@ func (k Keeper) ScheduleUpgrade(ctx sdk.Context, plan types.Plan) error {
 
 	bz := k.cdc.MustMarshalBinaryBare(plan)
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.PlanKey(), bz)
+	store.Set(types.PlanKey(ctx), bz)
 
 	return nil
 }
 
 // GetDoneHeight returns the height at which the given upgrade was executed
 func (k Keeper) GetDoneHeight(ctx sdk.Context, name string) int64 {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneByte)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneKey(ctx))
 	bz := store.Get([]byte(name))
 	if len(bz) == 0 {
 		return 0
