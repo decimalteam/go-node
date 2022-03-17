@@ -1,13 +1,15 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 )
 
 // Keeper defines the governance module Keeper
@@ -71,26 +73,26 @@ func (keeper Keeper) Logger(ctx sdk.Context) log.Logger {
 func (keeper Keeper) InsertActiveProposalQueue(ctx sdk.Context, proposalID uint64, endBlock uint64) {
 	store := ctx.KVStore(keeper.storeKey)
 	bz := types.GetProposalIDBytes(proposalID)
-	store.Set(types.ActiveProposalQueueKey(proposalID, endBlock), bz)
+	store.Set(types.ActiveProposalQueueKey(ctx, proposalID, endBlock), bz)
 }
 
 // RemoveFromActiveProposalQueue removes a proposalID from the Active Proposal Queue
 func (keeper Keeper) RemoveFromActiveProposalQueue(ctx sdk.Context, proposalID uint64, endBlock uint64) {
 	store := ctx.KVStore(keeper.storeKey)
-	store.Delete(types.ActiveProposalQueueKey(proposalID, endBlock))
+	store.Delete(types.ActiveProposalQueueKey(ctx, proposalID, endBlock))
 }
 
 // InsertInactiveProposalQueue Inserts a ProposalID into the inactive proposal queue at endBlock
 func (keeper Keeper) InsertInactiveProposalQueue(ctx sdk.Context, proposalID uint64, endBlock uint64) {
 	store := ctx.KVStore(keeper.storeKey)
 	bz := types.GetProposalIDBytes(proposalID)
-	store.Set(types.InactiveProposalQueueKey(proposalID, endBlock), bz)
+	store.Set(types.InactiveProposalQueueKey(ctx, proposalID, endBlock), bz)
 }
 
 // RemoveFromInactiveProposalQueue removes a proposalID from the Inactive Proposal Queue
 func (keeper Keeper) RemoveFromInactiveProposalQueue(ctx sdk.Context, proposalID uint64, endBlock uint64) {
 	store := ctx.KVStore(keeper.storeKey)
-	store.Delete(types.InactiveProposalQueueKey(proposalID, endBlock))
+	store.Delete(types.InactiveProposalQueueKey(ctx, proposalID, endBlock))
 }
 
 // Iterators
@@ -102,7 +104,7 @@ func (keeper Keeper) IterateActiveProposalsQueue(ctx sdk.Context, endBlock uint6
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		proposalID, _ := types.SplitActiveProposalQueueKey(iterator.Key())
+		proposalID, _ := types.SplitActiveProposalQueueKey(ctx, iterator.Key())
 		proposal, found := keeper.GetProposal(ctx, proposalID)
 		if !found {
 			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
@@ -122,7 +124,7 @@ func (keeper Keeper) IterateAllActiveProposalsQueue(ctx sdk.Context, cb func(pro
 		if len(iterator.Key()) != 17 {
 			continue
 		}
-		proposalID, _ := types.SplitActiveProposalQueueKey(iterator.Key())
+		proposalID, _ := types.SplitActiveProposalQueueKey(ctx, iterator.Key())
 		proposal, found := keeper.GetProposal(ctx, proposalID)
 		if !found {
 			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
@@ -141,7 +143,7 @@ func (keeper Keeper) IterateInactiveProposalsQueue(ctx sdk.Context, endBlock uin
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		proposalID, _ := types.SplitInactiveProposalQueueKey(iterator.Key())
+		proposalID, _ := types.SplitInactiveProposalQueueKey(ctx, iterator.Key())
 		proposal, found := keeper.GetProposal(ctx, proposalID)
 		if !found {
 			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
@@ -161,7 +163,7 @@ func (keeper Keeper) IterateAllInactiveProposalsQueue(ctx sdk.Context, cb func(p
 		if len(iterator.Key()) != 17 {
 			continue
 		}
-		proposalID, _ := types.SplitInactiveProposalQueueKey(iterator.Key())
+		proposalID, _ := types.SplitInactiveProposalQueueKey(ctx, iterator.Key())
 		proposal, found := keeper.GetProposal(ctx, proposalID)
 		if !found {
 			panic(fmt.Sprintf("proposal %d does not exist", proposalID))
@@ -176,25 +178,41 @@ func (keeper Keeper) IterateAllInactiveProposalsQueue(ctx sdk.Context, cb func(p
 // ActiveProposalQueueIterator returns an sdk.Iterator for all the proposals in the Active Queue that expire by endTime
 func (keeper Keeper) ActiveProposalQueueIterator(ctx sdk.Context, endBlock uint64) sdk.Iterator {
 	store := ctx.KVStore(keeper.storeKey)
-	return store.Iterator(types.ActiveProposalQueuePrefix, sdk.PrefixEndBytes(types.ActiveProposalByTimeKey(endBlock)))
+	keyPrefix := types.ActiveProposalQueuePrefix
+	if ctx.BlockHeight() < updates.Update14Block {
+		keyPrefix = []byte{0x01}
+	}
+	return store.Iterator(keyPrefix, sdk.PrefixEndBytes(types.ActiveProposalByTimeKey(ctx, endBlock)))
 }
 
 // ActiveAllProposalQueueIterator returns an sdk.Iterator for all the proposals in the Active Queue
 func (keeper Keeper) ActiveAllProposalQueueIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(keeper.storeKey)
-	return store.Iterator(types.ActiveProposalQueuePrefix, nil)
+	keyPrefix := types.ActiveProposalQueuePrefix
+	if ctx.BlockHeight() < updates.Update14Block {
+		keyPrefix = []byte{0x01}
+	}
+	return store.Iterator(keyPrefix, nil)
 }
 
 // InactiveProposalQueueIterator returns an sdk.Iterator for all the proposals in the Inactive Queue that expire by endTime
 func (keeper Keeper) InactiveProposalQueueIterator(ctx sdk.Context, endBlock uint64) sdk.Iterator {
 	store := ctx.KVStore(keeper.storeKey)
-	return store.Iterator(types.InactiveProposalQueuePrefix, sdk.PrefixEndBytes(types.InactiveProposalByTimeKey(endBlock)))
+	keyPrefix := types.InactiveProposalQueuePrefix
+	if ctx.BlockHeight() < updates.Update14Block {
+		keyPrefix = []byte{0x02}
+	}
+	return store.Iterator(keyPrefix, sdk.PrefixEndBytes(types.InactiveProposalByTimeKey(ctx, endBlock)))
 }
 
 // InactiveAllProposalQueueIterator returns an sdk.Iterator for all the proposals in the Inactive Queue
 func (keeper Keeper) InactiveAllProposalQueueIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(keeper.storeKey)
-	return store.Iterator(types.InactiveProposalQueuePrefix, nil)
+	keyPrefix := types.InactiveProposalQueuePrefix
+	if ctx.BlockHeight() < updates.Update14Block {
+		keyPrefix = []byte{0x02}
+	}
+	return store.Iterator(keyPrefix, nil)
 }
 
 func (keeper Keeper) CheckValidator(ctx sdk.Context, address sdk.ValAddress) error {
@@ -246,4 +264,95 @@ func (k Keeper) Set(ctx sdk.Context, key []byte, value *int64) error {
 	}
 	store.Set(key, bz)
 	return nil
+}
+
+func (k Keeper) MigrateToUpdatedPrefixes(ctx sdk.Context) error {
+	if ctx.BlockHeight() != updates.Update14Block {
+		panic(fmt.Sprintf("wrong time for data migration (called at block %d instead of %d)", ctx.BlockHeight(), updates.Update14Block))
+	}
+	k.migrateProposals(ctx)
+	k.migrateActiveProposals(ctx)
+	k.migrateInactiveProposals(ctx)
+	k.migrateVotes(ctx)
+	k.migrateSingleRecord(ctx, []byte{0x03}, types.ProposalIDKey)
+	k.migrateSingleRecord(ctx, []byte{0x20}, types.PlanKey(ctx))
+	k.migrateSingleRecord(ctx, []byte{0x21}, types.DoneKey(ctx))
+	return nil
+}
+
+func (k Keeper) migrateProposals(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{0x00})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		keyFrom, value := iterator.Key(), iterator.Value()
+		if len(keyFrom) != 9 {
+			continue
+		}
+		var proposal types.Proposal
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &proposal)
+		keyTo := types.ProposalKey(ctx, proposal.ProposalID)
+		store.Set(keyTo, value)
+		store.Delete(keyFrom)
+	}
+}
+
+func (k Keeper) migrateActiveProposals(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{0x01})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		keyFrom, value := iterator.Key(), iterator.Value()
+		if len(keyFrom) != 17 {
+			continue
+		}
+		var proposal types.Proposal
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &proposal)
+		keyTo := types.ActiveProposalQueueKey(ctx, proposal.ProposalID, proposal.VotingEndBlock)
+		store.Set(keyTo, value)
+		store.Delete(keyFrom)
+	}
+}
+
+func (k Keeper) migrateInactiveProposals(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{0x02})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		keyFrom, value := iterator.Key(), iterator.Value()
+		if len(keyFrom) != 17 {
+			continue
+		}
+		var proposal types.Proposal
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &proposal)
+		keyTo := types.InactiveProposalQueueKey(ctx, proposal.ProposalID, proposal.VotingEndBlock)
+		store.Set(keyTo, value)
+		store.Delete(keyFrom)
+	}
+}
+
+func (k Keeper) migrateVotes(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{0x10})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		keyFrom, value := iterator.Key(), iterator.Value()
+		if len(keyFrom) != 29 {
+			continue
+		}
+		var vote types.Vote
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &vote)
+		keyTo := types.VoteKey(ctx, vote.ProposalID, vote.Voter)
+		store.Set(keyTo, value)
+		store.Delete(keyFrom)
+	}
+}
+
+func (k Keeper) migrateSingleRecord(ctx sdk.Context, keyFrom []byte, keyTo []byte) {
+	store := ctx.KVStore(k.storeKey)
+	value := store.Get(keyFrom)
+	if value != nil {
+		store.Set(keyTo, value)
+		store.Delete(keyFrom)
+	}
 }

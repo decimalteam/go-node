@@ -1,8 +1,12 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
 	"encoding/binary"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/coin"
 )
 
 const (
@@ -19,21 +23,33 @@ const (
 )
 
 var (
-	SwapKey   = []byte{0x50, 0x01}
-	SwapV2Key = []byte{0x50, 0x02}
-	ChainKey  = []byte{0x50, 0x03}
+	SwapKey   = []byte("swap/")       // []byte{0x50, 0x01}
+	SwapV2Key = []byte("swap/v2/")    // []byte{0x50, 0x02}
+	ChainKey  = []byte("swap/chain/") // []byte{0x50, 0x03}
 )
 
-func GetSwapKey(hash [32]byte) []byte {
-	return append(SwapKey, hash[:]...)
+func GetSwapKey(ctx sdk.Context, hash [32]byte) []byte {
+	keyPrefix := SwapKey
+	if ctx.BlockHeight() < updates.Update14Block {
+		keyPrefix = []byte{0x50, 0x01}
+	}
+	return append(keyPrefix, hash[:]...)
 }
 
-func GetSwapV2Key(hash [32]byte) []byte {
-	return append(SwapV2Key, hash[:]...)
+func GetSwapV2Key(ctx sdk.Context, hash [32]byte) []byte {
+	keyPrefix := SwapV2Key
+	if ctx.BlockHeight() < updates.Update14Block {
+		keyPrefix = []byte{0x50, 0x02}
+	}
+	return append(keyPrefix, hash[:]...)
 }
 
-func GetChainKey(chain int) []byte {
+func GetChainKey(ctx sdk.Context, chain int) []byte {
 	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, uint64(chain))
-	return append(ChainKey, buf...)
+	keyPrefix := ChainKey
+	if ctx.BlockHeight() < updates.Update14Block {
+		keyPrefix = []byte{0x50, 0x03}
+	}
+	return append(keyPrefix, buf...)
 }
