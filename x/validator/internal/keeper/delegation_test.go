@@ -64,9 +64,9 @@ func TestDelegation(t *testing.T) {
 	// test all bond retrieve capabilities
 	resBonds := types.GetBaseDelegations(keeper.GetAllDelegatorDelegations(ctx, addrDels[0]))
 	require.Equal(t, 3, len(resBonds))
-	require.True(t, bond2to1.Equal(resBonds[0]))
-	require.True(t, bond2to2.Equal(resBonds[1]))
-	require.True(t, bond2to3.Equal(resBonds[2]))
+	require.True(t, bond1to1.Equal(resBonds[0]))
+	require.True(t, bond1to2.Equal(resBonds[1]))
+	require.True(t, bond1to3.Equal(resBonds[2]))
 	allBonds := types.GetBaseDelegations(keeper.GetAllDelegations(ctx))
 	require.Equal(t, 9, len(allBonds))
 	require.True(t, bond1to1.Equal(allBonds[0]))
