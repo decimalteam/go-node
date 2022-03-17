@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"math/big"
 	"strconv"
 	"strings"
@@ -50,5 +51,5 @@ func TimeTrack(ctx sdk.Context, msg string) (sdk.Context, string, time.Time) {
 }
 
 func TimeDuration(ctx sdk.Context, msg string, start time.Time) {
-	ctx.Logger().Info("%v: %v ms\n", msg, time.Since(start).Milliseconds())
+	ctx.Logger().Info(fmt.Sprintf("%v: %v ms", msg, time.Since(start).Milliseconds()))
 }
