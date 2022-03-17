@@ -33,6 +33,18 @@ const (
 	KeyUpgradedConsState = "upgradedConsState"
 )
 
+var (
+	LegacyProposalsKeyPrefix          = []byte{0x00}
+	LegacyActiveProposalQueuePrefix   = []byte{0x01}
+	LegacyInactiveProposalQueuePrefix = []byte{0x02}
+	LegacyProposalIDKey               = []byte{0x03}
+
+	LegacyVotesKeyPrefix = []byte{0x10}
+
+	LegacyPlanPrefix = []byte{0x20}
+	LegacyDonePrefix = []byte{0x21}
+)
+
 // Keys for governance store
 // Items are stored with the following key: values
 //
@@ -46,15 +58,15 @@ const (
 //
 // - gov/votes/<proposalID_Bytes><voterAddr_Bytes>: Voter
 var (
-	ProposalsKeyPrefix          = []byte("gov/proposals/")          // []byte{0x00}
-	ActiveProposalQueuePrefix   = []byte("gov/proposals/active/")   // []byte{0x01}
-	InactiveProposalQueuePrefix = []byte("gov/proposals/inactive/") // []byte{0x02}
-	ProposalIDKey               = []byte("gov/proposals/next")      // []byte{0x03}
+	ProposalsKeyPrefix          = []byte("gov/proposals/")
+	ActiveProposalQueuePrefix   = []byte("gov/proposals/active/")
+	InactiveProposalQueuePrefix = []byte("gov/proposals/inactive/")
+	ProposalIDKey               = []byte("gov/proposals/next")
 
-	VotesKeyPrefix = []byte("gov/votes/") // []byte{0x10}
+	VotesKeyPrefix = []byte("gov/votes/")
 
-	PlanPrefix = []byte("gov/plan") // []byte{0x20}
-	DonePrefix = []byte("gov/done") // []byte{0x21}
+	PlanPrefix = []byte("gov/plan")
+	DonePrefix = []byte("gov/done")
 )
 
 // GetProposalIDBytes returns the byte representation of the proposalID
@@ -83,7 +95,7 @@ func GetProposalIDFromBytes(bz []byte) (proposalID uint64) {
 func ProposalKey(ctx sdk.Context, proposalID uint64) []byte {
 	keyPrefix := ProposalsKeyPrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x00}
+		keyPrefix = LegacyProposalsKeyPrefix
 	}
 	return append(keyPrefix, GetProposalIDBytes(proposalID)...)
 }
@@ -92,7 +104,7 @@ func ProposalKey(ctx sdk.Context, proposalID uint64) []byte {
 func ActiveProposalByTimeKey(ctx sdk.Context, endBlock uint64) []byte {
 	keyPrefix := ActiveProposalQueuePrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x01}
+		keyPrefix = LegacyActiveProposalQueuePrefix
 	}
 	return append(keyPrefix, GetBytesFromUint64(endBlock)...)
 }
@@ -106,7 +118,7 @@ func ActiveProposalQueueKey(ctx sdk.Context, proposalID uint64, endBlock uint64)
 func InactiveProposalByTimeKey(ctx sdk.Context, endBlock uint64) []byte {
 	keyPrefix := InactiveProposalQueuePrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x02}
+		keyPrefix = LegacyInactiveProposalQueuePrefix
 	}
 	return append(keyPrefix, GetBytesFromUint64(endBlock)...)
 }
@@ -120,7 +132,7 @@ func InactiveProposalQueueKey(ctx sdk.Context, proposalID uint64, endBlock uint6
 func VotesKey(ctx sdk.Context, proposalID uint64) []byte {
 	keyPrefix := VotesKeyPrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x10}
+		keyPrefix = LegacyVotesKeyPrefix
 	}
 	return append(keyPrefix, GetProposalIDBytes(proposalID)...)
 }
@@ -136,7 +148,7 @@ func VoteKey(ctx sdk.Context, proposalID uint64, voterAddr sdk.ValAddress) []byt
 func SplitProposalKey(ctx sdk.Context, key []byte) (proposalID uint64) {
 	keyPrefix := ProposalsKeyPrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x00}
+		keyPrefix = LegacyProposalsKeyPrefix
 	}
 	tail := key[len(keyPrefix):]
 	if len(tail) != 8 {
@@ -149,7 +161,7 @@ func SplitProposalKey(ctx sdk.Context, key []byte) (proposalID uint64) {
 func SplitActiveProposalQueueKey(ctx sdk.Context, key []byte) (proposalID uint64, endBlock uint64) {
 	keyPrefix := ActiveProposalQueuePrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x01}
+		keyPrefix = LegacyActiveProposalQueuePrefix
 	}
 	tail := key[len(keyPrefix):]
 	if len(tail) != 16 {
@@ -164,7 +176,7 @@ func SplitActiveProposalQueueKey(ctx sdk.Context, key []byte) (proposalID uint64
 func SplitInactiveProposalQueueKey(ctx sdk.Context, key []byte) (proposalID uint64, endBlock uint64) {
 	keyPrefix := InactiveProposalQueuePrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x02}
+		keyPrefix = LegacyInactiveProposalQueuePrefix
 	}
 	tail := key[len(keyPrefix):]
 	if len(tail) != 16 {
@@ -175,38 +187,12 @@ func SplitInactiveProposalQueueKey(ctx sdk.Context, key []byte) (proposalID uint
 	return
 }
 
-// SplitKeyDeposit split the deposits key and returns the proposal id and depositor address
-func SplitKeyDeposit(ctx sdk.Context, key []byte) (proposalID uint64, depositorAddr sdk.AccAddress) {
-	return splitKeyWithAddress(ctx, key)
-}
-
-// SplitKeyVote split the votes key and returns the proposal id and voter address
-func SplitKeyVote(ctx sdk.Context, key []byte) (proposalID uint64, voterAddr sdk.AccAddress) {
-	return splitKeyWithAddress(ctx, key)
-}
-
-// private functions
-
-func splitKeyWithAddress(ctx sdk.Context, key []byte) (proposalID uint64, addr sdk.AccAddress) {
-	keyPrefix := VotesKeyPrefix
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x10}
-	}
-	tail := key[len(keyPrefix):]
-	if len(tail) != 8+sdk.AddrLen {
-		panic(fmt.Sprintf("unexpected key length (%d)", len(key)))
-	}
-	proposalID = GetProposalIDFromBytes(key[:8])
-	addr = key[8:]
-	return
-}
-
 // PlanKey is the key under which the current plan is saved
 // We store PlanByte as a const to keep it immutable (unlike a []byte)
 func PlanKey(ctx sdk.Context) []byte {
 	keyPrefix := PlanPrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x20}
+		keyPrefix = LegacyPlanPrefix
 	}
 	return keyPrefix
 }
@@ -216,7 +202,7 @@ func PlanKey(ctx sdk.Context) []byte {
 func DoneKey(ctx sdk.Context) []byte {
 	keyPrefix := DonePrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x21}
+		keyPrefix = LegacyDonePrefix
 	}
 	return keyPrefix
 }

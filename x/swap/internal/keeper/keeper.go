@@ -98,11 +98,11 @@ func (k Keeper) MigrateToUpdatedPrefixes(ctx sdk.Context) error {
 
 func (k Keeper) migrateSwaps(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{0x50, 0x01})
+	iterator := sdk.KVStorePrefixIterator(store, types.LegacySwapKey)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		keyFrom, value := iterator.Key(), iterator.Value()
-		if len(keyFrom) != 34 {
+		if len(keyFrom) != 34 { // previous key format: 0x5001<hash_Bytes> (2+32)
 			continue
 		}
 		var swap types.Swap
@@ -115,14 +115,14 @@ func (k Keeper) migrateSwaps(ctx sdk.Context) {
 
 func (k Keeper) migrateSwapsV2(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{0x50, 0x02})
+	iterator := sdk.KVStorePrefixIterator(store, types.LegacySwapV2Key)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		keyFrom, value := iterator.Key(), iterator.Value()
-		if value == nil {
+		if value == nil { // swap v2 just stores the key with empty value
 			value = []byte{}
 		}
-		if len(keyFrom) != 34 {
+		if len(keyFrom) != 34 { // previous key format: 0x5001<hash_Bytes> (2+32)
 			continue
 		}
 		keyTo := append(types.SwapV2Key, keyFrom[2:]...)
@@ -133,11 +133,11 @@ func (k Keeper) migrateSwapsV2(ctx sdk.Context) {
 
 func (k Keeper) migrateChains(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{0x50, 0x03})
+	iterator := sdk.KVStorePrefixIterator(store, types.LegacyChainKey)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		keyFrom, value := iterator.Key(), iterator.Value()
-		if len(keyFrom) != 10 {
+		if len(keyFrom) != 10 { // previous key format: 0x5003<chainId_Bytes> (2+8)
 			continue
 		}
 		var chain types.Chain

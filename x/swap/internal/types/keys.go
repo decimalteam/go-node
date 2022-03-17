@@ -23,15 +23,21 @@ const (
 )
 
 var (
-	SwapKey   = []byte("swap/")       // []byte{0x50, 0x01}
-	SwapV2Key = []byte("swap/v2/")    // []byte{0x50, 0x02}
-	ChainKey  = []byte("swap/chain/") // []byte{0x50, 0x03}
+	LegacySwapKey   = []byte{0x50, 0x01}
+	LegacySwapV2Key = []byte{0x50, 0x02}
+	LegacyChainKey  = []byte{0x50, 0x03}
+)
+
+var (
+	SwapKey   = []byte("swap/")
+	SwapV2Key = []byte("swap/v2/")
+	ChainKey  = []byte("swap/chain/")
 )
 
 func GetSwapKey(ctx sdk.Context, hash [32]byte) []byte {
 	keyPrefix := SwapKey
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x50, 0x01}
+		keyPrefix = LegacySwapKey
 	}
 	return append(keyPrefix, hash[:]...)
 }
@@ -39,7 +45,7 @@ func GetSwapKey(ctx sdk.Context, hash [32]byte) []byte {
 func GetSwapV2Key(ctx sdk.Context, hash [32]byte) []byte {
 	keyPrefix := SwapV2Key
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x50, 0x02}
+		keyPrefix = LegacySwapV2Key
 	}
 	return append(keyPrefix, hash[:]...)
 }
@@ -49,7 +55,7 @@ func GetChainKey(ctx sdk.Context, chain int) []byte {
 	binary.BigEndian.PutUint64(buf, uint64(chain))
 	keyPrefix := ChainKey
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x50, 0x03}
+		keyPrefix = LegacyChainKey
 	}
 	return append(keyPrefix, buf...)
 }

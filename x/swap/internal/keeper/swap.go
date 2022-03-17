@@ -34,7 +34,7 @@ func (k Keeper) GetAllSwaps(ctx sdk.Context) types.Swaps {
 	store := ctx.KVStore(k.storeKey)
 	keyPrefix := types.SwapKey
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x50, 0x01}
+		keyPrefix = types.LegacySwapKey
 	}
 	iterator := sdk.KVStorePrefixIterator(store, keyPrefix)
 	defer iterator.Close()

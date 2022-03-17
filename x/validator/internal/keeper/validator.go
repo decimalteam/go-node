@@ -301,16 +301,19 @@ func (k Keeper) UnbondAllMatureValidatorQueue(ctx sdk.Context) {
 		for _, valAddr := range timeslice {
 			val, err := k.GetValidator(ctx, valAddr)
 			if err != nil {
+				ctx.Logger().Debug("unable to retrieve validator: %s\n", err)
 				continue
 			}
 
 			val, err = k.unbondingToUnbonded(ctx, val)
 			if err != nil {
+				ctx.Logger().Debug("unable to unbond validator: %s\n", err)
 				continue
 			}
 			if val.Tokens.IsZero() {
 				err = k.RemoveValidator(ctx, val.ValAddress)
 				if err != nil {
+					ctx.Logger().Debug("unable to remove validator: %s\n", err)
 					continue
 				}
 			}

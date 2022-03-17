@@ -320,10 +320,10 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 		return
 	}
 
-	for _, delegation := range delegations {
-		if ctx.BlockHeight() < updts.Update11Block {
+	if ctx.BlockHeight() < updts.Update11Block {
+		for i, delegation := range delegations {
 			if _, ok := k.CoinKeeper.GetCoinsCache()[delegation.GetCoin().Denom]; ok {
-				delegation.SetTokensBase(k.CalcTokensBase(ctx, delegation))
+				delegations[i] = delegation.SetTokensBase(k.CalcTokensBase(ctx, delegation))
 			}
 		}
 	}

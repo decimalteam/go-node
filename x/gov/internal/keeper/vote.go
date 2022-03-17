@@ -80,7 +80,7 @@ func (keeper Keeper) IterateAllVotes(ctx sdk.Context, cb func(vote types.Vote) (
 	store := ctx.KVStore(keeper.storeKey)
 	keyPrefix := types.VotesKeyPrefix
 	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = []byte{0x10}
+		keyPrefix = types.LegacyVotesKeyPrefix
 	}
 	iterator := sdk.KVStorePrefixIterator(store, keyPrefix)
 
