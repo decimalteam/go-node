@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	ncfg "bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -19,6 +20,15 @@ var (
 )
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
+	// Migrate state to updated prefixes if necessary
+	if ctx.BlockHeight() == updates.Update14Block {
+		err := k.MigrateToUpdatedPrefixes(ctx)
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("failed migrate to updated prefixes: %v", err))
+			os.Exit(4)
+		}
+	}
+
 	plan, found := k.GetUpgradePlan(ctx)
 	if !found {
 		return

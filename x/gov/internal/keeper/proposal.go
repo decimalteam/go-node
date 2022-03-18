@@ -3,8 +3,10 @@ package keeper
 import (
 	"fmt"
 
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 )
 
 // SubmitProposal create new proposal given a content
@@ -33,7 +35,11 @@ func (keeper Keeper) SubmitProposal(ctx sdk.Context, content types.Content, voti
 // GetProposalID gets the highest proposal ID
 func (keeper Keeper) GetProposalID(ctx sdk.Context) (proposalID uint64, err error) {
 	store := ctx.KVStore(keeper.storeKey)
-	bz := store.Get(types.ProposalIDKey)
+	keyPrefix := types.ProposalIDKey
+	if ctx.BlockHeight() < updates.Update14Block {
+		keyPrefix = types.LegacyProposalIDKey
+	}
+	bz := store.Get(keyPrefix)
 	if bz == nil {
 		return 0, types.ErrInvalidGenesis()
 	}
@@ -45,13 +51,17 @@ func (keeper Keeper) GetProposalID(ctx sdk.Context) (proposalID uint64, err erro
 // SetProposalID sets the new proposal ID to the store
 func (keeper Keeper) SetProposalID(ctx sdk.Context, proposalID uint64) {
 	store := ctx.KVStore(keeper.storeKey)
-	store.Set(types.ProposalIDKey, types.GetProposalIDBytes(proposalID))
+	keyPrefix := types.ProposalIDKey
+	if ctx.BlockHeight() < updates.Update14Block {
+		keyPrefix = types.LegacyProposalIDKey
+	}
+	store.Set(keyPrefix, types.GetProposalIDBytes(proposalID))
 }
 
 // GetProposal get proposal from store by ProposalID
 func (keeper Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (proposal types.Proposal, ok bool) {
 	store := ctx.KVStore(keeper.storeKey)
-	bz := store.Get(types.ProposalKey(proposalID))
+	bz := store.Get(types.ProposalKey(ctx, proposalID))
 	if bz == nil {
 		return
 	}
@@ -63,7 +73,7 @@ func (keeper Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (proposal t
 func (keeper Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
 	store := ctx.KVStore(keeper.storeKey)
 	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(proposal)
-	store.Set(types.ProposalKey(proposal.ProposalID), bz)
+	store.Set(types.ProposalKey(ctx, proposal.ProposalID), bz)
 }
 
 // DeleteProposal deletes a proposal from store
@@ -75,13 +85,17 @@ func (keeper Keeper) DeleteProposal(ctx sdk.Context, proposalID uint64) {
 	}
 	keeper.RemoveFromInactiveProposalQueue(ctx, proposalID, proposal.VotingStartBlock)
 	keeper.RemoveFromActiveProposalQueue(ctx, proposalID, proposal.VotingEndBlock)
-	store.Delete(types.ProposalKey(proposalID))
+	store.Delete(types.ProposalKey(ctx, proposalID))
 }
 
 // IterateProposals iterates over the all the proposals and performs a callback function
 func (keeper Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposal) (stop bool)) {
 	store := ctx.KVStore(keeper.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ProposalsKeyPrefix)
+	keyPrefix := types.ProposalsKeyPrefix
+	if ctx.BlockHeight() < updates.Update14Block {
+		keyPrefix = types.LegacyProposalsKeyPrefix
+	}
+	iterator := sdk.KVStorePrefixIterator(store, keyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
