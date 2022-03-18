@@ -1,10 +1,11 @@
 package ante
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils"
-	"bitbucket.org/decimalteam/go-node/utils/ante/internal/types"
 	"fmt"
 	"strings"
+
+	"bitbucket.org/decimalteam/go-node/utils"
+	"bitbucket.org/decimalteam/go-node/utils/ante/internal/types"
 
 	"bitbucket.org/decimalteam/go-node/x/swap"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -37,7 +38,7 @@ func NewAnteHandler(ak keeper.AccountKeeper, vk validator.Keeper, ck coin.Keeper
 		ante.NewValidateSigCountDecorator(ak),
 		NewFeeDecorator(ck, sk, ak, vk),
 		ante.NewSigGasConsumeDecorator(ak, consumer),
-		ante.NewSigVerificationDecorator(ak),
+		NewSigVerificationDecorator(ak),
 		NewPostCreateAccountDecorator(ak),      // should be after SigVerificationDecorator
 		ante.NewIncrementSequenceDecorator(ak), // innermost AnteDecorator
 	)
