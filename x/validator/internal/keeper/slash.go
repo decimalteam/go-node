@@ -368,7 +368,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	switch missed {
 	case true:
 		// If in grace period then pass missing block
-		if inGracePeriod(ctx) {
+		if inGracePeriod(ctx, ncfg.UpdatesInfo) {
 			// log.Println(consAddr.String())
 			ctx.Logger().Info(
 				fmt.Sprintf("Missed block in grace period (%s)", validator.ValAddress))
@@ -383,7 +383,7 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		// If in grace perid and missed > 0 then missed = missed - 1
 		// If missed in bit array and missed > 0 then missed = missed - 1
 		grMissedBlocks := signInfo.MissedBlocksCounter > 0
-		if (inGracePeriod(ctx) && grMissedBlocks) || (missedInWindow && grMissedBlocks) {
+		if (inGracePeriod(ctx, ncfg.UpdatesInfo) && grMissedBlocks) || (missedInWindow && grMissedBlocks) {
 			k.setValidatorMissedBlockBitArray(ctx, consAddr, index, false)
 			signInfo.MissedBlocksCounter--
 		}
@@ -601,11 +601,18 @@ func (k Keeper) setAddrPubkeyRelation(ctx sdk.Context, addr crypto.Address, pubk
 	store.Set(types.GetAddrPubkeyRelationKey(addr), bz)
 }
 
-func inGracePeriod(ctx sdk.Context) bool {
-	var (
-		height           = ctx.BlockHeight()
-		gracePeriodStart = ncfg.UpdatesInfo.LastBlock
-		gracePeriodEnd   = gracePeriodStart + (ncfg.OneHour * 24 * 4)
-	)
-	return height >= gracePeriodStart && height <= gracePeriodEnd
+func inGracePeriod(ctx sdk.Context, updatesInfo *ncfg.UpdatesInfoStruct) bool {
+	currentHeight := ctx.BlockHeight()
+	gracePeriodStart := updatesInfo.LastBlock
+	gracePeriodEnd := gracePeriodStart + ncfg.GracePeriod
+	if (currentHeight >= gracePeriodStart) && (currentHeight <= gracePeriodEnd) {
+		return true
+	}
+	for _, gracePeriodStart = range updatesInfo.AllBlocks {
+		gracePeriodEnd = gracePeriodStart + ncfg.GracePeriod
+		if (currentHeight >= gracePeriodStart) && (currentHeight <= gracePeriodEnd) {
+			return true
+		}
+	}
+	return false
 }
