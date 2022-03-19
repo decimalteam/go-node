@@ -12,7 +12,7 @@ import (
 const (
 
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "1.2.10"
+	DecimalVersion = "1.2.11"
 
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
@@ -51,9 +51,8 @@ const (
 )
 
 var (
-	ConfigPath = fmt.Sprintf("%s/.decimal/daemon/config", os.Getenv("HOME"))
-	DataPath   = fmt.Sprintf("%s/.decimal/daemon/data", os.Getenv("HOME"))
-	NameFiles  = []string{"decd", "deccli"}
+	DataPath  = fmt.Sprintf("%s/.decimal/daemon/data", os.Getenv("HOME"))
+	NameFiles = []string{"decd", "deccli"}
 )
 
 var (
