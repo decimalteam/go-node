@@ -26,7 +26,7 @@ import (
 
 // Ante
 func NewAnteHandler(ak keeper.AccountKeeper, vk validator.Keeper, ck coin.Keeper, sk supply.Keeper, consumer ante.SignatureVerificationGasConsumer) sdk.AnteHandler {
-	return sdk.ChainAnteDecorators(
+	return sdkErrorConverter(sdk.ChainAnteDecorators(
 		NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		NewCountMsgDecorator(),
 		ante.NewMempoolFeeDecorator(),
@@ -41,7 +41,7 @@ func NewAnteHandler(ak keeper.AccountKeeper, vk validator.Keeper, ck coin.Keeper
 		NewSigVerificationDecorator(ak),
 		NewPostCreateAccountDecorator(ak),      // should be after SigVerificationDecorator
 		ante.NewIncrementSequenceDecorator(ak), // innermost AnteDecorator
-	)
+	))
 }
 
 var (
