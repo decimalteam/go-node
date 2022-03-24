@@ -19,11 +19,19 @@ var (
 )
 
 func BeginBlocker(ctx sdk.Context, k Keeper) {
+	// Migrate state to updated prefixes if necessary
+	if !k.IsMigratedToUpdatedPrefixes(ctx) {
+		err := k.MigrateToUpdatedPrefixes(ctx)
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("failed migrate to updated prefixes: %v", err))
+			os.Exit(4)
+		}
+	}
+
 	plan, found := k.GetUpgradePlan(ctx)
 	if !found {
 		return
 	}
-
 
 	if ctx.BlockHeight() > plan.Height {
 		nextVersion := loadVersion(plan.Name)
