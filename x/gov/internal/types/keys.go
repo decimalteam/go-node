@@ -1,11 +1,12 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
 	"encoding/binary"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"bitbucket.org/decimalteam/go-node/x/coin"
 )
 
 const (
@@ -31,28 +32,43 @@ const (
 	KeyUpgradedConsState = "upgradedConsState"
 )
 
+var (
+	LegacyProposalsKeyPrefix          = []byte{0x00}
+	LegacyActiveProposalQueuePrefix   = []byte{0x01}
+	LegacyInactiveProposalQueuePrefix = []byte{0x02}
+	LegacyProposalIDKey               = []byte{0x03}
+
+	LegacyVotesKeyPrefix = []byte{0x10}
+
+	LegacyPlanPrefix = []byte{0x20}
+	LegacyDonePrefix = []byte{0x21}
+
+	// This is special key used to determine if kv-records are migrated to keys with correct prefixes
+	LegacyMigrationKey = []byte("gov/migrated")
+)
+
 // Keys for governance store
 // Items are stored with the following key: values
 //
-// - 0x00<proposalID_Bytes>: Proposal
+// - gov/proposals/<proposalID_Bytes>: Proposal
 //
-// - 0x01<endTime_Bytes><proposalID_Bytes>: activeProposalID
+// - gov/proposals/active/<endTime_Bytes><proposalID_Bytes>: activeProposalID
 //
-// - 0x02<endTime_Bytes><proposalID_Bytes>: inactiveProposalID
+// - gov/proposals/inactive/<endTime_Bytes><proposalID_Bytes>: inactiveProposalID
 //
-// - 0x03: nextProposalID
+// - gov/proposals/next: nextProposalID
 //
-// - 0x10<proposalID_Bytes><voterAddr_Bytes>: Voter
+// - gov/votes/<proposalID_Bytes><voterAddr_Bytes>: Voter
 var (
-	ProposalsKeyPrefix          = []byte{0x00}
-	ActiveProposalQueuePrefix   = []byte{0x01}
-	InactiveProposalQueuePrefix = []byte{0x02}
-	ProposalIDKey               = []byte{0x03}
+	ProposalsKeyPrefix          = []byte("gov/proposals/")
+	ActiveProposalQueuePrefix   = []byte("gov/proposals/active/")
+	InactiveProposalQueuePrefix = []byte("gov/proposals/inactive/")
+	ProposalIDKey               = []byte("gov/proposals/next")
 
-	VotesKeyPrefix = []byte{0x10}
+	VotesKeyPrefix = []byte("gov/votes/")
 
-	PlanPrefix = []byte{0x20}
-	DoneByte   = []byte{0x21}
+	PlanPrefix = []byte("gov/plan")
+	DonePrefix = []byte("gov/done")
 )
 
 // GetProposalIDBytes returns the byte representation of the proposalID
@@ -116,53 +132,32 @@ func VoteKey(proposalID uint64, voterAddr sdk.ValAddress) []byte {
 
 // SplitProposalKey split the proposal key and returns the proposal id
 func SplitProposalKey(key []byte) (proposalID uint64) {
-	if len(key[1:]) != 8 {
-		panic(fmt.Sprintf("unexpected key length (%d ≠ 8)", len(key[1:])))
+	tail := key[len(ProposalsKeyPrefix):]
+	if len(tail) != 8 {
+		panic(fmt.Sprintf("unexpected key length (%d)", len(key)))
 	}
-
-	return GetProposalIDFromBytes(key[1:])
+	return GetProposalIDFromBytes(tail)
 }
 
 // SplitActiveProposalQueueKey split the active proposal key and returns the proposal id and endBlock
 func SplitActiveProposalQueueKey(key []byte) (proposalID uint64, endBlock uint64) {
-	return splitKeyWithTime(key)
+	tail := key[len(ActiveProposalQueuePrefix):]
+	if len(tail) != 16 {
+		panic(fmt.Sprintf("unexpected key length (%d)", len(key)))
+	}
+	endBlock = GetUint64FromBytes(tail[:8])
+	proposalID = GetProposalIDFromBytes(tail[8:])
+	return
 }
 
 // SplitInactiveProposalQueueKey split the inactive proposal key and returns the proposal id and endBlock
 func SplitInactiveProposalQueueKey(key []byte) (proposalID uint64, endBlock uint64) {
-	return splitKeyWithTime(key)
-}
-
-// SplitKeyDeposit split the deposits key and returns the proposal id and depositor address
-func SplitKeyDeposit(key []byte) (proposalID uint64, depositorAddr sdk.AccAddress) {
-	return splitKeyWithAddress(key)
-}
-
-// SplitKeyVote split the votes key and returns the proposal id and voter address
-func SplitKeyVote(key []byte) (proposalID uint64, voterAddr sdk.AccAddress) {
-	return splitKeyWithAddress(key)
-}
-
-// private functions
-
-func splitKeyWithTime(key []byte) (proposalID uint64, endBlock uint64) {
-	if len(key) != 17 {
-		panic(fmt.Sprintf("unexpected key length %d %v", len(key), key))
+	tail := key[len(InactiveProposalQueuePrefix):]
+	if len(tail) != 16 {
+		panic(fmt.Sprintf("unexpected key length (%d)", len(key)))
 	}
-
-	endBlock = GetUint64FromBytes(key[1:9])
-	proposalID = GetProposalIDFromBytes(key[9:])
-
-	return
-}
-
-func splitKeyWithAddress(key []byte) (proposalID uint64, addr sdk.AccAddress) {
-	if len(key[1:]) != 8+sdk.AddrLen {
-		panic(fmt.Sprintf("unexpected key length (%d ≠ %d)", len(key), 8+sdk.AddrLen))
-	}
-
-	proposalID = GetProposalIDFromBytes(key[1:9])
-	addr = key[9:]
+	endBlock = GetUint64FromBytes(tail[:8])
+	proposalID = GetProposalIDFromBytes(tail[8:])
 	return
 }
 
@@ -170,6 +165,12 @@ func splitKeyWithAddress(key []byte) (proposalID uint64, addr sdk.AccAddress) {
 // We store PlanByte as a const to keep it immutable (unlike a []byte)
 func PlanKey() []byte {
 	return PlanPrefix
+}
+
+// DoneKey is the key at which the given upgrade was executed
+// We store DoneKey as a const to keep it immutable (unlike a []byte)
+func DoneKey() []byte {
+	return DonePrefix
 }
 
 func UpgradedClientKey(height int64) []byte {

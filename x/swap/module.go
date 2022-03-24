@@ -3,19 +3,22 @@ package swap
 // DONTCOVER
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/swap/client/cli"
-	"bitbucket.org/decimalteam/go-node/x/swap/client/rest"
-	"bitbucket.org/decimalteam/go-node/x/swap/internal/keeper"
 	"encoding/json"
 	"fmt"
+
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
+
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	abci "github.com/tendermint/tendermint/abci/types"
+
+	"bitbucket.org/decimalteam/go-node/x/swap/client/cli"
+	"bitbucket.org/decimalteam/go-node/x/swap/client/rest"
+	"bitbucket.org/decimalteam/go-node/x/swap/internal/keeper"
 )
 
 var (
@@ -132,7 +135,9 @@ func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 }
 
 // BeginBlock performs a no-op.
-func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
+func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+	BeginBlocker(ctx, am.keeper)
+}
 
 // EndBlock returns the end blocker for the gov module. It returns no validator
 // updates.

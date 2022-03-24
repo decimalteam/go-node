@@ -1,18 +1,17 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bytes"
 	"errors"
 	"fmt"
-	"runtime/debug"
 	"strings"
-	"sync"
 	"time"
 
-	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"bitbucket.org/decimalteam/go-node/utils/formulas"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 // get a single validator
@@ -86,7 +85,24 @@ func (k Keeper) SetValidatorByPowerIndex(ctx sdk.Context, validator types.Valida
 	if err != nil {
 		panic(err)
 	}
-	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, power), validator.ValAddress)
+	key := types.GetValidatorsByPowerIndexKey(validator, power)
+	ctx.KVStore(k.storeKey).Set(key, validator.ValAddress)
+}
+
+// validator index
+func (k Keeper) SetValidatorByPowerIndexWithCalc(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) {
+	// jailed validators are not kept in the power index
+	if validator.Jailed {
+		return
+	}
+	power := k.CalcTotalStake(ctx, validator, delegations)
+	validator.Tokens = power
+	err := k.SetValidator(ctx, validator)
+	if err != nil {
+		panic(err)
+	}
+	key := types.GetValidatorsByPowerIndexKey(validator, power)
+	ctx.KVStore(k.storeKey).Set(key, validator.ValAddress)
 }
 
 // validator index
@@ -95,12 +111,15 @@ func (k Keeper) SetValidatorByPowerIndexWithoutCalc(ctx sdk.Context, validator t
 	if validator.Jailed {
 		return
 	}
-	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, validator.Tokens), validator.ValAddress)
+	key := types.GetValidatorsByPowerIndexKey(validator, validator.Tokens)
+	ctx.KVStore(k.storeKey).Set(key, validator.ValAddress)
 }
 
 // validator index
 func (k Keeper) SetNewValidatorByPowerIndex(ctx sdk.Context, validator types.Validator) {
-	ctx.KVStore(k.storeKey).Set(types.GetValidatorsByPowerIndexKey(validator, k.TotalStake(ctx, validator)), validator.ValAddress)
+	power := k.TotalStake(ctx, validator)
+	key := types.GetValidatorsByPowerIndexKey(validator, power)
+	ctx.KVStore(k.storeKey).Set(key, validator.ValAddress)
 }
 
 func (k Keeper) GetAllValidatorsByPowerIndex(ctx sdk.Context) []types.Validator {
@@ -135,50 +154,38 @@ func (k Keeper) GetAllValidatorsByPowerIndexReversed(ctx sdk.Context) []types.Va
 	return validators
 }
 
+// TotalStake requests all delegations for all validators and calculate total stake for specified validator.
+// NOTE: Since the method iterates through all delegations of all validators use it very carefully.
 func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
-	total := sdk.ZeroInt()
 	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
-	mutex := sync.Mutex{}
-	eventMutex := sync.Mutex{}
-	wg := sync.WaitGroup{}
-	wg.Add(len(delegations))
+	return k.CalcTotalStake(ctx, validator, delegations)
+}
+
+func (k Keeper) CalcTotalStake(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) sdk.Int {
+	total := sdk.ZeroInt()
 	for _, del := range delegations {
-		go func(del exported.DelegationI) {
-			defer wg.Done()
-			defer func() {
-				if r := recover(); r != nil {
-					ctx.Logger().Debug("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
-				}
-			}()
-			if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
-				del = del.SetTokensBase(del.GetCoin().Amount)
+		if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
+			del = del.SetTokensBase(del.GetCoin().Amount)
+		}
+		if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
+			del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
+			ctx.EventManager().EmitEvent(sdk.NewEvent(
+				types.EventTypeCalcStake,
+				sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
+				sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
+				sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
+			))
+			switch del := del.(type) {
+			case types.Delegation:
+				k.SetDelegation(ctx, del)
+			case types.DelegationNFT:
+				k.SetDelegationNFT(ctx, del)
 			}
-			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
-				del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
-
-				eventMutex.Lock()
-				ctx.EventManager().EmitEvent(sdk.NewEvent(
-					types.EventTypeCalcStake,
-					sdk.NewAttribute(types.AttributeKeyValidator, validator.ValAddress.String()),
-					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
-					sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().String()),
-					sdk.NewAttribute(types.AttributeKeyStake, del.GetTokensBase().String()),
-				))
-				eventMutex.Unlock()
-				switch del := del.(type) {
-				case types.Delegation:
-					k.SetDelegation(ctx, del)
-				case types.DelegationNFT:
-					k.SetDelegationNFT(ctx, del)
-				}
-
-			}
-			mutex.Lock()
-			total = total.Add(del.GetTokensBase())
-			mutex.Unlock()
-		}(del)
+		}
+		total = total.Add(del.GetTokensBase())
 	}
-	wg.Wait()
+
 	return total
 }
 
@@ -278,15 +285,21 @@ func (k Keeper) UnbondAllMatureValidatorQueue(ctx sdk.Context) {
 		for _, valAddr := range timeslice {
 			val, err := k.GetValidator(ctx, valAddr)
 			if err != nil {
+				ctx.Logger().Debug("unable to retrieve validator: %s\n", err)
 				continue
 			}
 
 			val, err = k.unbondingToUnbonded(ctx, val)
 			if err != nil {
+				ctx.Logger().Debug("unable to unbond validator: %s\n", err)
 				continue
 			}
 			if val.Tokens.IsZero() {
 				err = k.RemoveValidator(ctx, val.ValAddress)
+				if err != nil {
+					ctx.Logger().Debug("unable to remove validator: %s\n", err)
+					continue
+				}
 			}
 		}
 
@@ -476,6 +489,7 @@ func (k Keeper) GetValidators(ctx sdk.Context, maxRetrieve uint16) (validators [
 }
 
 func (k Keeper) IsDelegatorStakeSufficient(ctx sdk.Context, validator types.Validator, delAddr sdk.AccAddress, stake sdk.Coin) (bool, error) {
+	// TODO: Optimize
 	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
 	if uint16(len(delegations)) < k.MaxDelegations(ctx) {
 		return true, nil
@@ -511,9 +525,9 @@ func (k Keeper) CalculateBipValue(ctx sdk.Context, value sdk.Coin, includeSelf b
 	}
 
 	validators := k.GetAllValidators(ctx)
+	stakes := k.GetAllDelegationsByValidator(ctx)
 	for _, validator := range validators {
-		stakes := k.GetValidatorDelegations(ctx, validator.ValAddress)
-		for _, stake := range stakes {
+		for _, stake := range stakes[validator.ValAddress.String()] {
 			if stake.GetCoin().Denom == value.Denom {
 				totalAmount = totalAmount.Add(stake.GetCoin().Amount)
 			}
