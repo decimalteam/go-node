@@ -1,8 +1,9 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
+
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -32,7 +33,6 @@ func ErrFeePayerAddressDoesNotExist(feePayer string) *sdkerrors.Error {
 		DefaultRootCodespace,
 		CodeFeePayerAddressDoesNotExist,
 		fmt.Sprintf("fee payer address does not exist: %s", feePayer),
-		errors.NewParam("feePayer", feePayer),
 	)
 }
 
@@ -41,8 +41,6 @@ func ErrFeeLessThanCommission(feeInBaseCoin, commissionInBaseCoin string) *sdker
 		DefaultRootCodespace,
 		CodeFeeLessThanCommission,
 		fmt.Sprintf("insufficient funds to pay for fees; %s < %s", feeInBaseCoin, commissionInBaseCoin),
-		errors.NewParam("feeInBaseCoin", feeInBaseCoin),
-		errors.NewParam("commissionInBaseCoin", commissionInBaseCoin),
 	)
 }
 
@@ -51,7 +49,6 @@ func ErrFailedToSendCoins(err string) *sdkerrors.Error {
 		DefaultRootCodespace,
 		CodeFailedToSendCoins,
 		fmt.Sprintf("failed to send coins: %s", err),
-		errors.NewParam("error", err),
 	)
 }
 
@@ -60,8 +57,6 @@ func ErrInsufficientFundsToPayFee(coins, fee string) *sdkerrors.Error {
 		DefaultRootCodespace,
 		CodeInsufficientFundsToPayFee,
 		fmt.Sprintf("insufficient funds to pay for fee; %s < %s", coins, fee),
-		errors.NewParam("coins", coins),
-		errors.NewParam("fee", fee),
 	)
 }
 
@@ -70,7 +65,6 @@ func ErrInvalidFeeAmount(fee string) *sdkerrors.Error {
 		DefaultRootCodespace,
 		CodeInvalidFeeAmount,
 		"invalid fee amount",
-		errors.NewParam("fee", fee),
 	)
 }
 
@@ -79,7 +73,6 @@ func ErrCoinDoesNotExist(feeDenom string) *sdkerrors.Error {
 		DefaultRootCodespace,
 		CodeCoinDoesNotExist,
 		fmt.Sprintf("coin not exist: %s", feeDenom),
-		errors.NewParam("feeDenom", feeDenom),
 	)
 }
 
@@ -112,9 +105,6 @@ func ErrOutOfGas(location, gasWanted, gasUsed string) *sdkerrors.Error {
 		DefaultRootCodespace,
 		CodeOutOfGas,
 		fmt.Sprintf("out of gas in location: %v; gasWanted: %s, gasUsed: %s", location, gasWanted, gasUsed),
-		errors.NewParam("location", location),
-		errors.NewParam("gasWanted", gasWanted),
-		errors.NewParam("gasUsed", gasUsed),
 	)
 }
 

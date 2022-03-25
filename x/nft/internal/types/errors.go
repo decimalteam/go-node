@@ -1,8 +1,9 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
+
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -32,8 +33,8 @@ const (
 	CodeForbiddenToTransferToYourself CodeType = 118
 	CodeNotUniqueTokenID              CodeType = 119
 	CodeNotAllowedUpdateNFTReserve    CodeType = 120
-	CodeNotSetValueLowerNow			  CodeType = 121
-	CodeNotEnoughFunds				  CodeType = 122
+	CodeNotSetValueLowerNow           CodeType = 121
+	CodeNotEnoughFunds                CodeType = 122
 )
 
 func ErrInvalidCollection(denom string) *sdkerrors.Error {
@@ -41,7 +42,6 @@ func ErrInvalidCollection(denom string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidCollection,
 		fmt.Sprintf("invalid NFT collection: %s", denom),
-		errors.NewParam("denom", denom),
 	)
 }
 
@@ -50,7 +50,6 @@ func ErrUnknownCollection(denom string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeUnknownCollection,
 		fmt.Sprintf("unknown NFT collection: %s", denom),
-		errors.NewParam("denom", denom),
 	)
 }
 
@@ -59,7 +58,6 @@ func ErrInvalidNFT(id string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidNFT,
 		fmt.Sprintf("invalid NFT: %s", id),
-		errors.NewParam("id", id),
 	)
 }
 
@@ -68,8 +66,6 @@ func ErrUnknownNFT(denom string, id string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeUnknownNFT,
 		fmt.Sprintf("unknown NFT: denom = %s, tokenID = %s", denom, id),
-		errors.NewParam("id", id),
-		errors.NewParam("denom", denom),
 	)
 }
 
@@ -78,7 +74,6 @@ func ErrNFTAlreadyExists(id string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeNFTAlreadyExists,
 		fmt.Sprintf("NFT with ID = %s already exists", id),
-		errors.NewParam("id", id),
 	)
 }
 
@@ -95,7 +90,6 @@ func ErrInvalidQuantity(quantity string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidQuantity,
 		fmt.Sprintf("invalid NFT quantity: %s", quantity),
-		errors.NewParam("quantity", quantity),
 	)
 }
 
@@ -104,7 +98,6 @@ func ErrInvalidReserve(reserve string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidReserve,
 		fmt.Sprintf("invalid NFT reserve: %s", reserve),
-		errors.NewParam("reserve", reserve),
 	)
 }
 
@@ -132,7 +125,6 @@ func ErrNotAllowedUpdateReserve() *sdkerrors.Error {
 	)
 }
 
-
 func ErrNotAllowedMint() *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
@@ -146,7 +138,6 @@ func ErrInvalidDenom(denom string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidDenom,
 		fmt.Sprintf("invalid denom name: %s", denom),
-		errors.NewParam("denom", denom),
 	)
 }
 
@@ -155,7 +146,6 @@ func ErrInvalidTokenID(name string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidTokenID,
 		fmt.Sprintf("invalid token name: %s", name),
-		errors.NewParam("name", name),
 	)
 }
 
@@ -188,8 +178,6 @@ func ErrOwnerDoesNotOwnSubTokenID(owner string, subTokenID string) *sdkerrors.Er
 		DefaultCodespace,
 		CodeOwnerDoesNotOwnSubTokenID,
 		fmt.Sprintf("owner %s does not own sub tokenID %s", owner, subTokenID),
-		errors.NewParam("owner", owner),
-		errors.NewParam("sub_token_id", subTokenID),
 	)
 }
 
@@ -198,7 +186,6 @@ func ErrInvalidSenderAddress(address string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidSenderAddress,
 		fmt.Sprintf("invalid sender address: %s", address),
-		errors.NewParam("address", address),
 	)
 }
 
@@ -207,7 +194,6 @@ func ErrInvalidRecipientAddress(address string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidRecipientAddress,
 		fmt.Sprintf("invalid recipient address: %s", address),
-		errors.NewParam("address", address),
 	)
 }
 
@@ -223,7 +209,6 @@ func ErrNotEnoughFunds(reserve string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
 		CodeNotEnoughFunds,
-		fmt.Sprintf("Insufficient funds are required: %s",reserve),
-		errors.NewParam("reserve", reserve),
+		fmt.Sprintf("Insufficient funds are required: %s", reserve),
 	)
 }

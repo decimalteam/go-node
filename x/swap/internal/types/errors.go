@@ -1,8 +1,9 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
+
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -43,7 +44,6 @@ func ErrSwapAlreadyExist(hash string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeSwapAlreadyExist,
 		fmt.Sprintf(`swap with hash %s already exist`, hash),
-		errors.NewParam("hash", hash),
 	)
 }
 
@@ -52,8 +52,6 @@ func ErrFromFieldNotEqual(fromMsg string, fromSwap string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeFromFieldNotEqual,
 		fmt.Sprintf(`'from' field not equal: %s != %s`, fromMsg, fromSwap),
-		errors.NewParam("fromMsg", fromMsg),
-		errors.NewParam("fromSwap", fromSwap),
 	)
 }
 
@@ -102,7 +100,6 @@ func ErrChainNotExist(chain string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeChainNotExist,
 		fmt.Sprintf("chain %s does not exist", chain),
-		errors.NewParam("chain", chain),
 	)
 }
 
@@ -111,8 +108,6 @@ func ErrInvalidServiceAddress(want string, receive string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidServiceAddress,
 		fmt.Sprintf("invalid service address: want = %s, receive = %s", want, receive),
-		errors.NewParam("want", want),
-		errors.NewParam("receive", receive),
 	)
 }
 
@@ -121,8 +116,6 @@ func ErrInsufficientPoolFunds(want string, exists string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInsufficientPoolFunds,
 		fmt.Sprintf("insufficient pool funds: want = %s, exists = %s", want, exists),
-		errors.NewParam("want", want),
-		errors.NewParam("exists", exists),
 	)
 }
 

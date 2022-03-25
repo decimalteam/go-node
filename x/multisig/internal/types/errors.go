@@ -1,8 +1,9 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
+
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -46,8 +47,6 @@ func ErrInvalidOwnerCount(more bool) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidOwnerCount,
 		fmt.Sprintf("Invalid owner count: %s %s owners", AppendWord, ownerCount),
-		errors.NewParam("AppendWord", AppendWord),
-		errors.NewParam("ownerCount", ownerCount),
 	)
 }
 
@@ -64,8 +63,6 @@ func ErrInvalidWeightCount(LenMsgWeights string, LenMsgOwners string) *sdkerrors
 		DefaultCodespace,
 		CodeInvalidWeightCount,
 		fmt.Sprintf("Invalid weight count: weight count (%s) is not equal to owner count (%s)", LenMsgWeights, LenMsgOwners),
-		errors.NewParam("LenMsgWeights", LenMsgWeights),
-		errors.NewParam("LenMsgOwners", LenMsgOwners),
 	)
 }
 
@@ -74,8 +71,6 @@ func ErrInvalidWeight(weight string, data string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidWeight,
 		fmt.Sprintf("Invalid weight: weight cannot be %s than %s", data, weight),
-		errors.NewParam("data", data),
-		errors.NewParam("weight", weight),
 	)
 }
 func ErrInvalidCoinToSend(denom string) *sdkerrors.Error {
@@ -83,7 +78,6 @@ func ErrInvalidCoinToSend(denom string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidCoinToSend,
 		fmt.Sprintf("Coin to send with symbol %s does not exist", denom),
-		errors.NewParam("denom", denom),
 	)
 }
 
@@ -100,7 +94,6 @@ func ErrInsufficientFunds(funds string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInsufficientFunds,
 		fmt.Sprintf("Insufficient funds: wanted = %s", funds),
-		errors.NewParam("funds", funds),
 	)
 }
 
@@ -109,6 +102,5 @@ func ErrDuplicateOwner(address string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeDuplicateOwner,
 		fmt.Sprintf("Invalid owners: owner with address %s is duplicated", address),
-		errors.NewParam("address", address),
 	)
 }
