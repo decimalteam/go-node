@@ -100,7 +100,8 @@ func handleSoftwareUpgradeProposal(ctx sdk.Context, k Keeper, p types.MsgSoftwar
 		return nil, err
 	}
 
-	err = ncfg.UpdatesInfo.Push(p.Plan.Height)
+	ncfg.UpdatesInfo.PushNewPlanHeight(p.Plan.Height)
+	err = ncfg.UpdatesInfo.Save()
 	if err != nil {
 		ctx.Logger().Error(fmt.Sprintf("push plan \"%s\" with error: %s", p.Plan.Name, err.Error()))
 	}
