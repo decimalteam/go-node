@@ -1,8 +1,9 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/utils/errors"
 	"fmt"
+
+	"bitbucket.org/decimalteam/go-node/utils/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -43,7 +44,6 @@ func ErrUnknownProposal(proposalID string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeUnknownProposal,
 		fmt.Sprintf("unknown proposal: %s", proposalID),
-		errors.NewParam("proposalID", proposalID),
 	)
 }
 
@@ -52,7 +52,6 @@ func ErrInactiveProposal(proposalID string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInactiveProposal,
 		fmt.Sprintf("inactive proposal: %s", proposalID),
-		errors.NewParam("proposalID", proposalID),
 	)
 }
 
@@ -85,7 +84,6 @@ func ErrInvalidProposalContentTitleLong(MaxTitleLength string) *sdkerrors.Error 
 		DefaultCodespace,
 		CodeInvalidProposalContentTitleLong,
 		fmt.Sprintf("proposal title is longer than max length of %s", MaxTitleLength),
-		errors.NewParam("MaxTitleLength", MaxTitleLength),
 	)
 }
 
@@ -102,7 +100,6 @@ func ErrInvalidProposalContentDescrLong(MaxDescriptionLength string) *sdkerrors.
 		DefaultCodespace,
 		CodeInvalidProposalContentDescrLong,
 		fmt.Sprintf("proposal description is longer than max length of %s", MaxDescriptionLength),
-		errors.NewParam("MaxDescriptionLength", MaxDescriptionLength),
 	)
 }
 
@@ -111,7 +108,6 @@ func ErrInvalidProposalType(ProposalType string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidProposalType,
 		fmt.Sprintf("invalid proposal type: %s", ProposalType),
-		errors.NewParam("ProposalType", ProposalType),
 	)
 }
 
@@ -120,7 +116,6 @@ func ErrInvalidVote(option string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeInvalidVote,
 		fmt.Sprintf("invalid vote option: %s", option),
-		errors.NewParam("option", option),
 	)
 }
 
@@ -145,8 +140,6 @@ func ErrInvalidStartEndBlocks(StartBlock string, EndBlock string) *sdkerrors.Err
 		DefaultCodespace,
 		CodeInvalidStartEndBlocks,
 		fmt.Sprintf("invalid start or end blocks: start %s,  end %s ", StartBlock, EndBlock),
-		errors.NewParam("StartBlock", StartBlock),
-		errors.NewParam("EndBlock", EndBlock),
 	)
 }
 
@@ -155,7 +148,6 @@ func ErrSubmitProposal(error string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeSubmitProposal,
 		fmt.Sprintf("error submit proposal: %s", error),
-		errors.NewParam("error", error),
 	)
 }
 
@@ -172,8 +164,6 @@ func ErrDurationTooLong() *sdkerrors.Error {
 		DefaultCodespace,
 		CodeDurationTooLong,
 		fmt.Sprintf("start block must greater then current block height"),
-		errors.NewParam("maxDurationInMonth", fmt.Sprintf("%d", DurationInMonth)),
-		errors.NewParam("maxDurationInBlocks", fmt.Sprintf("%d", DurationInBlocks)),
 	)
 }
 
