@@ -3,24 +3,23 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
 )
 
 func (k Keeper) SetSwap(ctx sdk.Context, swap types.Swap) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(swap)
-	store.Set(types.GetSwapKey(ctx, swap.HashedSecret), bz)
+	store.Set(types.GetSwapKey(swap.HashedSecret), bz)
 }
 
 func (k Keeper) HasSwap(ctx sdk.Context, hash types.Hash) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.GetSwapKey(ctx, hash))
+	return store.Has(types.GetSwapKey(hash))
 }
 
 func (k Keeper) GetSwap(ctx sdk.Context, hash types.Hash) (types.Swap, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetSwapKey(ctx, hash))
+	bz := store.Get(types.GetSwapKey(hash))
 	if bz == nil {
 		return types.Swap{}, false
 	}
@@ -32,11 +31,7 @@ func (k Keeper) GetSwap(ctx sdk.Context, hash types.Hash) (types.Swap, bool) {
 
 func (k Keeper) GetAllSwaps(ctx sdk.Context) types.Swaps {
 	store := ctx.KVStore(k.storeKey)
-	keyPrefix := types.SwapKey
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = types.LegacySwapKey
-	}
-	iterator := sdk.KVStorePrefixIterator(store, keyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, types.SwapKey)
 	defer iterator.Close()
 
 	var swaps types.Swaps

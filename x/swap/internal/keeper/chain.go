@@ -7,18 +7,18 @@ import (
 
 func (k Keeper) HasChain(ctx sdk.Context, chainNumber int) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.GetChainKey(ctx, chainNumber))
+	return store.Has(types.GetChainKey(chainNumber))
 }
 
 func (k Keeper) SetChain(ctx sdk.Context, chainNumber int, chain types.Chain) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(types.NewChain(chain.Name, chain.Active))
-	store.Set(types.GetChainKey(ctx, chainNumber), bz)
+	store.Set(types.GetChainKey(chainNumber), bz)
 }
 
 func (k Keeper) GetChain(ctx sdk.Context, chainNumber int) (types.Chain, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetChainKey(ctx, chainNumber))
+	bz := store.Get(types.GetChainKey(chainNumber))
 	if bz == nil {
 		return types.Chain{}, false
 	}

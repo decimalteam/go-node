@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/swap/internal/types"
 )
@@ -86,13 +85,16 @@ func (k Keeper) GetLockedFunds(ctx sdk.Context) sdk.Coins {
 	return account.GetCoins()
 }
 
+func (k Keeper) IsMigratedToUpdatedPrefixes(ctx sdk.Context) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.LegacyMigrationKey)
+}
+
 func (k Keeper) MigrateToUpdatedPrefixes(ctx sdk.Context) error {
-	if ctx.BlockHeight() != updates.Update14Block {
-		panic(fmt.Sprintf("wrong time for data migration (called at block %d instead of %d)", ctx.BlockHeight(), updates.Update14Block))
-	}
 	k.migrateSwaps(ctx)
 	k.migrateSwapsV2(ctx)
 	k.migrateChains(ctx)
+	k.finishMigration(ctx)
 	return nil
 }
 
@@ -107,7 +109,7 @@ func (k Keeper) migrateSwaps(ctx sdk.Context) {
 		}
 		var swap types.Swap
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &swap)
-		keyTo := types.GetSwapKey(ctx, swap.HashedSecret)
+		keyTo := types.GetSwapKey(swap.HashedSecret)
 		store.Set(keyTo, value)
 		store.Delete(keyFrom)
 	}
@@ -122,7 +124,7 @@ func (k Keeper) migrateSwapsV2(ctx sdk.Context) {
 		if value == nil { // swap v2 just stores the key with empty value
 			value = []byte{}
 		}
-		if len(keyFrom) != 34 { // previous key format: 0x5001<hash_Bytes> (2+32)
+		if len(keyFrom) != 34 { // previous key format: 0x5002<hash_Bytes> (2+32)
 			continue
 		}
 		keyTo := append(types.SwapV2Key, keyFrom[2:]...)
@@ -146,4 +148,9 @@ func (k Keeper) migrateChains(ctx sdk.Context) {
 		store.Set(keyTo, value)
 		store.Delete(keyFrom)
 	}
+}
+
+func (k Keeper) finishMigration(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.LegacyMigrationKey, []byte{})
 }

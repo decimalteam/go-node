@@ -3,9 +3,6 @@ package types
 import (
 	"encoding/binary"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 )
 
@@ -26,36 +23,27 @@ var (
 	LegacySwapKey   = []byte{0x50, 0x01}
 	LegacySwapV2Key = []byte{0x50, 0x02}
 	LegacyChainKey  = []byte{0x50, 0x03}
+
+	// This is special key used to determine if kv-records are migrated to keys with correct prefixes
+	LegacyMigrationKey = []byte("swap/migrated")
 )
 
 var (
-	SwapKey   = []byte("swap/")
+	SwapKey   = []byte("swap/v1/")
 	SwapV2Key = []byte("swap/v2/")
 	ChainKey  = []byte("swap/chain/")
 )
 
-func GetSwapKey(ctx sdk.Context, hash [32]byte) []byte {
-	keyPrefix := SwapKey
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = LegacySwapKey
-	}
-	return append(keyPrefix, hash[:]...)
+func GetSwapKey(hash [32]byte) []byte {
+	return append(SwapKey, hash[:]...)
 }
 
-func GetSwapV2Key(ctx sdk.Context, hash [32]byte) []byte {
-	keyPrefix := SwapV2Key
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = LegacySwapV2Key
-	}
-	return append(keyPrefix, hash[:]...)
+func GetSwapV2Key(hash [32]byte) []byte {
+	return append(SwapV2Key, hash[:]...)
 }
 
-func GetChainKey(ctx sdk.Context, chain int) []byte {
+func GetChainKey(chain int) []byte {
 	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, uint64(chain))
-	keyPrefix := ChainKey
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = LegacyChainKey
-	}
-	return append(keyPrefix, buf...)
+	return append(ChainKey, buf...)
 }

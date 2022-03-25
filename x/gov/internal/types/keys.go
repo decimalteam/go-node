@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 )
 
@@ -43,6 +42,9 @@ var (
 
 	LegacyPlanPrefix = []byte{0x20}
 	LegacyDonePrefix = []byte{0x21}
+
+	// This is special key used to determine if kv-records are migrated to keys with correct prefixes
+	LegacyMigrationKey = []byte("gov/migrated")
 )
 
 // Keys for governance store
@@ -92,65 +94,45 @@ func GetProposalIDFromBytes(bz []byte) (proposalID uint64) {
 }
 
 // ProposalKey gets a specific proposal from the store
-func ProposalKey(ctx sdk.Context, proposalID uint64) []byte {
-	keyPrefix := ProposalsKeyPrefix
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = LegacyProposalsKeyPrefix
-	}
-	return append(keyPrefix, GetProposalIDBytes(proposalID)...)
+func ProposalKey(proposalID uint64) []byte {
+	return append(ProposalsKeyPrefix, GetProposalIDBytes(proposalID)...)
 }
 
 // ActiveProposalByTimeKey gets the active proposal queue key by endTime
-func ActiveProposalByTimeKey(ctx sdk.Context, endBlock uint64) []byte {
-	keyPrefix := ActiveProposalQueuePrefix
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = LegacyActiveProposalQueuePrefix
-	}
-	return append(keyPrefix, GetBytesFromUint64(endBlock)...)
+func ActiveProposalByTimeKey(endBlock uint64) []byte {
+	return append(ActiveProposalQueuePrefix, GetBytesFromUint64(endBlock)...)
 }
 
 // ActiveProposalQueueKey returns the key for a proposalID in the activeProposalQueue
-func ActiveProposalQueueKey(ctx sdk.Context, proposalID uint64, endBlock uint64) []byte {
-	return append(ActiveProposalByTimeKey(ctx, endBlock), GetProposalIDBytes(proposalID)...)
+func ActiveProposalQueueKey(proposalID uint64, endBlock uint64) []byte {
+	return append(ActiveProposalByTimeKey(endBlock), GetProposalIDBytes(proposalID)...)
 }
 
 // InactiveProposalByTimeKey gets the inactive proposal queue key by endTime
-func InactiveProposalByTimeKey(ctx sdk.Context, endBlock uint64) []byte {
-	keyPrefix := InactiveProposalQueuePrefix
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = LegacyInactiveProposalQueuePrefix
-	}
-	return append(keyPrefix, GetBytesFromUint64(endBlock)...)
+func InactiveProposalByTimeKey(endBlock uint64) []byte {
+	return append(InactiveProposalQueuePrefix, GetBytesFromUint64(endBlock)...)
 }
 
 // InactiveProposalQueueKey returns the key for a proposalID in the inactiveProposalQueue
-func InactiveProposalQueueKey(ctx sdk.Context, proposalID uint64, endBlock uint64) []byte {
-	return append(InactiveProposalByTimeKey(ctx, endBlock), GetProposalIDBytes(proposalID)...)
+func InactiveProposalQueueKey(proposalID uint64, endBlock uint64) []byte {
+	return append(InactiveProposalByTimeKey(endBlock), GetProposalIDBytes(proposalID)...)
 }
 
 // VotesKey gets the first part of the votes key based on the proposalID
-func VotesKey(ctx sdk.Context, proposalID uint64) []byte {
-	keyPrefix := VotesKeyPrefix
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = LegacyVotesKeyPrefix
-	}
-	return append(keyPrefix, GetProposalIDBytes(proposalID)...)
+func VotesKey(proposalID uint64) []byte {
+	return append(VotesKeyPrefix, GetProposalIDBytes(proposalID)...)
 }
 
 // VoteKey key of a specific vote from the store
-func VoteKey(ctx sdk.Context, proposalID uint64, voterAddr sdk.ValAddress) []byte {
-	return append(VotesKey(ctx, proposalID), voterAddr.Bytes()...)
+func VoteKey(proposalID uint64, voterAddr sdk.ValAddress) []byte {
+	return append(VotesKey(proposalID), voterAddr.Bytes()...)
 }
 
 // Split keys function; used for iterators
 
 // SplitProposalKey split the proposal key and returns the proposal id
-func SplitProposalKey(ctx sdk.Context, key []byte) (proposalID uint64) {
-	keyPrefix := ProposalsKeyPrefix
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = LegacyProposalsKeyPrefix
-	}
-	tail := key[len(keyPrefix):]
+func SplitProposalKey(key []byte) (proposalID uint64) {
+	tail := key[len(ProposalsKeyPrefix):]
 	if len(tail) != 8 {
 		panic(fmt.Sprintf("unexpected key length (%d)", len(key)))
 	}
@@ -158,12 +140,8 @@ func SplitProposalKey(ctx sdk.Context, key []byte) (proposalID uint64) {
 }
 
 // SplitActiveProposalQueueKey split the active proposal key and returns the proposal id and endBlock
-func SplitActiveProposalQueueKey(ctx sdk.Context, key []byte) (proposalID uint64, endBlock uint64) {
-	keyPrefix := ActiveProposalQueuePrefix
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = LegacyActiveProposalQueuePrefix
-	}
-	tail := key[len(keyPrefix):]
+func SplitActiveProposalQueueKey(key []byte) (proposalID uint64, endBlock uint64) {
+	tail := key[len(ActiveProposalQueuePrefix):]
 	if len(tail) != 16 {
 		panic(fmt.Sprintf("unexpected key length (%d)", len(key)))
 	}
@@ -173,12 +151,8 @@ func SplitActiveProposalQueueKey(ctx sdk.Context, key []byte) (proposalID uint64
 }
 
 // SplitInactiveProposalQueueKey split the inactive proposal key and returns the proposal id and endBlock
-func SplitInactiveProposalQueueKey(ctx sdk.Context, key []byte) (proposalID uint64, endBlock uint64) {
-	keyPrefix := InactiveProposalQueuePrefix
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = LegacyInactiveProposalQueuePrefix
-	}
-	tail := key[len(keyPrefix):]
+func SplitInactiveProposalQueueKey(key []byte) (proposalID uint64, endBlock uint64) {
+	tail := key[len(InactiveProposalQueuePrefix):]
 	if len(tail) != 16 {
 		panic(fmt.Sprintf("unexpected key length (%d)", len(key)))
 	}
@@ -189,22 +163,14 @@ func SplitInactiveProposalQueueKey(ctx sdk.Context, key []byte) (proposalID uint
 
 // PlanKey is the key under which the current plan is saved
 // We store PlanByte as a const to keep it immutable (unlike a []byte)
-func PlanKey(ctx sdk.Context) []byte {
-	keyPrefix := PlanPrefix
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = LegacyPlanPrefix
-	}
-	return keyPrefix
+func PlanKey() []byte {
+	return PlanPrefix
 }
 
 // DoneKey is the key at which the given upgrade was executed
 // We store DoneKey as a const to keep it immutable (unlike a []byte)
-func DoneKey(ctx sdk.Context) []byte {
-	keyPrefix := DonePrefix
-	if ctx.BlockHeight() < updates.Update14Block {
-		keyPrefix = LegacyDonePrefix
-	}
-	return keyPrefix
+func DoneKey() []byte {
+	return DonePrefix
 }
 
 func UpgradedClientKey(height int64) []byte {
