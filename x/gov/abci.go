@@ -43,7 +43,22 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	_, ok := downloadStat[plan.Name]
 
 	if ctx.BlockHeight() > (plan.Height-plan.ToDownload) && ctx.BlockHeight() < plan.Height && !ok {
-		for _, name := range ncfg.NameFiles {
+		//get info to check hash
+		mapping := plan.Mapping()
+		if mapping == nil {
+			ctx.Logger().Error("error: plan mapping decode")
+			return
+		}
+		hashes, ok := mapping[k.OSArch()]
+		if !ok {
+			ctx.Logger().Error(fmt.Sprintf("error: plan mapping[os] for '%s' undefined", k.OSArch()))
+			return
+		}
+		/* NOTE:
+		checksum generator saves files' hashes as array in order 1)decd 2)deccli
+		ncfg.NameFiles must be []string{"decd", "deccli"}
+		*/
+		for i, name := range ncfg.NameFiles {
 			// example:
 			// from "http://127.0.0.1/95000/decd"
 			// to "http://127.0.0.1/95000/linux/ubuntu/20.04/decd"
@@ -62,8 +77,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			downloadName := k.GetDownloadName(name)
 
 			if _, err := os.Stat(downloadName); os.IsNotExist(err) {
-				go k.DownloadBinary(downloadName, newUrl)
-				ctx.Logger().Info(fmt.Sprintf("download binary \"%s\"", newUrl))
+				go k.DownloadAndCheckHash(ctx, downloadName, newUrl, hashes[i])
 			}
 		}
 	}
