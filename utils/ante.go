@@ -1,9 +1,12 @@
 package utils
 
 import (
+	"fmt"
+
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/swap"
-	"fmt"
+
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -13,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"strings"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
@@ -36,7 +38,7 @@ func NewAnteHandler(ak keeper.AccountKeeper, vk validator.Keeper, ck coin.Keeper
 		ante.NewValidateSigCountDecorator(ak),
 		NewFeeDecorator(ck, sk, ak, vk),
 		ante.NewSigGasConsumeDecorator(ak, consumer),
-		ante.NewSigVerificationDecorator(ak),
+		NewSigVerificationDecorator(ak),
 		NewPostCreateAccountDecorator(ak),      // should be after SigVerificationDecorator
 		ante.NewIncrementSequenceDecorator(ak), // innermost AnteDecorator
 	)
