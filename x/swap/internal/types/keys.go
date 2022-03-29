@@ -1,8 +1,9 @@
 package types
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/coin"
 	"encoding/binary"
+
+	"bitbucket.org/decimalteam/go-node/x/coin"
 )
 
 const (
@@ -19,9 +20,18 @@ const (
 )
 
 var (
-	SwapKey   = []byte{0x50, 0x01}
-	SwapV2Key = []byte{0x50, 0x02}
-	ChainKey  = []byte{0x50, 0x03}
+	LegacySwapKey   = []byte{0x50, 0x01}
+	LegacySwapV2Key = []byte{0x50, 0x02}
+	LegacyChainKey  = []byte{0x50, 0x03}
+
+	// This is special key used to determine if kv-records are migrated to keys with correct prefixes
+	LegacyMigrationKey = []byte("swap/migrated")
+)
+
+var (
+	SwapKey   = []byte("swap/v1/")
+	SwapV2Key = []byte("swap/v2/")
+	ChainKey  = []byte("swap/chain/")
 )
 
 func GetSwapKey(hash [32]byte) []byte {

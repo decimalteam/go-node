@@ -50,7 +50,7 @@ func (k Keeper) IsSkipHeight(height int64) bool {
 }
 
 func (k Keeper) setDone(ctx sdk.Context, name string) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneByte)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneKey())
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(ctx.BlockHeight()))
 	store.Set([]byte(name), bz)
@@ -253,7 +253,7 @@ func (k Keeper) ScheduleUpgrade(ctx sdk.Context, plan types.Plan) error {
 
 // GetDoneHeight returns the height at which the given upgrade was executed
 func (k Keeper) GetDoneHeight(ctx sdk.Context, name string) int64 {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneByte)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneKey())
 	bz := store.Get([]byte(name))
 	if len(bz) == 0 {
 		return 0
