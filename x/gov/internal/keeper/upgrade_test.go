@@ -1,5 +1,196 @@
 package keeper
 
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"sync"
+	"time"
+
+	"fmt"
+	"io"
+	"io/ioutil"
+	"math/rand"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/libs/log"
+)
+
+////////////////////////
+// Temporary file system
+type TmpFilesystem struct {
+	basepath string
+}
+
+func NewTmpFilesystem() (tfs *TmpFilesystem, err error) {
+	tfs = &TmpFilesystem{}
+	tfs.basepath, err = ioutil.TempDir("", "gotest")
+	if err != nil {
+		return
+	}
+	return tfs, nil
+}
+
+func (tfs *TmpFilesystem) PathForFilename(filename string) string {
+	return filepath.Join(tfs.basepath, filename)
+}
+
+func (tfs *TmpFilesystem) Close() {
+	os.RemoveAll(tfs.basepath)
+}
+
+////////////////////////
+// test Logger
+// implement tendermint logger inteface
+
+type TestLogger struct {
+	InfoMsgs  []string
+	ErrorMsgs []string
+	mtx       sync.Mutex
+}
+
+func NewTestLogger() *TestLogger {
+	return &TestLogger{}
+}
+
+func (tl *TestLogger) Debug(msg string, keyvals ...interface{}) {
+
+}
+
+func (tl *TestLogger) Info(msg string, keyvals ...interface{}) {
+	tl.mtx.Lock()
+	defer tl.mtx.Unlock()
+	tl.InfoMsgs = append(tl.InfoMsgs, fmt.Sprintf(msg, keyvals...))
+}
+
+func (tl *TestLogger) Error(msg string, keyvals ...interface{}) {
+	tl.mtx.Lock()
+	defer tl.mtx.Unlock()
+	tl.ErrorMsgs = append(tl.ErrorMsgs, fmt.Sprintf(msg, keyvals...))
+}
+
+func (tl *TestLogger) With(keyvals ...interface{}) log.Logger {
+	return tl
+}
+
+////////////////////////
+
+func genRandomBytes(n int) []byte {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = byte(rand.Intn(256))
+	}
+	return b
+}
+
+func calcHash(source []byte) string {
+	r := bytes.NewReader(source)
+	h := sha256.New()
+	io.Copy(h, r)
+	return hex.EncodeToString(h.Sum(nil))
+
+}
+
+func TestDownloadCases(t *testing.T) {
+	testBytes := genRandomBytes(1024 * 1024)
+	normalHash := calcHash(testBytes)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.String() {
+		case "/file":
+			{
+				w.Header().Set("Content-Type", "application/octet-stream")
+				w.Write(testBytes)
+			}
+		case "/500_error":
+			{
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("error"))
+			}
+		case "/301_redirect":
+			{
+				http.Redirect(w, r, "/file", http.StatusMovedPermanently)
+			}
+		}
+	}))
+	defer ts.Close()
+
+	tfs, err := NewTmpFilesystem()
+	if err != nil {
+		t.Error("NewTmpFilesystem error ", err.Error())
+	}
+	defer tfs.Close()
+	testFilepath := tfs.PathForFilename("testfile")
+
+	k := Keeper{}
+	testSuite := []struct {
+		msg        string
+		url        string
+		hashValue  string
+		infoCount  int
+		errorCount int
+	}{
+		{"normal download", "/file", normalHash, 3, 0},
+		{"wrong hash", "/file", normalHash + "0", 2, 1},
+		{"http error download", "/500_error", normalHash, 1, 1},
+		{"redirect", "/301_redirect", normalHash, 3, 0},
+	}
+	for _, suite := range testSuite {
+		logger := NewTestLogger()
+		ctx := sdk.Context{}.WithLogger(logger)
+		k.DownloadAndCheckHash(ctx, testFilepath, ts.URL+suite.url, suite.hashValue)
+		//fmt.Println(logger.InfoMsgs)
+		//fmt.Println(logger.ErrorMsgs)
+		require.Equal(t, suite.infoCount, len(logger.InfoMsgs), suite.msg)
+		require.Equal(t, suite.errorCount, len(logger.ErrorMsgs), suite.msg)
+	}
+}
+
+func TestFileWriteClash(t *testing.T) {
+	testBytes := genRandomBytes(1024 * 1024)
+	normalHash := calcHash(testBytes)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.String() {
+		case "/file":
+			{
+				time.Sleep(time.Duration((rand.Intn(5) + 1) * int(time.Microsecond)))
+				w.Header().Set("Content-Type", "application/octet-stream")
+				w.Write(testBytes)
+			}
+		}
+	}))
+	defer ts.Close()
+
+	tfs, err := NewTmpFilesystem()
+	if err != nil {
+		t.Error("NewTmpFilesystem error ", err.Error())
+	}
+	defer tfs.Close()
+	testFilepath := tfs.PathForFilename("testfile")
+
+	k := Keeper{}
+	logger := NewTestLogger()
+	ctx := sdk.Context{}.WithLogger(logger)
+	wg := sync.WaitGroup{}
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func() {
+			if _, err := os.Stat(testFilepath); os.IsNotExist(err) { //!! without this we get errors
+				k.DownloadAndCheckHash(ctx, testFilepath, ts.URL+"/file", normalHash)
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+	//fmt.Println(logger.ErrorMsgs)
+	require.Equal(t, 0, len(logger.ErrorMsgs), "file write clash")
+}
+
 /*
 import (
 	"fmt"
