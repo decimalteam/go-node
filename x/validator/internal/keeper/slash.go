@@ -374,33 +374,30 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 	index := signInfo.IndexOffset
 
 	// Update signed block bit array & counter
-	// This counter just tracks the sum of the bit array
+	// signInfo.MissedBlocksCounter: this counter just tracks the sum of the bit array
 	// That way we avoid needing to read/write the whole array each time
-	missedInWindow := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
-	missed := !signed
 
-	switch missed {
-	case true:
-		// If in grace period then pass missing block
-		if inGracePeriod(ctx, ncfg.UpdatesInfo) {
-			// log.Println(consAddr.String())
-			ctx.Logger().Info(
-				fmt.Sprintf("Missed block in grace period (%s)", validator.ValAddress))
-			return
-		}
-		// If missed < 24 then missed = missed + 1
-		if signInfo.MissedBlocksCounter < types.SignedBlocksWindow && !missedInWindow {
-			k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
-			signInfo.MissedBlocksCounter++
-		}
-	case false:
-		// If in grace perid and missed > 0 then missed = missed - 1
-		// If missed in bit array and missed > 0 then missed = missed - 1
-		grMissedBlocks := signInfo.MissedBlocksCounter > 0
-		if (inGracePeriod(ctx, ncfg.UpdatesInfo) && grMissedBlocks) || (missedInWindow && grMissedBlocks) {
-			k.setValidatorMissedBlockBitArray(ctx, consAddr, index, false)
-			signInfo.MissedBlocksCounter--
-		}
+	// This is value at end of window. It leave, so we should decrement counter
+	endOfWindow := k.getValidatorMissedBlockBitArray(ctx, consAddr, index)
+	if endOfWindow {
+		signInfo.MissedBlocksCounter--
+	}
+
+	// Block is missing only if it's not signed and no grace period
+	missed := !signed && !inGracePeriod(ctx, ncfg.UpdatesInfo)
+
+	if missed {
+		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
+		signInfo.MissedBlocksCounter++
+	} else {
+		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, false)
+	}
+
+	// inform about not signed blocks in grace period
+	if !signed && inGracePeriod(ctx, ncfg.UpdatesInfo) {
+		ctx.Logger().Info(
+			fmt.Sprintf("Missed block in grace period (%s)", validator.ValAddress))
+		return
 	}
 
 	if missed {
