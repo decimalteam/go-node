@@ -124,7 +124,8 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	if err != nil {
 		panic(fmt.Sprintf("error: read permissions '%s'", err.Error()))
 	}
-	err = config.UpdatesInfo.Push(config.UpdatesInfo.LastBlock)
+	config.UpdatesInfo.PushNewPlanHeight(config.UpdatesInfo.LastBlock)
+	err = config.UpdatesInfo.Save()
 	if err != nil {
 		panic(fmt.Sprintf("error: write permissions '%s'", err.Error()))
 	}

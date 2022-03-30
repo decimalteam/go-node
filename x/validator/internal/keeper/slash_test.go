@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	ncfg "bitbucket.org/decimalteam/go-node/config"
+
 	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -347,4 +349,161 @@ func TestSlashWithUnbondingDelegation(t *testing.T) {
 	// validator should be in unbonding period
 	validator, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
 	require.Equal(t, validator.GetStatus(), types.Unbonded)
+}
+
+func TestInGracePeriod(t *testing.T) {
+	ctxWithHeight := func(height int64) sdk.Context {
+		ctx := sdk.Context{}
+		return ctx.WithBlockHeight(height)
+	}
+
+	//test overlapping grace periods
+	{
+		updatesInfo := ncfg.NewUpdatesInfo("")
+		p0start := int64(10000)
+		p0end := p0start + ncfg.GracePeriod
+		p1start := p0end - ncfg.GracePeriod/2
+		p1end := p1start + ncfg.GracePeriod
+		updatesInfo.AddExecutedPlan("0", p0start)
+		updatesInfo.PushNewPlanHeight(p1start)
+		//
+		require.False(t, inGracePeriod(ctxWithHeight(p0start-1), updatesInfo))
+		require.False(t, inGracePeriod(ctxWithHeight(p1end+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p0start+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p0end+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p1start-1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p1end-1), updatesInfo))
+	}
+
+	//test non-overlapping grace periods
+	{
+		updatesInfo := ncfg.NewUpdatesInfo("")
+		p0start := int64(10000)
+		p0end := p0start + ncfg.GracePeriod
+		p1start := p0end + ncfg.GracePeriod/2
+		p1end := p1start + ncfg.GracePeriod
+		updatesInfo.AddExecutedPlan("0", p0start)
+		updatesInfo.AddExecutedPlan("1", p1start)
+		updatesInfo.PushNewPlanHeight(p1start)
+		//
+		require.False(t, inGracePeriod(ctxWithHeight(p0start-1), updatesInfo))
+		require.False(t, inGracePeriod(ctxWithHeight(p0end+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p0start+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p0end-1), updatesInfo))
+		require.False(t, inGracePeriod(ctxWithHeight(p1start-1), updatesInfo))
+		require.False(t, inGracePeriod(ctxWithHeight(p1end+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p1start+1), updatesInfo))
+		require.True(t, inGracePeriod(ctxWithHeight(p1end-1), updatesInfo))
+	}
+}
+
+func sumArray(ctx sdk.Context, k Keeper, consAddr sdk.ConsAddress) int64 {
+	var res int64
+	for i := int64(0); i < types.SignedBlocksWindow; i++ {
+		v := k.getValidatorMissedBlockBitArray(ctx, consAddr, i)
+		if v {
+			res++
+		}
+	}
+	return res
+}
+
+func TestHandleValidatorSignatureMissCount(t *testing.T) {
+	ctx, keeper, _ := setupHelper(t, 10)
+	validator := keeper.GetValidators(ctx, 100)[0]
+	adr := validator.PubKey.Address()
+	keeper.addPubkey(ctx, validator.PubKey)
+	consAddr := validator.GetConsAddr()
+
+	ncfg.UpdatesInfo.AllBlocks = make(map[string]int64)
+	ncfg.UpdatesInfo.LastBlock = -10000000000
+
+	//use different patterns for signed block and grace period
+	//to trying make mess for MissedBlockArray and MissedBlocksCounter
+	testsuite := []struct {
+		patternSign  []bool
+		patternGrace []bool
+	}{
+		{[]bool{true, true, false}, []bool{true, false}},
+		{[]bool{true, true, true, false}, []bool{true, false, false}},
+		{[]bool{true, true, true, true, false}, []bool{true, true, true, false}},
+	}
+	for _, pattern := range testsuite {
+		//prepare sequences
+		sequenceSign := make([]bool, 0)
+		sequenceGrace := make([]bool, 0)
+		for i := int64(0); i < 100; i++ {
+			sequenceSign = append(sequenceSign, pattern.patternSign...)
+		}
+		for i := int64(0); i < 100; i++ {
+			sequenceGrace = append(sequenceSign, pattern.patternGrace...)
+		}
+		count := len(sequenceGrace)
+		if count > len(sequenceSign) {
+			count = len(sequenceSign)
+		}
+		//reset
+		validator, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
+		validator.Online = false
+		keeper.SetValidator(ctx, validator)
+		keeper.HandleValidatorSignature(ctx, adr, 10, false)
+		validator.Online = true
+		keeper.SetValidator(ctx, validator)
+
+		for i := 0; i < count; i++ {
+			ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+			sign := sequenceSign[i]
+			ncfg.UpdatesInfo.LastBlock = -10000000000 //grace period = false
+			if sequenceGrace[i] {
+				ncfg.UpdatesInfo.LastBlock = ctx.BlockHeight() //grace period = true
+			}
+			keeper.HandleValidatorSignature(ctx, adr, 10, sign)
+			signInfo, _ := keeper.getValidatorSigningInfo(ctx, consAddr)
+			// CHECK: right missed block counter
+			// old code will not pass
+			require.Equal(t, signInfo.MissedBlocksCounter, sumArray(ctx, keeper, consAddr))
+			//
+			validator, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
+			if validator.IsJailed() {
+				keeper.Unjail(ctx, consAddr)
+			}
+		}
+	}
+}
+
+func TestHandleValidatorSignatureJail(t *testing.T) {
+	ctx, keeper, _ := setupHelper(t, 10)
+	validator := keeper.GetValidators(ctx, 100)[0]
+	adr := validator.PubKey.Address()
+	keeper.addPubkey(ctx, validator.PubKey)
+	consAddr := validator.GetConsAddr()
+
+	ncfg.UpdatesInfo.AllBlocks = make(map[string]int64)
+	ncfg.UpdatesInfo.LastBlock = -10000000000
+
+	maxMissed := types.SignedBlocksWindow - types.MinSignedPerWindow
+	//not jail
+	for i := int64(0); i < maxMissed; i++ {
+		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+		keeper.HandleValidatorSignature(ctx, adr, 10, false)
+	}
+	validator, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
+	require.False(t, validator.IsJailed(), "validator must be free")
+
+	//reset
+	validator, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
+	validator.Online = false
+	keeper.SetValidator(ctx, validator)
+	keeper.HandleValidatorSignature(ctx, adr, 10, false)
+	validator.Online = true
+	keeper.SetValidator(ctx, validator)
+
+	//jail
+	for i := int64(0); i < (maxMissed + 1); i++ {
+		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+		keeper.HandleValidatorSignature(ctx, adr, 10, false)
+	}
+	validator, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
+	require.True(t, validator.IsJailed(), "validator must be jailed")
+
 }

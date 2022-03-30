@@ -7,13 +7,12 @@ import (
 	"runtime/debug"
 	"sort"
 
-	"bitbucket.org/decimalteam/go-node/x/validator/exported"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	updts "bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -49,13 +48,14 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	last := k.getLastValidatorsByAddr(ctx)
 
 	validators := k.GetAllValidatorsByPowerIndexReversed(ctx)
+	delegations := k.GetAllDelegationsByValidator(ctx)
 	for _, validator := range validators {
 		if validator.Jailed {
 			continue
 		}
 		k.DeleteValidatorByPowerIndex(ctx, validator)
-		k.checkDelegations(ctx, validator)
-		k.SetValidatorByPowerIndex(ctx, validator)
+		k.checkDelegations(ctx, validator, delegations[validator.ValAddress.String()])
+		k.SetValidatorByPowerIndexWithCalc(ctx, validator, delegations[validator.ValAddress.String()])
 	}
 
 	validators = k.GetAllValidatorsByPowerIndexReversed(ctx)
@@ -84,8 +84,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 				if err != nil {
 					return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 				}
-				delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
-				for _, delegation := range delegations {
+				for _, delegation := range delegations[validator.ValAddress.String()] {
 					if _, ok := delegation.(types.Delegation); ok {
 						amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(delegation.GetCoin())
 					}
@@ -168,8 +167,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 			)
 		}
 
-		delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
-		for _, delegation := range delegations {
+		for _, delegation := range delegations[validator.ValAddress.String()] {
 			if _, ok := delegation.(types.Delegation); ok {
 				amtFromBondedToNotBonded = amtFromBondedToNotBonded.Add(delegation.GetCoin())
 			}
@@ -316,22 +314,9 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, validator types.Validator) (t
 	return k.beginUnbondingValidator(ctx, validator)
 }
 
-func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator) {
-	delegations := k.GetValidatorDelegations(ctx, validator.ValAddress)
+func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) {
 	if len(delegations) <= int(k.MaxDelegations(ctx)) {
 		return
-
-	}
-
-	var delegationsInBase []exported.DelegationI
-
-	for _, delegation := range delegations {
-		if ctx.BlockHeight() < updts.Update11Block {
-			if _, ok := k.CoinKeeper.GetCoinsCache()[delegation.GetCoin().Denom]; ok {
-				delegation = delegation.SetTokensBase(k.CalcTokensBase(ctx, delegation))
-			}
-		}
-		delegationsInBase = append(delegationsInBase, delegation)
 	}
 
 	sort.SliceStable(delegations, func(i, j int) bool {

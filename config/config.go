@@ -48,6 +48,7 @@ const (
 const (
 	OneHour     = 360 // blocks
 	UpdatesName = "updates.json"
+	GracePeriod = OneHour * 24 * 182 // grace period to use inside inGracePeriod
 )
 
 var (

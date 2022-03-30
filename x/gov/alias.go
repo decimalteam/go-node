@@ -32,12 +32,13 @@ var (
 )
 
 type (
-	Keeper            = keeper.Keeper
-	GenesisState      = types.GenesisState
-	Proposal          = types.Proposal
-	Vote              = types.Vote
-	Votes             = types.Votes
-	VoteOption        = types.VoteOption
-	MsgSubmitProposal = types.MsgSubmitProposal
-	MsgVote           = types.MsgVote
+	Keeper                     = keeper.Keeper
+	GenesisState               = types.GenesisState
+	Proposal                   = types.Proposal
+	Vote                       = types.Vote
+	Votes                      = types.Votes
+	VoteOption                 = types.VoteOption
+	MsgSubmitProposal          = types.MsgSubmitProposal
+	MsgSoftwareUpgradeProposal = types.MsgSoftwareUpgradeProposal
+	MsgVote                    = types.MsgVote
 )

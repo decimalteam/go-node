@@ -50,7 +50,7 @@ func (k Keeper) IsSkipHeight(height int64) bool {
 }
 
 func (k Keeper) setDone(ctx sdk.Context, name string) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneByte)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneKey())
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(ctx.BlockHeight()))
 	store.Set([]byte(name), bz)
@@ -85,6 +85,10 @@ func (k Keeper) ApplyUpgrade(ctx sdk.Context, plan types.Plan) error {
 	}
 
 	currPath := filepath.Dir(ex)
+	/* NOTE:
+	checksum generator saves files' hashes as array in order 1) decd 2) deccli
+	ncfg.NameFiles must be []string{"decd", "deccli"}
+	*/
 	for i, name := range ncfg.NameFiles {
 		downloadName := k.GetDownloadName(name)
 		if _, err := os.Stat(downloadName); os.IsNotExist(err) {
@@ -184,14 +188,7 @@ func (k Keeper) UrlPageExist(urlPage string) bool {
 }
 
 //Download file by url
-func (k Keeper) DownloadBinary(filepath string, url string) error {
-	// Get the data
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
+func (k Keeper) DownloadBinary(filepath, url string) error {
 	// Create the file
 	out, err := os.Create(filepath)
 	if err != nil {
@@ -199,9 +196,40 @@ func (k Keeper) DownloadBinary(filepath string, url string) error {
 	}
 	defer out.Close()
 
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("download '%s' reply code is %d", url, resp.StatusCode)
+	}
+
 	// Write the body to file
 	_, err = io.Copy(out, resp.Body)
 	return err
+}
+
+func (k Keeper) DownloadAndCheckHash(ctx sdk.Context, filepath, url, filehash string) {
+	//download
+	ctx.Logger().Info(fmt.Sprintf("start download binary \"%s\" to file \"%s\"", url, filepath))
+	err := k.DownloadBinary(filepath, url)
+	if err != nil {
+		ctx.Logger().Error(fmt.Sprintf("error while downloading binary \"%s\" to file \"%s\" with error '%s'", url, filepath, err.Error()))
+		return
+	}
+	ctx.Logger().Info(fmt.Sprintf("sucessful download binary \"%s\" to file \"%s\"", url, filepath))
+	//check hash
+	if !fileHashEqual(filepath, filehash) {
+		err = os.Remove(filepath)
+		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("error while remove wrong file \"%s\": '%s'", filepath, err.Error()))
+		}
+		ctx.Logger().Error(fmt.Sprintf("error check hash for file \"%s\"", filepath))
+		return
+	}
+	ctx.Logger().Info(fmt.Sprintf("check hash sucessful for file \"%s\"", filepath))
 }
 
 // Detect OS to create a url
@@ -212,15 +240,15 @@ func (k Keeper) OSArch() string {
 	case "linux":
 		distr := readOSRelease("ID")
 		if distr == "" {
-			return ""
+			distr = "<unknown>"
 		}
 		version := readOSRelease("VERSION_ID")
 		if version == "" {
-			return ""
+			version = "<unknown>"
 		}
 		return fmt.Sprintf("linux/%s/%s", distr, version)
 	default:
-		return ""
+		return runtime.GOOS
 	}
 }
 
@@ -253,7 +281,7 @@ func (k Keeper) ScheduleUpgrade(ctx sdk.Context, plan types.Plan) error {
 
 // GetDoneHeight returns the height at which the given upgrade was executed
 func (k Keeper) GetDoneHeight(ctx sdk.Context, name string) int64 {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneByte)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DoneKey())
 	bz := store.Get([]byte(name))
 	if len(bz) == 0 {
 		return 0
