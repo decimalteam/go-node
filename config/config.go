@@ -12,7 +12,7 @@ import (
 const (
 
 	// DecimalVersion is integer version of the Decimal app.
-	DecimalVersion = "1.2.10"
+	DecimalVersion = "1.2.11"
 
 	// DecimalMainPrefix is the main prefix for all keys and addresses.
 	DecimalMainPrefix = "dx"
@@ -48,6 +48,7 @@ const (
 const (
 	OneHour     = 360 // blocks
 	UpdatesName = "updates.json"
+	GracePeriod = OneHour * 24 * 182 // grace period to use inside inGracePeriod
 )
 
 var (
