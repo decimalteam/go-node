@@ -128,7 +128,6 @@ func (k Keeper) PayRewards(ctx sdk.Context) error {
 					sdk.NewAttribute(sdk.AttributeKeyAmount, reward.String()),
 					sdk.NewAttribute(types.AttributeKeyValidator, val.ValAddress.String()),
 					sdk.NewAttribute(types.AttributeKeyDelegator, del.GetDelegatorAddr().String()),
-					sdk.NewAttribute(types.AttributeKeyCoin, del.GetCoin().Denom),
 				),
 			)
 		}
