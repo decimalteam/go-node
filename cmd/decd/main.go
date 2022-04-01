@@ -1,37 +1,34 @@
 package main
 
 import (
+	"bitbucket.org/decimalteam/go-node/app"
+	"bitbucket.org/decimalteam/go-node/config"
+	tmlog "bitbucket.org/decimalteam/go-node/utils/logger"
+	"bitbucket.org/decimalteam/go-node/x/genutil"
+	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
+	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
 	"fmt"
-	"io"
-
-	"github.com/pkg/errors"
-
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
-	"github.com/cosmos/cosmos-sdk/store/types"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/cli"
-	"github.com/tendermint/tendermint/libs/log"
-	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
-
-	"bitbucket.org/decimalteam/go-node/app"
-	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/genutil"
-	genutilcli "bitbucket.org/decimalteam/go-node/x/genutil/cli"
-	"bitbucket.org/decimalteam/go-node/x/validator"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/cli"
+	"github.com/tendermint/tendermint/libs/log"
+	tmtypes "github.com/tendermint/tendermint/types"
+	dbm "github.com/tendermint/tm-db"
+	"io"
+	"time"
 )
 
 const flagInvCheckPeriod = "inv-check-period"
@@ -50,11 +47,34 @@ func main() {
 	_config.Seal()
 
 	ctx := server.NewDefaultContext()
+	// ctx.Logger = tmlog.NewTestLogger()
 	cobra.EnableCommandSorting = false
+	// rootCmd := &cobra.Command{
+	// 	Use:               "decd",
+	// 	Short:             "Decimal Go Node",
+	// 	PersistentPreRunE: server.PersistentPreRunEFn(ctx),
+	// }
+
 	rootCmd := &cobra.Command{
-		Use:               "decd",
-		Short:             "Decimal Go Node",
-		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
+		Use:   "decd",
+		Short: "Decimal Go Node",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			firstFunc := server.PersistentPreRunEFn(ctx)
+			err := firstFunc(cmd, args)
+			if err != nil {
+				return err
+			}
+			testLogger := tmlog.NewTestLogger()
+			// testLogger.Logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+			testLogger.Logger = ctx.Logger
+			ctx.Logger = testLogger
+			// ctx.Logger = tmlog.NewTestLogger()
+			ctx.Logger = ctx.Logger.With("module", "state")
+
+			// fmt.Println("context.Logger", ctx.Logger)
+
+			return nil
+		},
 	}
 
 	rootCmd.AddCommand(flags.PostCommands(
@@ -87,6 +107,34 @@ func main() {
 }
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
+	tendLog := tmlog.NewTestLogger()
+
+	go func() {
+		for {
+			time.Sleep(time.Second * 3)
+			if len(tendLog.InfoMsgs) > 0 {
+				for _, msg := range tendLog.InfoMsgs {
+					fmt.Println("my log info:", msg)
+				}
+				tendLog.InfoMsgs = nil
+
+				for _, msg := range tendLog.ErrorMsgs {
+					fmt.Println("my log error:", msg)
+				}
+				tendLog.ErrorMsgs = nil
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			time.Sleep(time.Second * 4)
+			tendLog.Error("custom error")
+		}
+	}()
+
+	fmt.Println("=====endApp=====")
+
 	return app.NewInitApp(
 		logger, db, traceStore, true, invCheckPeriod,
 		baseapp.SetPruning(types.NewPruningOptionsFromString(viper.GetString("pruning"))),
