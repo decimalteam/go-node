@@ -58,7 +58,7 @@ NODE_MONIKER="$USER-node" # You are free to choose other name for your node
 CHAIN_ID="$(curl -s 'https://devnet-gate.decimalchain.com/api/rpc/genesis/chain')"
 decd init "$NODE_MONIKER" --chain-id "$CHAIN_ID"
 ```
- 
+
 Download proper `genesis.json` from master node
 
 ```bash
