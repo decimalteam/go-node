@@ -1,20 +1,34 @@
 package validator
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/nft"
-	val "bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
-	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
-	"github.com/stretchr/testify/assert"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-	tmtypes "github.com/tendermint/tendermint/types"
+	"bytes"
+	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/tendermint/tendermint/libs/log"
+	tmtypes "github.com/tendermint/tendermint/types"
+	dbm "github.com/tendermint/tm-db"
+
+	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
+	val "bitbucket.org/decimalteam/go-node/x/validator/internal/keeper"
+	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
 //______________________________________________________________________
@@ -1001,4 +1015,203 @@ func TestConvertAddr(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log(addr.String())
+}
+
+/////////////////////////////////////
+// Hogpodge of all sorts of input required for testing.
+// `initPower` is converted to an amount of tokens.
+// If `initPower` is 0, no addrs get created.
+func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64, addrList []sdk.AccAddress) (sdk.Context, auth.AccountKeeper, Keeper, supply.Keeper, coin.Keeper, nft.Keeper) {
+	keyStaking := sdk.NewKVStoreKey(types.StoreKey)
+	tkeyStaking := sdk.NewTransientStoreKey(types.TStoreKey)
+	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
+	keyParams := sdk.NewKVStoreKey(params.StoreKey)
+	tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
+	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
+	keyCoin := sdk.NewKVStoreKey(coin.StoreKey)
+	keyMultisig := sdk.NewKVStoreKey(multisig.StoreKey)
+
+	db := dbm.NewMemDB()
+	ms := store.NewCommitMultiStore(db)
+	ms.MountStoreWithDB(tkeyStaking, sdk.StoreTypeTransient, nil)
+	ms.MountStoreWithDB(keyStaking, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyAcc, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyParams, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(tkeyParams, sdk.StoreTypeTransient, db)
+	ms.MountStoreWithDB(keySupply, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyCoin, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyMultisig, sdk.StoreTypeIAVL, db)
+	err := ms.LoadLatestVersion()
+	require.Nil(t, err)
+
+	_config := sdk.GetConfig()
+	_config.SetCoinType(60)
+	_config.SetFullFundraiserPath("44'/60'/0'/0/0")
+	_config.SetBech32PrefixForAccount(config.DecimalPrefixAccAddr, config.DecimalPrefixAccPub)
+	_config.SetBech32PrefixForValidator(config.DecimalPrefixValAddr, config.DecimalPrefixValPub)
+	_config.SetBech32PrefixForConsensusNode(config.DecimalPrefixConsAddr, config.DecimalPrefixConsPub)
+
+	ctx := sdk.NewContext(ms, abci.Header{ChainID: "foochainid"}, isCheckTx, log.NewNopLogger())
+	ctx = ctx.WithConsensusParams(
+		&abci.ConsensusParams{
+			Validator: &abci.ValidatorParams{
+				PubKeyTypes: []string{tmtypes.ABCIPubKeyTypeEd25519},
+			},
+		},
+	)
+	cdc := val.MakeTestCodec()
+
+	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName, supply.Burner, supply.Minter)
+	notBondedPool := supply.NewEmptyModuleAccount(types.NotBondedPoolName, supply.Burner, supply.Staking)
+	bondPool := supply.NewEmptyModuleAccount(types.BondedPoolName, supply.Burner, supply.Staking)
+
+	blacklistedAddrs := make(map[string]bool)
+	blacklistedAddrs[feeCollectorAcc.String()] = true
+	blacklistedAddrs[notBondedPool.String()] = true
+	blacklistedAddrs[bondPool.String()] = true
+
+	pk := params.NewKeeper(cdc, keyParams, tkeyParams)
+
+	accountKeeper := auth.NewAccountKeeper(
+		cdc,    // amino codec
+		keyAcc, // target store
+		pk.Subspace(auth.DefaultParamspace),
+		auth.ProtoBaseAccount, // prototype
+	)
+
+	bk := bank.NewBaseKeeper(
+		accountKeeper,
+		pk.Subspace(bank.DefaultParamspace),
+		blacklistedAddrs,
+	)
+
+	maccPerms := map[string][]string{
+		auth.FeeCollectorName:   nil,
+		types.NotBondedPoolName: {supply.Burner, supply.Staking},
+		types.BondedPoolName:    {supply.Burner, supply.Staking},
+		nft.ReservedPool:        {supply.Burner},
+	}
+	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bk, maccPerms)
+
+	initTokens := types.TokensFromConsensusPower(initPower)
+	initCoins := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, initTokens))
+	totalSupply := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, initTokens.MulRaw(int64(len(addrList)))))
+
+	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
+
+	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bk, config.GetDefaultConfig(config.ChainID))
+
+	coinConfig := config.GetDefaultConfig(config.ChainID)
+	coinKeeper.SetCoin(ctx, coin.Coin{
+		Title:  coinConfig.TitleBaseCoin,
+		Symbol: coinConfig.SymbolBaseCoin,
+		Volume: coinConfig.InitialVolumeBaseCoin,
+	})
+
+	multisigKeeper := multisig.NewKeeper(cdc, keyMultisig, pk.Subspace(multisig.DefaultParamspace), accountKeeper, coinKeeper, bk)
+
+	nftKeeper := nft.NewKeeper(cdc, keyCoin, supplyKeeper, types.DefaultBondDenom)
+
+	keeper := NewKeeper(cdc, keyStaking, pk.Subspace(val.DefaultParamspace), coinKeeper, accountKeeper, supplyKeeper, multisigKeeper, nftKeeper, auth.FeeCollectorName)
+	keeper.SetParams(ctx, types.DefaultParams())
+
+	// set module accounts
+	err = notBondedPool.SetCoins(totalSupply)
+	require.NoError(t, err)
+
+	supplyKeeper.SetModuleAccount(ctx, feeCollectorAcc)
+	supplyKeeper.SetModuleAccount(ctx, bondPool)
+	supplyKeeper.SetModuleAccount(ctx, notBondedPool)
+
+	// fill all the addresses with some coins, set the loose pool tokens simultaneously
+	for _, addr := range addrList {
+		_, err := bk.AddCoins(ctx, addr, initCoins)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return ctx, accountKeeper, keeper, supplyKeeper, coinKeeper, nftKeeper
+}
+
+// default test create no more 999 addresses
+func createTestAddr(numAddrs int) []sdk.AccAddress {
+	var addresses []sdk.AccAddress
+	var buffer bytes.Buffer
+	var source = "0123456789ABCDEF"
+	for i := 0; i < numAddrs; i++ {
+		for j := 0; j < 40; j++ {
+			buffer.WriteByte(source[rand.Intn(len(source))])
+		}
+		res, _ := sdk.AccAddressFromHex(buffer.String())
+		bech := res.String()
+		addresses = append(addresses, val.TestAddr(buffer.String(), bech))
+		buffer.Reset()
+	}
+	return addresses
+}
+
+func TestMaximumSlots(t *testing.T) {
+	const N = 4
+	const AddrCount = 2000
+	// init
+	delegators := createTestAddr(AddrCount)
+	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 20000, delegators)
+
+	// params
+	// set the unbonding time
+	params := keeper.GetParams(ctx)
+	params.UnbondingTime = 1 * time.Second
+	keeper.SetParams(ctx, params)
+
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+	// 1. declare validators
+	// first N address is validators
+	for i := 0; i < N; i++ {
+		validatorAddr := sdk.ValAddress(delegators[i])
+		//delegatorAddr := sdk.AccAddress(validatorAddr)
+		// create the validator
+		valTokens := types.TokensFromConsensusPower(10000)
+		msgCreateValidator := NewTestMsgDeclareCandidate(validatorAddr, val.PKs[i], valTokens)
+		res, err := handleMsgDeclareCandidate(ctx, keeper, msgCreateValidator)
+		require.NoError(t, err)
+		require.NotNil(t, res)
+	}
+	_, err := keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	require.NoError(t, err)
+	require.Equal(t, N, len(keeper.GetLastValidators(ctx)))
+
+	//delegate
+	validatorAddr := sdk.ValAddress(delegators[0])
+	validator, _ := keeper.GetValidator(ctx, validatorAddr)
+	for i := 0; i < 1000; i++ {
+		delegatorAddr := delegators[N+i]
+		_, err := keeper.Delegate(ctx, delegatorAddr, sdk.NewCoin(DefaultBondDenom, TokensFromConsensusPower(10)), types.Bonded, validator, false)
+		if err != nil {
+			fmt.Printf("delegate err=%s\n", err.Error())
+		}
+	}
+	//bond
+	delegatorAddr := delegators[N+1002]
+	msgDelegate := NewTestMsgDelegate(delegatorAddr, validatorAddr, TokensFromConsensusPower(20))
+	handleMsgDelegate(ctx, keeper, msgDelegate)
+	//unbond
+	unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), TokensFromConsensusPower(5))
+	msgUndelegate := types.NewMsgUnbond(validatorAddr, delegators[N+1], unbondAmt)
+	handleMsgUnbond(ctx, keeper, msgUndelegate)
+	// check validators count
+	keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+	updates, err := keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	require.NoError(t, err)
+	//check updates for duplicates
+	updateDups := make(map[string]int)
+	for _, u := range updates {
+		updateDups[u.PubKey.String()] = updateDups[u.PubKey.String()] + 1
+	}
+	for _, v := range updateDups {
+		require.Equal(t, 1, v, "duplicate in updates")
+	}
+	//
+	require.Equal(t, N, len(keeper.GetLastValidators(ctx)))
 }
