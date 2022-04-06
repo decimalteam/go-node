@@ -1178,63 +1178,37 @@ func TestMaximumSlots(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, N, len(keeper.GetLastValidators(ctx)))
 
-	// 2. bond/unbond
-	for i := 0; i < 10000; i++ {
-		fmt.Printf("%d\n", i)
-		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
-		for n := 0; n < 300; n++ {
-			delegatorAddr := delegators[N+rand.Intn(AddrCount-N)]
-			for j := 0; j < N; j++ {
-				validatorAddr := sdk.ValAddress(delegators[j])
-				switch rand.Intn(2) {
-				case 0:
-					{
-						msgDelegate := NewTestMsgDelegate(delegatorAddr, validatorAddr, TokensFromConsensusPower(int64(rand.Intn(3)+1)))
-						handleMsgDelegate(ctx, keeper, msgDelegate)
-					}
-				case 1:
-					{
-						unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), TokensFromConsensusPower(int64(rand.Intn(3)+1)))
-						msgUndelegate := types.NewMsgUnbond(validatorAddr, delegatorAddr, unbondAmt)
-						handleMsgUnbond(ctx, keeper, msgUndelegate)
-					}
-				}
-			}
+	//delegate
+	validatorAddr := sdk.ValAddress(delegators[0])
+	validator, _ := keeper.GetValidator(ctx, validatorAddr)
+	for i := 0; i < 1000; i++ {
+		delegatorAddr := delegators[N+i]
+		_, err := keeper.Delegate(ctx, delegatorAddr, sdk.NewCoin(DefaultBondDenom, TokensFromConsensusPower(10)), types.Bonded, validator, false)
+		if err != nil {
+			fmt.Printf("delegate err=%s\n", err.Error())
 		}
-		// check validators count
-		updates, err := keeper.ApplyAndReturnValidatorSetUpdates(ctx)
-		require.NoError(t, err)
-		//check updates for duplicates
-		updateDups := make(map[string]int)
-		for _, u := range updates {
-			updateDups[u.PubKey.String()] = updateDups[u.PubKey.String()] + 1
-		}
-		for k, v := range updateDups {
-			if v > 1 {
-				fmt.Printf("dups detected: %s\n", k)
-			}
-		}
-		//
-		if len(keeper.GetLastValidators(ctx)) != N {
-			fmt.Println("start validators")
-			for j := 0; j < N; j++ {
-				validatorAddr := sdk.ValAddress(delegators[j])
-				fmt.Printf("%d=%s :: ", j, validatorAddr.String())
-			}
-			fmt.Println("---")
-			fmt.Println("end validators")
-			for j, vald := range keeper.GetLastValidators(ctx) {
-				fmt.Printf("%d=%s :: ", j, vald.ValAddress.String())
-			}
-			fmt.Printf("\n")
-		}
-
-		require.Equal(t, N, len(keeper.GetLastValidators(ctx)))
-		// print slots count
-		for j := 0; j < N; j++ {
-			validatorAddr := sdk.ValAddress(delegators[j])
-			fmt.Printf("%d=%d :: ", j, len(keeper.GetValidatorDelegations(ctx, validatorAddr)))
-		}
-		fmt.Printf("\n")
 	}
+	//bond
+	delegatorAddr := delegators[N+1002]
+	msgDelegate := NewTestMsgDelegate(delegatorAddr, validatorAddr, TokensFromConsensusPower(20))
+	handleMsgDelegate(ctx, keeper, msgDelegate)
+	//unbond
+	unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), TokensFromConsensusPower(5))
+	msgUndelegate := types.NewMsgUnbond(validatorAddr, delegators[N+1], unbondAmt)
+	handleMsgUnbond(ctx, keeper, msgUndelegate)
+	// check validators count
+	keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+	updates, err := keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	require.NoError(t, err)
+	//check updates for duplicates
+	updateDups := make(map[string]int)
+	for _, u := range updates {
+		updateDups[u.PubKey.String()] = updateDups[u.PubKey.String()] + 1
+	}
+	for _, v := range updateDups {
+		require.Equal(t, 1, v, "duplicate in updates")
+	}
+	//
+	require.Equal(t, N, len(keeper.GetLastValidators(ctx)))
 }
