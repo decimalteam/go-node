@@ -108,7 +108,20 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
 			if validator.Online {
-				updates = append(updates, validator.ABCIValidatorUpdate())
+				// This is very rapid fix of problem somehow happening when all validators slots are used
+				// TODO: Fix it another way so no such checks are needed
+				existing := -1
+				for i := 0; i < len(updates); i++ {
+					if bytes.Equal(updates[i].PubKey.Data, validator.PubKey.Bytes()) {
+						existing = i
+						break
+					}
+				}
+				if existing < 0 {
+					updates = append(updates, validator.ABCIValidatorUpdate())
+				} else {
+					updates[existing] = validator.ABCIValidatorUpdate()
+				}
 			}
 
 			ctx.EventManager().EmitEvent(
