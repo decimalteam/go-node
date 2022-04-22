@@ -53,9 +53,10 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		if validator.Jailed {
 			continue
 		}
+		validatorAddress := validator.ValAddress.String()
 		k.DeleteValidatorByPowerIndex(ctx, validator)
-		k.checkDelegations(ctx, validator, delegations[validator.ValAddress.String()])
-		k.SetValidatorByPowerIndexWithCalc(ctx, validator, delegations[validator.ValAddress.String()])
+		delegations[validatorAddress] = k.checkDelegations(ctx, validator, delegations[validatorAddress])
+		k.SetValidatorByPowerIndexWithCalc(ctx, validator, delegations[validatorAddress])
 	}
 
 	validators = k.GetAllValidatorsByPowerIndexReversed(ctx)
@@ -65,6 +66,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		// part of the bonded validator set
 
 		validator := validators[i]
+		validatorAddress := validator.ValAddress.String()
 
 		if validator.Jailed {
 			return nil, errors.New("ApplyAndReturnValidatorSetUpdates: should never retrieve a jailed validator from the power store")
@@ -84,7 +86,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 				if err != nil {
 					return nil, fmt.Errorf("ApplyAndReturnValidatorSetUpdates: %w", err)
 				}
-				for _, delegation := range delegations[validator.ValAddress.String()] {
+				for _, delegation := range delegations[validatorAddress] {
 					if _, ok := delegation.(types.Delegation); ok {
 						amtFromNotBondedToBonded = amtFromNotBondedToBonded.Add(delegation.GetCoin())
 					}
@@ -108,7 +110,20 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {
 			if validator.Online {
-				updates = append(updates, validator.ABCIValidatorUpdate())
+				// This is very rapid fix of problem somehow happening when all validators slots are used
+				// TODO: Fix it another way so no such checks are needed
+				existing := -1
+				for i := 0; i < len(updates); i++ {
+					if bytes.Equal(updates[i].PubKey.Data, validator.PubKey.Bytes()) {
+						existing = i
+						break
+					}
+				}
+				if existing < 0 {
+					updates = append(updates, validator.ABCIValidatorUpdate())
+				} else {
+					updates[existing] = validator.ABCIValidatorUpdate()
+				}
 			}
 
 			ctx.EventManager().EmitEvent(
@@ -314,9 +329,10 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, validator types.Validator) (t
 	return k.beginUnbondingValidator(ctx, validator)
 }
 
-func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) {
-	if len(delegations) <= int(k.MaxDelegations(ctx)) {
-		return
+func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) []exported.DelegationI {
+	maxDelegations := int(k.MaxDelegations(ctx))
+	if len(delegations) <= maxDelegations {
+		return delegations
 	}
 
 	sort.SliceStable(delegations, func(i, j int) bool {
@@ -325,7 +341,7 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 		return amountI.GT(amountJ)
 	})
 
-	for i := int(k.MaxDelegations(ctx)); i < len(delegations); i++ {
+	for i := maxDelegations; i < len(delegations); i++ {
 		switch validator.Status {
 		case types.Bonded:
 			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
@@ -343,6 +359,8 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 			panic(err)
 		}
 	}
+
+	return delegations[:maxDelegations]
 }
 
 // perform all the store operations for when a validator begins unbonding
