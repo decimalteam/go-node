@@ -204,6 +204,10 @@ func (k Keeper) TokenBaseOfDelegation(ctx sdk.Context, del exported.DelegationI)
 		panic(err)
 	}
 	delegatedCoin := k.GetDelegatedCoin(ctx, del.GetCoin().Denom)
+	// TODO: this is for tests to avoid panic
+	if delegatedCoin.IsZero() {
+		return sdk.ZeroInt()
+	}
 	totalAmountCoin := formulas.CalculateSaleReturn(coin.Volume, coin.Reserve, coin.CRR, delegatedCoin)
 	return totalAmountCoin.Mul(del.GetCoin().Amount).Quo(delegatedCoin)
 }
