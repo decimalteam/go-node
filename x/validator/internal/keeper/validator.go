@@ -169,7 +169,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 
 func (k Keeper) CalcTotalStake(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) sdk.Int {
 	total := sdk.ZeroInt()
-	for _, del := range delegations {
+	for i, del := range delegations {
 		if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
 			del = del.SetTokensBase(del.GetCoin().Amount)
 		}
@@ -192,6 +192,7 @@ func (k Keeper) CalcTotalStake(ctx sdk.Context, validator types.Validator, deleg
 				}
 			}
 		}
+		delegations[i] = del
 		total = total.Add(del.GetTokensBase())
 	}
 
