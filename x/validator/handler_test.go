@@ -1215,28 +1215,21 @@ func TestMaximumSlots(t *testing.T) {
 	for i := 0; i < 1500; i++ {
 		addr := delegators[N+i]
 		id := generateUniq(10)
-		msg := nft.NewMsgMintNFT(addr, addr, id, keeper.BondDenom(ctx), id, sdk.NewInt(1), sdk.NewInt(1000), true)
+		//TokensFromConsensusPower(1): stacktrace from panic: insufficient funds: insufficient account funds
+		//sdk.NewInt(10000): two validators disappear
+		msg := nft.NewMsgMintNFT(addr, addr, id, keeper.BondDenom(ctx), id, sdk.NewInt(1), sdk.NewInt(10000), true)
 		nftIds[addr.String()] = id
 		_, err := nftHandler(ctx, msg)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
 	}
-	/*
-		for adr, id := range nftIds {
-			eNFT, err := nftKeeper.GetNFT(ctx, keeper.BondDenom(ctx), id)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-			fmt.Printf("%s == %s\n", adr, eNFT.GetOwners())
-		}
-	*/
 
 	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, true)
 	require.Equal(t, N, len(keeper.GetLastValidators(ctx)))
 
 	// 2. bond/unbond
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 100; i++ {
 		coinKeeper.ClearCoinCache()
 		var updates []abci.ValidatorUpdate
 		fmt.Printf("%d\n", i)
