@@ -356,9 +356,17 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 				panic(err)
 			}
 		}
-		err := k.unbond(ctx, delegation.GetDelegatorAddr(), delegation.GetValidatorAddr(), delegation.GetCoin(), false)
-		if err != nil {
-			panic(err)
+		switch d := delegation.(type) {
+		case types.Delegation:
+			err := k.unbond(ctx, d.DelegatorAddress, d.ValidatorAddress, d.Coin, false)
+			if err != nil {
+				panic(err)
+			}
+		case types.DelegationNFT:
+			err := k.unbondNFT(ctx, d.DelegatorAddress, d.ValidatorAddress, d.TokenID, d.Denom, d.SubTokenIDs, false)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
