@@ -132,7 +132,7 @@ func (k Keeper) UndelegateNFT(
 
 	sort.Sort(nftTypes.SortedIntArray(subTokenIDs))
 
-	err := k.unbondNFT(ctx, delAddr, valAddr, tokenID, denom, subTokenIDs)
+	err := k.unbondNFT(ctx, delAddr, valAddr, tokenID, denom, subTokenIDs, true)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -145,7 +145,7 @@ func (k Keeper) UndelegateNFT(
 }
 
 // unbond a particular delegation and perform associated store operations
-func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, tokenID, denom string, subTokenIDs []int64) error {
+func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, tokenID, denom string, subTokenIDs []int64, updateValidator bool) error {
 	// check if a delegation object exists in the store
 	delegation, found := k.GetDelegationNFT(ctx, valAddr, delAddr, tokenID, denom)
 	if !found {
@@ -161,12 +161,6 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 			return types.ErrOwnerDoesNotOwnSubTokenID(
 				delAddr.String(), strconv.FormatInt(int64(id), 10))
 		}
-	}
-
-	// get validator
-	validator, err := k.GetValidator(ctx, valAddr)
-	if err != nil {
-		return types.ErrNoValidatorFound()
 	}
 
 	decreasedAmount := sdk.ZeroInt()
@@ -192,15 +186,23 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 		k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 	}
 
-	k.DeleteValidatorByPowerIndex(ctx, validator)
-
-	decreasedTokens := k.DecreaseValidatorTokens(ctx, validator, decreasedAmount)
-
-	if decreasedTokens.IsZero() && validator.IsUnbonded() {
-		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
-		err = k.RemoveValidator(ctx, validator.ValAddress)
+	if updateValidator {
+		// get validator
+		validator, err := k.GetValidator(ctx, valAddr)
 		if err != nil {
-			return types.ErrInternal(err.Error())
+			return types.ErrNoValidatorFound()
+		}
+
+		k.DeleteValidatorByPowerIndex(ctx, validator)
+
+		decreasedTokens := k.DecreaseValidatorTokens(ctx, validator, decreasedAmount)
+
+		if decreasedTokens.IsZero() && validator.IsUnbonded() {
+			// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
+			err = k.RemoveValidator(ctx, validator.ValAddress)
+			if err != nil {
+				return types.ErrInternal(err.Error())
+			}
 		}
 	}
 

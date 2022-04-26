@@ -50,21 +50,17 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	validators := k.GetAllValidatorsByPowerIndexReversed(ctx)
 	delegations := k.GetAllDelegationsByValidator(ctx)
 	for _, validator := range validators {
-		var isUnbonded bool
 		if validator.Jailed {
 			continue
 		}
 		validatorAddress := validator.ValAddress.String()
 		k.DeleteValidatorByPowerIndex(ctx, validator)
-		delegations[validatorAddress], isUnbonded = k.checkDelegations(ctx, validator, delegations[validatorAddress])
-		//checkDelegations perform unbonding AND set validator by power
-		if isUnbonded {
-			continue
-		}
+		delegations[validatorAddress] = k.checkDelegations(ctx, validator, delegations[validatorAddress])
 		k.SetValidatorByPowerIndexWithCalc(ctx, validator, delegations[validatorAddress])
 	}
 
 	validators = k.GetAllValidatorsByPowerIndexReversed(ctx)
+
 	for i := 0; i < len(validators) && i < maxValidators; i++ {
 		// everything that is iterated in this loop is becoming or already a
 		// part of the bonded validator set
@@ -333,11 +329,11 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, validator types.Validator) (t
 	return k.beginUnbondingValidator(ctx, validator)
 }
 
-func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) ([]exported.DelegationI, bool) {
+func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) []exported.DelegationI {
 
 	maxDelegations := int(k.MaxDelegations(ctx))
 	if len(delegations) <= maxDelegations {
-		return delegations, false
+		return delegations
 	}
 
 	sort.SliceStable(delegations, func(i, j int) bool {
@@ -347,25 +343,34 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 	})
 
 	for i := maxDelegations; i < len(delegations); i++ {
+		delegation := delegations[i]
 		switch validator.Status {
 		case types.Bonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegation.GetDelegatorAddr(), sdk.NewCoins(delegation.GetCoin()))
 			if err != nil {
 				panic(err)
 			}
 		case types.Unbonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegation.GetDelegatorAddr(), sdk.NewCoins(delegation.GetCoin()))
 			if err != nil {
 				panic(err)
 			}
 		}
-		err := k.unbond(ctx, delegations[i].GetDelegatorAddr(), delegations[i].GetValidatorAddr(), delegations[i].GetCoin())
-		if err != nil {
-			panic(err)
+		switch d := delegation.(type) {
+		case types.Delegation:
+			err := k.unbond(ctx, d.DelegatorAddress, d.ValidatorAddress, d.Coin, false)
+			if err != nil {
+				panic(err)
+			}
+		case types.DelegationNFT:
+			err := k.unbondNFT(ctx, d.DelegatorAddress, d.ValidatorAddress, d.TokenID, d.Denom, d.SubTokenIDs, false)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 
-	return delegations[:maxDelegations], true
+	return delegations[:maxDelegations]
 }
 
 // perform all the store operations for when a validator begins unbonding
