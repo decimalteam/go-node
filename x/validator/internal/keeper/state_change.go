@@ -50,17 +50,21 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	validators := k.GetAllValidatorsByPowerIndexReversed(ctx)
 	delegations := k.GetAllDelegationsByValidator(ctx)
 	for _, validator := range validators {
+		var isUnbonded bool
 		if validator.Jailed {
 			continue
 		}
 		validatorAddress := validator.ValAddress.String()
 		k.DeleteValidatorByPowerIndex(ctx, validator)
-		delegations[validatorAddress] = k.checkDelegations(ctx, validator, delegations[validatorAddress])
+		delegations[validatorAddress], isUnbonded = k.checkDelegations(ctx, validator, delegations[validatorAddress])
+		//checkDelegations perform unbonding AND set validator by power
+		if isUnbonded {
+			continue
+		}
 		k.SetValidatorByPowerIndexWithCalc(ctx, validator, delegations[validatorAddress])
 	}
 
 	validators = k.GetAllValidatorsByPowerIndexReversed(ctx)
-
 	for i := 0; i < len(validators) && i < maxValidators; i++ {
 		// everything that is iterated in this loop is becoming or already a
 		// part of the bonded validator set
@@ -329,10 +333,11 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, validator types.Validator) (t
 	return k.beginUnbondingValidator(ctx, validator)
 }
 
-func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) []exported.DelegationI {
+func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) ([]exported.DelegationI, bool) {
+
 	maxDelegations := int(k.MaxDelegations(ctx))
 	if len(delegations) <= maxDelegations {
-		return delegations
+		return delegations, false
 	}
 
 	sort.SliceStable(delegations, func(i, j int) bool {
@@ -360,7 +365,7 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 		}
 	}
 
-	return delegations[:maxDelegations]
+	return delegations[:maxDelegations], true
 }
 
 // perform all the store operations for when a validator begins unbonding

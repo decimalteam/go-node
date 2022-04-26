@@ -1149,6 +1149,8 @@ func createTestAddr(numAddrs int) []sdk.AccAddress {
 	return addresses
 }
 
+/* Slow test
+*
 func TestMaximumSlots(t *testing.T) {
 	const N = 4
 	const AddrCount = 2000
@@ -1280,9 +1282,9 @@ func TestMaximumSlots(t *testing.T) {
 				fmt.Printf("dups detected: %s\n", k)
 			}
 		}
-		//if len(keeper.GetAllValidatorsByPowerIndex(ctx)) != N {
-		//	panic(fmt.Srintf("stop here = %d\n", len(keeper.GetAllValidatorsByPowerIndex(ctx))))
-		//}
+		if len(keeper.GetAllValidatorsByPowerIndex(ctx)) != N {
+			panic(fmt.Sprintf("stop here = %d\n", len(keeper.GetAllValidatorsByPowerIndex(ctx))))
+		}
 		//
 		if len(keeper.GetLastValidators(ctx)) != N {
 			fmt.Println("start validators")
@@ -1311,3 +1313,4 @@ func TestMaximumSlots(t *testing.T) {
 		fmt.Printf("\n")
 	}
 }
+*/
