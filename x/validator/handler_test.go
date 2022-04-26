@@ -1132,6 +1132,15 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64, addrList []s
 	return ctx, accountKeeper, keeper, supplyKeeper, coinKeeper, nftKeeper
 }
 
+func generateUniq(n int) string {
+	var buffer bytes.Buffer
+	var source = "0123456789ABCDEF"
+	for j := 0; j < n; j++ {
+		buffer.WriteByte(source[rand.Intn(len(source))])
+	}
+	return buffer.String()
+}
+
 // default test create no more 999 addresses
 func createTestAddr(numAddrs int) []sdk.AccAddress {
 	var addresses []sdk.AccAddress
@@ -1149,18 +1158,19 @@ func createTestAddr(numAddrs int) []sdk.AccAddress {
 	return addresses
 }
 
-/* Slow test
-*
+/* Slow test */
+
 func TestMaximumSlots(t *testing.T) {
 	const N = 4
 	const AddrCount = 2000
 	var cointags = []string{"crasher", "boomer", "banger", "ayaya"}
 	// init
 	delegators := createTestAddr(AddrCount)
-	ctx, _, keeper, supplyKeeper, coinKeeper, _ := CreateTestInput(t, false, 100000, delegators)
+	ctx, _, keeper, supplyKeeper, coinKeeper, nftKeeper := CreateTestInput(t, false, 100000, delegators)
 
+	valHandler := NewHandler(keeper)
 	coinHandler := coin.NewHandler(coinKeeper)
-	//nftHandler := nft.GenericHandler(nftKeeper)
+	nftHandler := nft.GenericHandler(nftKeeper)
 	// params
 	// set the unbonding time
 	params := keeper.GetParams(ctx)
@@ -1200,11 +1210,33 @@ func TestMaximumSlots(t *testing.T) {
 			}
 		}
 	}
+	// create nft for almost everyone
+	nftIds := make(map[string]string)
+	for i := 0; i < 1500; i++ {
+		addr := delegators[N+i]
+		id := generateUniq(10)
+		msg := nft.NewMsgMintNFT(addr, addr, id, keeper.BondDenom(ctx), id, sdk.NewInt(1), sdk.NewInt(1000), true)
+		nftIds[addr.String()] = id
+		_, err := nftHandler(ctx, msg)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}
+	/*
+		for adr, id := range nftIds {
+			eNFT, err := nftKeeper.GetNFT(ctx, keeper.BondDenom(ctx), id)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			fmt.Printf("%s == %s\n", adr, eNFT.GetOwners())
+		}
+	*/
+
 	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, true)
 	require.Equal(t, N, len(keeper.GetLastValidators(ctx)))
 
 	// 2. bond/unbond
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 20; i++ {
 		coinKeeper.ClearCoinCache()
 		var updates []abci.ValidatorUpdate
 		fmt.Printf("%d\n", i)
@@ -1224,11 +1256,11 @@ func TestMaximumSlots(t *testing.T) {
 						coinAmount = sdk.NewCoin(cointags[coinid], TokensFromConsensusPower(int64(rand.Intn(3)+1)))
 					}
 				}
-				switch rand.Intn(4) {
+				switch rand.Intn(6) {
 				case 0: //delegate
 					{
 						msgDelegate := NewMsgDelegate(validatorAddr, delegatorAddr, coinAmount)
-						_, err := handleMsgDelegate(ctx, keeper, msgDelegate)
+						_, err := valHandler(ctx, msgDelegate)
 						if err != nil {
 							//fmt.Printf("err delegate: %s\n", err.Error())
 						}
@@ -1236,7 +1268,7 @@ func TestMaximumSlots(t *testing.T) {
 				case 1: //unbond
 					{
 						msgUndelegate := types.NewMsgUnbond(validatorAddr, delegatorAddr, coinAmount)
-						_, err := handleMsgUnbond(ctx, keeper, msgUndelegate)
+						_, err := valHandler(ctx, msgUndelegate)
 						if err != nil {
 							//fmt.Printf("err unbond: %s\n", err.Error())
 						}
@@ -1265,8 +1297,30 @@ func TestMaximumSlots(t *testing.T) {
 							}
 						}
 					}
+				case 4: //delegate nft
+					{
+						id := nftIds[delegatorAddr.String()]
+						if id != "" {
+							msg := NewMsgDelegateNFT(validatorAddr, delegatorAddr, id, keeper.BondDenom(ctx), []int64{1})
+							_, err := valHandler(ctx, msg)
+							if err != nil {
+								//fmt.Printf("err delegate nft: %s\n", err.Error())
+							}
+						}
+
+					}
+				case 5:
+					{
+						id := nftIds[delegatorAddr.String()]
+						if id != "" {
+							msg := NewMsgUnbondNFT(validatorAddr, delegatorAddr, id, keeper.BondDenom(ctx), []int64{1})
+							_, err := valHandler(ctx, msg)
+							if err != nil {
+								//fmt.Printf("err delegate nft: %s\n", err.Error())
+							}
+						}
+					}
 				}
-				//TODO: nft
 			}
 		}
 		// check validators count
@@ -1313,4 +1367,3 @@ func TestMaximumSlots(t *testing.T) {
 		fmt.Printf("\n")
 	}
 }
-*/
