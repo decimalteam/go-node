@@ -612,7 +612,7 @@ func (k Keeper) Undelegate(
 		return time.Time{}, types.ErrNoDelegatorForAddress()
 	}
 
-	err := k.unbond(ctx, delAddr, valAddr, amount)
+	err := k.unbond(ctx, delAddr, valAddr, amount, true)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -630,7 +630,7 @@ func (k Keeper) Undelegate(
 }
 
 // unbond a particular delegation and perform associated store operations
-func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, coin sdk.Coin) error {
+func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, coin sdk.Coin, updateValidator bool) error {
 	// check if a delegation object exists in the store
 	delegation, found := k.GetDelegation(ctx, delAddr, valAddr, coin.Denom)
 	if !found {
@@ -645,12 +645,6 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 		return types.ErrNotEnoughDelegationShares(delegation.Coin.Amount.String())
 	}
 
-	// get validator
-	validator, err := k.GetValidator(ctx, valAddr)
-	if err != nil {
-		return types.ErrNoValidatorFound()
-	}
-
 	// subtract shares from delegation
 	delegation.Coin = delegation.Coin.Sub(coin)
 
@@ -663,23 +657,31 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 		k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 	}
 
-	k.DeleteValidatorByPowerIndex(ctx, validator)
-
-	amountBase := coin.Amount
-	if coin.Denom != k.BondDenom(ctx) {
-		c, err := k.GetCoin(ctx, coin.Denom)
+	if updateValidator {
+		// get validator
+		validator, err := k.GetValidator(ctx, valAddr)
 		if err != nil {
-			return types.ErrInternal(err.Error())
+			return types.ErrNoValidatorFound()
 		}
-		amountBase = formulas.CalculateSaleReturn(c.Volume, c.Reserve, c.CRR, coin.Amount)
-	}
-	decreasedTokens := k.DecreaseValidatorTokens(ctx, validator, amountBase)
 
-	if decreasedTokens.IsZero() && validator.IsUnbonded() {
-		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
-		err = k.RemoveValidator(ctx, validator.ValAddress)
-		if err != nil {
-			return types.ErrInternal(err.Error())
+		k.DeleteValidatorByPowerIndex(ctx, validator)
+
+		amountBase := coin.Amount
+		if coin.Denom != k.BondDenom(ctx) {
+			c, err := k.GetCoin(ctx, coin.Denom)
+			if err != nil {
+				return types.ErrInternal(err.Error())
+			}
+			amountBase = formulas.CalculateSaleReturn(c.Volume, c.Reserve, c.CRR, coin.Amount)
+		}
+		decreasedTokens := k.DecreaseValidatorTokens(ctx, validator, amountBase)
+
+		if decreasedTokens.IsZero() && validator.IsUnbonded() {
+			// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
+			err = k.RemoveValidator(ctx, validator.ValAddress)
+			if err != nil {
+				return types.ErrInternal(err.Error())
+			}
 		}
 	}
 
