@@ -54,6 +54,8 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		}
 		validatorAddress := validator.ValAddress.String()
 		k.DeleteValidatorByPowerIndex(ctx, validator)
+		// This is necessary to call method CalcTotalStake() before calling checkDelegations()
+		k.CalcTotalStake(ctx, validator, delegations[validatorAddress])
 		delegations[validatorAddress] = k.checkDelegations(ctx, validator, delegations[validatorAddress])
 		k.SetValidatorByPowerIndexWithCalc(ctx, validator, delegations[validatorAddress])
 	}
@@ -333,21 +335,30 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 	})
 
 	for i := maxDelegations; i < len(delegations); i++ {
+		delegation := delegations[i]
 		switch validator.Status {
 		case types.Bonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegation.GetDelegatorAddr(), sdk.NewCoins(delegation.GetCoin()))
 			if err != nil {
 				panic(err)
 			}
 		case types.Unbonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegation.GetDelegatorAddr(), sdk.NewCoins(delegation.GetCoin()))
 			if err != nil {
 				panic(err)
 			}
 		}
-		err := k.unbond(ctx, delegations[i].GetDelegatorAddr(), delegations[i].GetValidatorAddr(), delegations[i].GetCoin())
-		if err != nil {
-			panic(err)
+		switch d := delegation.(type) {
+		case types.Delegation:
+			err := k.unbond(ctx, d.DelegatorAddress, d.ValidatorAddress, d.Coin, false)
+			if err != nil {
+				panic(err)
+			}
+		case types.DelegationNFT:
+			err := k.unbondNFT(ctx, d.DelegatorAddress, d.ValidatorAddress, d.TokenID, d.Denom, d.SubTokenIDs, false)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 

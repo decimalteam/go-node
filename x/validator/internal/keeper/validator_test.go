@@ -92,7 +92,7 @@ func TestUpdateValidatorByPowerIndex(t *testing.T) {
 
 	// burn half the delegator shares
 	keeper.DeleteValidatorByPowerIndex(ctx, validator)
-	sdkErr := keeper.unbond(ctx, addrDels[0], addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(50)))
+	sdkErr := keeper.unbond(ctx, addrDels[0], addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), types.TokensFromConsensusPower(50)), true)
 	require.Nil(t, sdkErr)
 	TestingUpdateValidator(keeper, ctx, validator, true) // update the validator, possibly kicking it out
 	require.False(t, validatorByPowerIndexExists(keeper, ctx, power))

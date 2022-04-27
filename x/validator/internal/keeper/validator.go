@@ -163,7 +163,7 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 
 func (k Keeper) CalcTotalStake(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) sdk.Int {
 	total := sdk.ZeroInt()
-	for _, del := range delegations {
+	for i, del := range delegations {
 		// TODO: This code is commented out since removed goroutine from the loop
 		// if ctx.BlockHeight() >= updates.Update12Block {
 		// 	defer func() {
@@ -191,6 +191,7 @@ func (k Keeper) CalcTotalStake(ctx sdk.Context, validator types.Validator, deleg
 				k.SetDelegationNFT(ctx, del)
 			}
 		}
+		delegations[i] = del
 		total = total.Add(del.GetTokensBase())
 	}
 
