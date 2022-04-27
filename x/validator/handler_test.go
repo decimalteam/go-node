@@ -1162,10 +1162,12 @@ func createTestAddr(numAddrs int) []sdk.AccAddress {
 
 /* Slow test */
 func TestMaximumSlots(t *testing.T) {
-	for _, start := range []int64{0, 5000000, 10000000} {
-		fmt.Printf("START=%d\n", start)
-		testMaximumSlotsWithStartBlock(t, start)
-	}
+	/*
+		for _, start := range []int64{0, 5000000, 10000000} {
+			fmt.Printf("START=%d\n", start)
+			testMaximumSlotsWithStartBlock(t, start)
+		}
+	*/
 }
 
 func testMaximumSlotsWithStartBlock(t *testing.T, height int64) {
