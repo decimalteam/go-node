@@ -1159,14 +1159,21 @@ func createTestAddr(numAddrs int) []sdk.AccAddress {
 }
 
 /* Slow test */
-
 func TestMaximumSlots(t *testing.T) {
+	for _, start := range []int64{0, 1000000, 2000000, 3000000, 4000000, 5000000, 6000000, 7000000, 8000000, 9000000, 10000000} {
+		fmt.Printf("START=%d\n", start)
+		testMaximumSlotsWithStartBlock(t, start)
+	}
+}
+
+func testMaximumSlotsWithStartBlock(t *testing.T, height int64) {
 	const N = 4
 	const AddrCount = 2000
 	var cointags = []string{"crasher", "boomer", "banger", "ayaya"}
 	// init
 	delegators := createTestAddr(AddrCount)
 	ctx, _, keeper, supplyKeeper, coinKeeper, nftKeeper := CreateTestInput(t, false, 100000, delegators)
+	ctx = ctx.WithBlockHeight(height)
 
 	valHandler := NewHandler(keeper)
 	coinHandler := coin.NewHandler(coinKeeper)
@@ -1217,7 +1224,7 @@ func TestMaximumSlots(t *testing.T) {
 		id := generateUniq(10)
 		//TokensFromConsensusPower(1): stacktrace from panic: insufficient funds: insufficient account funds
 		//sdk.NewInt(10000): two validators disappear
-		msg := nft.NewMsgMintNFT(addr, addr, id, keeper.BondDenom(ctx), id, sdk.NewInt(1), sdk.NewInt(10000), true)
+		msg := nft.NewMsgMintNFT(addr, addr, id, keeper.BondDenom(ctx), id, sdk.NewInt(1), sdk.NewInt(rand.Int63n(20)*100000000000000000+100000000000000000), true)
 		nftIds[addr.String()] = id
 		_, err := nftHandler(ctx, msg)
 		if err != nil {
@@ -1229,10 +1236,10 @@ func TestMaximumSlots(t *testing.T) {
 	require.Equal(t, N, len(keeper.GetLastValidators(ctx)))
 
 	// 2. bond/unbond
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 20; i++ {
 		coinKeeper.ClearCoinCache()
 		var updates []abci.ValidatorUpdate
-		fmt.Printf("%d\n", i)
+		fmt.Printf("%d :: %d\n", height, i)
 		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1).WithBlockTime(ctx.BlockTime().Add(time.Second))
 		for n := 0; n < 100; n++ {
 			delegatorAddr := delegators[N+rand.Intn(AddrCount-N)]
