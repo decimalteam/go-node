@@ -46,7 +46,7 @@ const (
 
 const (
 	// ChainID is the Decimal chain identifier.
-	ChainID     = "decimal-devnet-04-28-00-00"
+	ChainID     = "decimal-devnet-04-28-08-00"
 	OneHour     = 660              // blocks
 	GracePeriod = OneHour * 24 * 4 // grace period to use inside inGracePeriod
 )
