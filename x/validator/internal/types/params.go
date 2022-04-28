@@ -31,7 +31,8 @@ const (
 
 	DefaultBondDenom string = "del"
 
-	DefaultMaxDelegations uint16 = 1000
+	// TEMPORARY FIX
+	DefaultMaxDelegations uint16 = 10000
 )
 
 // nolint - Keys for parameter access
