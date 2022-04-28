@@ -537,7 +537,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 			delegation.TokensBase = tokenBase
 		} else {
 			validator.Tokens = validator.Tokens.Add(bondCoin.Amount)
-			delegation.TokensBase = bondCoin.Amount
+			delegation.TokensBase = delegation.TokensBase.Add(bondCoin.Amount)
 		}
 	} else {
 		k.AddDelegatedCoin(ctx, bondCoin)
