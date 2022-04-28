@@ -56,17 +56,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		}
 		validatorAddress := validator.ValAddress.String()
 		k.DeleteValidatorByPowerIndex(ctx, validator)
-		// This is necessary to update token base value before checkDelegations() call
-		dels := delegations[validatorAddress]
-		for i, del := range dels {
-			if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
-				dels[i] = del.SetTokensBase(del.GetCoin().Amount)
-			}
-			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
-				dels[i] = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
-			}
-		}
-		delegations[validatorAddress] = k.checkDelegations(ctx, validator, dels)
+		delegations[validatorAddress] = k.checkDelegations(ctx, validator, delegations[validatorAddress])
 		k.SetValidatorByPowerIndexWithCalc(ctx, validator, delegations[validatorAddress])
 	}
 
@@ -332,9 +322,22 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 		return delegations
 	}
 
+	// This is necessary to update token base values
 	for i, delegation := range delegations {
-		if _, ok := k.CoinKeeper.GetCoinsCache()[delegation.GetCoin().Denom]; ok {
-			delegations[i] = delegation.SetTokensBase(k.CalcTokensBase(ctx, delegation))
+		if strings.ToLower(delegation.GetCoin().Denom) == k.BondDenom(ctx) {
+			needToUpdate := !delegation.GetCoin().Amount.Equal(delegation.GetTokensBase())
+			delegations[i] = delegation.SetTokensBase(delegation.GetCoin().Amount)
+			if needToUpdate {
+				switch delegation := delegation.(type) {
+				case types.Delegation:
+					k.SetDelegation(ctx, delegation)
+				case types.DelegationNFT:
+					k.SetDelegationNFT(ctx, delegation)
+				}
+			}
+		}
+		if k.CoinKeeper.GetCoinCache(delegation.GetCoin().Denom) {
+			delegations[i] = delegation.SetTokensBase(k.TokenBaseOfDelegation(ctx, delegation))
 		}
 	}
 
