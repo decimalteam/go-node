@@ -326,7 +326,7 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 	for i, delegation := range delegations {
 		if strings.ToLower(delegation.GetCoin().Denom) == k.BondDenom(ctx) {
 			needToUpdate := !delegation.GetCoin().Amount.Equal(delegation.GetTokensBase())
-			delegations[i] = delegation.SetTokensBase(delegation.GetCoin().Amount)
+			delegation = delegation.SetTokensBase(delegation.GetCoin().Amount)
 			if needToUpdate {
 				switch delegation := delegation.(type) {
 				case types.Delegation:
@@ -334,6 +334,7 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 				case types.DelegationNFT:
 					k.SetDelegationNFT(ctx, delegation)
 				}
+				delegations[i] = delegation
 			}
 		}
 		if k.CoinKeeper.GetCoinCache(delegation.GetCoin().Denom) {
