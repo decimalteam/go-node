@@ -624,6 +624,9 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 
 	// subtract shares from delegation
 	delegation.Coin = delegation.Coin.Sub(coin)
+	if coin.Denom == k.BondDenom(ctx) {
+		delegation.TokensBase = delegation.Coin.Amount
+	}
 
 	// remove the delegation
 	if delegation.Coin.IsZero() {
