@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"runtime/debug"
 	"sort"
+	"strconv"
+	"strings"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -54,9 +56,17 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 		}
 		validatorAddress := validator.ValAddress.String()
 		k.DeleteValidatorByPowerIndex(ctx, validator)
-		// This is necessary to call method CalcTotalStake() before calling checkDelegations()
-		k.CalcTotalStake(ctx, validator, delegations[validatorAddress])
-		delegations[validatorAddress] = k.checkDelegations(ctx, validator, delegations[validatorAddress])
+		// This is necessary to update token base value before checkDelegations() call
+		dels := delegations[validatorAddress]
+		for i, del := range dels {
+			if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
+				dels[i] = del.SetTokensBase(del.GetCoin().Amount)
+			}
+			if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom) {
+				dels[i] = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
+			}
+		}
+		delegations[validatorAddress] = k.checkDelegations(ctx, validator, dels)
 		k.SetValidatorByPowerIndexWithCalc(ctx, validator, delegations[validatorAddress])
 	}
 
@@ -354,11 +364,31 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 			if err != nil {
 				panic(err)
 			}
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeCompleteUnbonding,
+					sdk.NewAttribute(types.AttributeKeyValidator, d.ValidatorAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyDelegator, d.DelegatorAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyCoin, d.Coin.String()),
+				),
+			)
 		case types.DelegationNFT:
 			err := k.unbondNFT(ctx, d.DelegatorAddress, d.ValidatorAddress, d.TokenID, d.Denom, d.SubTokenIDs, false)
 			if err != nil {
 				panic(err)
 			}
+			subTokenIDs := make([]string, len(d.SubTokenIDs))
+			for i, subTokenID := range d.SubTokenIDs {
+				subTokenIDs[i] = strconv.FormatInt(subTokenID, 10)
+			}
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeCompleteUnbondingNFT,
+					sdk.NewAttribute(types.AttributeKeyDenom, d.Denom),
+					sdk.NewAttribute(types.AttributeKeyID, d.TokenID),
+					sdk.NewAttribute(types.AttributeKeySubTokenIDs, strings.Join(subTokenIDs, ",")),
+				),
+			)
 		}
 	}
 
