@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"runtime/debug"
 	"sort"
+	"strconv"
+	"strings"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -330,9 +332,20 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, validator types.Validator) (t
 }
 
 func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) []exported.DelegationI {
+
 	maxDelegations := int(k.MaxDelegations(ctx))
 	if len(delegations) <= maxDelegations {
 		return delegations
+	}
+
+	// This is necessary to update token base values
+	for i, delegation := range delegations {
+		if strings.ToLower(delegation.GetCoin().Denom) == k.BondDenom(ctx) {
+			delegations[i] = delegation.SetTokensBase(delegation.GetCoin().Amount)
+		}
+		if k.CoinKeeper.GetCoinCache(delegation.GetCoin().Denom) {
+			delegations[i] = delegation.SetTokensBase(k.TokenBaseOfDelegation(ctx, delegation))
+		}
 	}
 
 	sort.SliceStable(delegations, func(i, j int) bool {
@@ -342,21 +355,50 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 	})
 
 	for i := maxDelegations; i < len(delegations); i++ {
+		delegation := delegations[i]
 		switch validator.Status {
 		case types.Bonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegation.GetDelegatorAddr(), sdk.NewCoins(delegation.GetCoin()))
 			if err != nil {
 				panic(err)
 			}
 		case types.Unbonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegations[i].GetDelegatorAddr(), sdk.NewCoins(delegations[i].GetCoin()))
+			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegation.GetDelegatorAddr(), sdk.NewCoins(delegation.GetCoin()))
 			if err != nil {
 				panic(err)
 			}
 		}
-		err := k.unbond(ctx, delegations[i].GetDelegatorAddr(), delegations[i].GetValidatorAddr(), delegations[i].GetCoin())
-		if err != nil {
-			panic(err)
+		switch d := delegation.(type) {
+		case types.Delegation:
+			err := k.unbond(ctx, d.DelegatorAddress, d.ValidatorAddress, d.Coin, false)
+			if err != nil {
+				panic(err)
+			}
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeCompleteUnbonding,
+					sdk.NewAttribute(types.AttributeKeyValidator, d.ValidatorAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyDelegator, d.DelegatorAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyCoin, d.Coin.String()),
+				),
+			)
+		case types.DelegationNFT:
+			err := k.unbondNFT(ctx, d.DelegatorAddress, d.ValidatorAddress, d.TokenID, d.Denom, d.SubTokenIDs, false)
+			if err != nil {
+				panic(err)
+			}
+			subTokenIDs := make([]string, len(d.SubTokenIDs))
+			for i, subTokenID := range d.SubTokenIDs {
+				subTokenIDs[i] = strconv.FormatInt(subTokenID, 10)
+			}
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeCompleteUnbondingNFT,
+					sdk.NewAttribute(types.AttributeKeyDenom, d.Denom),
+					sdk.NewAttribute(types.AttributeKeyID, d.TokenID),
+					sdk.NewAttribute(types.AttributeKeySubTokenIDs, strings.Join(subTokenIDs, ",")),
+				),
+			)
 		}
 	}
 
