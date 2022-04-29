@@ -2,6 +2,7 @@ package validator
 
 import (
 	"bytes"
+	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -1131,6 +1132,15 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64, addrList []s
 	return ctx, accountKeeper, keeper, supplyKeeper, coinKeeper, nftKeeper
 }
 
+func generateUniq(n int) string {
+	var buffer bytes.Buffer
+	var source = "0123456789ABCDEF"
+	for j := 0; j < n; j++ {
+		buffer.WriteByte(source[rand.Intn(len(source))])
+	}
+	return buffer.String()
+}
+
 // default test create no more 999 addresses
 func createTestAddr(numAddrs int) []sdk.AccAddress {
 	var addresses []sdk.AccAddress
@@ -1148,23 +1158,36 @@ func createTestAddr(numAddrs int) []sdk.AccAddress {
 	return addresses
 }
 
+/* Slow test */
 /*
-** Commented out this test to speed up pipeline building
-
 func TestMaximumSlots(t *testing.T) {
+	for _, start := range []int64{0, 1000000, 2000000, 3000000, 4000000, 5000000, 6000000, 7000000, 8000000, 9000000, 10000000} {
+		fmt.Printf("START=%d\n", start)
+		testMaximumSlotsWithStartBlock(t, start)
+	}
+}
+*/
+
+func testMaximumSlotsWithStartBlock(t *testing.T, height int64) {
 	const N = 4
 	const AddrCount = 2000
+	var cointags = []string{"crasher", "boomer", "banger", "ayaya"}
 	// init
 	delegators := createTestAddr(AddrCount)
-	ctx, _, keeper, _, _, _ := CreateTestInput(t, false, 20000, delegators)
+	ctx, _, keeper, supplyKeeper, coinKeeper, nftKeeper := CreateTestInput(t, false, 100000, delegators)
+	ctx = ctx.WithBlockHeight(height)
 
+	valHandler := NewHandler(keeper)
+	coinHandler := coin.NewHandler(coinKeeper)
+	nftHandler := nft.GenericHandler(nftKeeper)
 	// params
 	// set the unbonding time
 	params := keeper.GetParams(ctx)
+	params.MaxDelegations = 100
 	params.UnbondingTime = 1 * time.Second
 	keeper.SetParams(ctx, params)
 
-	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1).WithBlockTime(ctx.BlockTime().Add(time.Second))
 	// 1. declare validators
 	// first N address is validators
 	for i := 0; i < N; i++ {
@@ -1177,51 +1200,134 @@ func TestMaximumSlots(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, res)
 	}
-	_, err := keeper.ApplyAndReturnValidatorSetUpdates(ctx)
-	require.NoError(t, err)
+	// 2. create coins
+	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+	for i, cointag := range cointags {
+		msgCreateCoin := coin.NewMsgCreateCoin(delegators[N+i], cointag, cointag, 45, TokensFromConsensusPower(10000), TokensFromConsensusPower(10000), TokensFromConsensusPower(2000000), "-")
+		_, err := coinHandler(ctx, msgCreateCoin)
+		if err != nil {
+			fmt.Printf("%s\n", err.Error())
+		}
+		//buy new coin for first 100
+		for i := 0; i < 1500; i++ {
+			buyC := sdk.NewCoin(cointag, TokensFromConsensusPower(3))
+			maxSellC := sdk.NewCoin(keeper.BondDenom(ctx), TokensFromConsensusPower(3*200))
+			msgBuyCoin := coin.NewMsgBuyCoin(delegators[N+i], buyC, maxSellC)
+			_, err := coinHandler(ctx, msgBuyCoin)
+			if err != nil {
+				fmt.Printf("%s\n", err.Error())
+			}
+		}
+	}
+	// create nft for almost everyone
+	nftIds := make(map[string]string)
+	for i := 0; i < 1500; i++ {
+		addr := delegators[N+i]
+		id := generateUniq(10)
+		//TokensFromConsensusPower(1): stacktrace from panic: insufficient funds: insufficient account funds
+		//sdk.NewInt(10000): two validators disappear
+		msg := nft.NewMsgMintNFT(addr, addr, id, keeper.BondDenom(ctx), id, sdk.NewInt(1), sdk.NewInt(rand.Int63n(20)*100000000000000000+100000000000000000), true)
+		nftIds[addr.String()] = id
+		_, err := nftHandler(ctx, msg)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}
+
+	EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, true)
 	require.Equal(t, N, len(keeper.GetLastValidators(ctx)))
 
 	// 2. bond/unbond
-	for i := 0; i < 10000; i++ {
-		fmt.Printf("%d\n", i)
+	for i := 0; i < 20; i++ {
+		coinKeeper.ClearCoinCache()
+		var updates []abci.ValidatorUpdate
+		fmt.Printf("%d :: %d\n", height, i)
 		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1).WithBlockTime(ctx.BlockTime().Add(time.Second))
-		for n := 0; n < 300; n++ {
+		for n := 0; n < 100; n++ {
 			delegatorAddr := delegators[N+rand.Intn(AddrCount-N)]
 			for j := 0; j < N; j++ {
 				validatorAddr := sdk.ValAddress(delegators[j])
-				switch rand.Intn(2) {
-				case 0:
+				coinAmount := sdk.NewCoin(keeper.BondDenom(ctx), TokensFromConsensusPower(int64(rand.Intn(3)+1)))
+				coinid := rand.Intn(len(cointags) + 1)
+				switch coinid {
+				case len(cointags):
 					{
-						msgDelegate := NewTestMsgDelegate(delegatorAddr, validatorAddr, TokensFromConsensusPower(int64(rand.Intn(3)+1)))
-						handleMsgDelegate(ctx, keeper, msgDelegate)
+					} //default del
+				default:
+					{
+						coinAmount = sdk.NewCoin(cointags[coinid], TokensFromConsensusPower(int64(rand.Intn(3)+1)))
 					}
-				case 1:
+				}
+				switch rand.Intn(6) {
+				case 0: //delegate
 					{
-						unbondAmt := sdk.NewCoin(keeper.BondDenom(ctx), TokensFromConsensusPower(int64(rand.Intn(3)+1)))
-						msgUndelegate := types.NewMsgUnbond(validatorAddr, delegatorAddr, unbondAmt)
-						handleMsgUnbond(ctx, keeper, msgUndelegate)
+						msgDelegate := NewMsgDelegate(validatorAddr, delegatorAddr, coinAmount)
+						_, err := valHandler(ctx, msgDelegate)
+						if err != nil {
+							//fmt.Printf("err delegate: %s\n", err.Error())
+						}
+					}
+				case 1: //unbond
+					{
+						msgUndelegate := types.NewMsgUnbond(validatorAddr, delegatorAddr, coinAmount)
+						_, err := valHandler(ctx, msgUndelegate)
+						if err != nil {
+							//fmt.Printf("err unbond: %s\n", err.Error())
+						}
+					}
+				case 2: //buy
+					{
+						if coinid < len(cointags) {
+							buyC := sdk.NewCoin(cointags[coinid], TokensFromConsensusPower(1))
+							maxSellC := sdk.NewCoin(keeper.BondDenom(ctx), TokensFromConsensusPower(3*200))
+							msgBuyCoin := coin.NewMsgBuyCoin(delegatorAddr, buyC, maxSellC)
+							_, err := coinHandler(ctx, msgBuyCoin)
+							if err != nil {
+								//fmt.Printf("err buy: %s\n", err.Error())
+							}
+						}
+					}
+				case 3: //sell
+					{
+						if coinid < len(cointags) {
+							sellC := sdk.NewCoin(cointags[coinid], TokensFromConsensusPower(1))
+							minBuyC := sdk.NewCoin(keeper.BondDenom(ctx), TokensFromConsensusPower(1))
+							msgSellC := coin.NewMsgSellCoin(delegatorAddr, sellC, minBuyC)
+							_, err := coinHandler(ctx, msgSellC)
+							if err != nil {
+								//fmt.Printf("err sell: %s\n", err.Error())
+							}
+						}
+					}
+				case 4: //delegate nft
+					{
+						id := nftIds[delegatorAddr.String()]
+						if id != "" {
+							msg := NewMsgDelegateNFT(validatorAddr, delegatorAddr, id, keeper.BondDenom(ctx), []int64{1})
+							_, err := valHandler(ctx, msg)
+							if err != nil {
+								//fmt.Printf("err delegate nft: %s\n", err.Error())
+							}
+						}
+
+					}
+				case 5:
+					{
+						id := nftIds[delegatorAddr.String()]
+						if id != "" {
+							msg := NewMsgUnbondNFT(validatorAddr, delegatorAddr, id, keeper.BondDenom(ctx), []int64{1})
+							_, err := valHandler(ctx, msg)
+							if err != nil {
+								//fmt.Printf("err delegate nft: %s\n", err.Error())
+							}
+						}
 					}
 				}
 			}
 		}
 		// check validators count
-		updates, err := keeper.ApplyAndReturnValidatorSetUpdates(ctx)
-		keeper.UnbondAllMatureValidatorQueue(ctx)
-		//Remove all mature unbonding delegations from the ubd queue.
-		matureUnbonds := keeper.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
-		for _, dvPair := range matureUnbonds {
-			delegation, found := keeper.GetUnbondingDelegation(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
-			if !found {
-				continue
-			}
-			err := keeper.CompleteUnbonding(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
-			if err != nil {
-				continue
-			}
-			ctxTime := ctx.BlockHeader().Time
-			ctx.EventManager().EmitEvents(delegation.GetEvents(ctxTime))
-		}
-		require.NoError(t, err)
+		updates = EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, true)
+		//panic("check errors")
 		//check updates for duplicates
 		updateDups := make(map[string]int)
 		for _, u := range updates {
@@ -1231,6 +1337,9 @@ func TestMaximumSlots(t *testing.T) {
 			if v > 1 {
 				fmt.Printf("dups detected: %s\n", k)
 			}
+		}
+		if len(keeper.GetAllValidatorsByPowerIndex(ctx)) != N {
+			panic(fmt.Sprintf("stop here = %d\n", len(keeper.GetAllValidatorsByPowerIndex(ctx))))
 		}
 		//
 		if len(keeper.GetLastValidators(ctx)) != N {
@@ -1251,9 +1360,12 @@ func TestMaximumSlots(t *testing.T) {
 		// print slots count
 		for j := 0; j < N; j++ {
 			validatorAddr := sdk.ValAddress(delegators[j])
-			fmt.Printf("%d=%d :: ", j, len(keeper.GetValidatorDelegations(ctx, validatorAddr)))
+			v, err := keeper.GetValidator(ctx, validatorAddr)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Printf("%d=%d (%d) :: ", j, len(keeper.GetValidatorDelegations(ctx, validatorAddr)), v.Tokens)
 		}
 		fmt.Printf("\n")
 	}
 }
-*/

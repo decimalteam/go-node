@@ -178,7 +178,7 @@ func TestUnbondDelegation(t *testing.T) {
 	keeper.SetDelegation(ctx, delegation)
 
 	bondTokens := types.TokensFromConsensusPower(6)
-	err = keeper.unbond(ctx, addrDels[0], addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), bondTokens))
+	err = keeper.unbond(ctx, addrDels[0], addrVals[0], sdk.NewCoin(keeper.BondDenom(ctx), bondTokens), true)
 	require.NoError(t, err)
 
 	delegation, found := keeper.GetDelegation(ctx, addrDels[0], addrVals[0], keeper.BondDenom(ctx))

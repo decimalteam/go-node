@@ -1,9 +1,8 @@
 package keeper
 
 import (
-	"time"
-
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -53,10 +52,8 @@ func (k Keeper) HistoricalEntries(ctx sdk.Context) (res uint16) {
 
 // MaxDelegations = maximum number of delegations per validator
 func (k Keeper) MaxDelegations(ctx sdk.Context) (res uint16) {
-	// TEMPORARY FIX
-	//k.paramSpace.Get(ctx, types.KeyMaxDelegations, &res)
-	//return
-	return 10000
+	k.paramSpace.Get(ctx, types.KeyMaxDelegations, &res)
+	return
 }
 
 // Get all parameteras as types.Params
