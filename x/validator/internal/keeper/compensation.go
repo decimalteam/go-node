@@ -10,27 +10,26 @@ import (
 
 var compensationKey = []byte("compensations/")
 
-func (k *Keeper) Compensate320637(ctx sdk.Context) {
+func (k *Keeper) Compensate321306(ctx sdk.Context) {
 
 	// Ensure wrong slashes are not yet compensated
 	store := ctx.KVStore(k.storeKey)
-	key := append(compensationKey, []byte("320637")...)
+	key := append(compensationKey, []byte("321306")...)
 	if store.Has(key) {
 		return
 	}
 
-	k.compensateDelegation(ctx, "dxvaloper1kx6sccjfj8qtjfquv30n67e7f92mlzz4d5c9mz", "dx1kx6sccjfj8qtjfquv30n67e7f92mlzz43xlgwf", "110000000000000000000", "del")
-	k.compensateDelegation(ctx, "dxvaloper1kx6sccjfj8qtjfquv30n67e7f92mlzz4d5c9mz", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "100000000000000000", "del")
-	k.compensateDelegation(ctx, "dxvaloper1kx6sccjfj8qtjfquv30n67e7f92mlzz4d5c9mz", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "100000000000000000", "testslash1")
-	k.compensateDelegation(ctx, "dxvaloper1kx6sccjfj8qtjfquv30n67e7f92mlzz4d5c9mz", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "100000000000000000", "testslash2")
-	k.compensateDelegation(ctx, "dxvaloper1kx6sccjfj8qtjfquv30n67e7f92mlzz4d5c9mz", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "100000000000000000", "testslash3")
+	k.compensateDelegation(ctx, "dxvaloper1m23hp05spzs0kzwlgfyqk3gfpdt295sxzx292n", "dx1m23hp05spzs0kzwlgfyqk3gfpdt295sx75dglc", "110000000000000000000", "del")
+	k.compensateDelegation(ctx, "dxvaloper1m23hp05spzs0kzwlgfyqk3gfpdt295sxzx292n", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "100000000000000000", "del")
+	k.compensateDelegation(ctx, "dxvaloper1m23hp05spzs0kzwlgfyqk3gfpdt295sxzx292n", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "100000000000000000", "testslash1")
+	k.compensateDelegation(ctx, "dxvaloper1m23hp05spzs0kzwlgfyqk3gfpdt295sxzx292n", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "100000000000000000", "testslash2")
+	k.compensateDelegation(ctx, "dxvaloper1m23hp05spzs0kzwlgfyqk3gfpdt295sxzx292n", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "100000000000000000", "testslash3")
 
-	k.compensateDelegationNFT(ctx, "dxvaloper1kx6sccjfj8qtjfquv30n67e7f92mlzz4d5c9mz", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "20000000000000000", "6ba6e0df27da48fa9da390a9abb0d542e97a69fa", "regarde", []int64{4})
-	k.compensateDelegationNFT(ctx, "dxvaloper1kx6sccjfj8qtjfquv30n67e7f92mlzz4d5c9mz", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "7f087327a2afaba63425b267da668b43b41fd98b", "regarde", []int64{1})
-	k.compensateDelegationNFT(ctx, "dxvaloper1kx6sccjfj8qtjfquv30n67e7f92mlzz4d5c9mz", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "c8176ad8991b589c1ace50a7551f633918bdfee7", "regarde", []int64{1})
-	k.compensateDelegationNFT(ctx, "dxvaloper1kx6sccjfj8qtjfquv30n67e7f92mlzz4d5c9mz", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "c8176ad8991b589c1ace50a7551f633918bdfee7", "regarde", []int64{2})
-	k.compensateDelegationNFT(ctx, "dxvaloper1kx6sccjfj8qtjfquv30n67e7f92mlzz4d5c9mz", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "f5633d1eda35c1ca607c2f5da4d0eb316f610373", "regarde", []int64{2})
-	k.compensateDelegationNFT(ctx, "dxvaloper1kx6sccjfj8qtjfquv30n67e7f92mlzz4d5c9mz", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "f5633d1eda35c1ca607c2f5da4d0eb316f610373", "regarde", []int64{3})
+	k.compensateDelegationNFT(ctx, "dxvaloper1m23hp05spzs0kzwlgfyqk3gfpdt295sxzx292n", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "20000000000000000", "6ba6e0df27da48fa9da390a9abb0d542e97a69fa", "regarde", []int64{1})
+	k.compensateDelegationNFT(ctx, "dxvaloper1m23hp05spzs0kzwlgfyqk3gfpdt295sxzx292n", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "20000000000000000", "6ba6e0df27da48fa9da390a9abb0d542e97a69fa", "regarde", []int64{2})
+	k.compensateDelegationNFT(ctx, "dxvaloper1m23hp05spzs0kzwlgfyqk3gfpdt295sxzx292n", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "20000000000000000", "6ba6e0df27da48fa9da390a9abb0d542e97a69fa", "regarde", []int64{3})
+	k.compensateDelegationNFT(ctx, "dxvaloper1m23hp05spzs0kzwlgfyqk3gfpdt295sxzx292n", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "c8176ad8991b589c1ace50a7551f633918bdfee7", "regarde", []int64{3})
+	k.compensateDelegationNFT(ctx, "dxvaloper1m23hp05spzs0kzwlgfyqk3gfpdt295sxzx292n", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "f5633d1eda35c1ca607c2f5da4d0eb316f610373", "regarde", []int64{1})
 
 	// Store record to the store to mark compensation done
 	store.Set(key, []byte{1})
@@ -83,16 +82,26 @@ func (k *Keeper) compensateDelegation(ctx sdk.Context, v string, d string, a str
 	}
 
 	// Delegate this compensation back to the validator
-	_, err = k.Delegate(ctx, delegator, coin, types.Unbonded, val, true) // TODO: BondStatus correct?
+	priceDelCustom, err := k.Delegate(ctx, delegator, coin, types.Unbonded, val, true)
 	if err != nil {
 		panic(err)
 	}
+
+	// Also it is important to emit delegation event
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, delegator.String()),
+		sdk.NewAttribute(types.AttributeKeyValidator, validator.String()),
+		sdk.NewAttribute(types.AttributeKeyCoin, denom),
+		sdk.NewAttribute(types.AttributeDelPrice, priceDelCustom.String()),
+	))
 }
 
 // compensateDelegationNFT corrects NFT reserve and delegates it to specified validator.
 func (k *Keeper) compensateDelegationNFT(ctx sdk.Context, v string, d string, a string, tokenID string, denom string, subTokenIDs []int64) {
-	// validator, _ := sdk.ValAddressFromBech32(v)
-	// delegator, _ := sdk.AccAddressFromBech32(d)
+	validator, _ := sdk.ValAddressFromBech32(v)
+	delegator, _ := sdk.AccAddressFromBech32(d)
 	amount, _ := sdk.NewIntFromString(a)
 
 	// Update NFT sub tokens
@@ -105,8 +114,10 @@ func (k *Keeper) compensateDelegationNFT(ctx sdk.Context, v string, d string, a 
 		k.nftKeeper.SetSubToken(ctx, denom, tokenID, subTokenID, reserve)
 	}
 
-	// delegation, err := k.GetDelegationNFT(ctx, validator, delegator, tokenID, denom)
-	// if err != nil {
-	// 	// Delegate now?
-	// }
+	// Update NFT delegation
+	delegation, found := k.GetDelegationNFT(ctx, validator, delegator, tokenID, denom)
+	if found {
+		delegation.Coin.Amount = delegation.Coin.Amount.Add(amount)
+		k.SetDelegationNFT(ctx, delegation)
+	}
 }
