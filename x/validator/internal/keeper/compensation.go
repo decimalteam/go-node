@@ -111,7 +111,7 @@ func (k *Keeper) compensateDelegationNFT(ctx sdk.Context, v string, d string, a 
 	validator, _ := sdk.ValAddressFromBech32(v)
 	delegator, _ := sdk.AccAddressFromBech32(d)
 	amount, _ := sdk.NewIntFromString(a)
-	coin := sdk.NewCoin(denom, amount)
+	coin := sdk.NewCoin("del", amount)
 
 	// Compensate slash to the account firstly
 	k.addCoinsToAccount(ctx, delegator, coin)
