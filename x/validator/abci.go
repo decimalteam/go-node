@@ -37,7 +37,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 	}
 
 	// Compensate wrong slashes happened at 1185 block
-	k.Compensate1185(ctx)
+	//k.Compensate1185(ctx)
 }
 
 // EndBlocker called every block, process inflation, update validator set.
