@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	nfttypes "bitbucket.org/decimalteam/go-node/x/nft/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
 
@@ -120,23 +119,23 @@ func (k *Keeper) compensateDelegationNFT(ctx sdk.Context, v string, d string, a 
 	// Update NFT sub token
 	reserve, found := k.nftKeeper.GetSubToken(ctx, denom, tokenID, subTokenID)
 	if !found {
-		// panic(fmt.Errorf("subToken with ID = %d not found", subTokenID))
-		// NOTE: OK, it was already compensated to the account so that is enough
-		return
+		panic(fmt.Errorf("subToken with ID = %d not found", subTokenID))
 	}
+
 	reserve = reserve.Add(amount)
 	k.nftKeeper.SetSubToken(ctx, denom, tokenID, subTokenID, reserve)
-
-	// Send compensated coins to the reserve pool
-	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, delegator, nfttypes.ReservedPool, sdk.NewCoins(coin))
-	if err != nil {
-		panic(fmt.Errorf("insufficient funds. required: %s", amount))
-	}
 
 	// Update NFT delegation
 	delegation, found := k.GetDelegationNFT(ctx, validator, delegator, tokenID, denom)
 	if found {
 		delegation.Coin.Amount = delegation.Coin.Amount.Add(amount)
 		k.SetDelegationNFT(ctx, delegation)
+
+		// Send compensated coins to the reserve pool
+		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, delegator, "reserved_pool", sdk.NewCoins(coin))
+		if err != nil {
+			panic(fmt.Errorf("insufficient funds. required: %s", amount))
+		}
 	}
+
 }
