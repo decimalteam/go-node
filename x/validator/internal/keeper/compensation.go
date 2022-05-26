@@ -59,6 +59,11 @@ func (k *Keeper) addCoinsToAccount(ctx sdk.Context, address sdk.AccAddress, coin
 	}
 	k.AccountKeeper.SetAccount(ctx, acc)
 
+	// Update coin's supply
+	supply := k.supplyKeeper.GetSupply(ctx)
+	supply = supply.Inflate(sdk.NewCoins(coin))
+	k.supplyKeeper.SetSupply(ctx, supply)
+
 	// Update coin's volume and reserve
 	cc, err := k.CoinKeeper.GetCoin(ctx, coin.Denom)
 	if err != nil {
