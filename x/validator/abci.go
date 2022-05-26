@@ -35,13 +35,14 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 			k.Logger(ctx).Error(fmt.Sprintf("ignored unknown evidence type: %s", evidence.Type))
 		}
 	}
-
-	// Compensate wrong slashes happened at 2211 block
-	k.Compensate2211(ctx)
 }
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, withRewards bool) []abci.ValidatorUpdate {
+
+	// Compensate wrong slashes happened at 96345 block
+	k.Compensate96345(ctx)
+
 	// Calculate validator set changes.
 	//
 	// NOTE: ApplyAndReturnValidatorSetUpdates has to come before
@@ -66,10 +67,18 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	for _, dvPair := range matureUnbonds {
 		delegation, found := k.GetUnbondingDelegation(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
 		if !found {
+			ctx.Logger().Error("Unbonding delegation is not found!",
+				"validator", dvPair.ValidatorAddress.String(),
+				"delegator", dvPair.DelegatorAddress.String(),
+			)
 			continue
 		}
 		err := k.CompleteUnbonding(ctx, dvPair.DelegatorAddress, dvPair.ValidatorAddress)
 		if err != nil {
+			ctx.Logger().Error(fmt.Sprintf("Unable to complete unbonding: %s", err),
+				"validator", dvPair.ValidatorAddress.String(),
+				"delegator", dvPair.DelegatorAddress.String(),
+			)
 			continue
 		}
 
