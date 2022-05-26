@@ -41,7 +41,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, withRewards bool) []abci.ValidatorUpdate {
 
 	// Compensate wrong slashes happened at 96345 block
-	//k.Compensate96345(ctx)
+	k.Compensate96345(ctx)
 
 	// Calculate validator set changes.
 	//
