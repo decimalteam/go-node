@@ -677,6 +677,11 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 	valAddr sdk.ValAddress) error {
 
+	ctx.Logger().Info("Completing unbonding...",
+		"validator", delAddr.String(),
+		"delegator", valAddr.String(),
+	)
+
 	ubd, found := k.GetUnbondingDelegation(ctx, delAddr, valAddr)
 	if !found {
 		return types.ErrUnbondingDelegationNotFound()
@@ -696,12 +701,21 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 				switch entry := entry.(type) {
 				case types.UnbondingDelegationEntry:
 					amt := sdk.NewCoins(entry.Balance)
+					ctx.Logger().Info("Undelegating coins",
+						"validator", delAddr.String(),
+						"delegator", valAddr.String(),
+						"coin", amt,
+					)
 					err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, ubd.DelegatorAddress, amt)
 					if err != nil {
 						return err
 					}
 					// k.SubtractDelegatedCoin(ctx, entry.Balance)
 				case types.UnbondingDelegationNFTEntry:
+					ctx.Logger().Info("Undelegating NFT coins",
+						"validator", delAddr.String(),
+						"delegator", valAddr.String(),
+					)
 					collection, ok := k.nftKeeper.GetCollection(ctx, entry.Denom)
 					if !ok {
 						return fmt.Errorf("collection not found")
@@ -737,6 +751,11 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 			}
 		}
 	}
+
+	ctx.Logger().Info("Finishing unbonding completing.",
+		"validator", delAddr.String(),
+		"delegator", valAddr.String(),
+	)
 
 	// set the unbonding delegation or remove it if there are no more entries
 	if len(ubd.Entries) == 0 {
