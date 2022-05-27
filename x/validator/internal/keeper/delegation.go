@@ -677,11 +677,6 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 	valAddr sdk.ValAddress) error {
 
-	ctx.Logger().Info("Completing unbonding...",
-		"validator", delAddr.String(),
-		"delegator", valAddr.String(),
-	)
-
 	ubd, found := k.GetUnbondingDelegation(ctx, delAddr, valAddr)
 	if !found {
 		return types.ErrUnbondingDelegationNotFound()
@@ -715,6 +710,9 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 					ctx.Logger().Info("Undelegating NFT coins",
 						"validator", delAddr.String(),
 						"delegator", valAddr.String(),
+						"denom", entry.Denom,
+						"balance", entry.Balance,
+						"token", entry.TokenID,
 					)
 					collection, ok := k.nftKeeper.GetCollection(ctx, entry.Denom)
 					if !ok {
@@ -751,11 +749,6 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 			}
 		}
 	}
-
-	ctx.Logger().Info("Finishing unbonding completing.",
-		"validator", delAddr.String(),
-		"delegator", valAddr.String(),
-	)
 
 	// set the unbonding delegation or remove it if there are no more entries
 	if len(ubd.Entries) == 0 {
