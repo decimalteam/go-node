@@ -365,6 +365,10 @@ func (k Keeper) SetUnbondingDelegation(ctx sdk.Context, ubd types.UnbondingDeleg
 		key := types.GetUBDKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
 		store.Set(key, bz)
 		store.Set(types.GetUBDByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress), []byte{}) // index, store empty bytes
+	} else {
+		key := types.GetUBDKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
+		store.Delete(key)
+		store.Delete(types.GetUBDByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress))
 	}
 
 	if len(nftUBD.Entries) != 0 {
@@ -372,6 +376,10 @@ func (k Keeper) SetUnbondingDelegation(ctx sdk.Context, ubd types.UnbondingDeleg
 		key := types.GetUnbondingDelegationNFTKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
 		store.Set(key, bz)
 		store.Set(types.GetUnbondingDelegationNFTByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress), []byte{}) // index, store empty bytes
+	} else {
+		key := types.GetUnbondingDelegationNFTKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
+		store.Delete(key)
+		store.Delete(types.GetUnbondingDelegationNFTByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress))
 	}
 }
 
@@ -697,8 +705,8 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 				case types.UnbondingDelegationEntry:
 					amt := sdk.NewCoins(entry.Balance)
 					ctx.Logger().Info("Undelegating coins",
-						"validator", delAddr.String(),
-						"delegator", valAddr.String(),
+						"validator", valAddr.String(),
+						"delegator", delAddr.String(),
 						"coin", amt,
 					)
 					err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, ubd.DelegatorAddress, amt)
@@ -708,8 +716,8 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 					// k.SubtractDelegatedCoin(ctx, entry.Balance)
 				case types.UnbondingDelegationNFTEntry:
 					ctx.Logger().Info("Undelegating NFT coins",
-						"validator", delAddr.String(),
-						"delegator", valAddr.String(),
+						"validator", valAddr.String(),
+						"delegator", delAddr.String(),
 						"denom", entry.Denom,
 						"balance", entry.Balance,
 						"token", entry.TokenID,
@@ -751,11 +759,7 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 	}
 
 	// set the unbonding delegation or remove it if there are no more entries
-	if len(ubd.Entries) == 0 {
-		k.RemoveUnbondingDelegation(ctx, ubd)
-	} else {
-		k.SetUnbondingDelegation(ctx, ubd)
-	}
+	k.SetUnbondingDelegation(ctx, ubd)
 
 	return nil
 }
