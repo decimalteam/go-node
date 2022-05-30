@@ -12,30 +12,30 @@ import (
 
 var compensationKey = []byte("compensations/")
 
-func (k *Keeper) Compensate273(ctx sdk.Context) {
+func (k *Keeper) Compensate231(ctx sdk.Context) {
 
 	// Ensure wrong slashes are not yet compensated
 	store := ctx.KVStore(k.storeKey)
-	key := append(compensationKey, []byte("273")...)
+	key := append(compensationKey, []byte("231")...)
 	if store.Has(key) {
 		return
 	}
 
-	k.compensateDelegation(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86l9ggtdw", "10000000000000000000", "del")
-	k.compensateDelegation(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "1000000000000000000", "del")
-	k.compensateDelegation(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "1000000000000000000", "testslash1")
-	k.compensateDelegation(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "1000000000000000000", "testslash2")
-	k.compensateDelegation(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "1000000000000000000", "testslash3")
+	k.compensateDelegation(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx15pqfuuj0xy0p603kpy92m73xez2trt9wrp6ksp", "110000000000000000000", "del")
+	k.compensateDelegation(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "1000000000000000000", "del")
+	k.compensateDelegation(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "1000000000000000000", "testslash1")
+	k.compensateDelegation(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "1000000000000000000", "testslash2")
+	k.compensateDelegation(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "1000000000000000000", "testslash3")
 
-	k.compensateDelegationNFT(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "20000000000000000", "57678754cd2d01e827287609103b0c7aeedfc9fa", "slashtstthree", 1)
-	k.compensateDelegationNFT(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "30000000000000000", "7551baf5e75874e05050360a4905bd4430462e3f", "slashtstfour", 3)
-	k.compensateDelegationNFT(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "30000000000000000", "7551baf5e75874e05050360a4905bd4430462e3f", "slashtstfour", 4)
-	k.compensateDelegationNFT(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "10000000000000000", "88b5c6d8db25d3b5126b9956c0a7a9b7da9d2aed", "slashtsttwo", 1)
-	k.compensateDelegationNFT(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "10000000000000000", "88b5c6d8db25d3b5126b9956c0a7a9b7da9d2aed", "slashtsttwo", 2)
-	k.compensateDelegationNFT(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "10000000000000000", "88b5c6d8db25d3b5126b9956c0a7a9b7da9d2aed", "slashtsttwo", 3)
-	k.compensateDelegationNFT(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "10000000000000000", "88b5c6d8db25d3b5126b9956c0a7a9b7da9d2aed", "slashtsttwo", 4)
-	k.compensateDelegationNFT(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "10000000000000000", "88b5c6d8db25d3b5126b9956c0a7a9b7da9d2aed", "slashtsttwo", 5)
-	k.compensateDelegationNFT(ctx, "dxvaloper1u8r7x5tn0t0rz5p3zqcr5fkcvzfcw86le60xc9", "dx1dyj4g65fhecmvg9esyyvvnxrdjxa2s2lg9tvtg", "10000000000000000", "939adad4901843cb0de81a423a91bacda1cbb4e6", "slashtstone", 1)
+	k.compensateDelegationNFT(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "6c38a957ee354ec0723585ed884b09efaff47e52", "slashtsttwo", 1)
+	k.compensateDelegationNFT(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "6c38a957ee354ec0723585ed884b09efaff47e52", "slashtsttwo", 2)
+	k.compensateDelegationNFT(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "6c38a957ee354ec0723585ed884b09efaff47e52", "slashtsttwo", 3)
+	k.compensateDelegationNFT(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "6c38a957ee354ec0723585ed884b09efaff47e52", "slashtsttwo", 4)
+	k.compensateDelegationNFT(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "6c38a957ee354ec0723585ed884b09efaff47e52", "slashtsttwo", 5)
+	k.compensateDelegationNFT(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "10000000000000000", "7a7d43140c9260c5995e592bb986ab4db0be97af", "slashtstone", 1)
+	k.compensateDelegationNFT(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "30000000000000000", "d3b2e1f2fdc957aaf0226757b8f85e3a3b7b0ea1", "slashtstfour", 3)
+	k.compensateDelegationNFT(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "30000000000000000", "d3b2e1f2fdc957aaf0226757b8f85e3a3b7b0ea1", "slashtstfour", 4)
+	k.compensateDelegationNFT(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "20000000000000000", "d69355d4b9e72be47a856b44a97112673e32daa4", "slashtstthree", 1)
 
 	// Store record to the store to mark compensation done
 	store.Set(key, []byte{1})
