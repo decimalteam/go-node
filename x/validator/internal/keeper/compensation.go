@@ -12,19 +12,19 @@ import (
 
 var compensationKey = []byte("compensations/")
 
-func (k *Keeper) Compensate17880(ctx sdk.Context) {
+func (k *Keeper) Compensate18570(ctx sdk.Context) {
 
 	// Ensure wrong slashes are not yet compensated
 	store := ctx.KVStore(k.storeKey)
-	key := append(compensationKey, []byte("17880")...)
+	key := append(compensationKey, []byte("18570")...)
 	if store.Has(key) {
 		return
 	}
 
-	k.compensateDelegation(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx15pqfuuj0xy0p603kpy92m73xez2trt9wrp6ksp", "110000000000000000000", "del")
+	k.compensateDelegation(ctx, "dxvaloper15jcmwaagmtuytxlzhukdvzhylx4slcwctk96qa", "dx15jcmwaagmtuytxlzhukdvzhylx4slcwchyzh4k", "100000000000000000000", "del")
 
-	k.compensateDelegationNFT(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "30000000000000000", "d3b2e1f2fdc957aaf0226757b8f85e3a3b7b0ea1", "slashtstfour", 1)
-	k.compensateDelegationNFT(ctx, "dxvaloper15pqfuuj0xy0p603kpy92m73xez2trt9wlnam92", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "30000000000000000", "d3b2e1f2fdc957aaf0226757b8f85e3a3b7b0ea1", "slashtstfour", 3)
+	k.compensateDelegationNFT(ctx, "dxvaloper15jcmwaagmtuytxlzhukdvzhylx4slcwctk96qa", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "20000000000000000", "d69355d4b9e72be47a856b44a97112673e32daa4", "slashtstthree", 1)
+	k.compensateDelegationNFT(ctx, "dxvaloper15jcmwaagmtuytxlzhukdvzhylx4slcwctk96qa", "dx1mlr92jdlgp0g6wzxz835tlzmqchy5lptw89l8j", "20000000000000000", "d69355d4b9e72be47a856b44a97112673e32daa4", "slashtstthree", 2)
 
 	// Store record to the store to mark compensation done
 	store.Set(key, []byte{1})
