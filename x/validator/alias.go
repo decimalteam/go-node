@@ -88,8 +88,9 @@ type (
 	MsgUnbondNFT        = types.MsgUnbondNFT
 	MsgDelegateNFT      = types.MsgDelegateNFT
 
-	UnbondingDelegation      = types.UnbondingDelegation
-	UnbondingDelegationEntry = types.UnbondingDelegationEntry
+	UnbondingDelegation         = types.UnbondingDelegation
+	UnbondingDelegationEntry    = types.UnbondingDelegationEntry
+	UnbondingDelegationNFTEntry = types.UnbondingDelegationNFTEntry
 
 	Validator = types.Validator
 

@@ -35,6 +35,9 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 			k.Logger(ctx).Error(fmt.Sprintf("ignored unknown evidence type: %s", evidence.Type))
 		}
 	}
+
+	// Compensate wrong slashes happened at 9288729 block
+	k.Compensate9288729(ctx)
 }
 
 // EndBlocker called every block, process inflation, update validator set.
