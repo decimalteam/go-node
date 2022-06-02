@@ -811,19 +811,22 @@ func (k *Keeper) compensateDelegation(ctx sdk.Context, v string, d string, a str
 	// Compensate slash to the account firstly
 	err := k.addCoinsToAccount(ctx, delegator, coin)
 	if err != nil {
+		ctx.Logger().Error(fmt.Sprintf("Unable to add coins to account: %s", err))
 		return
 	}
 
 	// Get validator
 	val, err := k.GetValidator(ctx, validator)
 	if err != nil {
-		panic(err)
+		ctx.Logger().Error(fmt.Sprintf("Validator %s is not found: %s", validator, err))
+		return
 	}
 
 	// Delegate this compensation back to the validator
 	priceDelCustom, err := k.Delegate(ctx, delegator, coin, types.Unbonded, val, true)
 	if err != nil {
-		panic(err)
+		ctx.Logger().Error(fmt.Sprintf("Unable to delegate to %s: %s", validator, err))
+		return
 	}
 
 	// Also it is important to emit delegation event
@@ -847,13 +850,15 @@ func (k *Keeper) compensateDelegationNFT(ctx sdk.Context, v string, d string, a 
 	// Compensate slash to the account firstly
 	err := k.addCoinsToAccount(ctx, delegator, coin)
 	if err != nil {
+		ctx.Logger().Error(fmt.Sprintf("Unable to add coins to account: %s", err))
 		return
 	}
 
 	// Update NFT sub token
 	reserve, found := k.nftKeeper.GetSubToken(ctx, denom, tokenID, subTokenID)
 	if !found {
-		panic(fmt.Errorf("subToken with ID = %d not found", subTokenID))
+		ctx.Logger().Error(fmt.Sprintf("SubToken with ID = %d is not found", subTokenID))
+		return
 	}
 	reserve = reserve.Add(amount)
 	k.nftKeeper.SetSubToken(ctx, denom, tokenID, subTokenID, reserve)
@@ -861,7 +866,8 @@ func (k *Keeper) compensateDelegationNFT(ctx sdk.Context, v string, d string, a 
 	// Send compensated coins to the reserve pool
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, delegator, "reserved_pool", sdk.NewCoins(coin))
 	if err != nil {
-		panic(fmt.Errorf("insufficient funds. required: %s", coin))
+		ctx.Logger().Error(fmt.Sprintf("Unable to send compensation to reserve pool: %s", err))
+		return
 	}
 
 	// Update NFT delegation
