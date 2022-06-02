@@ -369,6 +369,10 @@ func (k Keeper) SetUnbondingDelegation(ctx sdk.Context, ubd types.UnbondingDeleg
 		key := types.GetUBDKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
 		store.Set(key, bz)
 		store.Set(types.GetUBDByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress), []byte{}) // index, store empty bytes
+	} else {
+		key := types.GetUBDKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
+		store.Delete(key)
+		store.Delete(types.GetUBDByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress))
 	}
 
 	if len(nftUBD.Entries) != 0 {
@@ -376,6 +380,10 @@ func (k Keeper) SetUnbondingDelegation(ctx sdk.Context, ubd types.UnbondingDeleg
 		key := types.GetUnbondingDelegationNFTKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
 		store.Set(key, bz)
 		store.Set(types.GetUnbondingDelegationNFTByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress), []byte{}) // index, store empty bytes
+	} else {
+		key := types.GetUnbondingDelegationNFTKey(ubd.DelegatorAddress, ubd.ValidatorAddress)
+		store.Delete(key)
+		store.Delete(types.GetUnbondingDelegationNFTByValIndexKey(ubd.DelegatorAddress, ubd.ValidatorAddress))
 	}
 }
 
@@ -763,11 +771,7 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 	}
 
 	// set the unbonding delegation or remove it if there are no more entries
-	if len(ubd.Entries) == 0 {
-		k.RemoveUnbondingDelegation(ctx, ubd)
-	} else {
-		k.SetUnbondingDelegation(ctx, ubd)
-	}
+	k.SetUnbondingDelegation(ctx, ubd)
 
 	return nil
 }

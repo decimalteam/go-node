@@ -540,6 +540,14 @@ func (k Keeper) HandleDoubleSign(ctx sdk.Context, addr crypto.Address, infractio
 		return
 	}
 
+	// just inform about double sign if in grace period
+	// NOTE: This is added here temporary until consensus failure problem is completely fixed
+	// TODO: Remove this block of code after consensus failure problem fix
+	if inGracePeriod(ctx, ncfg.UpdatesInfo) {
+		logger.Info(fmt.Sprintf("Double sign of a block in grace period (%s)", validator.ValAddress))
+		return
+	}
+
 	// fetch the validator signing info
 	signInfo, found := k.getValidatorSigningInfo(ctx, consAddr)
 	if !found {
