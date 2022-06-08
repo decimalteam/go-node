@@ -704,24 +704,12 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 				switch entry := entry.(type) {
 				case types.UnbondingDelegationEntry:
 					amt := sdk.NewCoins(entry.Balance)
-					ctx.Logger().Info("Undelegating coins",
-						"validator", valAddr.String(),
-						"delegator", delAddr.String(),
-						"coin", amt,
-					)
 					err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, ubd.DelegatorAddress, amt)
 					if err != nil {
 						return err
 					}
 					// k.SubtractDelegatedCoin(ctx, entry.Balance)
 				case types.UnbondingDelegationNFTEntry:
-					ctx.Logger().Info("Undelegating NFT coins",
-						"validator", valAddr.String(),
-						"delegator", delAddr.String(),
-						"denom", entry.Denom,
-						"balance", entry.Balance,
-						"token", entry.TokenID,
-					)
 					collection, ok := k.nftKeeper.GetCollection(ctx, entry.Denom)
 					if !ok {
 						return fmt.Errorf("collection not found")
