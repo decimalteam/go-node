@@ -394,9 +394,9 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 
 	if !signed {
 		if inGrace {
-			ctx.Logger().Info(fmt.Sprintf("Missed blocks %d in grace period (%s)", signInfo.MissedBlocksCounter, validator.ValAddress))
+			ctx.Logger().Info("Missed block in grace period", "validator", validator.ValAddress)
 		} else {
-			ctx.Logger().Info(fmt.Sprintf("Missed blocks %d in slash period (%s)", signInfo.MissedBlocksCounter, validator.ValAddress))
+			ctx.Logger().Info("Missed block in slash period", "validator", validator.ValAddress)
 		}
 
 		ctx.EventManager().EmitEvent(
