@@ -472,38 +472,71 @@ func TestHandleValidatorSignatureMissCount(t *testing.T) {
 }
 
 func TestHandleValidatorSignatureJail(t *testing.T) {
-	ctx, keeper, _ := setupHelper(t, 10)
-	validator := keeper.GetValidators(ctx, 100)[0]
-	adr := validator.PubKey.Address()
-	keeper.addPubkey(ctx, validator.PubKey)
-	consAddr := validator.GetConsAddr()
+	for _, inGrace := range []bool{false, true} {
+		var oldBond, newBond sdk.Int
+		ctx, keeper, _ := setupHelper(t, 10)
+		val := keeper.GetValidators(ctx, 100)[0]
+		adr := val.PubKey.Address()
+		keeper.addPubkey(ctx, val.PubKey)
+		consAddr := val.GetConsAddr()
 
-	ncfg.UpdatesInfo.AllBlocks = make(map[string]int64)
-	ncfg.UpdatesInfo.LastBlock = -10000000000
+		// get old delegation
+		for _, del := range keeper.GetAllDelegations(ctx) {
+			if del.GetValidatorAddr().String() == val.ValAddress.String() {
+				oldBond = del.GetCoin().Amount
+			}
+		}
 
-	maxMissed := types.SignedBlocksWindow - types.MinSignedPerWindow
-	//not jail
-	for i := int64(0); i < maxMissed; i++ {
-		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+		if inGrace {
+			ncfg.UpdatesInfo.AllBlocks = make(map[string]int64)
+			ncfg.UpdatesInfo.LastBlock = 0
+		} else {
+			ncfg.UpdatesInfo.AllBlocks = make(map[string]int64)
+			ncfg.UpdatesInfo.LastBlock = -ncfg.GracePeriod - 1000
+		}
+
+		maxMissed := types.SignedBlocksWindow - types.MinSignedPerWindow
+		//not jail
+		for i := int64(0); i < maxMissed; i++ {
+			ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+			keeper.HandleValidatorSignature(ctx, adr, 10, false)
+			keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+		}
+		val, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
+		require.False(t, val.IsJailed(), "validator must be free")
+
+		//reset
+		val, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
+		val.Online = false
+		keeper.SetValidator(ctx, val)
 		keeper.HandleValidatorSignature(ctx, adr, 10, false)
-	}
-	validator, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
-	require.False(t, validator.IsJailed(), "validator must be free")
+		val.Online = true
+		keeper.SetValidator(ctx, val)
 
-	//reset
-	validator, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
-	validator.Online = false
-	keeper.SetValidator(ctx, validator)
-	keeper.HandleValidatorSignature(ctx, adr, 10, false)
-	validator.Online = true
-	keeper.SetValidator(ctx, validator)
+		//jail
+		for i := int64(0); i < (maxMissed + 1); i++ {
+			ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+			keeper.HandleValidatorSignature(ctx, adr, 10, false)
+			keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+		}
+		val, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
+		require.True(t, val.IsJailed(), "validator must be jailed")
 
-	//jail
-	for i := int64(0); i < (maxMissed + 1); i++ {
-		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
-		keeper.HandleValidatorSignature(ctx, adr, 10, false)
+		_, err := keeper.ApplyAndReturnValidatorSetUpdates(ctx)
+		require.NoError(t, err)
+
+		// get new delegation
+		for _, del := range keeper.GetAllDelegations(ctx) {
+			if del.GetValidatorAddr().String() == val.ValAddress.String() {
+				newBond = del.GetCoin().Amount
+			}
+		}
+
+		if inGrace {
+			require.True(t, oldBond.Equal(newBond), "must no slash in grace period: %s ? %s", oldBond, newBond)
+		} else {
+			require.True(t, oldBond.GT(newBond), "must slash without grace period: %s ? %s", oldBond, newBond)
+		}
 	}
-	validator, _ = keeper.GetValidatorByConsAddr(ctx, consAddr)
-	require.True(t, validator.IsJailed(), "validator must be jailed")
 
 }

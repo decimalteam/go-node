@@ -383,26 +383,21 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 		signInfo.MissedBlocksCounter--
 	}
 
-	// Block is missing only if it's not signed and no grace period
-	missed := !signed && !inGracePeriod(ctx, ncfg.UpdatesInfo)
+	inGrace := inGracePeriod(ctx, ncfg.UpdatesInfo)
 
-	if missed {
+	if !signed {
 		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, true)
 		signInfo.MissedBlocksCounter++
 	} else {
 		k.setValidatorMissedBlockBitArray(ctx, consAddr, index, false)
 	}
 
-	// inform about not signed blocks in grace period
-	if !signed && inGracePeriod(ctx, ncfg.UpdatesInfo) {
-		ctx.Logger().Info(
-			fmt.Sprintf("Missed block in grace period (%s)", validator.ValAddress))
-		return
-	}
-
-	if missed {
-		ctx.Logger().Info(
-			fmt.Sprintf("Missed blocks %d in slash period (%s)", signInfo.MissedBlocksCounter, validator.ValAddress))
+	if !signed {
+		if inGrace {
+			ctx.Logger().Info("Missed block in grace period", "validator", validator.ValAddress)
+		} else {
+			ctx.Logger().Info("Missed block in slash period", "validator", validator.ValAddress)
+		}
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
@@ -427,14 +422,20 @@ func (k Keeper) HandleValidatorSignature(ctx sdk.Context, addr crypto.Address, p
 			logger.Info(fmt.Sprintf("Validator %s past and below signed blocks threshold of %d",
 				consAddr, types.MinSignedPerWindow))
 
-			// We need to retrieve the stake distribution which signed the block, so we subtract ValidatorUpdateDelay from the evidence height,
-			// and subtract an additional 1 since this is the LastCommit.
-			// Note that this *can* result in a negative "distributionHeight" up to -ValidatorUpdateDelay-1,
-			// i.e. at the end of the pre-genesis block (none) = at the beginning of the genesis block.
-			// That's fine since this is just used to filter unbonding delegations & redelegations.
-			distributionHeight := height - sdk.ValidatorUpdateDelay - 1
+			// Actually slash only in slash period
+			slashAmount := sdk.NewInt(0)
+			if !inGrace {
+				// We need to retrieve the stake distribution which signed the block, so we subtract ValidatorUpdateDelay from the evidence height,
+				// and subtract an additional 1 since this is the LastCommit.
+				// Note that this *can* result in a negative "distributionHeight" up to -ValidatorUpdateDelay-1,
+				// i.e. at the end of the pre-genesis block (none) = at the beginning of the genesis block.
+				// That's fine since this is just used to filter unbonding delegations & redelegations.
+				distributionHeight := height - sdk.ValidatorUpdateDelay - 1
+				slashAmount = k.Slash(ctx, consAddr, distributionHeight, types.SlashFractionDowntime)
+			}
 
-			slashAmount := k.Slash(ctx, consAddr, distributionHeight, types.SlashFractionDowntime)
+			// But jail anyway
+			// NOTE: It is necessary also to do in grace period too, otherwise consensus can be broken!
 			k.Jail(ctx, consAddr)
 
 			ctx.EventManager().EmitEvent(sdk.NewEvent(
