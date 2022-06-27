@@ -13,6 +13,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgSellAllCoin{}, "coin/sell_all_coin", nil)
 	cdc.RegisterConcrete(MsgSendCoin{}, "coin/send_coin", nil)
 	cdc.RegisterConcrete(MsgMultiSendCoin{}, "coin/multi_send_coin", nil)
+	cdc.RegisterConcrete(MsgBurnCoin{}, "coin/burn_coin", nil)
 	cdc.RegisterConcrete(MsgRedeemCheck{}, "coin/redeem_check", nil)
 }
 

@@ -224,6 +224,7 @@ const (
 	setOfflineFee       = 100
 
 	sendFee        = 10
+	burnFee        = 10
 	sellFee        = 100
 	buyFee         = 100
 	redeemCheckFee = 30
@@ -288,6 +289,8 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(sellFee)
 		case coin.SellAllConst:
 			commissionInBaseCoin = commissionInBaseCoin.AddRaw(sellFee)
+		case coin.BurnCoinConst:
+			commissionInBaseCoin = commissionInBaseCoin.AddRaw(burnFee)
 		case coin.RedeemCheckConst:
 			commissionInBaseCoin = sdk.ZeroInt()
 		case multisig.CreateTransactionConst:

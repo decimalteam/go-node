@@ -1,9 +1,18 @@
 package keeper
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	"bytes"
+	"strconv"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	dbm "github.com/tendermint/tm-db"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
+	tmtypes "github.com/tendermint/tendermint/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,13 +21,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
-	"strconv"
-	"testing"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 )
 
 var (
@@ -32,6 +37,7 @@ func MakeTestCodec() *codec.Codec {
 	// Register Msgs
 	cdc.RegisterInterface((*sdk.Msg)(nil), nil)
 	cdc.RegisterConcrete(types.MsgCreateCoin{}, "test/coin/create_coin", nil)
+	cdc.RegisterConcrete(types.MsgBurnCoin{}, "test/coin/burn_coin", nil)
 	cdc.RegisterConcrete(types.MsgBuyCoin{}, "test/coin/buy_coin", nil)
 	cdc.RegisterConcrete(types.MsgSellCoin{}, "test/coin/sell_coin", nil)
 	cdc.RegisterConcrete(types.MsgSendCoin{}, "test/coin/send_coin", nil)
@@ -53,6 +59,7 @@ func MakeTestCodec() *codec.Codec {
 func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, Keeper, auth.AccountKeeper) {
 	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
 	keyParams := sdk.NewKVStoreKey(params.StoreKey)
+	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
 	tKeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
 	keyCoin := sdk.NewKVStoreKey(types.StoreKey)
 
@@ -86,13 +93,29 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, Keeper, auth.Ac
 		auth.ProtoBaseAccount, // prototype
 	)
 
-	bk := bank.NewBaseKeeper(
+	bankKeeper := bank.NewBaseKeeper(
 		accountKeeper,
 		pk.Subspace(bank.DefaultParamspace),
 		blacklistedAddrs,
 	)
 
-	coinKeeper := NewKeeper(cdc, keyCoin, pk.Subspace(types.DefaultParamspace), accountKeeper, bk, config.GetDefaultConfig(config.ChainID))
+	supplyKeeper := supply.NewKeeper(
+		cdc,
+		keySupply,
+		accountKeeper,
+		bankKeeper,
+		make(map[string][]string),
+	)
+
+	coinKeeper := NewKeeper(
+		cdc,
+		keyCoin,
+		pk.Subspace(types.DefaultParamspace),
+		accountKeeper,
+		bankKeeper,
+		supplyKeeper,
+		config.GetDefaultConfig(config.ChainID),
+	)
 
 	coinConfig := config.GetDefaultConfig(config.ChainID)
 	coinKeeper.SetCoin(ctx, types.Coin{

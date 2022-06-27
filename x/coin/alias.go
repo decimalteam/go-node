@@ -23,6 +23,7 @@ const (
 	SellAllConst       = types.SellAllCoinConst
 	CreateCoinConst    = types.CreateCoinConst
 	SendCoinConst      = types.SendCoinConst
+	BurnCoinConst      = types.BurnCoinConst
 )
 
 var (
@@ -58,6 +59,7 @@ type (
 	Params           = types.Params
 	Coin             = types.Coin
 	MsgSendCoin      = types.MsgSendCoin
+	MsgBurnCoin      = types.MsgBurnCoin
 	MsgBuyCoin       = types.MsgBuyCoin
 	MsgSellCoin      = types.MsgSellCoin
 	MsgCreateCoin    = types.MsgCreateCoin

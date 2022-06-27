@@ -1099,7 +1099,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64, addrList []s
 
 	supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 
-	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bk, config.GetDefaultConfig(config.ChainID))
+	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bk, supplyKeeper, config.GetDefaultConfig(config.ChainID))
 
 	coinConfig := config.GetDefaultConfig(config.ChainID)
 	coinKeeper.SetCoin(ctx, coin.Coin{

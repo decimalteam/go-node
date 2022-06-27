@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"math/big"
+	"testing"
+
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/nft/exported"
@@ -18,8 +21,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	types3 "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
-	"math/big"
-	"testing"
 )
 
 var PowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
@@ -92,7 +93,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	}
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bk, maccPerms)
 
-	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bk, config.GetDefaultConfig(config.ChainID))
+	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bk, supplyKeeper, config.GetDefaultConfig(config.ChainID))
 
 	coinConfig := config.GetDefaultConfig(config.ChainID)
 	coinKeeper.SetCoin(ctx, coin.Coin{

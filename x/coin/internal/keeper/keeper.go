@@ -12,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
@@ -25,6 +26,7 @@ type Keeper struct {
 	paramspace    types.ParamSubspace
 	AccountKeeper auth.AccountKeeper
 	BankKeeper    bank.Keeper
+	SupplyKeeper  supply.Keeper
 	Config        *config.Config
 
 	coinCache      map[string]bool
@@ -32,13 +34,14 @@ type Keeper struct {
 }
 
 // NewKeeper creates a coin keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, accountKeeper auth.AccountKeeper, coinKeeper bank.Keeper, config *config.Config) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspace, accountKeeper auth.AccountKeeper, coinKeeper bank.Keeper, supplyKeeper supply.Keeper, config *config.Config) Keeper {
 	keeper := Keeper{
 		storeKey:       key,
 		cdc:            cdc,
 		paramspace:     paramspace.WithKeyTable(types.ParamKeyTable()),
 		AccountKeeper:  accountKeeper,
 		BankKeeper:     coinKeeper,
+		SupplyKeeper:   supplyKeeper,
 		Config:         config,
 		coinCache:      make(map[string]bool),
 		coinCacheMutex: &sync.Mutex{},
