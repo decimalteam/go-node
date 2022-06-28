@@ -1,7 +1,7 @@
 [master-host-dev]
-devnet-validatro-ubuntu             ansible_host=185.202.107.205 ansible_port=2251
-dev-node-tor-01                     ansible_host=185.202.107.205 ansible_port=2252
-dev-node-fra1-01                    ansible_host=185.202.107.205 ansible_port=2253
+dev-node-validator-01               ansible_host=185.202.107.205 ansible_port=2251
+dev-node-validator-02               ansible_host=185.202.107.205 ansible_port=2252
+dev-node-validator-03               ansible_host=185.202.107.205 ansible_port=2253
 
 [slave-host-dev]
 explorer-worker-01                  ansible_host=185.202.107.205 ansible_port=2225

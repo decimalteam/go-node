@@ -2,8 +2,8 @@ package cli
 
 const devNetGenesis = `
 {
-  "genesis_time": "2022-06-02T00:00:00.000000Z",
-  "chain_id": "decimal-devnet-06-02-00-00",
+  "genesis_time": "2022-06-29T00:00:00.000000Z",
+  "chain_id": "decimal-devnet-06-29-00-00",
   "consensus_params": {
     "block": {
       "max_bytes": "10000000",
@@ -57,11 +57,11 @@ const devNetGenesis = `
                     "amount": "40000000000000000000000000"
                   },
                   "description": {
-                    "moniker": "dev-node-fra1-01",
+                    "moniker": "dev-node-validator-01",
                     "identity": "",
                     "website": "decimalchain.com",
                     "security_contact": "",
-                    "details": "Declaring validator on dev-node-fra1-01"
+                    "details": "Declaring validator on dev-node-validator-01"
                   }
                 }
               }
@@ -76,7 +76,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AyXteacATBJVsNGhTGUwgHfLO4mJTXhvK/H/2MLOTylo"
                 },
-                "signature": "w1CkzXY8ZgjnUkUlvJpwE7vfqV9t7kQPg3RJdE2padZsT03vLVJRPGCMrb7EOjXf5xD09iWfzmQFd4HGZG7Iig=="
+                "signature": "tivJwUamvqRkKxkezKHlZI/fJ3tbu1sN551sIfKHIyw6EZ2uKvTHtAyqjMgNRdC4dKP7Gke/cTRnCgmrK+LZhw=="
               }
             ],
             "memo": ""
@@ -101,11 +101,11 @@ const devNetGenesis = `
                     "amount": "40000000000000000000000000"
                   },
                   "description": {
-                    "moniker": "dev-node-fra1-02",
+                    "moniker": "dev-node-validator-02",
                     "identity": "",
                     "website": "decimalchain.com",
                     "security_contact": "",
-                    "details": "Declaring validator on dev-node-fra1-02"
+                    "details": "Declaring validator on dev-node-validator-02"
                   }
                 }
               }
@@ -120,7 +120,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A8s6NPtmz3ywH2LGxNnRjjsEIdt53ZuRQy7q6Mof0iA9"
                 },
-                "signature": "vbjNeclfLu0ZqA7xnwC05MuwpHhG7W6AIeaGqeI8CdJY9cnqY2RSBNBtyICVaHAnaFID66/nlUCWRZhUKiytHg=="
+                "signature": "0w708PWiqT5B1l+40WimPIMNKfD/Q7JEqgtwDdzRCKhUn7+S/lNlTEhGl/e2IyJNmNGzlgG/HiNFTX71bBzL/g=="
               }
             ],
             "memo": ""
@@ -145,11 +145,11 @@ const devNetGenesis = `
                     "amount": "40000000000000000000000000"
                   },
                   "description": {
-                    "moniker": "dev-node-tor1-01",
+                    "moniker": "dev-node-validator-03",
                     "identity": "",
                     "website": "decimalchain.com",
                     "security_contact": "",
-                    "details": "Declaring validator on dev-node-tor1-01"
+                    "details": "Declaring validator on dev-node-validator-03"
                   }
                 }
               }
@@ -164,7 +164,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "A/jGezwfhOzAyTaRbg3off9HYzvtUO4CxaRrBJzdHGlw"
                 },
-                "signature": "oz1xXyO++nNF7fbCuAeWUmKLDLS3nuQfl0Z3ykWn18Mdc4Cbwuu2vu+YrX+Om8LtBvVaLDW6Yd/DnOnyfYe2+A=="
+                "signature": "LRSf1L09ADkgDjOF1PfOoTUN9+e0EIwkcQBLxs4j4nsMrSr1cmxS5jQqJMuw1eaJFFtRxwPNIHvnKk61+XxCpg=="
               }
             ],
             "memo": ""
