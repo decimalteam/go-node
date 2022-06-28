@@ -69,6 +69,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, Keeper, auth.Ac
 	ms.MountStoreWithDB(keyParams, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(tKeyParams, sdk.StoreTypeTransient, db)
 	ms.MountStoreWithDB(keyCoin, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keySupply, sdk.StoreTypeIAVL, db)
 	err := ms.LoadLatestVersion()
 	require.Nil(t, err)
 
@@ -99,12 +100,15 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, Keeper, auth.Ac
 		blacklistedAddrs,
 	)
 
+	maccPerms := map[string][]string{
+		types.ModuleName: {supply.Burner},
+	}
 	supplyKeeper := supply.NewKeeper(
 		cdc,
 		keySupply,
 		accountKeeper,
 		bankKeeper,
-		make(map[string][]string),
+		maccPerms,
 	)
 
 	coinKeeper := NewKeeper(

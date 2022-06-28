@@ -1,6 +1,5 @@
 package coin
 
-/*
 import (
 	"strings"
 	"testing"
@@ -9,6 +8,7 @@ import (
 	keep "bitbucket.org/decimalteam/go-node/x/coin/internal/keeper"
 	"bitbucket.org/decimalteam/go-node/x/coin/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	supplyTypes "github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,6 +19,24 @@ func createCoin(ctx sdk.Context, keeper Keeper) Coin {
 	coin := Coin{
 		Title:       "TEST COIN",
 		CRR:         10,
+		Symbol:      "test",
+		Reserve:     reserve,
+		LimitVolume: volume.Mul(sdk.NewInt(10)),
+		Volume:      volume,
+	}
+
+	keeper.SetCoin(ctx, coin)
+
+	return coin
+}
+
+func createCustomCoin(ctx sdk.Context, keeper Keeper, initVolume, initReserve int64, crr uint) Coin {
+	volume := helpers.BipToPip(sdk.NewInt(initVolume))
+	reserve := helpers.BipToPip(sdk.NewInt(initReserve))
+
+	coin := Coin{
+		Title:       "TEST COIN",
+		CRR:         crr,
 		Symbol:      "test",
 		Reserve:     reserve,
 		LimitVolume: volume.Mul(sdk.NewInt(10)),
@@ -317,4 +335,33 @@ func TestCreateCoinTx(t *testing.T) {
 
 	testBalance := account.GetCoins().AmountOf(strings.ToLower(symbol))
 	require.Equal(t, testBalance, targetTestBalance, "Target %s balance is not correct. Expected %s, got %s", symbol, targetTestBalance, testBalance)
-}*/
+}
+
+func TestBurnCoin(t *testing.T) {
+	ctx, keeper, accountKeeper := keep.CreateTestInput(t, false)
+	initBalance := helpers.BipToPip(sdk.NewInt(1000000000))
+
+	coin := createCustomCoin(ctx, keeper, 1000, 1000, 10)
+
+	keeper.SupplyKeeper.SetSupply(ctx, supplyTypes.NewSupply(sdk.NewCoins(
+		sdk.NewCoin(coin.Symbol, coin.Volume),
+	)))
+
+	// account has full coin volume
+	account := accountKeeper.NewAccountWithAddress(ctx, keep.Addrs[0])
+	account.SetCoins(sdk.NewCoins(sdk.NewCoin(coin.Symbol, coin.Volume), sdk.NewCoin(keeper.GetBaseCoin(ctx), initBalance)))
+	accountKeeper.SetAccount(ctx, account)
+
+	// try to burn full volume-MinCoinReserve
+	msg := types.NewMsgBurnCoin(keep.Addrs[0], sdk.NewCoin(coin.Symbol, coin.Volume.Sub(types.MinCoinReserve(ctx))))
+	_, err := handleMsgBurnCoin(ctx, keeper, msg)
+	require.NoError(t, err)
+
+	resultCoin, err := keeper.GetCoin(ctx, coin.Symbol)
+	require.NoError(t, err)
+
+	// try to burn all coin volume
+	msg = types.NewMsgBurnCoin(keep.Addrs[0], sdk.NewCoin(resultCoin.Symbol, resultCoin.Volume))
+	_, err = handleMsgBurnCoin(ctx, keeper, msg)
+	require.Error(t, err)
+}
