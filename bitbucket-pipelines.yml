@@ -57,14 +57,14 @@ definitions:
             ansible-playbook -i hosts -l "$MASTER_HOST" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
             else echo 0; fi
 
-          # run reset playbook for SLAVE HOSTS
-          - if [[ $MESSAGE == *\[reset\]* ]]; then
-            ansible-playbook -i hosts -l "$SLAVE_HOST" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
-            else echo 0; fi
-
           # run reset playbook for EXPLORER HOSTS
           - if [[ $MESSAGE == *\[reset\]* ]]; then
             ansible-playbook -i hosts -l "$EXPLORER_HOST" -e "ansible_user=$USERNAME" decimal-explorer-init.yml;
+            else echo 0; fi
+
+          # run reset playbook for SLAVE HOSTS
+          - if [[ $MESSAGE == *\[reset\]* ]]; then
+            ansible-playbook -i hosts -l "$SLAVE_HOST" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
             else echo 0; fi
 
     - parallel: &repo_build
