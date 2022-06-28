@@ -271,11 +271,6 @@ func handleMsgBurnCoin(ctx sdk.Context, k Keeper, msg types.MsgBurnCoin) (*sdk.R
 	}
 	k.AccountKeeper.SetAccount(ctx, acc)
 
-	// Update coin's supply
-	supply := k.SupplyKeeper.GetSupply(ctx)
-	supply = supply.Deflate(sdk.NewCoins(msg.Coin))
-	k.SupplyKeeper.SetSupply(ctx, supply)
-
 	// Update coin's volume
 	cc, err := k.GetCoin(ctx, msg.Coin.Denom)
 	if err != nil {
@@ -288,6 +283,13 @@ func handleMsgBurnCoin(ctx sdk.Context, k Keeper, msg types.MsgBurnCoin) (*sdk.R
 		}
 	}
 	k.UpdateCoin(ctx, cc, cc.Reserve, volume)
+
+	// Update coin's supply
+	if cc.IsBase() {
+		supply := k.SupplyKeeper.GetSupply(ctx)
+		supply = supply.Deflate(sdk.NewCoins(msg.Coin))
+		k.SupplyKeeper.SetSupply(ctx, supply)
+	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		sdk.EventTypeMessage,
