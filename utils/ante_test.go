@@ -1,15 +1,12 @@
 package utils
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/utils/updates"
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/genutil"
-	"bitbucket.org/decimalteam/go-node/x/multisig"
-	"bitbucket.org/decimalteam/go-node/x/nft"
-	"bitbucket.org/decimalteam/go-node/x/swap"
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
+	"io"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,18 +16,23 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	tmos "github.com/tendermint/tendermint/libs/os"
-
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/log"
+	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
-	"io"
-	"testing"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/updates"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/genutil"
+	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
+	"bitbucket.org/decimalteam/go-node/x/swap"
+	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
 var (
@@ -154,7 +156,7 @@ func NewSimApp(
 		app.cdc, keys[supply.StoreKey], app.AccountKeeper, app.BankKeeper, maccPerms,
 	)
 	app.CoinKeeper = coin.NewKeeper(
-		app.cdc, keys[coin.StoreKey], app.subspaces[coin.ModuleName], app.AccountKeeper, app.BankKeeper, config.GetDefaultConfig(config.ChainID),
+		app.cdc, keys[coin.StoreKey], app.subspaces[coin.ModuleName], app.AccountKeeper, app.BankKeeper, app.SupplyKeeper, config.GetDefaultConfig(config.ChainID),
 	)
 	app.ValidatorKeeper = validator.NewKeeper(
 		app.cdc, keys[validator.StoreKey], app.subspaces[validator.ModuleName], app.CoinKeeper, app.AccountKeeper, app.SupplyKeeper, app.MultisigKeeper, app.NFTKeeper,

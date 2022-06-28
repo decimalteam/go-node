@@ -3,34 +3,37 @@
 package gov
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/multisig"
-	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bytes"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/tendermint/tendermint/libs/log"
-	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
 	"sort"
 	"testing"
 
-	keep "bitbucket.org/decimalteam/go-node/x/gov/internal/keeper"
-	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
-	"bitbucket.org/decimalteam/go-node/x/validator"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/mock"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/stretchr/testify/require"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/libs/log"
+	tmtypes "github.com/tendermint/tendermint/types"
+	dbm "github.com/tendermint/tm-db"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/mock"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	keep "bitbucket.org/decimalteam/go-node/x/gov/internal/keeper"
+	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
+	"bitbucket.org/decimalteam/go-node/x/validator"
 )
 
 var (
@@ -136,7 +139,7 @@ func getTestInput(t *testing.T, numGenAccs int, genState types.GenesisState, gen
 	}
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bk, maccPerms)
 
-	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bk, config.GetDefaultConfig(config.ChainID))
+	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bk, supplyKeeper, config.GetDefaultConfig(config.ChainID))
 	coinConfig := config.GetDefaultConfig(config.ChainID)
 	coinKeeper.SetCoin(ctx, coin.Coin{
 		Title:  coinConfig.TitleBaseCoin,

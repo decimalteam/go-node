@@ -195,6 +195,7 @@ func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		coinSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
+		app.supplyKeeper,
 		cfg,
 	)
 

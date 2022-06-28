@@ -4,20 +4,15 @@ package keeper // noalias
 // DONTCOVER
 
 import (
-	"bitbucket.org/decimalteam/go-node/config"
-	"bitbucket.org/decimalteam/go-node/x/coin"
-	"bitbucket.org/decimalteam/go-node/x/multisig"
-	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bytes"
 	"encoding/hex"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
-
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
@@ -32,6 +27,11 @@ import (
 
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
 	"bitbucket.org/decimalteam/go-node/x/validator"
+
+	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/x/coin"
+	"bitbucket.org/decimalteam/go-node/x/multisig"
+	"bitbucket.org/decimalteam/go-node/x/nft"
 )
 
 // dummy addresses used for testing
@@ -148,7 +148,7 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	accountKeeper := auth.NewAccountKeeper(cdc, keyAcc, pk.Subspace(auth.DefaultParamspace), auth.ProtoBaseAccount)
 	bankKeeper := bank.NewBaseKeeper(accountKeeper, pk.Subspace(bank.DefaultParamspace), blacklistedAddrs)
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bankKeeper, maccPerms)
-	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bankKeeper, config.GetDefaultConfig(config.ChainID))
+	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bankKeeper, supplyKeeper, config.GetDefaultConfig(config.ChainID))
 
 	coinConfig := config.GetDefaultConfig(config.ChainID)
 	coinKeeper.SetCoin(ctx, coin.Coin{

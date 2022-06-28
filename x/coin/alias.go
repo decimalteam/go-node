@@ -23,6 +23,7 @@ const (
 	SellAllConst       = types.SellAllCoinConst
 	CreateCoinConst    = types.CreateCoinConst
 	SendCoinConst      = types.SendCoinConst
+	BurnCoinConst      = types.BurnCoinConst
 )
 
 var (
@@ -34,6 +35,7 @@ var (
 	DefaultGenesisState = types.DefaultGenesisState
 	ValidateGenesis     = types.ValidateGenesis
 	NewMsgSendCoin      = types.NewMsgSendCoin
+	NewMsgBurnCoin      = types.NewMsgBurnCoin
 	NewMsgBuyCoin       = types.NewMsgBuyCoin
 	NewMsgSellCoin      = types.NewMsgSellCoin
 	NewMsgCreateCoin    = types.NewMsgCreateCoin
@@ -58,6 +60,7 @@ type (
 	Params           = types.Params
 	Coin             = types.Coin
 	MsgSendCoin      = types.MsgSendCoin
+	MsgBurnCoin      = types.MsgBurnCoin
 	MsgBuyCoin       = types.MsgBuyCoin
 	MsgSellCoin      = types.MsgSellCoin
 	MsgCreateCoin    = types.MsgCreateCoin
