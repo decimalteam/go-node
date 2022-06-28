@@ -3,4 +3,3 @@
 systemd_path: '/etc/systemd/system/'
 service_name_worker: worker.service
 indexer_bin: '/home/centos/indexer'
-interpreter_python: auto_legacy
