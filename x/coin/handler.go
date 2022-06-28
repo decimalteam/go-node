@@ -284,6 +284,9 @@ func handleMsgBurnCoin(ctx sdk.Context, k Keeper, msg types.MsgBurnCoin) (*sdk.R
 		return nil, types.ErrInternal(err.Error())
 	}
 	volume := cc.Volume.Sub(msg.Coin.Amount)
+	if volume.LT(types.MinCoinSupply) {
+		return nil, types.ErrMinVolumeBroken(volume.String())
+	}
 	k.UpdateCoin(ctx, cc, cc.Reserve, volume)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
