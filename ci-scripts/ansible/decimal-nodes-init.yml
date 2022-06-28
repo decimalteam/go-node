@@ -1,6 +1,6 @@
 ---
 - name: Install Decimal Node with Full Init!
-  hosts: fail
+  hosts: hosts
   gather_facts: True
 
   roles:

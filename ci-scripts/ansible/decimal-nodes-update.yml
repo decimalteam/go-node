@@ -1,6 +1,6 @@
 ---
 - name: Update Decimal Node (only bin files)
-  hosts: fail
+  hosts: hosts
   gather_facts: True
 
   roles:

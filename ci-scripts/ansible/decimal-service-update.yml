@@ -1,6 +1,6 @@
 ---
 - name: Update Decimal decd/rest services (systemd)
-  hosts: fail
+  hosts: hosts
   gather_facts: False
 
   roles:

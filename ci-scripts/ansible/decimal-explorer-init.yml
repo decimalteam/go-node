@@ -1,6 +1,6 @@
 ---
 - name: Reset Explorer data!
-  hosts: fail
+  hosts: hosts
   gather_facts: True
 
   roles:
