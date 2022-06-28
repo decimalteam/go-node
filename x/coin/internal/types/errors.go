@@ -39,7 +39,7 @@ const (
 	CodeMinimumValueToBuyReached   CodeType = 205
 	CodeUpdateBalance              CodeType = 206
 	CodeLimitVolumeBroken          CodeType = 207
-	CodeMinVolumeBroken            CodeType = 208
+	CodeTxBreaksMinVolumeLimit     CodeType = 208
 
 	// Send coin
 	CodeInvalidAmount          CodeType = 300
@@ -201,6 +201,14 @@ func ErrInsufficientFundsToSellAll() *sdkerrors.Error {
 	)
 }
 
+func ErrTxBreaksMinVolumeRule(volume string) *sdkerrors.Error {
+	return errors.Encode(
+		DefaultCodespace,
+		CodeTxBreaksMinVolumeLimit,
+		fmt.Sprintf("tx breaks MinVolumeLimit rule: %s < %s", volume, MinCoinSupply),
+	)
+}
+
 func ErrTxBreaksVolumeLimit(volume string, limitVolume string) *sdkerrors.Error {
 	return errors.Encode(
 		DefaultCodespace,
@@ -246,14 +254,6 @@ func ErrLimitVolumeBroken(volume string, limit string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeLimitVolumeBroken,
 		fmt.Sprintf("volume should be less than or equal the volume limit: %s > %s", volume, limit),
-	)
-}
-
-func ErrMinVolumeBroken(volume string) *sdkerrors.Error {
-	return errors.Encode(
-		DefaultCodespace,
-		CodeMinVolumeBroken,
-		fmt.Sprintf("volume should be greater than or equal to the min supply: %s < %s", volume, MinCoinSupply.String()),
 	)
 }
 

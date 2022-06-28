@@ -284,8 +284,10 @@ func handleMsgBurnCoin(ctx sdk.Context, k Keeper, msg types.MsgBurnCoin) (*sdk.R
 		return nil, types.ErrInternal(err.Error())
 	}
 	volume := cc.Volume.Sub(msg.Coin.Amount)
-	if volume.LT(types.MinCoinSupply) {
-		return nil, types.ErrMinVolumeBroken(volume.String())
+	if !cc.IsBase() {
+		if volume.LT(types.MinCoinSupply) {
+			return nil, types.ErrTxBreaksMinVolumeRule(volume.String())
+		}
 	}
 	k.UpdateCoin(ctx, cc, cc.Reserve, volume)
 
@@ -462,8 +464,12 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 		return nil, types.ErrMinimumValueToBuyReached(amountToBuy.String(), msg.MinCoinToBuy.Amount.String())
 	}
 
-	// Ensure reserve of the coin to sell does not underflow
+	// Ensure volume and reserve of the coin to sell does not underflow
 	if !coinToSell.IsBase() {
+		newVolume := coinToSell.Volume.Sub(amountToSell)
+		if newVolume.LT(types.MinCoinSupply) {
+			return nil, types.ErrTxBreaksMinVolumeRule(newVolume.String())
+		}
 		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types.MinCoinReserve(ctx)) {
 			return nil, types.ErrTxBreaksMinReserveRule(MinCoinReserve(ctx).String(), amountInBaseCoin.String())
 		}

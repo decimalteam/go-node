@@ -41,7 +41,7 @@ const CreateCoinConst = "create_coin"
 const maxCoinNameBytes = 64
 const allowedCoinSymbols = "^[a-zA-Z][a-zA-Z0-9]{2,9}$"
 
-var MinCoinSupply = sdk.NewInt(1)
+var MinCoinSupply = helpers.BipToPip(sdk.NewInt(1))
 var maxCoinSupply = helpers.BipToPip(sdk.NewInt(1000000000000000))
 
 func MinCoinReserve(ctx sdk.Context) sdk.Int {
