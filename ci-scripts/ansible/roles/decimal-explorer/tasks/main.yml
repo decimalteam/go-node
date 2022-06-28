@@ -2,7 +2,7 @@
 # tasks file for decimal-init
 - name: Include tasks for Explorer Indexer Worker node
   include: explorer-worker.yml
-  when: ansible_hostname.find('explorer-node') != -1
+  when: ansible_hostname.find('explorer-worker') != -1
 
 - name: Include tasks for Explorer Indexer node
   include: explorer-indexer.yml

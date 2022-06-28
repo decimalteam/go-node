@@ -41,7 +41,9 @@ definitions:
           - pip
         script:
           - MESSAGE=`git log --format=%B -n 1 $BITBUCKET_COMMIT` # getting commit message
-          - pip3 install ansible==2.10.7 psycopg2 psycopg2-binary
+          - dnf install -y gcc python3 python3-devel postgresql postgresql-devel
+          - pip3 install ansible==2.10.7
+          - pip3 install psycopg2-binary --user
 
           - chmod 700 ci-scripts/ansible
           - cd ci-scripts/ansible
@@ -56,14 +58,14 @@ definitions:
             ansible-playbook -i hosts -l "$MASTER_HOST" -e "ansible_user=$USERNAME mode=master chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
             else echo 0; fi
 
-          # run reset playbook for EXPLORER HOSTS
-          - if [[ $MESSAGE == *\[reset\]* ]]; then
-            ansible-playbook -i hosts -l "$EXPLORER_HOST" -e "ansible_user=$USERNAME" decimal-explorer-init.yml;
-            else echo 0; fi
-
           # run reset playbook for SLAVE HOSTS
           - if [[ $MESSAGE == *\[reset\]* ]]; then
             ansible-playbook -i hosts -l "$SLAVE_HOST" -e "ansible_user=$USERNAME mode=slave chain_id=$CHAIN_ID artifacts=$BITBUCKET_CLONE_DIR/build src_genesis=$SRC_GENESIS persistent_peers=$PERSISTENT_PEERS" decimal-nodes-init.yml;
+            else echo 0; fi
+
+          # run reset playbook for EXPLORER HOSTS
+          - if [[ $MESSAGE == *\[reset\]* ]]; then
+            ansible-playbook -i hosts -l "$EXPLORER_HOST" -e "ansible_user=$USERNAME" decimal-explorer-init.yml;
             else echo 0; fi
 
     - parallel: &repo_build
