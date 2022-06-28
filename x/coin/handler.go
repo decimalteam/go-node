@@ -366,8 +366,12 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 		return nil, types.ErrMaximumValueToSellReached(msg.MaxCoinToSell.Amount.String(), amountToSell.String())
 	}
 
-	// Ensure reserve of the coin to sell does not underflow
+	// Ensure volume and reserve of the coin to sell does not underflow
 	if !coinToSell.IsBase() {
+		newVolume := coinToSell.Volume.Sub(amountToSell)
+		if newVolume.LT(types.MinCoinSupply) {
+			return nil, types.ErrTxBreaksMinVolumeRule(newVolume.String())
+		}
 		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types.MinCoinReserve(ctx)) {
 			return nil, types.ErrTxBreaksMinReserveRule(MinCoinReserve(ctx).String(), amountInBaseCoin.String())
 		}
