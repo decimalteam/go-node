@@ -1,10 +1,13 @@
 package keeper
 
 import (
+	"bytes"
+	"strconv"
+	"testing"
+
 	"bitbucket.org/decimalteam/go-node/config"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/multisig/internal/types"
-	"bytes"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,8 +21,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
-	"strconv"
-	"testing"
 )
 
 var (
@@ -51,6 +52,7 @@ func MakeTestCodec() *codec.Codec {
 func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, Keeper, coin.Keeper, auth.AccountKeeper, bank.Keeper) {
 	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
 	keyParams := sdk.NewKVStoreKey(params.StoreKey)
+	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
 	tKeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
 	keyCoin := sdk.NewKVStoreKey(coin.StoreKey)
 	keyMultisig := sdk.NewKVStoreKey(types.StoreKey)
@@ -79,20 +81,10 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, Keeper, coin.Ke
 
 	pk := params.NewKeeper(cdc, keyParams, tKeyParams)
 
-	accountKeeper := auth.NewAccountKeeper(
-		cdc,    // amino codec
-		keyAcc, // target store
-		pk.Subspace(auth.DefaultParamspace),
-		auth.ProtoBaseAccount, // prototype
-	)
-
-	bk := bank.NewBaseKeeper(
-		accountKeeper,
-		pk.Subspace(bank.DefaultParamspace),
-		blacklistedAddrs,
-	)
-
-	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bk, config.GetDefaultConfig(config.ChainID))
+	accountKeeper := auth.NewAccountKeeper(cdc, keyAcc, pk.Subspace(auth.DefaultParamspace), auth.ProtoBaseAccount)
+	bankKeeper := bank.NewBaseKeeper(accountKeeper, pk.Subspace(bank.DefaultParamspace), blacklistedAddrs)
+	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bankKeeper, make(map[string][]string))
+	coinKeeper := coin.NewKeeper(cdc, keyCoin, pk.Subspace(coin.DefaultParamspace), accountKeeper, bankKeeper, supplyKeeper, config.GetDefaultConfig(config.ChainID))
 
 	coinConfig := config.GetDefaultConfig(config.ChainID)
 	coinKeeper.SetCoin(ctx, coin.Coin{
@@ -101,9 +93,9 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, Keeper, coin.Ke
 		Volume: coinConfig.InitialVolumeBaseCoin,
 	})
 
-	multisigKeeper := NewKeeper(cdc, keyMultisig, pk.Subspace(types.DefaultParamspace), accountKeeper, coinKeeper, bk)
+	multisigKeeper := NewKeeper(cdc, keyMultisig, pk.Subspace(types.DefaultParamspace), accountKeeper, coinKeeper, bankKeeper)
 
-	return ctx, multisigKeeper, coinKeeper, accountKeeper, bk
+	return ctx, multisigKeeper, coinKeeper, accountKeeper, bankKeeper
 }
 
 // nolint: unparam

@@ -3,6 +3,7 @@ package coin
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"math/big"
 	"runtime/debug"
@@ -53,6 +54,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgSendCoin(ctx, k, msg)
 		case types.MsgMultiSendCoin:
 			return handleMsgMultiSendCoin(ctx, k, msg)
+		case types.MsgBurnCoin:
+			return handleMsgBurnCoin(ctx, k, msg)
 		case types.MsgBuyCoin:
 			return handleMsgBuyCoin(ctx, k, msg)
 		case types.MsgSellCoin:
@@ -243,6 +246,59 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
+func handleMsgBurnCoin(ctx sdk.Context, k Keeper, msg types.MsgBurnCoin) (*sdk.Result, error) {
+	_, err := k.GetCoin(ctx, msg.Coin.Denom)
+	if err != nil {
+		return nil, types.ErrCoinDoesNotExist(msg.Coin.Denom)
+	}
+
+	// Get account instance
+	acc := k.AccountKeeper.GetAccount(ctx, msg.Sender)
+	if acc == nil {
+		return nil, errors.New("account does not exist")
+	}
+
+	// Update account's coins
+	coins := acc.GetCoins()
+	accCoin := sdk.NewCoin(msg.Coin.Denom, coins.AmountOf(msg.Coin.Denom))
+	if accCoin.Amount.LT(msg.Coin.Amount) {
+		return nil, types.ErrInsufficientFunds(msg.Coin.String(), accCoin.String())
+	}
+	coins = coins.Sub(sdk.NewCoins(msg.Coin))
+	err = acc.SetCoins(coins)
+	if err != nil {
+		return nil, types.ErrInternal(err.Error())
+	}
+	k.AccountKeeper.SetAccount(ctx, acc)
+
+	// Update coin's supply
+	supply := k.SupplyKeeper.GetSupply(ctx)
+	supply = supply.Deflate(sdk.NewCoins(msg.Coin))
+	k.SupplyKeeper.SetSupply(ctx, supply)
+
+	// Update coin's volume
+	cc, err := k.GetCoin(ctx, msg.Coin.Denom)
+	if err != nil {
+		return nil, types.ErrInternal(err.Error())
+	}
+	volume := cc.Volume.Sub(msg.Coin.Amount)
+	if !cc.IsBase() {
+		if volume.LT(types.MinCoinSupply) {
+			return nil, types.ErrTxBreaksMinVolumeRule(volume.String())
+		}
+	}
+	k.UpdateCoin(ctx, cc, cc.Reserve, volume)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		sdk.NewAttribute(types.AttributeCoin, msg.Coin.String()),
+	))
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
 ////////////////////////////////////////////////////////////////
 // Trading coins handlers
 ////////////////////////////////////////////////////////////////
@@ -308,8 +364,12 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 		return nil, types.ErrMaximumValueToSellReached(msg.MaxCoinToSell.Amount.String(), amountToSell.String())
 	}
 
-	// Ensure reserve of the coin to sell does not underflow
+	// Ensure volume and reserve of the coin to sell does not underflow
 	if !coinToSell.IsBase() {
+		newVolume := coinToSell.Volume.Sub(amountToSell)
+		if newVolume.LT(types.MinCoinSupply) {
+			return nil, types.ErrTxBreaksMinVolumeRule(newVolume.String())
+		}
 		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types.MinCoinReserve(ctx)) {
 			return nil, types.ErrTxBreaksMinReserveRule(MinCoinReserve(ctx).String(), amountInBaseCoin.String())
 		}
@@ -407,8 +467,12 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 		return nil, types.ErrMinimumValueToBuyReached(amountToBuy.String(), msg.MinCoinToBuy.Amount.String())
 	}
 
-	// Ensure reserve of the coin to sell does not underflow
+	// Ensure volume and reserve of the coin to sell does not underflow
 	if !coinToSell.IsBase() {
+		newVolume := coinToSell.Volume.Sub(amountToSell)
+		if newVolume.LT(types.MinCoinSupply) {
+			return nil, types.ErrTxBreaksMinVolumeRule(newVolume.String())
+		}
 		if coinToSell.Reserve.Sub(amountInBaseCoin).LT(types.MinCoinReserve(ctx)) {
 			return nil, types.ErrTxBreaksMinReserveRule(MinCoinReserve(ctx).String(), amountInBaseCoin.String())
 		}
