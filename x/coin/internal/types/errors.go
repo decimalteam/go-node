@@ -225,6 +225,8 @@ func ErrTxBreaksMinVolumeRule(volume string) *sdkerrors.Error {
 		DefaultCodespace,
 		CodeTxBreaksMinVolumeLimit,
 		fmt.Sprintf("tx breaks MinVolumeLimit rule: %s < %s", volume, MinCoinSupply),
+		errors.NewParam("volume", volume),
+		errors.NewParam("min_coin_supply", MinCoinSupply.String()),
 	)
 }
 
