@@ -15,6 +15,8 @@ import (
 // BeginBlocker check for infraction evidence or downtime of validators
 // on every begin block
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
+	fmt.Println(req)
+
 	k.SetNFTBaseDenom(ctx)
 
 	// Iterate over all the validators which *should* have signed this block
