@@ -320,7 +320,38 @@ func (k Keeper) IterateUnbondingDelegations(ctx sdk.Context, fn func(index int64
 	defer iterator.Close()
 
 	for i := int64(0); iterator.Valid(); iterator.Next() {
-		ubd := types.MustUnmarshalUBD(k.cdc, iterator.Value())
+		var (
+			baseUBD    types.BaseUnbondingDelegation
+			baseUBDErr error
+			nftUBD     types.NFTUnbondingDelegation
+			nftUBDErr  error
+			ubd        types.UnbondingDelegation
+		)
+
+		baseUBD, baseUBDErr = types.UnmarshalBaseUBD(k.cdc, iterator.Value())
+		if baseUBDErr != nil {
+			if nftUBD, nftUBDErr = types.UnmarshalNFTUBD(k.cdc, iterator.Value()); nftUBDErr == nil {
+				panic(nftUBDErr)
+			}
+		}
+
+		switch {
+		case baseUBDErr == nil:
+			ubd.DelegatorAddress = baseUBD.DelegatorAddress
+			ubd.ValidatorAddress = baseUBD.ValidatorAddress
+
+			for _, entry := range baseUBD.Entries {
+				ubd.Entries = append(ubd.Entries, entry)
+			}
+		case nftUBDErr == nil:
+			ubd.DelegatorAddress = nftUBD.DelegatorAddress
+			ubd.ValidatorAddress = nftUBD.ValidatorAddress
+
+			for _, entry := range nftUBD.Entries {
+				ubd.Entries = append(ubd.Entries, entry)
+			}
+		}
+
 		if stop := fn(i, ubd); stop {
 			break
 		}
