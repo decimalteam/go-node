@@ -194,9 +194,9 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 		lastValidatorPowers = append(lastValidatorPowers, types.LastValidatorPower{Address: addr, Power: power})
 		return false
 	})
-	var delegatedCoins sdk.Coins
+	delegatedCoins := make([]sdk.Coin, 0)
 	for denom, amount := range delegatedCoinsMap {
-		delegatedCoins.Add(sdk.NewCoin(denom, amount))
+		delegatedCoins = append(delegatedCoins, sdk.NewCoin(denom, amount))
 	}
 
 	return types.GenesisState{
