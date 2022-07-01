@@ -328,6 +328,21 @@ func (k Keeper) IterateUnbondingDelegations(ctx sdk.Context, fn func(index int64
 	}
 }
 
+// iterate through all of the unbonding delegations
+func (k Keeper) IterateNFTUnbondingDelegations(ctx sdk.Context, fn func(index int64, ubdNFT types.NFTUnbondingDelegation) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{types.UnbondingDelegationNFTKey})
+	defer iterator.Close()
+
+	for i := int64(0); iterator.Valid(); iterator.Next() {
+		ubdNFT := types.MustUnmarshalNFTUBD(k.cdc, iterator.Value())
+		if stop := fn(i, ubdNFT); stop {
+			break
+		}
+		i++
+	}
+}
+
 // HasMaxUnbondingDelegationEntries - check if unbonding delegation has maximum number of entries
 func (k Keeper) HasMaxUnbondingDelegationEntries(ctx sdk.Context,
 	delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress) bool {

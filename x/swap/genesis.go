@@ -25,8 +25,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper supply.Keeper, data Gen
 func ExportGenesis(ctx sdk.Context, k Keeper) types.GenesisState {
 	params := k.GetParams(ctx)
 	swaps := k.GetAllSwaps(ctx)
+	chains := k.GetAllChains(ctx)
 	return types.GenesisState{
 		Swaps:  swaps,
 		Params: params,
+		Chains: chains,
 	}
 }

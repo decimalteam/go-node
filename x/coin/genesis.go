@@ -20,6 +20,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis
 func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
+	coins := k.GetAllCoins(ctx)
 
-	return NewGenesisState(k.Config.TitleBaseCoin, k.Config.SymbolBaseCoin, k.Config.InitialVolumeBaseCoin)
+	return NewGenesisState(k.Config.TitleBaseCoin, k.Config.SymbolBaseCoin, k.Config.InitialVolumeBaseCoin, coins)
 }

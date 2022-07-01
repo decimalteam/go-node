@@ -219,6 +219,33 @@ func (nfts NFTs) find(id string) int {
 }
 
 // ----------------------------------------------------------------------------
+// SubToken
+
+type SubToken struct {
+	CollectionDenom string  `json:"collection_denom"`
+	NftID           string  `json:"nft_id"`
+	TokenID         int64   `json:"token_id"`
+	Reserve         sdk.Int `json:"reserve"`
+}
+
+// ----------------------------------------------------------------------------
+// LastSubTokenId
+
+type LastSubTokenId struct {
+	CollectionDenom  string `json:"collection_denom"`
+	NftID            string `json:"nft_id"`
+	LastTokenTokenID int64  `json:"last_token_token_id"`
+}
+
+// ----------------------------------------------------------------------------
+// LastSubTokenId
+
+type TokenId struct {
+	CollectionDenom string `json:"collection_denom"`
+	NftID           string `json:"nft_id"`
+}
+
+// ----------------------------------------------------------------------------
 // Encoding
 
 // NFTJSON is the exported NFT format for clients
