@@ -195,6 +195,7 @@ func handleMsgSignTransaction(ctx sdk.Context, keeper Keeper, msg MsgSignTransac
 	confirmed := confirmations >= wallet.Threshold
 	if confirmed {
 		// Perform transaction
+		fmt.Println("abc handleMsgSignTransaction")
 		err := keeper.BankKeeper.SendCoins(ctx, wallet.Address, transaction.Receiver, transaction.Coins)
 		if err != nil {
 			msgError := fmt.Sprintf("Unable to perform multi-signature transaction %s: %s", transaction.ID, err.Error())

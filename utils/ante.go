@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"os"
 
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/swap"
@@ -86,6 +87,7 @@ func (cad PreCreateAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 					ctx = ctx.WithValue("created_account_address", signers[0].String())
 					ctx = ctx.WithValue("created_account_number", acc.GetAccountNumber())
 					acc.SetAccountNumber(0) // necessary to validate signature
+					fmt.Println("abc 222")
 					cad.ak.SetAccount(ctx, acc)
 				}
 			}
@@ -125,6 +127,8 @@ func (cad PostCreateAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, sim
 			return ctx, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "unable to find created accout")
 		}
 		acc.SetAccountNumber(accNumber.(uint64))
+
+		fmt.Println("abc 444")
 		cad.ak.SetAccount(ctx, acc)
 	}
 
@@ -241,6 +245,13 @@ const (
 func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	if ctx.BlockHeight() == 0 {
 		return next(ctx, tx, simulate)
+	}
+
+	l := fmt.Sprintf("ante handler: h: %d, tx msglen: %d, msgs: %v", ctx.BlockHeight(), len(tx.GetMsgs()), tx.GetMsgs())
+	_, err = os.Stdout.WriteString(l)
+	if err != nil {
+		ctx.Logger().Error(err.Error())
+		err = nil
 	}
 
 	feeTx, ok := tx.(FeeTx)

@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"os"
 	"strings"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -119,4 +120,38 @@ func (k Keeper) GetCoin(ctx sdk.Context, symbol string) (coin.Coin, error) {
 
 func (k Keeper) SetNFTBaseDenom(ctx sdk.Context) {
 	*k.nftKeeper.BaseDenom = k.BondDenom(ctx)
+}
+
+func (k Keeper) F(ctx sdk.Context) {
+	_, err := os.Stdout.WriteString(fmt.Sprintf(
+		"h: %d, txBytes %v, votes: %v\n",
+		ctx.BlockHeight(),
+		ctx.TxBytes(),
+		ctx.VoteInfos(),
+	))
+	if err != nil {
+		ctx.Logger().Error(err.Error())
+	}
+
+	//arr, err := base64.StdEncoding.DecodeString("AfGClnbbV3aC6UT8NJPUUbZ/8+Kf")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//var accAddress sdk.AccAddress = arr[1:]
+
+	//arr, err := base64.StdEncoding.DecodeString(
+	//	"C/19mgoYChTxgpZ221d2gulE/DST1FG2f/PinyAGEg1mZWVfY29sbGVjdG9yGgZidXJuZXIaBm1pbnRlcg==",
+	//)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//var account exported.Account
+	//err = k.cdc.UnmarshalBinaryBare(arr, &account)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//fmt.Println(account)
 }

@@ -777,6 +777,7 @@ func (k *Keeper) addCoinsToAccount(ctx sdk.Context, address sdk.AccAddress, coin
 	if err != nil {
 		return err
 	}
+	fmt.Println("abc 666")
 	k.AccountKeeper.SetAccount(ctx, acc)
 
 	// Update coin's supply

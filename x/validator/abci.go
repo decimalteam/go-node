@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"os"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin"
@@ -15,6 +16,8 @@ import (
 // BeginBlocker check for infraction evidence or downtime of validators
 // on every begin block
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
+	k.F(ctx)
+
 	k.SetNFTBaseDenom(ctx)
 
 	// Iterate over all the validators which *should* have signed this block
@@ -95,6 +98,13 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	}
 
 	feeCollector := supplyKeeper.GetModuleAccount(ctx, k.FeeCollectorName)
+
+	_, err = os.Stdout.WriteString(feeCollector.String())
+	if err != nil {
+		ctx.Logger().Error(err.Error())
+		err = nil
+	}
+
 	feesCollectedInt := feeCollector.GetCoins()
 	for _, fee := range feesCollectedInt {
 		if fee.Denom == k.BondDenom(ctx) {

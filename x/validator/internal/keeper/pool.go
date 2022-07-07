@@ -3,6 +3,7 @@ package keeper
 import (
 	"bitbucket.org/decimalteam/go-node/utils/updates"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/supply"
@@ -92,6 +93,7 @@ func (k Keeper) burnCoins(ctx sdk.Context, moduleAccount string, coins sdk.Coins
 		panic(sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to burn tokens", moduleAccount))
 	}
 
+	fmt.Println("abc BURN COINS")
 	_, err := k.CoinKeeper.BankKeeper.SubtractCoins(ctx, acc.GetAddress(), coins)
 	if err != nil {
 		return err

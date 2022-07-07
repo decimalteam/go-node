@@ -210,6 +210,7 @@ func handleMsgSendCoin(ctx sdk.Context, k Keeper, msg types.MsgSendCoin) (*sdk.R
 		return nil, types.ErrCoinDoesNotExist(msg.Coin.Denom)
 	}
 
+	fmt.Println("abc handleMsgSendCoin")
 	err = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Receiver, sdk.Coins{msg.Coin})
 	if err != nil {
 		return nil, types.ErrInternal(err.Error())
@@ -233,6 +234,7 @@ func handleMsgMultiSendCoin(ctx sdk.Context, k Keeper, msg types.MsgMultiSendCoi
 			return nil, types.ErrCoinDoesNotExist(msg.Sends[i].Coin.Denom)
 		}
 
+		fmt.Println("abc handleMsgMultiSendCoin")
 		err = k.BankKeeper.SendCoins(ctx, msg.Sender, msg.Sends[i].Receiver, sdk.Coins{msg.Sends[i].Coin})
 		if err != nil {
 			return nil, types.ErrInternal(err.Error())
@@ -273,6 +275,7 @@ func handleMsgBurnCoin(ctx sdk.Context, k Keeper, msg types.MsgBurnCoin) (*sdk.R
 	if err != nil {
 		return nil, types.ErrInternal(err.Error())
 	}
+	fmt.Println("abc 555")
 	k.AccountKeeper.SetAccount(ctx, acc)
 
 	// Update coin's volume
@@ -642,6 +645,8 @@ func handleMsgRedeemCheck(ctx sdk.Context, k Keeper, msg types.MsgRedeemCheck) (
 	if err != nil {
 		return nil, types.ErrInsufficientFundsToPayCommission(commission.String())
 	}
+
+	fmt.Println("abc handleMsgRedeemCheck")
 	err = k.BankKeeper.SendCoins(ctx, issuer, msg.Sender, sdk.Coins{sdk.NewCoin(coin.Symbol, amount)})
 	if err != nil {
 		return nil, types.ErrInternal(err.Error())
