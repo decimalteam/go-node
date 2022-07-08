@@ -473,7 +473,6 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 // NOTE: We could use the BankKeeper (in addition to the AccountKeeper, because
 // the BankKeeper doesn't give us accounts), but it seems easier to do this.
 func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Account, coinKeeper coin.Keeper, fee sdk.Coin, feeInBaseCoin sdk.Int) error {
-	os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d DeductFees\n", ctx.BlockHeight()))
 
 	blockTime := ctx.BlockHeader().Time
 	coins := acc.GetCoins()
@@ -526,6 +525,7 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 	supplyKeeper.SetSupply(ctx, s)
 
 	if ctx.BlockHeight() >= updates.Update2Block {
+		os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d DeductFees %v %s\n", ctx.BlockHeight(), feeCoin.IsBase(), feeCoin.Symbol))
 		// update coin: decrease reserve and volume
 		if !coinKeeper.IsCoinBase(fee.Denom) {
 			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve.Sub(feeInBaseCoin), feeCoin.Volume.Sub(fee.Amount))
