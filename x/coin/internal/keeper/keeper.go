@@ -32,8 +32,6 @@ type Keeper struct {
 
 	coinCache      map[string]bool
 	coinCacheMutex *sync.Mutex
-
-	testField map[string]bool
 }
 
 // NewKeeper creates a coin keeper
@@ -47,7 +45,6 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspac
 		SupplyKeeper:   supplyKeeper,
 		Config:         config,
 		coinCache:      make(map[string]bool),
-		testField:      make(map[string]bool),
 		coinCacheMutex: &sync.Mutex{},
 	}
 	return keeper
@@ -206,18 +203,11 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 }
 
 func (k *Keeper) SetCachedCoin(coin string, ctx sdk.Context) {
-	k.testField["kkk"] = true
-	os.Stdout.WriteString(fmt.Sprintf("CACHEMAP SET %d %v\n", ctx.BlockHeight(), k.testField["kkk"]))
-
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
 
 	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d SetCachedCoin %s\n", ctx.BlockHeight(), coin))
 	k.coinCache[coin] = true
-}
-
-func (k Keeper) GetKKK() bool {
-	return k.testField["kkk"]
 }
 
 func (k *Keeper) ClearCoinCache(ctx sdk.Context) {
