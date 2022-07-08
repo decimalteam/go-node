@@ -230,7 +230,7 @@ func (k *Keeper) ClearCoinCache(ctx sdk.Context) {
 	}
 }
 
-func (k Keeper) GetCoinsCache(ctx sdk.Context) map[string]bool {
+func (k Keeper) GetCoinsCache() map[string]bool {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
 	return k.coinCache
