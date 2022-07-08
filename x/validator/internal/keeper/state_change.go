@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"os"
 	"runtime/debug"
 	"sort"
 	"strconv"
@@ -344,6 +345,7 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 			delegations[i] = delegation.SetTokensBase(delegation.GetCoin().Amount)
 		}
 		if k.CoinKeeper.GetCoinCache(delegation.GetCoin().Denom) {
+			_, _ = os.Stdout.WriteString("COINCACHE checkDelegations FALSE")
 			delegations[i] = delegation.SetTokensBase(k.TokenBaseOfDelegation(ctx, delegation))
 		}
 	}
