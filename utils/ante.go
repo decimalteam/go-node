@@ -525,7 +525,7 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 	supplyKeeper.SetSupply(ctx, s)
 
 	if ctx.BlockHeight() >= updates.Update2Block {
-		os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d DeductFees %v %s\n", ctx.BlockHeight(), feeCoin.IsBase(), feeCoin.Symbol))
+		os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d DeductFees %v %s\n", ctx.BlockHeight(), coinKeeper.IsCoinBase(fee.Denom), feeCoin.Symbol))
 		// update coin: decrease reserve and volume
 		if !coinKeeper.IsCoinBase(fee.Denom) {
 			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve.Sub(feeInBaseCoin), feeCoin.Volume.Sub(fee.Amount))

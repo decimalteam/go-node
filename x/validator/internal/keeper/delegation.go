@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -560,6 +561,8 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, bondCoin sdk.C
 			tokenBase := k.TokenBaseOfDelegation(ctx, delegation)
 			validator.Tokens = validator.Tokens.Add(tokenBase)
 			delegation.TokensBase = tokenBase
+
+			os.Stdout.WriteString(fmt.Sprintf("COINCACHE Delegate %d\n", ctx.BlockHeight()))
 			k.CoinKeeper.SetCachedCoin(bondCoin.Denom, ctx)
 		}
 
@@ -697,6 +700,7 @@ func (k Keeper) unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 	}
 
 	if coin.Denom != k.BondDenom(ctx) {
+		os.Stdout.WriteString(fmt.Sprintf("COINCACHE unbond %d\n", ctx.BlockHeight()))
 		k.CoinKeeper.SetCachedCoin(coin.Denom, ctx)
 	}
 	k.SubtractDelegatedCoin(ctx, coin)
