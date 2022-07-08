@@ -33,8 +33,7 @@ type Keeper struct {
 	coinCache      map[string]bool
 	coinCacheMutex *sync.Mutex
 
-	TestField1 int64
-	TestField2 *int64
+	testField map[string]bool
 }
 
 // NewKeeper creates a coin keeper
@@ -48,6 +47,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramspace types.ParamSubspac
 		SupplyKeeper:   supplyKeeper,
 		Config:         config,
 		coinCache:      make(map[string]bool),
+		testField:      make(map[string]bool),
 		coinCacheMutex: &sync.Mutex{},
 	}
 	return keeper
@@ -207,9 +207,8 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 
 func (k *Keeper) SetCachedCoin(coin string, ctx sdk.Context) {
 	if ctx.BlockHeight() < 10177900 {
-		k.TestField1 = ctx.BlockHeight()
-		*k.TestField2 = ctx.BlockHeight()
-		_, _ = os.Stdout.WriteString(fmt.Sprintf("AAACOINCACHE %d %d %d\n", ctx.BlockHeight(), k.TestField1, k.TestField2))
+		k.testField["kkk"] = true
+		_, _ = os.Stdout.WriteString(fmt.Sprintf("CACHEMAP %d %v\n", ctx.BlockHeight(), k.testField["kkk"]))
 	}
 
 	defer k.coinCacheMutex.Unlock()
@@ -217,6 +216,10 @@ func (k *Keeper) SetCachedCoin(coin string, ctx sdk.Context) {
 
 	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d SetCachedCoin %s\n", ctx.BlockHeight(), coin))
 	k.coinCache[coin] = true
+}
+
+func (k Keeper) GetKKK() bool {
+	return k.testField["kkk"]
 }
 
 func (k *Keeper) ClearCoinCache(ctx sdk.Context) {
