@@ -401,10 +401,10 @@ func handleMsgBuyCoin(ctx sdk.Context, k Keeper, msg types.MsgBuyCoin) (*sdk.Res
 
 	// Update coins
 	if !coinToSell.IsBase() {
-		k.UpdateCoin(ctx, coinToSell, coinToSell.Reserve.Sub(amountInBaseCoin), coinToSell.Volume.Sub(amountToSell), "handleMsgBuyCoin 1")
+		k.UpdateCoin(ctx, coinToSell, coinToSell.Reserve.Sub(amountInBaseCoin), coinToSell.Volume.Sub(amountToSell), "handleMsgBuyCoin_1")
 	}
 	if !coinToBuy.IsBase() {
-		k.UpdateCoin(ctx, coinToBuy, coinToBuy.Reserve.Add(amountInBaseCoin), coinToBuy.Volume.Add(amountToBuy), "handleMsgBuyCoin 2")
+		k.UpdateCoin(ctx, coinToBuy, coinToBuy.Reserve.Add(amountInBaseCoin), coinToBuy.Volume.Add(amountToBuy), "handleMsgBuyCoin_2")
 	}
 
 	// Emit transaction events
@@ -505,10 +505,10 @@ func handleMsgSellCoin(ctx sdk.Context, k Keeper, msg types.MsgSellCoin, sellAll
 
 	// Update coins
 	if !coinToSell.IsBase() {
-		k.UpdateCoin(ctx, coinToSell, coinToSell.Reserve.Sub(amountInBaseCoin), coinToSell.Volume.Sub(amountToSell), "handleMsgSellCoin coinToSell 1")
+		k.UpdateCoin(ctx, coinToSell, coinToSell.Reserve.Sub(amountInBaseCoin), coinToSell.Volume.Sub(amountToSell), "handleMsgSellCoin coinToSell_1")
 	}
 	if !coinToBuy.IsBase() {
-		k.UpdateCoin(ctx, coinToBuy, coinToBuy.Reserve.Add(amountInBaseCoin), coinToBuy.Volume.Add(amountToBuy), "handleMsgSellCoin coinToBuy 2")
+		k.UpdateCoin(ctx, coinToBuy, coinToBuy.Reserve.Add(amountInBaseCoin), coinToBuy.Volume.Add(amountToBuy), "handleMsgSellCoin coinToBuy_2")
 	}
 
 	// Emit transaction events

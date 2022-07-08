@@ -525,12 +525,11 @@ func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Accoun
 	supplyKeeper.SetSupply(ctx, s)
 
 	if ctx.BlockHeight() >= updates.Update2Block {
-		os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d DeductFees %v %s\n", ctx.BlockHeight(), coinKeeper.IsCoinBase(fee.Denom), feeCoin.Symbol))
 		// update coin: decrease reserve and volume
 		if !coinKeeper.IsCoinBase(fee.Denom) {
-			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve.Sub(feeInBaseCoin), feeCoin.Volume.Sub(fee.Amount), "fee decorator 1")
+			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve.Sub(feeInBaseCoin), feeCoin.Volume.Sub(fee.Amount), "fee_decorator_1")
 		} else {
-			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve, feeCoin.Volume.Sub(fee.Amount), "fee decorator 2")
+			coinKeeper.UpdateCoin(ctx, feeCoin, feeCoin.Reserve, feeCoin.Volume.Sub(fee.Amount), "fee_decorator_2")
 		}
 	}
 

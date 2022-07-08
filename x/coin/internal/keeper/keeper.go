@@ -142,7 +142,7 @@ func (k Keeper) IsCoinBase(symbol string) bool {
 }
 
 func (k Keeper) UpdateCoin(ctx sdk.Context, coin types.Coin, reserve sdk.Int, volume sdk.Int, caller string) {
-	os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d UpdateCoin %s: %s\n", ctx.BlockHeight(), caller, coin.String()))
+	os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d UpdateCoin %s: %v %v %s\n", ctx.BlockHeight(), caller, ctx.IsCheckTx(), ctx.IsReCheckTx(), coin.String()))
 	if !coin.IsBase() {
 		os.Stdout.WriteString(fmt.Sprintf("COINCACHE call SetCachedCoin %d\n", ctx.BlockHeight()))
 		k.SetCachedCoin(coin.Symbol, ctx)
