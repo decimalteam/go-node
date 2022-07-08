@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"os"
 	"runtime/debug"
 	"sort"
 	"strconv"
@@ -338,8 +337,6 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 	if len(delegations) <= maxDelegations {
 		return delegations
 	}
-
-	os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d checkDelegations FALSE %v\n", ctx.BlockHeight(), k.CoinKeeper.GetCoinsCache()))
 
 	// This is necessary to update token base values
 	for i, delegation := range delegations {

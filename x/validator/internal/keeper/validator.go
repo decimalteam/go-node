@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -170,9 +169,6 @@ func (k Keeper) TotalStake(ctx sdk.Context, validator types.Validator) sdk.Int {
 
 func (k Keeper) CalcTotalStake(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) sdk.Int {
 	total := sdk.ZeroInt()
-
-	coins := k.CoinKeeper.GetCoinsCache()
-	os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d CalcTotalStake FALSE %v\n", ctx.BlockHeight(), coins))
 
 	for i, del := range delegations {
 		if strings.ToLower(del.GetCoin().Denom) == k.BondDenom(ctx) {
