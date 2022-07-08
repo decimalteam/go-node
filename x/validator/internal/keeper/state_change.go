@@ -35,6 +35,8 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	var updates []abci.ValidatorUpdate
 	var err error
 
+	os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d %d", ctx.BlockHeight(), k.CoinKeeper.TestField))
+
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Printf("stacktrace from panic: %s \n%s\n", r, string(debug.Stack()))
@@ -344,7 +346,7 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 		if strings.ToLower(delegation.GetCoin().Denom) == k.BondDenom(ctx) {
 			delegations[i] = delegation.SetTokensBase(delegation.GetCoin().Amount)
 		}
-		if k.CoinKeeper.GetCoinCache(delegation.GetCoin().Denom, ctx) {
+		if k.CoinKeeper.GetCoinCache(delegation.GetCoin().Denom) {
 			_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d checkDelegations FALSE\n", ctx.BlockHeight()))
 			delegations[i] = delegation.SetTokensBase(k.TokenBaseOfDelegation(ctx, delegation))
 		}
