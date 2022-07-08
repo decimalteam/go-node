@@ -797,7 +797,7 @@ func (k *Keeper) addCoinsToAccount(ctx sdk.Context, address sdk.AccAddress, coin
 		volume = cc.Volume.Add(coin.Amount)
 		reserve = cc.Reserve.Add(ret)
 	}
-	k.CoinKeeper.UpdateCoin(ctx, cc, reserve, volume)
+	k.CoinKeeper.UpdateCoin(ctx, cc, reserve, volume, "addCoinsToAccount")
 
 	return nil
 }
