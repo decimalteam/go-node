@@ -206,10 +206,8 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 }
 
 func (k *Keeper) SetCachedCoin(coin string, ctx sdk.Context) {
-	if ctx.BlockHeight() < 10177900 {
-		k.testField["kkk"] = true
-		_, _ = os.Stdout.WriteString(fmt.Sprintf("CACHEMAP %d %v\n", ctx.BlockHeight(), k.testField["kkk"]))
-	}
+	k.testField["kkk"] = true
+	os.Stdout.WriteString(fmt.Sprintf("CACHEMAP %d %v\n", ctx.BlockHeight(), k.testField["kkk"]))
 
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
@@ -225,7 +223,8 @@ func (k Keeper) GetKKK() bool {
 func (k *Keeper) ClearCoinCache(ctx sdk.Context) {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
-	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d ClearCoinCache\n", ctx.BlockHeight()))
+	os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d ClearCoinCache\n", ctx.BlockHeight()))
+
 	for key := range k.coinCache {
 		delete(k.coinCache, key)
 	}
@@ -234,7 +233,6 @@ func (k *Keeper) ClearCoinCache(ctx sdk.Context) {
 func (k Keeper) GetCoinsCache(ctx sdk.Context) map[string]bool {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
-	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d GetCoinsCacheAAA\n", ctx.BlockHeight()))
 	return k.coinCache
 }
 

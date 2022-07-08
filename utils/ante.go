@@ -247,12 +247,6 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 		return next(ctx, tx, simulate)
 	}
 
-	_, err = os.Stdout.WriteString("GOOSE\n")
-	if err != nil {
-		ctx.Logger().Error(err.Error())
-		err = nil
-	}
-
 	l := fmt.Sprintf("COINCACHE %d ante handler: isCheckTx: %v, isReCheckTx: %v, tx msglen: %d, msgs: %v\n", ctx.BlockHeight(), ctx.IsCheckTx(), ctx.IsReCheckTx(), len(tx.GetMsgs()), tx.GetMsgs())
 	_, err = os.Stdout.WriteString(l)
 	if err != nil {
