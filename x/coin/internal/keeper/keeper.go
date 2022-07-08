@@ -143,7 +143,7 @@ func (k Keeper) IsCoinBase(symbol string) bool {
 
 func (k Keeper) UpdateCoin(ctx sdk.Context, coin types.Coin, reserve sdk.Int, volume sdk.Int) {
 	if !coin.IsBase() {
-		k.SetCachedCoin(coin.Symbol)
+		k.SetCachedCoin(coin.Symbol, ctx)
 	}
 	coin.Reserve = reserve
 	coin.Volume = volume
@@ -202,35 +202,35 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 	return commission, feeCoin, nil
 }
 
-func (k *Keeper) SetCachedCoin(coin string) {
+func (k *Keeper) SetCachedCoin(coin string, ctx sdk.Context) {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
 
-	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE SetCachedCoin %s", coin))
+	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE SetCachedCoin %d %s", ctx.BlockHeight(), coin))
 	k.coinCache[coin] = true
 }
 
-func (k *Keeper) ClearCoinCache() {
+func (k *Keeper) ClearCoinCache(ctx sdk.Context) {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
-	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE ClearCoinCache"))
+	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE ClearCoinCache %d", ctx.BlockHeight()))
 	for key := range k.coinCache {
 		delete(k.coinCache, key)
 	}
 }
 
-func (k Keeper) GetCoinsCache() map[string]bool {
+func (k Keeper) GetCoinsCache(ctx sdk.Context) map[string]bool {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
-	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE GetCoinsCacheAAA"))
+	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE GetCoinsCacheAAA %d", ctx.BlockHeight()))
 	return k.coinCache
 }
 
-func (k Keeper) GetCoinCache(symbol string) bool {
+func (k Keeper) GetCoinCache(symbol string, ctx sdk.Context) bool {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
 	_, ok := k.coinCache[symbol]
-	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE GetCoinCache %s %v", symbol, ok))
+	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE GetCoinCache %d %s %v", ctx.BlockHeight(), symbol, ok))
 	return ok
 }
 

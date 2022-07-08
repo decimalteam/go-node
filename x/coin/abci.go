@@ -11,7 +11,7 @@ import (
 // BeginBlocker check for infraction evidence or downtime of validators
 // on every begin block
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
-	k.ClearCoinCache()
+	k.ClearCoinCache(ctx)
 
 	if ctx.BlockHeight() == updates.Update6Block {
 		coins := map[string]string{
@@ -45,7 +45,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 			if strings.ToLower(coin.Symbol) == config.SymbolBaseCoin {
 				continue
 			}
-			k.SetCachedCoin(coin.Symbol)
+			k.SetCachedCoin(coin.Symbol, ctx)
 		}
 	}
 }
