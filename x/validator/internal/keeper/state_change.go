@@ -339,13 +339,13 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 		return delegations
 	}
 
+	os.Stdout.WriteString(fmt.Sprintf("CACHEMAP test field 1 %d %v\n", ctx.BlockHeight(), k.CoinKeeper.GetKKK()))
 	// This is necessary to update token base values
 	for i, delegation := range delegations {
 		if strings.ToLower(delegation.GetCoin().Denom) == k.BondDenom(ctx) {
 			delegations[i] = delegation.SetTokensBase(delegation.GetCoin().Amount)
 		}
 
-		os.Stdout.WriteString(fmt.Sprintf("CACHEMAP 1 test field %d %v\n", ctx.BlockHeight(), k.CoinKeeper.GetKKK()))
 		if k.CoinKeeper.GetCoinCache(delegation.GetCoin().Denom) {
 			_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d checkDelegations FALSE\n", ctx.BlockHeight()))
 			delegations[i] = delegation.SetTokensBase(k.TokenBaseOfDelegation(ctx, delegation))

@@ -207,7 +207,7 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 
 func (k *Keeper) SetCachedCoin(coin string, ctx sdk.Context) {
 	k.testField["kkk"] = true
-	os.Stdout.WriteString(fmt.Sprintf("CACHEMAP %d %v\n", ctx.BlockHeight(), k.testField["kkk"]))
+	os.Stdout.WriteString(fmt.Sprintf("CACHEMAP SET %d %v\n", ctx.BlockHeight(), k.testField["kkk"]))
 
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
