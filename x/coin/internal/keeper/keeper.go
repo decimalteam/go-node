@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 
@@ -201,16 +202,18 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 	return commission, feeCoin, nil
 }
 
-// ???
 func (k *Keeper) SetCachedCoin(coin string) {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
+
+	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE SetCachedCoin %s", coin))
 	k.coinCache[coin] = true
 }
 
 func (k *Keeper) ClearCoinCache() {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
+	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE ClearCoinCache"))
 	for key := range k.coinCache {
 		delete(k.coinCache, key)
 	}
@@ -219,6 +222,7 @@ func (k *Keeper) ClearCoinCache() {
 func (k Keeper) GetCoinsCache() map[string]bool {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
+	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE GetCoinsCacheAAA"))
 	return k.coinCache
 }
 
@@ -226,6 +230,7 @@ func (k Keeper) GetCoinCache(symbol string) bool {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
 	_, ok := k.coinCache[symbol]
+	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE GetCoinCache %s %v", symbol, ok))
 	return ok
 }
 
