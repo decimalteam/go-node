@@ -175,7 +175,7 @@ func (k Keeper) CalcTotalStake(ctx sdk.Context, validator types.Validator, deleg
 			del = del.SetTokensBase(del.GetCoin().Amount)
 		}
 		if k.CoinKeeper.GetCoinCache(del.GetCoin().Denom, ctx) {
-			_, _ = os.Stdout.WriteString("COINCACHE CalcTotalStake FALSE\n")
+			_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d CalcTotalStake FALSE\n", ctx.BlockHeight()))
 			del = del.SetTokensBase(k.TokenBaseOfDelegation(ctx, del))
 			ctx.EventManager().EmitEvent(sdk.NewEvent(
 				types.EventTypeCalcStake,
