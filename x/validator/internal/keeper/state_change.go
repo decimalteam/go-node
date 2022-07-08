@@ -339,6 +339,8 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 		return delegations
 	}
 
+	os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d checkDelegations FALSE %v\n", ctx.BlockHeight(), k.CoinKeeper.GetCoinsCache()))
+
 	// This is necessary to update token base values
 	for i, delegation := range delegations {
 		if strings.ToLower(delegation.GetCoin().Denom) == k.BondDenom(ctx) {
@@ -346,7 +348,6 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 		}
 
 		if k.CoinKeeper.GetCoinCache(delegation.GetCoin().Denom) {
-			_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE %d checkDelegations FALSE\n", ctx.BlockHeight()))
 			delegations[i] = delegation.SetTokensBase(k.TokenBaseOfDelegation(ctx, delegation))
 		}
 	}
