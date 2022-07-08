@@ -345,7 +345,7 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 			delegations[i] = delegation.SetTokensBase(delegation.GetCoin().Amount)
 		}
 		if k.CoinKeeper.GetCoinCache(delegation.GetCoin().Denom, ctx) {
-			_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE h: %d checkDelegations FALSE", ctx.BlockHeight()))
+			_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE h: %d checkDelegations FALSE\n", ctx.BlockHeight()))
 			delegations[i] = delegation.SetTokensBase(k.TokenBaseOfDelegation(ctx, delegation))
 		}
 	}
