@@ -33,7 +33,8 @@ type Keeper struct {
 	coinCache      map[string]bool
 	coinCacheMutex *sync.Mutex
 
-	TestField int64
+	TestField1 int64
+	TestField2 *int64
 }
 
 // NewKeeper creates a coin keeper
@@ -206,8 +207,9 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 
 func (k *Keeper) SetCachedCoin(coin string, ctx sdk.Context) {
 	if ctx.BlockHeight() < 10177900 {
-		k.TestField = ctx.BlockHeight()
-		_, _ = os.Stdout.WriteString(fmt.Sprintf("AAACOINCACHE %d SetCachedCoin %s\n", ctx.BlockHeight(), coin))
+		k.TestField1 = ctx.BlockHeight()
+		*k.TestField2 = ctx.BlockHeight()
+		_, _ = os.Stdout.WriteString(fmt.Sprintf("AAACOINCACHE %d %d %d\n", ctx.BlockHeight(), k.TestField1, k.TestField2))
 	}
 
 	defer k.coinCacheMutex.Unlock()

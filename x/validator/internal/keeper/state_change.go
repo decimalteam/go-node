@@ -35,7 +35,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	var updates []abci.ValidatorUpdate
 	var err error
 
-	os.Stdout.WriteString(fmt.Sprintf("COINCACHE test field %d %d\n", ctx.BlockHeight(), k.CoinKeeper.TestField))
+	os.Stdout.WriteString(fmt.Sprintf("COINCACHE test field %d %d %d\n", ctx.BlockHeight(), k.CoinKeeper.TestField1, k.CoinKeeper.TestField1))
 
 	defer func() {
 		if r := recover(); r != nil {
