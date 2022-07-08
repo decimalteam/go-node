@@ -205,8 +205,9 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 }
 
 func (k *Keeper) SetCachedCoin(coin string, ctx sdk.Context) {
-	if ctx.BlockHeight() < 10176700 {
+	if ctx.BlockHeight() < 10177900 {
 		k.TestField = ctx.BlockHeight()
+		_, _ = os.Stdout.WriteString(fmt.Sprintf("AAACOINCACHE %d SetCachedCoin %s\n", ctx.BlockHeight(), coin))
 	}
 
 	defer k.coinCacheMutex.Unlock()
