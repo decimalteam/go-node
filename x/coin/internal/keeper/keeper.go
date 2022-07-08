@@ -230,7 +230,7 @@ func (k Keeper) GetCoinCache(symbol string, ctx sdk.Context) bool {
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
 	_, ok := k.coinCache[symbol]
-	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE GetCoinCache %d %s %v", ctx.BlockHeight(), symbol, ok))
+	_, _ = os.Stdout.WriteString(fmt.Sprintf("COINCACHE GetCoinCache %d %v %s", ctx.BlockHeight(), ok, symbol))
 	return ok
 }
 
