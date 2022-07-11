@@ -2,6 +2,7 @@ package ante
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"bitbucket.org/decimalteam/go-node/utils"
@@ -241,6 +242,12 @@ const (
 func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	if ctx.BlockHeight() == 0 {
 		return next(ctx, tx, simulate)
+	}
+
+	if ctx.IsCheckTx() {
+		s := fmt.Sprintf("CHECKTX %d %v %d %v", ctx.BlockHeight(), ctx.IsCheckTx(), len(tx.GetMsgs()), tx.GetMsgs())
+
+		os.Stdout.WriteString(s)
 	}
 
 	feeTx, ok := tx.(FeeTx)
