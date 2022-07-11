@@ -245,7 +245,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	}
 
 	if ctx.IsCheckTx() {
-		s := fmt.Sprintf("CHECKTX %d %v %d %v", ctx.BlockHeight(), ctx.IsCheckTx(), len(tx.GetMsgs()), tx.GetMsgs())
+		s := fmt.Sprintf("CHECKTX %d %v %d %v\n", ctx.BlockHeight(), ctx.IsCheckTx(), len(tx.GetMsgs()), tx.GetMsgs())
 
 		os.Stdout.WriteString(s)
 	}
