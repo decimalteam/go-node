@@ -11,7 +11,7 @@ gw-backend-02                       ansible_host=185.202.107.205 ansible_port=22
 
 [explorer-host-dev]
 explorer-db-slave-01                ansible_host=185.202.107.205 ansible_port=2211
-explorer-db-slave-01                ansible_host=185.202.107.205 ansible_port=2212
+explorer-db-slave-02                ansible_host=185.202.107.205 ansible_port=2212
 explorer-db-master                  ansible_host=185.202.107.205 ansible_port=2210
 explorer-indexer                    ansible_host=185.202.107.205 ansible_port=2220
 
