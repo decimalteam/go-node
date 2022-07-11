@@ -245,7 +245,7 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	}
 
 	if ctx.IsCheckTx() {
-		s := fmt.Sprintf("CHECKTX %d %v %d %v\n", ctx.BlockHeight(), ctx.IsCheckTx(), len(tx.GetMsgs()), tx.GetMsgs())
+		s := fmt.Sprintf("CHECKTX %d %v %d %v ", ctx.BlockHeight(), ctx.IsCheckTx(), len(tx.GetMsgs()), tx.GetMsgs())
 
 		os.Stdout.WriteString(s)
 	}
@@ -409,6 +409,12 @@ func (fd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 // NOTE: We could use the BankKeeper (in addition to the AccountKeeper, because
 // the BankKeeper doesn't give us accounts), but it seems easier to do this.
 func DeductFees(supplyKeeper supply.Keeper, ctx sdk.Context, acc exported.Account, coinKeeper coin.Keeper, fee sdk.Coin, feeInBaseCoin sdk.Int) error {
+	if ctx.IsCheckTx() {
+		s := fmt.Sprintf(" FEE: %s\n", fee.Denom)
+
+		os.Stdout.WriteString(s)
+	}
+
 	blockTime := ctx.BlockHeader().Time
 	coins := acc.GetCoins()
 
