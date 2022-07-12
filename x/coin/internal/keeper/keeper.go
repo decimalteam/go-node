@@ -140,8 +140,8 @@ func (k Keeper) IsCoinBase(symbol string) bool {
 }
 
 func (k Keeper) UpdateCoin(ctx sdk.Context, coin types.Coin, reserve sdk.Int, volume sdk.Int) {
-	if !coin.IsBase() && !ctx.IsCheckTx() && !ctx.IsReCheckTx() {
-		k.SetCachedCoin(coin.Symbol)
+	if !coin.IsBase() {
+		k.SetCachedCoin(ctx, coin.Symbol)
 	}
 	coin.Reserve = reserve
 	coin.Volume = volume
@@ -200,7 +200,11 @@ func (k Keeper) GetCommission(ctx sdk.Context, commissionInBaseCoin sdk.Int) (sd
 	return commission, feeCoin, nil
 }
 
-func (k *Keeper) SetCachedCoin(coin string) {
+func (k *Keeper) SetCachedCoin(ctx sdk.Context, coin string) {
+	if ctx.IsCheckTx() || ctx.IsReCheckTx() {
+		// No need to set the cache in cases of check and recheck txs
+		return
+	}
 	defer k.coinCacheMutex.Unlock()
 	k.coinCacheMutex.Lock()
 	k.coinCache[coin] = true
@@ -212,12 +216,6 @@ func (k *Keeper) ClearCoinCache() {
 	for key := range k.coinCache {
 		delete(k.coinCache, key)
 	}
-}
-
-func (k Keeper) GetCoinsCache() map[string]bool {
-	defer k.coinCacheMutex.Unlock()
-	k.coinCacheMutex.Lock()
-	return k.coinCache
 }
 
 func (k Keeper) GetCoinCache(symbol string) bool {
