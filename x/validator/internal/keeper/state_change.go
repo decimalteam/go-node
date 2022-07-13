@@ -305,7 +305,7 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 	}
 
 	for i, delegation := range delegations {
-		if _, ok := k.CoinKeeper.GetCoinsCache()[delegation.GetCoin().Denom]; ok {
+		if k.CoinKeeper.GetCoinCache(delegation.GetCoin().Denom) {
 			delegations[i] = delegation.SetTokensBase(k.CalcTokensBase(ctx, delegation))
 		}
 	}
