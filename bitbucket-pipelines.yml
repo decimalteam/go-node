@@ -100,7 +100,7 @@ definitions:
               - build/**
 
         - step:
-            name: Build on Oracle Linux 8 (latest)
+            name: Build on Oracle Linux 8.5 (latest)
             image: oraclelinux:8
             caches:
               - go-src
@@ -130,7 +130,7 @@ definitions:
               - build/**
 
         - step:
-            name: Build on Oracle Linux 8 (latest)
+            name: Build on Oracle Linux 8.6 (latest)
             image: oraclelinux:8.6
             caches:
               - go-src
