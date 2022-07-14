@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+### [v1.4.0](https://bitbucket.org/decimalteam/go-node/compare/v1.4.0..v1.3.0) - 2022-07-14
+
+-  [`#87`](https://bitbucket.org/decimalteam/go-node/pull-requests/87) hotfix/26239 fixed non-deterministic behavior caused consensus failure problem.
+
 #### [v1.3.0](https://bitbucket.org/decimalteam/go-node/compare/v1.3.0..v1.2.15) - 2022-06-29
 
 -  [`#84`](https://bitbucket.org/decimalteam/go-node/pull-requests/84) feature/32285-burn-coin
