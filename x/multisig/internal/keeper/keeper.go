@@ -67,7 +67,7 @@ func (k Keeper) GetAllWallets(ctx sdk.Context) []types.Wallet {
 
 	for ; iterator.Valid(); iterator.Next() {
 		var wallet types.Wallet
-		err := k.cdc.UnmarshalBinaryLengthPrefixed(iterator.Value(), &wallet)
+		err := k.cdc.UnmarshalBinaryBare(iterator.Value(), &wallet)
 		if err != nil {
 			panic(err)
 		}
@@ -111,7 +111,7 @@ func (k Keeper) GetAllTransactions(ctx sdk.Context) []types.Transaction {
 
 	for ; iterator.Valid(); iterator.Next() {
 		var tx types.Transaction
-		err := k.cdc.UnmarshalBinaryLengthPrefixed(iterator.Value(), &tx)
+		err := k.cdc.UnmarshalBinaryBare(iterator.Value(), &tx)
 		if err != nil {
 			panic(err)
 		}

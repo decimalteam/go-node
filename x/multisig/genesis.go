@@ -15,7 +15,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 // to a genesis file, which can be imported again
 // with InitGenesis
 func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
-
-	// TODO: Define logic for exporting state
-	return NewGenesisState()
+	wallets := k.GetAllWallets(ctx)
+	txs := k.GetAllTransactions(ctx)
+	return NewGenesisState(wallets, txs)
 }
