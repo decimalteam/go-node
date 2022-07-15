@@ -3,7 +3,6 @@ package keeper
 import (
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"fmt"
-
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -61,6 +60,23 @@ func (k Keeper) GetWallet(ctx sdk.Context, address string) types.Wallet {
 	return wallet
 }
 
+func (k Keeper) GetAllWallets(ctx sdk.Context) []types.Wallet {
+	wallets := make([]types.Wallet, 0)
+	iterator := k.GetIterator(ctx, types.WalletPrefix)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var wallet types.Wallet
+		err := k.cdc.UnmarshalBinaryLengthPrefixed(iterator.Value(), &wallet)
+		if err != nil {
+			panic(err)
+		}
+		wallets = append(wallets, wallet)
+	}
+
+	return wallets
+}
+
 // SetWallet sets the entire wallet metadata struct for a multisig wallet.
 func (k Keeper) SetWallet(ctx sdk.Context, wallet types.Wallet) {
 	key := fmt.Sprintf("wallet/%s", wallet.Address.String())
@@ -86,4 +102,21 @@ func (k Keeper) SetTransaction(ctx sdk.Context, transaction types.Transaction) {
 	key := fmt.Sprintf("tx/%s", transaction.ID)
 	store := ctx.KVStore(k.storeKey)
 	store.Set([]byte(key), k.cdc.MustMarshalBinaryBare(transaction))
+}
+
+func (k Keeper) GetAllTransactions(ctx sdk.Context) []types.Transaction {
+	txs := make([]types.Transaction, 0)
+	iterator := k.GetIterator(ctx, types.TxPrefix)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var tx types.Transaction
+		err := k.cdc.UnmarshalBinaryLengthPrefixed(iterator.Value(), &tx)
+		if err != nil {
+			panic(err)
+		}
+		txs = append(txs, tx)
+	}
+
+	return txs
 }

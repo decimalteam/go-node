@@ -11,4 +11,8 @@ const (
 	RouterKey = ModuleName
 
 	QuerierRoute = ModuleName
+
+	WalletPrefix = "wallet/"
+
+	TxPrefix = "tx/"
 )
