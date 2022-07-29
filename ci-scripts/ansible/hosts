@@ -1,0 +1,33 @@
+[master-host-devnet]
+dev-node-validator-01.devnet            ansible_host=185.202.107.205 ansible_port=2251
+dev-node-validator-02.devnet            ansible_host=185.202.107.205 ansible_port=2252
+dev-node-validator-03.devnet            ansible_host=185.202.107.205 ansible_port=2253
+
+[slave-host-devnet]
+explorer-worker-01.devnet               ansible_host=185.202.107.205 ansible_port=2225
+explorer-worker-02.devnet               ansible_host=185.202.107.205 ansible_port=2226
+gw-backend-01.devnet                    ansible_host=185.202.107.205 ansible_port=2231
+gw-backend-02.devnet                    ansible_host=185.202.107.205 ansible_port=2232
+
+[explorer-host-devnet]
+explorer-db-slave-01.devnet             ansible_host=185.202.107.205 ansible_port=2211
+explorer-db-slave-02.devnet             ansible_host=185.202.107.205 ansible_port=2212
+explorer-db-master.devnet               ansible_host=185.202.107.205 ansible_port=2210
+explorer-indexer.devnet                 ansible_host=185.202.107.205 ansible_port=2220
+
+[master-host-testnet]
+node-01.testnet                         ansible_host=185.242.122.126 ansible_port=2251
+node-02.testnet                         ansible_host=185.242.122.126 ansible_port=2252
+node-03.testnet                         ansible_host=185.242.122.126 ansible_port=2253
+
+[slave-host-testnet]
+explorer-worker-01.testnet              ansible_host=185.242.122.126 ansible_port=2225
+explorer-worker-02.testnet              ansible_host=185.242.122.126 ansible_port=2226
+gw-backend-01.testnet                   ansible_host=185.242.122.126 ansible_port=2231
+gw-backend-02.testnet                   ansible_host=185.242.122.126 ansible_port=2232
+
+[explorer-host-testnet]
+explorer-db-slave-01.testnet            ansible_host=185.242.122.126 ansible_port=2211
+explorer-db-slave-02.testnet            ansible_host=185.242.122.126 ansible_port=2212
+explorer-db-master.testnet              ansible_host=185.242.122.126 ansible_port=2210
+explorer-indexer.testnet                ansible_host=185.242.122.126 ansible_port=2220
