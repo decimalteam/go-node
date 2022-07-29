@@ -1,33 +1,33 @@
-[master-host-dev]
-dev-node-validator-01               ansible_host=185.202.107.205 ansible_port=2251
-dev-node-validator-02               ansible_host=185.202.107.205 ansible_port=2252
-dev-node-validator-03               ansible_host=185.202.107.205 ansible_port=2253
+[master-host-devnet]
+dev-node-validator-01.devnet            ansible_host=185.202.107.205 ansible_port=2251
+dev-node-validator-02.devnet            ansible_host=185.202.107.205 ansible_port=2252
+dev-node-validator-03.devnet            ansible_host=185.202.107.205 ansible_port=2253
 
-[slave-host-dev]
-explorer-worker-01                  ansible_host=185.202.107.205 ansible_port=2225
-explorer-worker-02                  ansible_host=185.202.107.205 ansible_port=2226
-gw-backend-01                       ansible_host=185.202.107.205 ansible_port=2231
-gw-backend-02                       ansible_host=185.202.107.205 ansible_port=2232
+[slave-host-devnet]
+explorer-worker-01.devnet               ansible_host=185.202.107.205 ansible_port=2225
+explorer-worker-02.devnet               ansible_host=185.202.107.205 ansible_port=2226
+gw-backend-01.devnet                    ansible_host=185.202.107.205 ansible_port=2231
+gw-backend-02.devnet                    ansible_host=185.202.107.205 ansible_port=2232
 
-[explorer-host-dev]
-explorer-db-slave-01                ansible_host=185.202.107.205 ansible_port=2211
-explorer-db-slave-02                ansible_host=185.202.107.205 ansible_port=2212
-explorer-db-master                  ansible_host=185.202.107.205 ansible_port=2210
-explorer-indexer                    ansible_host=185.202.107.205 ansible_port=2220
+[explorer-host-devnet]
+explorer-db-slave-01.devnet             ansible_host=185.202.107.205 ansible_port=2211
+explorer-db-slave-02.devnet             ansible_host=185.202.107.205 ansible_port=2212
+explorer-db-master.devnet               ansible_host=185.202.107.205 ansible_port=2210
+explorer-indexer.devnet                 ansible_host=185.202.107.205 ansible_port=2220
 
 [master-host-testnet]
-validator-1                         ansible_host=139.59.133.148
-validator-2                         ansible_host=64.225.110.228
-validator-3                         ansible_host=64.225.56.107
+node-01.testnet                         ansible_host=185.242.122.126 ansible_port=2251
+node-02.testnet                         ansible_host=185.242.122.126 ansible_port=2252
+node-03.testnet                         ansible_host=185.242.122.126 ansible_port=2253
 
 [slave-host-testnet]
-slave-node-1                       ansible_host=167.172.99.82
-slave-node-2                       ansible_host=161.35.17.232
-slave-node-3                       ansible_host=68.183.69.202
-slave-node-4                       ansible_host=161.35.70.208
+explorer-worker-01.testnet              ansible_host=185.242.122.126 ansible_port=2225
+explorer-worker-02.testnet              ansible_host=185.242.122.126 ansible_port=2226
+gw-backend-01.testnet                   ansible_host=185.242.122.126 ansible_port=2231
+gw-backend-02.testnet                   ansible_host=185.242.122.126 ansible_port=2232
 
 [explorer-host-testnet]
-explorer-host-1                    ansible_host=161.35.79.175
-explorer-host-2                    ansible_host=161.35.18.95
-explorer-host-3                    ansible_host=167.172.99.82
-explorer-host-4                    ansible_host=161.35.17.232
+explorer-db-slave-01.testnet            ansible_host=185.242.122.126 ansible_port=2211
+explorer-db-slave-02.testnet            ansible_host=185.242.122.126 ansible_port=2212
+explorer-db-master.testnet              ansible_host=185.242.122.126 ansible_port=2210
+explorer-indexer.testnet                ansible_host=185.242.122.126 ansible_port=2220
