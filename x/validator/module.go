@@ -2,10 +2,6 @@ package validator
 
 import (
 	"encoding/json"
-	"fmt"
-	"math/rand"
-	"os"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -109,7 +105,6 @@ type AppModule struct {
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(k Keeper, supplyKeeper supply.Keeper, coinKeeper coin.Keeper) AppModule {
-	rand.Seed(time.Now().UnixNano())
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
@@ -169,13 +164,5 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 // EndBlock returns the end blocker for the validator module. It returns no validator
 // updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	res := EndBlocker(ctx, am.keeper, am.coinKeeper, am.supplyKeeper, true)
-
-	sleep := rand.Intn(2000)
-
-	os.Stdout.WriteString(fmt.Sprintf("sleep %d %d\n", ctx.BlockHeight(), sleep))
-	time.Sleep(time.Duration(sleep) * time.Millisecond)
-	os.Stdout.WriteString(fmt.Sprintf("awake %d\n", ctx.BlockHeight()))
-
-	return res
+	return EndBlocker(ctx, am.keeper, am.coinKeeper, am.supplyKeeper, true)
 }
