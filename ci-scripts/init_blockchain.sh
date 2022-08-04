@@ -2,7 +2,7 @@
 
 # Add initial signed transactions to the genesis file
 decd gen-declare-candidate-tx \
-    --chain-id decimal-devnet-04-04-00-00 \
+    --chain-id decimal-devnet-08-04-00-00 \
     --name dev-node-validator-01 \
     --sequence 0 \
     --amount 40000000000000000000000000del \

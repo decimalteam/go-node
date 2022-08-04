@@ -76,7 +76,7 @@ const devNetGenesis = `
                   "type": "tendermint/PubKeySecp256k1",
                   "value": "AyXteacATBJVsNGhTGUwgHfLO4mJTXhvK/H/2MLOTylo"
                 },
-                "signature": "CKhtO5PtavexX3HtLcSrcshv1BenrLHg5sZVO9DJ8Sx+zJc5/2bxROx17DWQLqtETGOGOmzVYzJp7sstRbwEMg=="
+                "signature": "+1ZvRHeNmCv39xb9GXeaLDrIBhxOR35ZPLVS1o7izv864+JQobmLbryz4CVFy76fhnv9EHkxhMP5na/C1/zRtQ=="
               }
             ],
             "memo": ""
