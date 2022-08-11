@@ -45,6 +45,35 @@ func (k Keeper) GetSubToken(ctx sdk.Context, denom, id string, subTokenID int64)
 	return reserve, true
 }
 
+func (k Keeper) GetSubTokens(ctx sdk.Context) []types.SubToken {
+	result := make([]types.SubToken, 0)
+
+	k.IterateCollections(ctx, func(collection types.Collection) (stop bool) {
+		denom := collection.Denom
+		for _, nft := range collection.NFTs { // iterate nfts in collection
+			id := nft.GetID()
+
+			lastSubId := k.GetLastSubTokenID(ctx, denom, id)
+			var i int64 = 1
+			for ; i <= lastSubId; i++ { // iterate nft subTokens
+				reserve, ok := k.GetSubToken(ctx, denom, id, i)
+				if ok {
+					result = append(result, types.SubToken{
+						CollectionDenom: denom,
+						NftID:           id,
+						TokenID:         i,
+						Reserve:         reserve,
+					})
+				}
+			}
+		}
+
+		return false
+	})
+
+	return result
+}
+
 func (k Keeper) SetSubToken(ctx sdk.Context, denom, id string, subTokenID int64, reserve sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	subTokenKey := types.GetSubTokenKey(denom, id, subTokenID)
@@ -69,6 +98,28 @@ func (k Keeper) GetLastSubTokenID(ctx sdk.Context, denom, id string) int64 {
 	b := make([]byte, 8)
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &b)
 	return int64(binary.LittleEndian.Uint64(b))
+}
+
+func (k Keeper) GetLastSubTokenIDs(ctx sdk.Context) []types.LastSubTokenId {
+	result := make([]types.LastSubTokenId, 0)
+
+	k.IterateCollections(ctx, func(collection types.Collection) (stop bool) {
+		denom := collection.Denom
+		for _, nft := range collection.NFTs { // iterate nfts in collection
+			id := nft.GetID()
+			lastSubTOkenId := k.GetLastSubTokenID(ctx, denom, id)
+
+			result = append(result, types.LastSubTokenId{
+				CollectionDenom:  denom,
+				NftID:            id,
+				LastTokenTokenID: lastSubTOkenId,
+			})
+		}
+
+		return false
+	})
+
+	return result
 }
 
 func (k Keeper) SetLastSubTokenID(ctx sdk.Context, denom, id string, lastSubTokenID int64) {
@@ -106,6 +157,25 @@ func (k Keeper) ExistTokenID(ctx sdk.Context, id string) bool {
 	tokenIDKey := types.GetTokenIDKey(id)
 
 	return store.Has(tokenIDKey)
+}
+
+func (k Keeper) GetAllTokenIDs(ctx sdk.Context) []types.TokenId {
+	result := make([]types.TokenId, 0)
+
+	k.IterateCollections(ctx, func(collection types.Collection) (stop bool) {
+		denom := collection.Denom
+		for _, nft := range collection.NFTs { // iterate nfts in collection
+			id := nft.GetID()
+			result = append(result, types.TokenId{
+				CollectionDenom: denom,
+				NftID:           id,
+			})
+		}
+
+		return false
+	})
+
+	return result
 }
 
 // MintNFT mints an NFT and manages that NFTs existence within Collections and Owners

@@ -27,3 +27,25 @@ func (k Keeper) GetChain(ctx sdk.Context, chainNumber int) (types.Chain, bool) {
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &chain)
 	return chain, true
 }
+
+func (k Keeper) GetAllChains(ctx sdk.Context) []types.Chain {
+	var chains []types.Chain
+	iterator := k.GetChainsIterator(ctx)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var chain types.Chain
+		err := k.cdc.UnmarshalBinaryLengthPrefixed(iterator.Value(), &chain)
+		if err != nil {
+			panic(err)
+		}
+		chains = append(chains, chain)
+	}
+	return chains
+}
+
+// GetChainsIterator gets an iterator over all chains
+func (k Keeper) GetChainsIterator(ctx sdk.Context) sdk.Iterator {
+	store := ctx.KVStore(k.storeKey)
+	return sdk.KVStorePrefixIterator(store, types.ChainKey)
+}

@@ -41,7 +41,6 @@ func NewBaseNFT(id string, creator, owner sdk.AccAddress, tokenURI string, reser
 
 // GetID returns the ID of the token
 
-
 func (bnft BaseNFT) GetID() string { return bnft.ID }
 
 // GetOwner returns the account address that owns the NFT
@@ -126,7 +125,6 @@ func TransferNFT(nft exported.NFT, sender, recipient sdk.AccAddress, subTokenIDs
 	senderOwner := nft.GetOwners().GetOwner(sender)
 
 	sort.Sort(SortedIntArray(subTokenIDs))
-
 
 	for _, id := range subTokenIDs {
 		if SortedIntArray(senderOwner.GetSubTokenIDs()).Find(id) == -1 {
@@ -219,6 +217,33 @@ func (nfts NFTs) Empty() bool {
 
 func (nfts NFTs) find(id string) int {
 	return FindUtil(nfts, id)
+}
+
+// ----------------------------------------------------------------------------
+// SubToken
+
+type SubToken struct {
+	CollectionDenom string  `json:"collection_denom"`
+	NftID           string  `json:"nft_id"`
+	TokenID         int64   `json:"token_id"`
+	Reserve         sdk.Int `json:"reserve"`
+}
+
+// ----------------------------------------------------------------------------
+// LastSubTokenId
+
+type LastSubTokenId struct {
+	CollectionDenom  string `json:"collection_denom"`
+	NftID            string `json:"nft_id"`
+	LastTokenTokenID int64  `json:"last_token_token_id"`
+}
+
+// ----------------------------------------------------------------------------
+// LastSubTokenId
+
+type TokenId struct {
+	CollectionDenom string `json:"collection_denom"`
+	NftID           string `json:"nft_id"`
 }
 
 // ----------------------------------------------------------------------------
