@@ -24,6 +24,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"bitbucket.org/decimalteam/go-node/config"
+	"bitbucket.org/decimalteam/go-node/utils/helpers"
 	"bitbucket.org/decimalteam/go-node/x/coin"
 	"bitbucket.org/decimalteam/go-node/x/multisig"
 	"bitbucket.org/decimalteam/go-node/x/nft"
@@ -1162,12 +1163,10 @@ func createTestAddr(numAddrs int) []sdk.AccAddress {
 
 /* Slow test */
 func TestMaximumSlots(t *testing.T) {
-	/*
-		for _, start := range []int64{0, 5000000, 10000000} {
-			fmt.Printf("START=%d\n", start)
-			testMaximumSlotsWithStartBlock(t, start)
-		}
-	*/
+	for _, start := range []int64{10_000_000} {
+		fmt.Printf("START=%d\n", start)
+		testMaximumSlotsWithStartBlock(t, start)
+	}
 }
 
 func testMaximumSlotsWithStartBlock(t *testing.T, height int64) {
@@ -1186,7 +1185,7 @@ func testMaximumSlotsWithStartBlock(t *testing.T, height int64) {
 	// set the unbonding time
 	params := keeper.GetParams(ctx)
 	params.MaxDelegations = 100
-	params.UnbondingTime = 1 * time.Second
+	params.UnbondingTime = 1 * time.Nanosecond
 	keeper.SetParams(ctx, params)
 
 	ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1).WithBlockTime(ctx.BlockTime().Add(time.Second))
@@ -1223,12 +1222,14 @@ func testMaximumSlotsWithStartBlock(t *testing.T, height int64) {
 	}
 	// create nft for almost everyone
 	nftIds := make(map[string]string)
+	// 1500 tokens, 3 subtokens
 	for i := 0; i < 1500; i++ {
 		addr := delegators[N+i]
 		id := generateUniq(10)
 		//TokensFromConsensusPower(1): stacktrace from panic: insufficient funds: insufficient account funds
 		//sdk.NewInt(10000): two validators disappear
-		msg := nft.NewMsgMintNFT(addr, addr, id, keeper.BondDenom(ctx), id, sdk.NewInt(1), sdk.NewInt(rand.Int63n(20)*100000000000000000+100000000000000000), true)
+		reserve := helpers.UnitToPip(sdk.NewInt(1000)).Add(helpers.UnitToPip(sdk.NewInt(rand.Int63n(2000))))
+		msg := nft.NewMsgMintNFT(addr, addr, id, id, id, sdk.NewInt(3), reserve, true)
 		nftIds[addr.String()] = id
 		_, err := nftHandler(ctx, msg)
 		if err != nil {
@@ -1240,7 +1241,8 @@ func testMaximumSlotsWithStartBlock(t *testing.T, height int64) {
 	require.Equal(t, N, len(keeper.GetLastValidators(ctx)))
 
 	// 2. bond/unbond
-	for i := 0; i < 10; i++ {
+	nftDelegated := 0
+	for i := 0; i < 60; i++ {
 		coinKeeper.ClearCoinCache()
 		var updates []abci.ValidatorUpdate
 		fmt.Printf("%d :: %d\n", height, i)
@@ -1260,7 +1262,7 @@ func testMaximumSlotsWithStartBlock(t *testing.T, height int64) {
 						coinAmount = sdk.NewCoin(cointags[coinid], TokensFromConsensusPower(int64(rand.Intn(3)+1)))
 					}
 				}
-				switch rand.Intn(6) {
+				switch rand.Intn(2) + 4 {
 				case 0: //delegate
 					{
 						msgDelegate := NewMsgDelegate(validatorAddr, delegatorAddr, coinAmount)
@@ -1305,10 +1307,13 @@ func testMaximumSlotsWithStartBlock(t *testing.T, height int64) {
 					{
 						id := nftIds[delegatorAddr.String()]
 						if id != "" {
-							msg := NewMsgDelegateNFT(validatorAddr, delegatorAddr, id, keeper.BondDenom(ctx), []int64{1})
+							subId := rand.Int63n(3) + 1
+							msg := NewMsgDelegateNFT(validatorAddr, delegatorAddr, id, id, []int64{subId})
 							_, err := valHandler(ctx, msg)
 							if err != nil {
 								//fmt.Printf("err delegate nft: %s\n", err.Error())
+							} else {
+								nftDelegated++
 							}
 						}
 
@@ -1317,16 +1322,21 @@ func testMaximumSlotsWithStartBlock(t *testing.T, height int64) {
 					{
 						id := nftIds[delegatorAddr.String()]
 						if id != "" {
-							msg := NewMsgUnbondNFT(validatorAddr, delegatorAddr, id, keeper.BondDenom(ctx), []int64{1})
+							subId := rand.Int63n(3) + 1
+							msg := NewMsgUnbondNFT(validatorAddr, delegatorAddr, id, id, []int64{subId})
 							_, err := valHandler(ctx, msg)
 							if err != nil {
 								//fmt.Printf("err delegate nft: %s\n", err.Error())
+							} else {
+								nftDelegated--
 							}
 						}
 					}
 				}
 			}
 		}
+		// increase time to complete unboding
+		ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Second))
 		// check validators count
 		updates = EndBlocker(ctx, keeper, coinKeeper, supplyKeeper, true)
 		//panic("check errors")
@@ -1369,5 +1379,24 @@ func testMaximumSlotsWithStartBlock(t *testing.T, height int64) {
 			fmt.Printf("%d=%d (%d) :: ", j, len(keeper.GetValidatorDelegations(ctx, validatorAddr)), v.Tokens)
 		}
 		fmt.Printf("\n")
+
+		// check NFT owning
+		ownersTokens := 0
+		for _, id := range nftIds {
+			nft, err := nftKeeper.GetNFT(ctx, id, id)
+			require.NoError(t, err)
+			for _, o := range nft.GetOwners().GetOwners() {
+				ownersTokens += len(o.GetSubTokenIDs())
+			}
+		}
+		valsTokens := 0
+		for _, del := range keeper.GetAllDelegations(ctx) {
+			switch d := del.(type) {
+			case types.DelegationNFT:
+				valsTokens += len(d.SubTokenIDs)
+			}
+		}
+		fmt.Printf("tokens delegated=%d, tokens owner=%d, sum=%d\n", valsTokens, ownersTokens, valsTokens+ownersTokens)
+		require.Equal(t, 1500*3, valsTokens+ownersTokens)
 	}
 }

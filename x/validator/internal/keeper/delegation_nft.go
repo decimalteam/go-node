@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"bitbucket.org/decimalteam/go-node/x/nft"
 	nftTypes "bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
@@ -204,5 +205,39 @@ func (k Keeper) unbondNFT(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.V
 		}
 	}
 
+	return nil
+}
+
+// returns NFT subtokens to owner (delegator)
+func (k Keeper) transferNFT(ctx sdk.Context, delegator sdk.AccAddress, denom, tokenID string, subTokens []int64) error {
+	collection, ok := k.nftKeeper.GetCollection(ctx, denom)
+	if !ok {
+		return fmt.Errorf("collection not found")
+	}
+
+	token, err := collection.GetNFT(tokenID)
+	if err != nil {
+		return err
+	}
+
+	owner := token.GetOwners().GetOwner(delegator)
+	if owner == nil {
+		owner = &nft.TokenOwner{
+			Address: delegator,
+		}
+	}
+
+	for _, id := range subTokens {
+		owner = owner.SetSubTokenID(id)
+	}
+
+	token = token.SetOwners(token.GetOwners().SetOwner(owner))
+
+	collection, err = collection.UpdateNFT(token)
+	if err != nil {
+		return err
+	}
+
+	k.nftKeeper.SetCollection(ctx, denom, collection)
 	return nil
 }

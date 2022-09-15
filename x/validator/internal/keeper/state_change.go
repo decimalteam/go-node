@@ -340,20 +340,22 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 
 	for i := maxDelegations; i < len(delegations); i++ {
 		delegation := delegations[i]
-		switch validator.Status {
-		case types.Bonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegation.GetDelegatorAddr(), sdk.NewCoins(delegation.GetCoin()))
-			if err != nil {
-				panic(err)
-			}
-		case types.Unbonded:
-			err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegation.GetDelegatorAddr(), sdk.NewCoins(delegation.GetCoin()))
-			if err != nil {
-				panic(err)
-			}
-		}
 		switch d := delegation.(type) {
 		case types.Delegation:
+			switch validator.Status {
+			// 1. return coins to delegator
+			case types.Bonded:
+				err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delegation.GetDelegatorAddr(), sdk.NewCoins(delegation.GetCoin()))
+				if err != nil {
+					panic(err)
+				}
+			case types.Unbonded:
+				err := k.supplyKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.NotBondedPoolName, delegation.GetDelegatorAddr(), sdk.NewCoins(delegation.GetCoin()))
+				if err != nil {
+					panic(err)
+				}
+			}
+			// 2. remove stake
 			err := k.unbond(ctx, d.DelegatorAddress, d.ValidatorAddress, d.Coin, false)
 			if err != nil {
 				panic(err)
@@ -367,7 +369,13 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 				),
 			)
 		case types.DelegationNFT:
-			err := k.unbondNFT(ctx, d.DelegatorAddress, d.ValidatorAddress, d.TokenID, d.Denom, d.SubTokenIDs, false)
+			// 1. return NFT to delegator
+			err := k.transferNFT(ctx, d.DelegatorAddress, d.Denom, d.TokenID, d.SubTokenIDs)
+			if err != nil {
+				panic(err)
+			}
+			// 2. remove stake
+			err = k.unbondNFT(ctx, d.DelegatorAddress, d.ValidatorAddress, d.TokenID, d.Denom, d.SubTokenIDs, false)
 			if err != nil {
 				panic(err)
 			}
@@ -378,6 +386,8 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					types.EventTypeCompleteUnbondingNFT,
+					sdk.NewAttribute(types.AttributeKeyDelegator, d.DelegatorAddress.String()),
+					sdk.NewAttribute(types.AttributeKeyValidator, d.ValidatorAddress.String()),
 					sdk.NewAttribute(types.AttributeKeyDenom, d.Denom),
 					sdk.NewAttribute(types.AttributeKeyID, d.TokenID),
 					sdk.NewAttribute(types.AttributeKeySubTokenIDs, strings.Join(subTokenIDs, ",")),

@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
-	"bitbucket.org/decimalteam/go-node/x/nft"
 	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"bitbucket.org/decimalteam/go-node/x/validator/internal/types"
 )
@@ -710,35 +709,10 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, delAddr sdk.AccAddress,
 					}
 					// k.SubtractDelegatedCoin(ctx, entry.Balance)
 				case types.UnbondingDelegationNFTEntry:
-					collection, ok := k.nftKeeper.GetCollection(ctx, entry.Denom)
-					if !ok {
-						return fmt.Errorf("collection not found")
-					}
-
-					token, err := collection.GetNFT(entry.TokenID)
+					err := k.transferNFT(ctx, delAddr, entry.Denom, entry.TokenID, entry.SubTokenIDs)
 					if err != nil {
 						return err
 					}
-
-					owner := token.GetOwners().GetOwner(delAddr)
-					if owner == nil {
-						owner = &nft.TokenOwner{
-							Address: delAddr,
-						}
-					}
-
-					for _, id := range entry.SubTokenIDs {
-						owner = owner.SetSubTokenID(id)
-					}
-
-					token = token.SetOwners(token.GetOwners().SetOwner(owner))
-
-					collection, err = collection.UpdateNFT(token)
-					if err != nil {
-						return err
-					}
-
-					k.nftKeeper.SetCollection(ctx, entry.Denom, collection)
 				default:
 					panic(fmt.Sprintf("%T", entry))
 				}
