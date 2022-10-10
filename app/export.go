@@ -1,11 +1,12 @@
 package app
 
 import (
-	"bitbucket.org/decimalteam/go-node/x/validator"
 	"encoding/json"
+	"log"
+
+	"bitbucket.org/decimalteam/go-node/x/validator"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,6 +26,10 @@ func (app *newApp) ExportAppStateAndValidators(
 	}
 
 	genState := app.mm.ExportGenesis(ctx)
+
+	// there is not last height in modules
+	genState["last_height"], _ = json.Marshal(app.LastBlockHeight())
+
 	appState, err = codec.MarshalJSONIndent(app.cdc, genState)
 	if err != nil {
 		return nil, nil, err
@@ -36,7 +41,8 @@ func (app *newApp) ExportAppStateAndValidators(
 
 // prepare for fresh start at zero height
 // NOTE zero height genesis is a temporary feature which will be deprecated
-//      in favour of export at a block height
+//
+//	in favour of export at a block height
 func (app *newApp) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []string) {
 	applyWhiteList := false
 
