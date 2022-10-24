@@ -47,6 +47,7 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	defer func() {
 		duration := time.Since(start)
 		k.Logger(ctx).Info(fmt.Sprintf("EndBlocker duration: %d ns", duration.Nanoseconds))
+		ctx.Logger().Info(fmt.Sprintf("EndBlocker duration: %d ns", duration.Nanoseconds))
 	}()
 
 	// Calculate validator set changes.
