@@ -157,8 +157,12 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 		}
 	}
 
-	duration := time.Now().Sub(start)
-	ctx.Logger().Info(fmt.Sprintf("EndBlocker duration2: %d ns", duration.Nanoseconds))
+	end := time.Now()
+	duration := end.Sub(start)
+	ctx.Logger().Info(fmt.Sprintf("EndBlocker duration2: %v ns", duration))
+	ctx.Logger().Info(start.String())
+	ctx.Logger().Info(end.String())
+	ctx.Logger().Info(duration.String())
 
 	return validatorUpdates
 }
