@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"time"
 
 	"bitbucket.org/decimalteam/go-node/utils/formulas"
 	"bitbucket.org/decimalteam/go-node/x/coin"
@@ -42,6 +43,12 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, withRewards bool) []abci.ValidatorUpdate {
+	start := time.Now()
+	defer func() {
+		duration := time.Since(start)
+		k.Logger(ctx).Info(fmt.Sprintf("EndBlocker duration: %d ns", duration.Nanoseconds))
+	}()
+
 	// Calculate validator set changes.
 	//
 	// NOTE: ApplyAndReturnValidatorSetUpdates has to come before

@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -31,6 +32,12 @@ import (
 // at the previous block height or were removed from the validator set entirely
 // are returned to Tendermint.
 func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.ValidatorUpdate, error) {
+	start := time.Now()
+	defer func() {
+		duration := time.Since(start)
+		k.Logger(ctx).Info(fmt.Sprintf("ApplyAndReturnValidatorSetUpdates duration: %d ns", duration.Nanoseconds))
+	}()
+
 	var updates []abci.ValidatorUpdate
 	var err error
 
@@ -332,6 +339,11 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, validator types.Validator) (t
 }
 
 func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, delegations []exported.DelegationI) []exported.DelegationI {
+	start := time.Now()
+	defer func() {
+		duration := time.Since(start)
+		k.Logger(ctx).Info(fmt.Sprintf("CheckDelegations duration: %d ns", duration.Nanoseconds))
+	}()
 
 	maxDelegations := int(k.MaxDelegations(ctx))
 	if len(delegations) <= maxDelegations {
