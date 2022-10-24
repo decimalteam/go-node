@@ -45,8 +45,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper supply.Keeper, withRewards bool) []abci.ValidatorUpdate {
 	start := time.Now()
 	defer func() {
-		duration := time.Since(start)
-		k.Logger(ctx).Info(fmt.Sprintf("EndBlocker duration: %d ns", duration.Nanoseconds))
+		duration := time.Now().Sub(start)
 		ctx.Logger().Info(fmt.Sprintf("EndBlocker duration: %d ns", duration.Nanoseconds))
 	}()
 
@@ -157,6 +156,9 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 			panic(err)
 		}
 	}
+
+	duration := time.Now().Sub(start)
+	ctx.Logger().Info(fmt.Sprintf("EndBlocker duration2: %d ns", duration.Nanoseconds))
 
 	return validatorUpdates
 }
