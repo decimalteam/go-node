@@ -349,9 +349,9 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 		t := fmt.Sprintf("%20.6fms", float64(duration.Milliseconds())+float64(duration.Nanoseconds()%1000000)/1000000.0)
 		ctx.Logger().Info(
 			fmt.Sprintf("CheckDelegations duration: %s", t),
-			"validator-name",
+			"name",
 			validator.Description.Moniker,
-			"validator-address",
+			"address",
 			validator.ValAddress.String(),
 		)
 	}()
