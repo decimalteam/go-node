@@ -35,8 +35,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) ([]abci.Valid
 	start := time.Now()
 	defer func() {
 		duration := time.Since(start)
-		k.Logger(ctx).Info(fmt.Sprintf("ApplyAndReturnValidatorSetUpdates duration: %d ns", duration.Nanoseconds))
-		ctx.Logger().Info(fmt.Sprintf("ApplyAndReturnValidatorSetUpdates duration: %d ns", duration.Nanoseconds))
+		ctx.Logger().Info(fmt.Sprintf("ApplyAndReturnValidatorSetUpdates duration: %v", duration.Nanoseconds))
 	}()
 
 	var updates []abci.ValidatorUpdate
@@ -343,8 +342,7 @@ func (k Keeper) checkDelegations(ctx sdk.Context, validator types.Validator, del
 	start := time.Now()
 	defer func() {
 		duration := time.Since(start)
-		k.Logger(ctx).Info(fmt.Sprintf("CheckDelegations duration: %d ns", duration.Nanoseconds))
-		ctx.Logger().Info(fmt.Sprintf("CheckDelegations duration: %d ns", duration.Nanoseconds))
+		ctx.Logger().Info(fmt.Sprintf("CheckDelegations duration: %v", duration.Nanoseconds))
 	}()
 
 	maxDelegations := int(k.MaxDelegations(ctx))
