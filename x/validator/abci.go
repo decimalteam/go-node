@@ -160,9 +160,8 @@ func EndBlocker(ctx sdk.Context, k Keeper, coinKeeper coin.Keeper, supplyKeeper 
 	end := time.Now()
 	duration := end.Sub(start)
 	ctx.Logger().Info(fmt.Sprintf("EndBlocker duration2: %v ns", duration))
-	ctx.Logger().Info(start.String())
-	ctx.Logger().Info(end.String())
-	ctx.Logger().Info(duration.String())
+	ctx.Logger().Info(fmt.Sprintf("EndBlocker duration3: %v ns", start))
+	ctx.Logger().Info(fmt.Sprintf("EndBlocker duration4: %v ns", end))
 
 	return validatorUpdates
 }
