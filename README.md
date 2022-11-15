@@ -85,18 +85,12 @@ curl -s 'https://mainnet-gate.decimalchain.com/api/rpc/genesis' | jq '.result.ge
 
 ## Sync your Node
 
-Download Decimal Node backup for mainnet from https://backup.decimalchain.com
+Download Decimal Node backup for mainnet using rsync:
 
-```bash
-curl -O https://backup.decimalchain.com/decimalchain-2021-11-16_09-43.tgz
+```
+#rsync -avPh rsync://rsync-mainnet.decimalchain.com:10000/hourly-data/ ~centos/.decimal/daemon/data/ --delete
 ```
 
-Extract downloaded archive and move the contents of data directory from it to the ~/.decimal/daemon/data
-
-```bash
-tar -xvf decimalchain-2021-11-16_09-43.tgz
-cp -rv ./zfspool/2021-11-16_09-43/daemon/data/ ~/.decimal/daemon/data/
-```
 
 ## Running
 
