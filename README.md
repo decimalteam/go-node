@@ -19,6 +19,10 @@ brew install coreutils
 
 ## Installing
 
+You can get latest binary files for your OS using this url: https://repo.decimalchain.com/ $update_block(you can get this variable using this url: https://repo.decimalchain.com/update_block.txt)
+
+You can also build binaries from source:
+
 Clone repository
 
 ```bash
