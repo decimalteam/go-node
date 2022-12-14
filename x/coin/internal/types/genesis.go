@@ -12,14 +12,16 @@ type GenesisState struct {
 	Title         string  `json:"title" yaml:"title"`   // Full coin title (Bitcoin)
 	Symbol        string  `json:"symbol" yaml:"symbol"` // Short coin title (BTC)
 	InitialVolume sdk.Int `json:"initial_volume" yaml:"initial_volume"`
+	Coins         []Coin  `json:"coins" yaml:"coins"` // custom coins in store
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(title string, symbol string, initVolume sdk.Int) GenesisState {
+func NewGenesisState(title string, symbol string, initVolume sdk.Int, coins []Coin) GenesisState {
 	return GenesisState{
 		Title:         title,
 		Symbol:        symbol,
 		InitialVolume: initVolume,
+		Coins:         coins,
 	}
 }
 
@@ -29,6 +31,7 @@ func DefaultGenesisState() GenesisState {
 		Title:         config.TitleBaseCoin,
 		Symbol:        config.SymbolBaseCoin,
 		InitialVolume: config.InitialVolumeBaseCoin,
+		Coins:         []Coin{},
 	}
 }
 

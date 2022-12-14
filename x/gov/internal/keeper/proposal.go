@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	"bitbucket.org/decimalteam/go-node/x/gov/internal/types"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -82,11 +84,17 @@ func (keeper Keeper) DeleteProposal(ctx sdk.Context, proposalID uint64) {
 func (keeper Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposal) (stop bool)) {
 	store := ctx.KVStore(keeper.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ProposalsKeyPrefix)
+	logger := keeper.Logger(ctx)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var proposal types.Proposal
-		keeper.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &proposal)
+		proposal, err := UnmarshalProposal(keeper.cdc, iterator.Value())
+		switch {
+		case err != nil && strings.HasPrefix(err.Error(), "Bytes left over in UnmarshalBinaryLengthPrefixed,"):
+			logger.Error(fmt.Sprintf("cannot parse proposal with key %s, and value %s", string(iterator.Key()), string(iterator.Value())))
+		case err != nil:
+			panic(err)
+		}
 
 		if cb(proposal) {
 			break
@@ -101,4 +109,23 @@ func (keeper Keeper) GetProposals(ctx sdk.Context) (proposals types.Proposals) {
 		return false
 	})
 	return
+}
+
+// amino methods
+
+func MustMarshaProposal(cdc *codec.Codec, ubd types.Proposal) []byte {
+	return cdc.MustMarshalBinaryLengthPrefixed(ubd)
+}
+
+func UnmarshalProposal(cdc *codec.Codec, value []byte) (prop types.Proposal, err error) {
+	err = cdc.UnmarshalBinaryLengthPrefixed(value, &prop)
+	return prop, err
+}
+
+func MustUnmarshalProposal(cdc *codec.Codec, value []byte) types.Proposal {
+	prop, err := UnmarshalProposal(cdc, value)
+	if err != nil {
+		panic(err)
+	}
+	return prop
 }

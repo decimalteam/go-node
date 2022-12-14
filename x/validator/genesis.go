@@ -157,13 +157,24 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 	validators := keeper.GetAllValidators(ctx)
 	delegations := keeper.GetAllDelegations(ctx)
 
+	var delegatedCoinsMap = make(map[string]sdk.Int)
 	var baseDelegations types.Delegations
 	var delegationsNFT types.DelegationsNFT
 	for _, delegation := range delegations {
 		switch delegation := delegation.(type) {
 		case types.Delegation:
+			if _, ok := delegatedCoinsMap[delegation.Coin.Denom]; ok {
+				delegatedCoinsMap[delegation.Coin.Denom] = delegatedCoinsMap[delegation.Coin.Denom].Add(delegation.Coin.Amount)
+			} else {
+				delegatedCoinsMap[delegation.Coin.Denom] = sdk.NewInt(0).Add(delegation.Coin.Amount)
+			}
 			baseDelegations = append(baseDelegations, delegation)
 		case types.DelegationNFT:
+			if _, ok := delegatedCoinsMap[delegation.Coin.Denom]; ok {
+				delegatedCoinsMap[delegation.Coin.Denom] = delegatedCoinsMap[delegation.Coin.Denom].Add(delegation.Coin.Amount)
+			} else {
+				delegatedCoinsMap[delegation.Coin.Denom] = sdk.NewInt(0).Add(delegation.Coin.Amount)
+			}
 			delegationsNFT = append(delegationsNFT, delegation)
 		}
 	}
@@ -173,21 +184,32 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 		unbondingDelegations = append(unbondingDelegations, ubd)
 		return false
 	})
+	var nftUnbondingDelegations types.NFTUnbondingDelegations
+	keeper.IterateNFTUnbondingDelegations(ctx, func(_ int64, ubdNFT types.NFTUnbondingDelegation) (stop bool) {
+		nftUnbondingDelegations = append(nftUnbondingDelegations, ubdNFT)
+		return false
+	})
 	var lastValidatorPowers []types.LastValidatorPower
 	keeper.IterateLastValidatorPowers(ctx, func(addr sdk.ValAddress, power int64) (stop bool) {
 		lastValidatorPowers = append(lastValidatorPowers, types.LastValidatorPower{Address: addr, Power: power})
 		return false
 	})
+	delegatedCoins := make([]sdk.Coin, 0)
+	for denom, amount := range delegatedCoinsMap {
+		delegatedCoins = append(delegatedCoins, sdk.NewCoin(denom, amount))
+	}
 
 	return types.GenesisState{
-		Params:               params,
-		LastTotalPower:       lastTotalPower,
-		LastValidatorPowers:  lastValidatorPowers,
-		Validators:           validators,
-		Delegations:          baseDelegations,
-		DelegationsNFT:       delegationsNFT,
-		UnbondingDelegations: unbondingDelegations,
-		Exported:             true,
+		Params:                  params,
+		LastTotalPower:          lastTotalPower,
+		LastValidatorPowers:     lastValidatorPowers,
+		Validators:              validators,
+		Delegations:             baseDelegations,
+		DelegationsNFT:          delegationsNFT,
+		UnbondingDelegations:    unbondingDelegations,
+		NFTUnbondingDelegations: nftUnbondingDelegations,
+		DelegatedCoins:          delegatedCoins,
+		Exported:                true,
 	}
 }
 

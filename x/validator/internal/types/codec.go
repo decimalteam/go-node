@@ -1,11 +1,18 @@
 package types
 
 import (
+	"bitbucket.org/decimalteam/go-node/x/validator/exported"
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
 // RegisterCodec registers concrete types on codec
 func RegisterCodec(cdc *codec.Codec) {
+	// Register Interfaces
+	cdc.RegisterInterface((*exported.Event)(nil), nil)
+	cdc.RegisterInterface((*exported.DelegationI)(nil), nil)
+	cdc.RegisterInterface((*exported.ValidatorI)(nil), nil)
+	cdc.RegisterInterface((*exported.UnbondingDelegationEntryI)(nil), nil)
+	// Register Msgs
 	cdc.RegisterConcrete(MsgDeclareCandidate{}, "validator/declare_candidate", nil)
 	cdc.RegisterConcrete(MsgDelegate{}, "validator/delegate", nil)
 	cdc.RegisterConcrete(MsgDelegateNFT{}, "validator/delegate_nft", nil)
@@ -14,6 +21,8 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgEditCandidate{}, "validator/edit_candidate", nil)
 	cdc.RegisterConcrete(MsgSetOnline{}, "validator/set_online", nil)
 	cdc.RegisterConcrete(MsgSetOffline{}, "validator/set_offline", nil)
+	// Register types
+	cdc.RegisterConcrete(UnbondingDelegationEntry{}, "validator/unbonding_delegation_entry", nil)
 }
 
 // ModuleCdc defines the module codec
