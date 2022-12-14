@@ -111,7 +111,7 @@ var cfg = &config.Config{}
 // Newgo-nodeApp is a constructor function for go-nodeApp
 func NewInitApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *newApp {
-	fmt.Printf("decd version: %s\n", config.DecimalVersion)
+	//fmt.Printf("decd version: %s\n", config.DecimalVersion)
 
 	// First define the top level codec that will be shared by the different modules
 	cdc := MakeCodec()

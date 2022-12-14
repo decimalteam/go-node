@@ -84,14 +84,14 @@ func (keeper Keeper) DeleteProposal(ctx sdk.Context, proposalID uint64) {
 func (keeper Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposal) (stop bool)) {
 	store := ctx.KVStore(keeper.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ProposalsKeyPrefix)
-	logger := keeper.Logger(ctx)
+	//logger := keeper.Logger(ctx)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		proposal, err := UnmarshalProposal(keeper.cdc, iterator.Value())
 		switch {
 		case err != nil && strings.HasPrefix(err.Error(), "Bytes left over in UnmarshalBinaryLengthPrefixed,"):
-			logger.Error(fmt.Sprintf("cannot parse proposal with key %s, and value %s", string(iterator.Key()), string(iterator.Value())))
+			//logger.Error(fmt.Sprintf("cannot parse proposal with key %s, and value %s", string(iterator.Key()), string(iterator.Value())))
 		case err != nil:
 			panic(err)
 		}
