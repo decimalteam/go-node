@@ -2,6 +2,16 @@ image: python:3.8.2
 
 definitions:
   steps:
+    - step: &mirror
+        name: Sync GitHub Mirror
+        image: alpine/git:latest
+        clone:
+          enabled: false
+        script:
+          - git clone --bare git@bitbucket.org:decimalteam/go-node.git
+          - cd go-node.git
+          - git push --mirror git@github.com:decimalteam/go-node.git
+
     - step: &build
         name: Build
         image: centos:centos8
@@ -417,15 +427,18 @@ options:
 pipelines:
   branches:
     master:
+      - step: *mirror
       - step: *build
 
     staging:
+      - step: *mirror
       - step: *build
       - step:
           deployment: Staging
           <<: *deploy
 
     develop:
+      - step: *mirror
       - step: *build
       - step:
           deployment: Test
